@@ -1,0 +1,13 @@
+{
+  "name": "lmr-capitals",
+  "version": "1.0.0",
+  "description": "LMR Capitals — trading journal + Notion exporter",
+  "scripts": {
+    "notion-export": "node notion-export.js",
+    "serve": "python3 -m http.server 3000"
+  },
+  "dependencies": {
+    "@notionhq/client": "^2.2.15",
+    "dotenv": "^16.4.5"
+  }
+}
