@@ -1,0 +1,6 @@
+.env
+node_modules/
+notion-export.js
+package.json
+package-lock.json
+lmr-notion-export.json

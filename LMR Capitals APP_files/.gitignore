@@ -1,0 +1,6 @@
+.env
+node_modules/
+lmr-notion-export.json
+notion-images/
+.netlify/
+.claude/
