@@ -878,9 +878,26 @@ Midnight Open $______"></textarea>
 <!-- DAILY -->
 <div class="panel" id="p-daily">
 <div class="panel-inner">
+  <!-- Month navigator -->
+  <div class="mc-topbar">
+    <button class="mc-nav-btn" onclick="prevDailyMonth()">◀</button>
+    <div class="mc-month-title" id="mcMonthTitle">MAY 2026</div>
+    <button class="mc-nav-btn" onclick="todayDailyMonth()">Today</button>
+    <button class="mc-nav-btn" onclick="nextDailyMonth()">▶</button>
+  </div>
+  <!-- Stats strip -->
+  <div class="mc-stats" id="mcStats"></div>
+  <!-- Calendar grid -->
   <div class="card">
-    <div class="card-head"><span class="card-tag t-d">Daily Pages</span><div class="card-title">All saved daily entries (continues from Day 362)</div></div>
-    <div class="card-body" id="dailyList"></div>
+    <div class="card-body" style="padding:10px">
+      <div class="mc-grid" id="mcGrid">
+        <div class="mc-hdr">MON</div>
+        <div class="mc-hdr">TUE</div>
+        <div class="mc-hdr">WED</div>
+        <div class="mc-hdr">THU</div>
+        <div class="mc-hdr">FRI</div>
+      </div>
+    </div>
   </div>
 </div>
 </div>
@@ -1009,17 +1026,38 @@ Midnight Open $______"></textarea>
   <div class="card">
     <div class="card-head"><span class="card-tag t-g">Data</span><div class="card-title">Backup &amp; Restore</div></div>
     <div class="card-body">
-      <p style="color:var(--text2);font-size:12px;margin-bottom:12px">All data stored locally. Export regularly.</p>
-      <div class="flex-row">
-        <button class="btn btn-primary" onclick="exportData()">📤 Export</button>
-        <button class="btn" onclick="document.getElementById(&#39;importFile&#39;).click()">📥 Import</button>
+      <p style="color:var(--text2);font-size:12px;margin-bottom:12px">Images are stored in your browser (IndexedDB). Export JSON regularly — it includes all images.</p>
+      <div class="flex-row" style="margin-bottom:10px">
+        <button class="btn btn-primary" onclick="exportData()">📤 Export JSON</button>
+        <button class="btn" onclick="document.getElementById('importFile').click()">📥 Import</button>
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
         <button class="btn btn-bear" onclick="clearAllData()">🗑 Clear All</button>
+      </div>
+      <!-- Notion Image Sync -->
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:14px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span style="font-size:13px;font-weight:700">📸 Sync Notion Images</span>
+          <span class="tag tg-gold" style="background:var(--gold-bg);color:var(--gold);border:1px solid rgba(245,166,35,.25)">NOTION</span>
+        </div>
+        <p style="font-size:11px;color:var(--text2);margin-bottom:10px;line-height:1.6">After running <code style="background:var(--bg2);padding:1px 5px;border-radius:4px;font-size:10px;color:var(--gold)">node notion-export.js</code>, click below to load all screenshots into the app.</p>
+        <div class="flex-row" style="margin-bottom:8px">
+          <button class="btn btn-primary btn-sm" onclick="syncNotionImages()" id="syncImgBtn">🔄 Sync All Images</button>
+          <button class="btn btn-sm" onclick="checkNotionImages()">🔍 Check</button>
+        </div>
+        <div id="syncImgProgress" style="display:none">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-bottom:4px">
+            <span id="syncImgLabel">Syncing…</span><span id="syncImgCount"></span>
+          </div>
+          <div style="background:var(--bg2);border-radius:99px;height:6px;overflow:hidden;border:1px solid var(--border)">
+            <div id="syncImgBar" style="height:100%;background:linear-gradient(90deg,var(--bull),var(--gold));border-radius:99px;width:0%;transition:width .3s"></div>
+          </div>
+        </div>
+        <div id="syncImgResult" style="font-size:11px;margin-top:6px"></div>
       </div>
       <hr class="div">
       <div class="form-row"><label class="form-label">Starting Day Count</label><input type="number" id="set-day" placeholder="362"></div>
       <div class="form-row"><label class="form-label">Day Count Start Date</label><input type="date" id="set-day-date"></div>
-      <button class="btn btn-sm" onclick="saveSettings()">Save settings</button>
+      <button class="btn btn-sm btn-primary" onclick="saveSettings()" style="margin-top:6px">💾 Save Settings</button>
       <hr class="div">
       <div id="storageStats"></div>
     </div>
@@ -1165,6 +1203,83 @@ Midnight Open $______"></textarea>
 </div>
 
 <input type="file" id="fileInput" accept="image/*" style="display:none">
+
+<!-- PWA Install Bar -->
+<div id="pwa-install-bar">
+  <div class="pwa-bar-icon">📱</div>
+  <div class="pwa-bar-text">
+    <div class="pwa-bar-title">Install LMR Capitals</div>
+    <div class="pwa-bar-sub">Add to your home screen — works offline, no browser needed</div>
+  </div>
+  <button class="btn btn-primary" onclick="installPWA()">Install App</button>
+  <button class="btn" onclick="dismissInstall()" style="padding:6px 10px">✕</button>
+</div>
+
+<!-- DAY DETAIL / EDIT MODAL -->
+<div class="modal-bg" id="dayModal">
+  <div class="modal" style="max-width:820px">
+    <div class="modal-head">
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <div class="modal-title" id="dm-title">Day</div>
+        <div style="font-size:10px;color:var(--text3)" id="dm-subtitle"></div>
+      </div>
+      <div id="dm-pnl" class="mono" style="font-size:15px;font-weight:700;margin-left:auto;margin-right:12px"></div>
+      <button class="close" onclick="closeModal('dayModal')" style="font-size:20px;opacity:.6">×</button>
+    </div>
+    <input type="hidden" id="dm-ds">
+    <div class="modal-body">
+      <div class="cols2">
+        <div>
+          <div class="form-row"><label class="form-label">Daily Bias</label>
+            <select id="dm-bias"><option value="">—</option><option>Bullish</option><option>Bearish</option><option>Neutral</option></select></div>
+          <div class="form-row"><label class="form-label">Session</label>
+            <select id="dm-session"><option value="">—</option><option>AM</option><option>PM</option></select></div>
+          <div class="form-row"><label class="form-label">Plan</label>
+            <select id="dm-plan"><option value="">—</option><option>Followed</option><option>Unfollowed</option></select></div>
+          <div class="form-row"><label class="form-label">Prediction</label>
+            <select id="dm-pred"><option value="">—</option><option>Correct</option><option>Incorrect</option></select></div>
+          <div class="form-row"><label class="form-label">London</label>
+            <select id="dm-london"><option value="">—</option><option>Accumulation</option><option>Manipulation</option><option>Disitribution</option></select></div>
+          <div class="form-row"><label class="form-label">New York</label>
+            <select id="dm-ny"><option value="">—</option><option>Rebalance / Reversal</option><option>Manipulation/ Distibution</option><option>Retracement / Continuations</option></select></div>
+          <div class="form-row"><label class="form-label">Asian Range</label>
+            <input id="dm-asian" placeholder="Retracement, Accumulation…"></div>
+        </div>
+        <div>
+          <div class="form-row"><label class="form-label">HTF POI</label>
+            <textarea id="dm-htfpoi" rows="2" placeholder="Key levels…"></textarea></div>
+          <div class="form-row"><label class="form-label">Week Draws</label>
+            <textarea id="dm-weekdraws" rows="2" placeholder="PWH, PWL, NWOG…"></textarea></div>
+          <div class="form-row"><label class="form-label">RTH Delivery</label>
+            <select id="dm-rth"><option value="">—</option>
+              <option>Premium Bullish Above RTH</option><option>Discout Bullish RTH-HQ</option>
+              <option>Discount Bullish RTH-CME</option><option>Discount Bullish RTH-LQ</option>
+              <option>Premium Bearish Purged  RTH</option><option>Premium Bearish  RTH-HQ</option>
+              <option>Discount Bearish Below RTH</option></select></div>
+          <div class="form-row"><label class="form-label">Price Context</label>
+            <input id="dm-price" placeholder="Premium, Discount, NWOG…"></div>
+          <div class="form-row"><label class="form-label">Monthly Bias</label>
+            <input id="dm-monthly-bias"></div>
+        </div>
+      </div>
+      <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.09em">Trades this day</div>
+          <button class="btn btn-sm btn-primary" onclick="openTradeModalForDate(document.getElementById('dm-ds').value)">+ Add Trade</button>
+        </div>
+        <table class="tbl" style="font-size:11px">
+          <thead><tr><th>Model</th><th>Dir</th><th>Session</th><th>Lots</th><th>P&amp;L</th><th>RR</th><th></th></tr></thead>
+          <tbody id="dm-trades"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-bear btn-sm" onclick="deleteDayEntry(document.getElementById('dm-ds').value)">Delete Entry</button>
+      <button class="btn btn-sm" onclick="closeModal('dayModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDayModal()">💾 Save Day</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ============= DATA CONSTANTS =============
@@ -2029,6 +2144,294 @@ async function init(){
   navTo('dash');
 }
 init();
+
+// ── MONTHLY CALENDAR (Daily panel) ──────────────────────────────────────────
+function hmPnlColor(pnl){
+  if(!pnl||pnl===0)return null;
+  const a=Math.abs(pnl);
+  if(pnl>0){if(a<200)return'rgba(29,74,45,.55)';if(a<500)return'rgba(35,102,57,.7)';if(a<1000)return'rgba(46,133,71,.85)';if(a<2000)return'rgba(58,168,88,.95)';return'rgba(72,210,110,1)';}
+  if(a<200)return'rgba(77,29,29,.55)';if(a<500)return'rgba(102,37,37,.7)';if(a<1000)return'rgba(133,46,46,.85)';if(a<2000)return'rgba(168,56,56,.95)';return'rgba(210,72,72,1)';
+}
+function prevDailyMonth(){
+  const[y,m]=state.calMonth.split('-').map(Number);let nm=m-1,ny=y;
+  if(nm<1){nm=12;ny--}
+  state.calMonth=`${ny}-${String(nm).padStart(2,'0')}`;save();renderDailyHeatmap();
+}
+function nextDailyMonth(){
+  const[y,m]=state.calMonth.split('-').map(Number);let nm=m+1,ny=y;
+  if(nm>12){nm=1;ny++}
+  state.calMonth=`${ny}-${String(nm).padStart(2,'0')}`;save();renderDailyHeatmap();
+}
+function todayDailyMonth(){state.calMonth=todayStr().slice(0,7);save();renderDailyHeatmap();}
+function renderDailyHeatmap(){
+  const MK=state.calMonth;
+  const[y,m]=MK.split('-').map(Number);
+  const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const MSHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const today=todayStr();
+  document.getElementById('mcMonthTitle').textContent=`${MONTHS[m-1].toUpperCase()} ${y}`;
+  const daysInMonth=new Date(y,m,0).getDate();
+  const allDates=[];
+  for(let d=1;d<=daysInMonth;d++)allDates.push(`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
+  const tradingDays=allDates.filter(ds=>{const dow=new Date(ds+'T12:00').getDay();return dow>=1&&dow<=5&&!US_HOLIDAYS_2026[ds]});
+  const trades=state.trades.filter(t=>t.date&&t.date.startsWith(MK));
+  const monthPnL=trades.reduce((s,t)=>s+t.pnl,0);
+  const entries=tradingDays.filter(d=>state.daily[d]);
+  const planDays=entries.filter(d=>state.daily[d]?.plan);
+  const planOk=planDays.filter(d=>state.daily[d].plan==='Followed').length;
+  const predDays=entries.filter(d=>state.daily[d]?.pred);
+  const predOk=predDays.filter(d=>state.daily[d].pred==='Correct').length;
+  const tradedDays=tradingDays.filter(d=>state.trades.some(t=>t.date===d));
+  const winDays=tradedDays.filter(d=>state.trades.filter(t=>t.date===d).reduce((s,t)=>s+t.pnl,0)>0);
+  document.getElementById('mcStats').innerHTML=`
+    <div class="mc-stat"><div class="mc-stat-l">Monthly P&L</div><div class="mc-stat-v ${monthPnL>=0?'txt-pos':'txt-neg'}">${monthPnL>=0?'+':''}$${Math.abs(monthPnL).toFixed(0)}</div><div class="mc-stat-s">${trades.length} trades</div></div>
+    <div class="mc-stat"><div class="mc-stat-l">Win Days</div><div class="mc-stat-v ${tradedDays.length&&winDays.length/tradedDays.length>=.5?'txt-pos':'txt-neg'}">${tradedDays.length?Math.round(winDays.length/tradedDays.length*100):0}%</div><div class="mc-stat-s">${winDays.length}/${tradedDays.length}</div></div>
+    <div class="mc-stat"><div class="mc-stat-l">Plan Followed</div><div class="mc-stat-v ${planDays.length&&planOk/planDays.length>=.6?'txt-pos':'txt-neg'}">${planDays.length?Math.round(planOk/planDays.length*100):0}%</div><div class="mc-stat-s">${planOk}/${planDays.length} days</div></div>
+    <div class="mc-stat"><div class="mc-stat-l">Prediction</div><div class="mc-stat-v ${predDays.length&&predOk/predDays.length>=.6?'txt-pos':'txt-neg'}">${predDays.length?Math.round(predOk/predDays.length*100):0}%</div><div class="mc-stat-s">${predOk}/${predDays.length} days</div></div>
+    <div class="mc-stat"><div class="mc-stat-l">Journaled</div><div class="mc-stat-v txt-gold">${entries.length}</div><div class="mc-stat-s">of ${tradingDays.length} trading days</div></div>`;
+  const first=new Date(`${y}-${String(m).padStart(2,'0')}-01T12:00`);
+  const padBefore=(first.getDay()+6)%7;
+  let html=`<div class="mc-hdr">MON</div><div class="mc-hdr">TUE</div><div class="mc-hdr">WED</div><div class="mc-hdr">THU</div><div class="mc-hdr">FRI</div>`;
+  const startMon=new Date(first);startMon.setDate(first.getDate()-padBefore);
+  const totalWeeks=Math.ceil((padBefore+daysInMonth)/5)+1;
+  const cur=new Date(startMon);
+  for(let w=0;w<totalWeeks;w++){
+    for(let dow=0;dow<5;dow++){
+      const ds=cur.toISOString().split('T')[0];
+      const inMonth=cur.getMonth()+1===m&&cur.getFullYear()===y;
+      const holiday=US_HOLIDAYS_2026&&US_HOLIDAYS_2026[ds];
+      if(!inMonth){html+=`<div class="mc-day mc-empty"></div>`;}
+      else if(holiday){html+=`<div class="mc-day mc-holiday"><div class="mc-day-date">${cur.getDate()}</div><div style="font-size:9px;color:var(--bear);margin-top:4px">🏦 ${holiday}</div></div>`;}
+      else{
+        const entry=state.daily[ds];
+        const dayTrades=state.trades.filter(t=>t.date===ds);
+        const dayPnL=dayTrades.reduce((s,t)=>s+t.pnl,0);
+        const bg=dayPnL!==0?hmPnlColor(dayPnL):(entry?'rgba(245,166,35,.05)':'');
+        const dc=entry?.dayCount||dayCountFor(ds);
+        const bias=entry?.bias||'';
+        const plan=entry?.plan||'';
+        const pred=entry?.pred||'';
+        const isToday=ds===today;
+        html+=`<div class="mc-day${entry?' mc-has-entry':''}${isToday?' mc-today':''}" style="${bg?`background:${bg}`:''}" onclick="openDayModal('${ds}')">
+          <div class="mc-day-actions">
+            ${entry?`<button class="btn btn-sm" style="padding:2px 5px;font-size:9px" onclick="event.stopPropagation();openDayModal('${ds}')">✏</button>`:''}
+            ${entry?`<button class="btn btn-sm btn-bear" style="padding:2px 5px;font-size:9px" onclick="event.stopPropagation();deleteDayEntry('${ds}')">✗</button>`:''}
+          </div>
+          ${dc?`<div class="mc-day-count">D${dc}</div>`:''}
+          <div class="mc-day-date">${cur.getDate()} ${MSHORT[m-1]}</div>
+          ${bias||plan||pred?`<div class="mc-badges">
+            ${bias?`<span class="tag tg-${bias==='Bullish'?'bull':bias==='Bearish'?'bear':'gray'}" style="font-size:8px;padding:2px 5px">${bias}</span>`:''}
+            ${plan?`<span class="tag tg-${plan==='Followed'?'bull':'bear'}" style="font-size:8px;padding:2px 5px">${plan==='Followed'?'✓ Plan':'✗ Plan'}</span>`:''}
+            ${pred?`<span class="tag tg-${pred==='Correct'?'bull':'warn'}" style="font-size:8px;padding:2px 5px">${pred==='Correct'?'✓ Pred':'✗ Pred'}</span>`:''}
+          </div>`:''}
+          ${entry?.htfpoi?`<div class="mc-field"><b>HTF</b>${entry.htfpoi.slice(0,45)}${entry.htfpoi.length>45?'…':''}</div>`:''}
+          ${entry?.weekdraws?`<div class="mc-field"><b>Draws</b>${entry.weekdraws.slice(0,40)}${entry.weekdraws.length>40?'…':''}</div>`:''}
+          ${(entry?.london||entry?.ny)?`<div class="mc-field"><b>LON</b>${entry.london||'—'} <b>NY</b>${entry.ny||'—'}</div>`:''}
+          ${dayPnL!==0?`<div class="mc-pnl ${dayPnL>=0?'txt-pos':'txt-neg'}">${dayPnL>=0?'+':''}$${dayPnL.toFixed(2)}</div>`:''}
+          ${dayTrades.length?`<div class="mc-trade-list">${dayTrades.map(t=>`
+            <div class="mc-trade-row">
+              <span class="tag tg-pur" style="font-size:8px;padding:1px 4px">${(t.models||[])[0]||'?'}</span>
+              <span class="tag tg-${t.position==='Long'?'bull':'bear'}" style="font-size:8px;padding:1px 4px">${t.position||'?'}</span>
+              <span class="mc-trade-pnl ${t.pnl>=0?'txt-pos':'txt-neg'}">${t.pnl>=0?'+':''}$${t.pnl.toFixed(0)}</span>
+            </div>`).join('')}</div>`:''}
+        </div>`;
+      }
+      cur.setDate(cur.getDate()+1);
+    }
+    if(cur.getMonth()+1>m&&cur.getFullYear()>=y)break;
+  }
+  document.getElementById('mcGrid').innerHTML=html;
+}
+
+// ── DAY MODAL ────────────────────────────────────────────────────────────────
+function openDayModal(ds){
+  const entry=state.daily[ds]||{};
+  const trades=state.trades.filter(t=>t.date===ds);
+  const dayPnL=trades.reduce((s,t)=>s+t.pnl,0);
+  const dc=entry.dayCount||dayCountFor(ds);
+  document.getElementById('dm-title').textContent=`D${dc} · ${fmtDate?fmtDate(ds):ds}`;
+  document.getElementById('dm-ds').value=ds;
+  document.getElementById('dm-bias').value=entry.bias||'';
+  document.getElementById('dm-session').value=entry.session||'';
+  document.getElementById('dm-plan').value=entry.plan||'';
+  document.getElementById('dm-pred').value=entry.pred||'';
+  document.getElementById('dm-htfpoi').value=entry.htfpoi||'';
+  document.getElementById('dm-weekdraws').value=entry.weekdraws||entry.weekly||'';
+  document.getElementById('dm-london').value=entry.london||'';
+  document.getElementById('dm-ny').value=entry.ny||'';
+  document.getElementById('dm-rth').value=entry.rth||'';
+  document.getElementById('dm-asian').value=Array.isArray(entry.asianRange)?entry.asianRange.join(', '):(entry.asianRange||'');
+  document.getElementById('dm-price').value=Array.isArray(entry.price)?entry.price.join(', '):(entry.price||'');
+  document.getElementById('dm-monthly-bias').value=entry.monthlyBias||'';
+  document.getElementById('dm-pnl').textContent=dayPnL!==0?`${dayPnL>=0?'+':''}$${dayPnL.toFixed(2)}`:'$0';
+  document.getElementById('dm-pnl').className=`mono ${dayPnL>0?'txt-pos':dayPnL<0?'txt-neg':''}`;
+  const tbody=document.getElementById('dm-trades');
+  tbody.innerHTML=trades.length?trades.map(t=>`<tr>
+    <td><span class="tag tg-pur" style="font-size:9px">${(t.models||[])[0]||'-'}</span></td>
+    <td><span class="tag tg-${t.position==='Long'?'bull':'bear'}" style="font-size:9px">${t.position||'-'}</span></td>
+    <td class="mono" style="font-size:10px">${t.session||'-'}</td>
+    <td class="mono" style="font-size:10px">${t.lots||'-'}</td>
+    <td class="mono ${t.pnl>=0?'txt-pos':'txt-neg'}" style="font-weight:700">${t.pnl>=0?'+':''}$${t.pnl.toFixed(2)}</td>
+    <td class="mono" style="font-size:10px;color:var(--text3)">${t.rr||0}R</td>
+    <td><button class="btn btn-sm btn-bear" style="padding:2px 5px;font-size:9px" onclick="deleteTradeInDay(${t.id},'${ds}')">✗</button></td>
+  </tr>`).join(''):'<tr><td colspan="7" class="empty" style="padding:10px">No trades this day</td></tr>';
+  document.getElementById('dayModal').classList.add('show');
+}
+function saveDayModal(){
+  const ds=document.getElementById('dm-ds').value;
+  state.daily[ds]={...(state.daily[ds]||{}),
+    dayCount:dayCountFor(ds),
+    bias:document.getElementById('dm-bias').value,
+    session:document.getElementById('dm-session').value,
+    plan:document.getElementById('dm-plan').value,
+    pred:document.getElementById('dm-pred').value,
+    htfpoi:document.getElementById('dm-htfpoi').value,
+    weekdraws:document.getElementById('dm-weekdraws').value,
+    weekly:document.getElementById('dm-weekdraws').value,
+    london:document.getElementById('dm-london').value,
+    ny:document.getElementById('dm-ny').value,
+    rth:document.getElementById('dm-rth').value,
+    asianRange:document.getElementById('dm-asian').value.split(',').map(s=>s.trim()).filter(Boolean),
+    price:document.getElementById('dm-price').value.split(',').map(s=>s.trim()).filter(Boolean),
+    monthlyBias:document.getElementById('dm-monthly-bias').value,
+    savedAt:new Date().toISOString()
+  };
+  save();closeModal('dayModal');renderDailyHeatmap();flash('✓ Day saved');
+}
+function deleteDayEntry(ds){
+  if(!confirm(`Delete entry for ${ds}?`))return;
+  delete state.daily[ds];save();renderDailyHeatmap();flash('✓ Entry deleted');
+}
+function deleteTradeInDay(id,ds){
+  if(!confirm('Delete trade?'))return;
+  state.trades=state.trades.filter(t=>t.id!=id);
+  save();openDayModal(ds);renderDailyHeatmap();flash('✓ Trade deleted');
+}
+function openTradeModalForDate(ds){
+  closeModal('dayModal');
+  if(typeof openTradeModal==='function')openTradeModal();
+  const el=document.getElementById('tm-date');if(el)el.value=ds;
+}
+
+// ── EDIT/DELETE UPGRADES ─────────────────────────────────────────────────────
+function deleteTrade(id){
+  if(!confirm('Delete trade?'))return;
+  state.trades=state.trades.filter(t=>t.id!=id);
+  save();renderTradeTable();if(typeof renderDailyHeatmap==='function')renderDailyHeatmap();updateAllStats();flash('✓ Trade deleted');
+}
+function editAccount(id){
+  const a=state.accounts.find(a=>a.id==id);if(!a)return;
+  document.getElementById('am-name').value=a.name||'';
+  document.getElementById('am-type').value=a.type||'Funded';
+  document.getElementById('am-status').value=a.status||'In-Progress';
+  document.getElementById('am-date').value=a.date||todayStr();
+  document.getElementById('am-deposit').value=a.deposit||0;
+  const modal=document.getElementById('accModal');
+  modal.querySelector('.modal-title').textContent='Edit Account';
+  modal.dataset.editId=id;modal.classList.add('show');
+}
+function deleteTransaction(id){
+  if(!confirm('Delete transaction?'))return;
+  state.transactions=state.transactions.filter(t=>t.id!=id);
+  save();renderTransTable();flash('✓ Deleted');
+}
+function editNote(id){
+  const n=state.notes.find(n=>n.id==id);if(!n)return;
+  document.getElementById('nm-title').value=n.title||'';
+  document.getElementById('nm-date').value=n.date||todayStr();
+  document.getElementById('nm-text').value=n.text||'';
+  const modal=document.getElementById('noteModal');
+  modal.querySelector('.modal-title').textContent='Edit Note';
+  modal.dataset.editId=id;modal.classList.add('show');
+}
+function editJournal(id){
+  const j=state.journal.find(j=>j.id==id);if(!j)return;
+  document.getElementById('j-type').value=j.type||'lesson';
+  document.getElementById('j-date').value=j.date||todayStr();
+  document.getElementById('j-text').value=j.text||'';
+  const btn=document.getElementById('j-save-btn')||document.querySelector('[onclick="saveJournal()"]');
+  if(btn){btn.dataset.editId=id;btn.textContent='💾 Update';}
+}
+
+// ── NOTION IMAGE SYNC ────────────────────────────────────────────────────────
+async function checkNotionImages(){
+  const res=document.getElementById('syncImgResult');
+  try{
+    const r=await fetch('notion-images/');
+    if(!r.ok)throw new Error('notion-images/ not found — run node notion-export.js first');
+    const raw=localStorage.getItem('lmr_imageIndex');
+    const idx=raw?JSON.parse(raw):{};
+    const n=Object.keys(idx).length;
+    res.innerHTML=n?`<span style="color:var(--bull)">✓ ${n} images ready to sync</span>`:'<span style="color:var(--warn)">⚠ No imageIndex — re-import the JSON after running notion-export.js</span>';
+  }catch(e){res.innerHTML=`<span style="color:var(--bear)">✗ ${e.message}</span>`;}
+}
+async function syncNotionImages(){
+  const btn=document.getElementById('syncImgBtn');
+  const prog=document.getElementById('syncImgProgress');
+  const bar=document.getElementById('syncImgBar');
+  const label=document.getElementById('syncImgLabel');
+  const count=document.getElementById('syncImgCount');
+  const res=document.getElementById('syncImgResult');
+  let idx={};
+  const raw=localStorage.getItem('lmr_imageIndex');
+  if(raw)idx=JSON.parse(raw);
+  if(!Object.keys(idx).length){
+    state.trades.forEach(t=>{idx[`tradeshot-${t.id}`]=`notion-images/tradeshot-${t.id}.jpg`;});
+    Object.keys(state.daily).forEach(date=>{idx[`daily-${date}`]=`notion-images/daily-${date}.jpg`;});
+  }
+  const entries=Object.entries(idx);
+  if(!entries.length){res.innerHTML='<span style="color:var(--warn)">⚠ Nothing to sync. Run notion-export.js then re-import.</span>';return;}
+  btn.disabled=true;btn.textContent='Syncing…';prog.style.display='block';res.innerHTML='';
+  let done=0,loaded=0,failed=0;
+  for(const[key,relUrl]of entries){
+    label.textContent=`Loading ${key}…`;count.textContent=`${done+1}/${entries.length}`;
+    bar.style.width=`${Math.round((done/entries.length)*100)}%`;
+    let blob=null;
+    for(const ext of['jpg','png','jpeg','webp']){
+      try{const r=await fetch(relUrl.replace(/\.\w+$/,`.${ext}`));if(r.ok){blob=await r.blob();break;}}catch(_){}
+    }
+    if(blob){await saveImg(key,blob);loaded++;}else{failed++;}
+    done++;
+  }
+  bar.style.width='100%';btn.disabled=false;btn.textContent='🔄 Sync All Images';
+  res.innerHTML=`<span style="color:var(--bull)">✓ ${loaded} images loaded</span>${failed?` <span style="color:var(--text3)">(${failed} not found)</span>`:''}`;
+  flash(`✓ ${loaded} Notion images synced`);
+}
+
+// ── PWA INSTALL PROMPT ───────────────────────────────────────────────────────
+let _pwaPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();_pwaPrompt=e;
+  const bar=document.getElementById('pwa-install-bar');
+  if(bar&&!localStorage.getItem('pwa-dismissed'))bar.classList.add('show');
+});
+window.addEventListener('appinstalled',()=>{
+  const bar=document.getElementById('pwa-install-bar');
+  if(bar)bar.classList.remove('show');
+  flash('✓ LMR Capitals installed!');
+});
+function installPWA(){
+  if(!_pwaPrompt)return;
+  _pwaPrompt.prompt();
+  _pwaPrompt.userChoice.then(r=>{
+    document.getElementById('pwa-install-bar').classList.remove('show');
+    if(r.outcome==='accepted')flash('✓ Installing LMR Capitals…');
+    _pwaPrompt=null;
+  });
+}
+function dismissInstall(){
+  document.getElementById('pwa-install-bar').classList.remove('show');
+  localStorage.setItem('pwa-dismissed','1');
+}
+
+// ── navTo patch: trigger renderDailyHeatmap when switching to daily ───────────
+const _origNavTo=window.navTo;
+if(typeof navTo==='function'){
+  window.navTo=function(p,...args){
+    if(typeof _origNavTo==='function')_origNavTo(p,...args);
+    if(p==='daily')renderDailyHeatmap();
+  };
+}
 </script>
 
 <script>
