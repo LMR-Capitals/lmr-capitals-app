@@ -1,0 +1,9 @@
+# Secrets & generated output — never commit
+.env
+lmr-notion-export.json
+
+# Dependencies
+node_modules/
+
+# macOS
+.DS_Store

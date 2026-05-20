@@ -1,0 +1,2983 @@
+<!DOCTYPE html>
+<!-- saved from url=(0065)file:///Users/nirajghorsaine/Downloads/lmr_capitals_v3_fixed.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0a0a">
+<title>LMR Capitals</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%230a0a0a'/><rect x='18' y='16' width='14' height='52' rx='3' fill='%23c8a84b'/><rect x='18' y='54' width='44' height='14' rx='3' fill='%23c8a84b'/><rect x='18' y='74' width='64' height='10' rx='3' fill='%23c8a84b'/></svg>">
+<link href="./LMR Capitals_files/css2" rel="stylesheet">
+<script src="./LMR Capitals_files/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+/* Light mode overrides */
+body.light-mode{--bg:#f0f2f5;--bg2:#ffffff;--bg3:#e8eaed;--border:#d0d4db;--text:#1a1a1a;--text2:#444;--text3:#888}
+body.light-mode .sb-item{color:#555}
+body.light-mode .sb-item.active{color:var(--gold)}
+body.light-mode .topbar{background:#fff;border-bottom:1px solid var(--border)}
+body.light-mode .sidebar{background:#fff}
+body.light-mode .modal{background:#fff}
+body.light-mode .ai-panel{background:#fff}
+:root{
+  --bg:#0a0a0a;--bg2:#141414;--bg3:#1c1c1c;--bg4:#262626;
+  --border:#2e2e2e;--border2:#3a3a3a;
+  --text:#e8e4de;--text2:#9a9690;--text3:#5f5b56;
+  --gold:#c8a84b;--gold2:#e8c97a;
+  --bull:#5dba80;--bull-bg:rgba(93,186,128,.12);
+  --bear:#d45c5c;--bear-bg:rgba(212,92,92,.12);
+  --warn:#c49b4a;--warn-bg:rgba(196,155,74,.12);
+  --pur:#9b8aff;--pur-bg:rgba(155,138,255,.1);
+  --blue:#5d9ee8;--blue-bg:rgba(93,158,232,.1);
+  --r:6px;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font-family:inherit;font-size:13px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:var(--r);width:100%;outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--gold)}
+textarea{resize:vertical;min-height:50px}
+.app{display:flex;height:100vh;width:100vw}
+
+.sidebar{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width .2s ease,min-width .2s ease}
+.sidebar.collapsed{width:52px;min-width:52px}
+.sidebar.collapsed .sb-logo-text,.sidebar.collapsed .sb-status,.sidebar.collapsed .sb-sec,.sidebar.collapsed .sb-key,.sidebar.collapsed .sb-foot,.sidebar.collapsed .sb-day{display:none}
+.sidebar.collapsed .sb-logo{justify-content:center}
+.sidebar.collapsed .sb-item{padding:10px;justify-content:center;gap:0;border-left:none;border-radius:var(--r)}
+.sidebar.collapsed .sb-item.active{background:rgba(200,168,75,.1)}
+.sidebar.collapsed .sb-icon{font-size:17px;width:auto}
+.sidebar.collapsed .sb-head{padding:10px 6px}
+.sidebar.collapsed .sb-collapse-btn .arrow{transform:rotate(180deg)}
+.sb-collapse-btn{margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;padding:2px 4px;border-radius:4px;font-size:13px;line-height:1;transition:color .15s}
+.sb-collapse-btn:hover{color:var(--text)}
+.sb-collapse-btn .arrow{display:inline-block;transition:transform .2s}
+.sb-head{padding:14px 12px;border-bottom:1px solid var(--border)}
+.sb-logo{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px}
+.sb-logo-icon{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;color:var(--bg);font-weight:700}
+.sb-status{font-size:10px;color:var(--text3);margin-top:5px;display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--bull);animation:p 2s infinite}
+@keyframes p{0%,100%{opacity:1}50%{opacity:.4}}
+.sb-nav{flex:1;overflow-y:auto;padding:6px}
+.sb-sec{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;padding:8px 10px 4px;font-weight:600}
+.sb-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--r);font-size:12px;color:var(--text2);cursor:pointer;border-left:2px solid transparent;width:100%;text-align:left}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--bg3);color:var(--gold);border-left-color:var(--gold)}
+.sb-icon{font-size:14px;width:18px;text-align:center}
+.sb-key{margin-left:auto;font-size:9px;background:var(--bg);color:var(--text3);padding:1px 5px;border-radius:3px;font-family:'JetBrains Mono',monospace;border:1px solid var(--border)}
+.sb-foot{padding:10px;border-top:1px solid var(--border);background:var(--bg3)}
+.sb-pnl-l{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-weight:600}
+.sb-pnl-v{font-size:18px;font-weight:600;margin-top:2px;font-family:'JetBrains Mono',monospace}
+.sb-pnl-sub{font-size:10px;color:var(--text3);margin-top:2px;font-family:'JetBrains Mono',monospace}
+.sb-day{padding:8px 10px;background:linear-gradient(135deg,#1a1a1a,#0f0f0f);border-radius:var(--r);border:1px solid var(--gold);margin:6px;text-align:center}
+.sb-day-l{font-size:9px;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;font-weight:600}
+.sb-day-v{font-size:22px;font-weight:700;color:var(--gold);font-family:'JetBrains Mono',monospace;margin-top:1px}
+
+.mobile-bar{display:none;padding:10px;background:var(--bg2);border-bottom:1px solid var(--border);align-items:center;justify-content:space-between}
+.menu-btn{font-size:20px;padding:4px 8px}
+
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{padding:10px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg2)}
+.tb-title{font-size:14px;font-weight:600}
+.tb-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.tb-actions{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.btn{font-size:11px;padding:6px 11px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg3);color:var(--text);font-weight:500;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{background:var(--bg4)}
+.btn-primary{background:var(--gold);color:var(--bg);border-color:var(--gold);font-weight:600}
+.btn-primary:hover{background:var(--gold2)}
+.btn-sm{font-size:10px;padding:4px 9px}
+.btn-bear{background:var(--bear-bg);color:var(--bear);border-color:rgba(212,92,92,.3)}
+.btn-bull{background:var(--bull-bg);color:var(--bull);border-color:rgba(93,186,128,.3)}
+
+.panel{flex:1;overflow-y:auto;padding:16px;display:none}
+.panel.active{display:block}
+.panel-inner{max-width:1300px;margin:0 auto}
+
+/* DASHBOARD */
+.dash-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+@media (max-width:1100px){.dash-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:600px){.dash-grid{grid-template-columns:1fr}}
+
+.tile{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px;position:relative;overflow:hidden}
+.tile-l{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.tile-v{font-size:22px;font-weight:600;font-family:'JetBrains Mono',monospace;line-height:1.1}
+.tile-v.sm{font-size:14px}
+.tile-sub{font-size:11px;color:var(--text2);margin-top:5px;line-height:1.4}
+.tile.pos{border-left:3px solid var(--bull)}
+.tile.neg{border-left:3px solid var(--bear)}
+.tile.gold{border-left:3px solid var(--gold)}
+.tile.pur{border-left:3px solid var(--pur)}
+.tile.blue{border-left:3px solid var(--blue)}
+
+.dash-grid-2{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:14px}
+@media (max-width:900px){.dash-grid-2{grid-template-columns:1fr}}
+
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
+.card-head{padding:9px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--bg2)}
+.card-tag{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;padding:2px 7px;border-radius:99px}
+.t-m{background:var(--blue-bg);color:var(--blue)}.t-w{background:var(--pur-bg);color:var(--pur)}
+.t-d{background:var(--bear-bg);color:var(--bear)}.t-r{background:var(--bull-bg);color:var(--bull)}
+.t-g{background:var(--warn-bg);color:var(--warn)}
+.card-title{font-size:13px;font-weight:600;flex:1}
+.card-meta{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.card-body{padding:12px}
+
+.sec{margin-bottom:12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.sec-head{padding:7px 12px;background:var(--bg2);border-bottom:1px solid var(--border);font-size:10px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:8px}
+.sec-body{padding:11px}
+
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cols3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.cols4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cols5{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.col-cell{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:10px}
+.col-title{font-size:10px;font-weight:600;color:var(--gold);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+@media (max-width:768px){.cols3,.cols4,.cols5{grid-template-columns:1fr}.cols2{grid-template-columns:1fr}}
+
+/* IMG */
+.img-zone{margin-top:8px;border:1px dashed var(--border2);border-radius:var(--r);padding:12px;text-align:center;background:var(--bg2);cursor:pointer;min-height:50px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px}
+.img-zone:hover{border-color:var(--gold);background:var(--bg3)}
+.img-zone.has-img{border-style:solid;padding:0;cursor:default;min-height:auto}
+.img-zone-text{font-size:10px;color:var(--text3)}
+.img-thumb{position:relative;width:100%;border-radius:var(--r);overflow:hidden}
+.img-thumb img{width:100%;display:block;cursor:pointer}
+.img-thumb-del{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.8);color:var(--bear);border:1px solid var(--bear);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px}
+
+/* CHAIN — Notion property-list style */
+.chain-red{padding:14px 16px;border-radius:var(--r);margin-bottom:8px;border:1px solid var(--border);background:var(--bg2)}
+.chain-yel{padding:14px 16px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg2)}
+.chain-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--bear);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.chain-yel .chain-label{color:var(--warn)}
+.chain-row{display:grid;grid-template-columns:150px 1fr;align-items:start;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)}
+.chain-row:last-child{border-bottom:none}
+.chain-tf{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;display:flex;align-items:center;gap:5px;padding-top:5px;min-height:28px}
+.chain-tf .ci{font-size:13px;opacity:.7}
+body.light-mode .chain-row{border-bottom-color:var(--border)}
+
+.form-row{display:grid;grid-template-columns:130px 1fr;gap:10px;align-items:center;margin-bottom:7px}
+.form-label{font-size:11px;color:var(--text2);font-weight:500}
+@media (max-width:640px){.form-row{grid-template-columns:1fr;gap:3px}}
+
+/* TAGS */
+.tag{display:inline-flex;font-size:9px;padding:2px 7px;border-radius:99px;font-weight:600;margin:1px;align-items:center}
+.tg-bull{background:var(--bull-bg);color:var(--bull)}
+.tg-bear{background:var(--bear-bg);color:var(--bear)}
+.tg-pur{background:var(--pur-bg);color:var(--pur)}
+.tg-warn{background:var(--warn-bg);color:var(--warn)}
+.tg-blue{background:var(--blue-bg);color:var(--blue)}
+.tg-gray{background:var(--bg4);color:var(--text2);border:1px solid var(--border)}
+
+/* CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:5px;padding:3px 0}
+.chip{font-size:11px;padding:5px 12px;border-radius:99px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);cursor:pointer;font-weight:500;transition:all .12s}
+.chip:hover{border-color:var(--text3);color:var(--text)}
+.chip.on{background:var(--gold);color:var(--bg);border-color:var(--gold);font-weight:700}
+.chip.bull{border-color:rgba(93,186,128,.35);color:var(--text2)}
+.chip.bull:hover{background:rgba(93,186,128,.1);border-color:var(--bull);color:var(--bull)}
+.chip.bull.on{background:var(--bull);color:#fff;border-color:var(--bull)}
+.chip.bear{border-color:rgba(212,92,92,.35);color:var(--text2)}
+.chip.bear:hover{background:rgba(212,92,92,.1);border-color:var(--bear);color:var(--bear)}
+.chip.bear.on{background:var(--bear);color:#fff;border-color:var(--bear)}
+.chip.pur{border-color:rgba(155,138,255,.35)}
+.chip.pur.on{background:var(--pur);color:#fff;border-color:var(--pur)}
+
+/* TABLE */
+.tw{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r)}
+.tbl{width:100%;border-collapse:collapse;font-size:11px}
+.tbl th{font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;padding:8px 10px;text-align:left;background:var(--bg2);border-bottom:1px solid var(--border);white-space:nowrap}
+.tbl td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text2);white-space:nowrap}
+.tbl tr:hover td{background:var(--bg3)}
+.tbl tr:last-child td{border-bottom:none}
+
+/* CHART */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+@media (max-width:768px){.chart-grid{grid-template-columns:1fr}}
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px}
+.chart-title{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:8px}
+.chart-canvas{position:relative;height:200px}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-bg.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);max-width:680px;width:100%;max-height:92vh;overflow-y:auto}
+.modal-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;position:sticky;top:0;background:var(--bg2);z-index:1}
+.modal-title{font-size:13px;font-weight:600;flex:1}
+.modal-body{padding:14px 16px}
+.modal-actions{padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:var(--bg2)}
+.close{font-size:22px;color:var(--text3);cursor:pointer;padding:0 6px}
+
+/* LIGHTBOX */
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:300;display:none;align-items:center;justify-content:center;padding:20px;cursor:pointer}
+.lb.show{display:flex}
+.lb img{max-width:100%;max-height:100%;border-radius:var(--r)}
+.lb-close{position:absolute;top:16px;right:16px;color:#fff;background:rgba(0,0,0,.5);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px}
+
+/* CALENDAR */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.cal-h{background:var(--bg2);padding:8px;text-align:center;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.cal-c{background:var(--bg3);padding:6px;min-height:70px;font-size:10px;cursor:pointer;position:relative}
+.cal-c:hover{background:var(--bg4)}
+.cal-c.today{background:rgba(200,168,75,.1);border:1px solid var(--gold)}
+.cal-c.other{opacity:.3}
+.cal-c.weekend{background:#0a0a0a}
+.cal-c.holiday{background:rgba(212,92,92,.1)}
+.cal-num{font-weight:600;font-size:12px;color:var(--text);font-family:'JetBrains Mono',monospace}
+.cal-day-num{font-size:8px;color:var(--gold);font-family:'JetBrains Mono',monospace;font-weight:600;margin-top:2px}
+.cal-pnl{font-size:9px;font-family:'JetBrains Mono',monospace;margin-top:3px;font-weight:600}
+.cal-pnl.pos{color:var(--bull)}
+.cal-pnl.neg{color:var(--bear)}
+.cal-evt{font-size:8px;color:var(--bear);margin-top:2px}
+
+/* HOTKEYS overlay */
+.hk-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:400;display:none;align-items:center;justify-content:center;padding:20px}
+.hk-overlay.show{display:flex}
+.hk-panel{background:var(--bg2);border:1px solid var(--gold);border-radius:var(--r);max-width:500px;width:100%;padding:24px}
+.hk-title{font-size:14px;font-weight:600;color:var(--gold);margin-bottom:16px;text-align:center}
+.hk-row{display:grid;grid-template-columns:60px 1fr;gap:14px;padding:6px 0;font-size:12px;align-items:center}
+.hk-key{background:var(--bg);border:1px solid var(--border);padding:3px 8px;border-radius:4px;text-align:center;font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--gold);font-size:11px}
+.hk-desc{color:var(--text2)}
+
+/* TABS */
+.tabs{display:flex;gap:3px;margin-bottom:12px;overflow-x:auto;padding-bottom:3px;border-bottom:1px solid var(--border)}
+.tab{padding:7px 14px;background:transparent;border:none;color:var(--text2);cursor:pointer;font-size:12px;font-weight:500;border-bottom:2px solid transparent;white-space:nowrap}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);font-weight:600}
+
+/* WEEK TABS */
+.wk-tabs{display:flex;gap:4px;margin-bottom:12px;overflow-x:auto}
+.wk-tab{padding:7px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);font-size:11px;color:var(--text2);cursor:pointer;white-space:nowrap;font-weight:500}
+.wk-tab.active{background:var(--gold);color:var(--bg);border-color:var(--gold);font-weight:600}
+
+/* JOURNAL */
+.j-entry{padding:10px 12px;background:var(--bg3);border-left:3px solid;border-radius:0 var(--r) var(--r) 0;margin-bottom:6px}
+.j-entry.bull{border-color:var(--bull)}.j-entry.bear{border-color:var(--bear)}
+.j-entry.lesson{border-color:var(--pur)}.j-entry.neutral{border-color:var(--border2)}
+.j-date{font-size:9px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-bottom:3px;display:flex;justify-content:space-between}
+.j-text{font-size:12px;color:var(--text);line-height:1.5;white-space:pre-wrap}
+
+/* MOBILE */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:90;display:none}
+.overlay.show{display:block}
+@media (max-width:900px){
+  .sidebar{position:fixed;top:0;left:0;bottom:0;z-index:100;transform:translateX(-100%);transition:transform .25s;width:230px}
+  .sidebar.open{transform:translateX(0)}
+  .mobile-bar{display:flex}
+  .panel{padding:12px}
+}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px}
+.empty{padding:20px;text-align:center;color:var(--text3);font-size:11px}
+.mono{font-family:'JetBrains Mono',monospace}
+.txt-pos{color:var(--bull)}.txt-neg{color:var(--bear)}.txt-gold{color:var(--gold)}
+.flex-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+hr.div{border:none;border-top:1px solid var(--border);margin:10px 0}
+.kv{display:flex;font-size:11px;padding:4px 0;border-bottom:1px solid var(--border);gap:8px}
+.kv:last-child{border-bottom:none}
+.kv-k{color:var(--text3);min-width:90px}
+.kv-v{color:var(--text);font-weight:500;font-family:'JetBrains Mono',monospace}
+/* ---- ICT Terminology ---- */
+.term-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.term-toolbar input{flex:1;min-width:160px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);padding:7px 11px;font-size:12px;outline:none}
+.term-toolbar input:focus{border-color:var(--gold)}
+.term-cats{display:flex;gap:5px;flex-wrap:wrap}
+.term-cat-btn{padding:4px 10px;border:1px solid var(--border);background:var(--bg3);border-radius:12px;font-size:10px;color:var(--text3);cursor:pointer;white-space:nowrap;transition:all .15s}
+.term-cat-btn.active,.term-cat-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(200,168,75,.08)}
+.term-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.term-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;transition:border-color .15s}
+.term-card:hover{border-color:rgba(200,168,75,.4)}
+.term-card-img{width:100%;height:170px;object-fit:cover;cursor:pointer;display:block;background:var(--bg3)}
+.term-card-img-empty{width:100%;height:80px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text3);cursor:pointer}
+.term-card-body{padding:12px 14px;flex:1}
+.term-card-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.term-card-cat{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);margin-bottom:8px}
+.term-card-desc{font-size:11px;color:var(--text2);line-height:1.6;white-space:pre-wrap}
+.term-card-ex{margin-top:8px;padding:8px 10px;background:var(--bg3);border-radius:var(--r);font-size:10px;color:var(--text3);line-height:1.5;white-space:pre-wrap;border-left:2px solid var(--gold)}
+.term-card-foot{padding:8px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.term-tags{display:flex;gap:4px;flex-wrap:wrap}
+.term-tag{padding:2px 7px;background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.2);border-radius:10px;font-size:9px;color:var(--gold)}
+.term-img-zone{width:100%;height:170px;background:var(--bg3);display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:var(--r);border:2px dashed var(--border);font-size:12px;color:var(--text3);transition:border-color .15s}
+.term-img-zone:hover{border-color:var(--gold);color:var(--gold)}
+.term-img-zone.has-img{padding:0;overflow:hidden;border-style:solid}
+.term-img-zone.has-img img{width:100%;height:100%;object-fit:cover;display:block}
+/* ---- Claude AI Modal ---- */
+#aiModal{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:3000;display:none;align-items:flex-end;justify-content:center}
+#aiModal.show{display:flex}
+.ai-panel{background:var(--bg2);border-top:2px solid var(--gold);border-radius:16px 16px 0 0;width:100%;max-width:780px;max-height:82vh;display:flex;flex-direction:column;padding:0}
+.ai-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border)}
+.ai-head-icon{font-size:20px}
+.ai-head-title{flex:1;font-weight:700;font-size:14px}
+.ai-close{background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;padding:0 4px;line-height:1}
+.ai-prompts{display:flex;gap:6px;padding:12px 18px;overflow-x:auto;border-bottom:1px solid var(--border);flex-shrink:0}
+.ai-prompts::-webkit-scrollbar{display:none}
+.ai-prompt-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:20px;padding:5px 12px;font-size:11px;cursor:pointer;white-space:nowrap;transition:all .15s}
+.ai-prompt-btn:hover{border-color:var(--gold);color:var(--gold)}
+.ai-body{flex:1;overflow-y:auto;padding:16px 18px;min-height:120px}
+.ai-response{font-size:13px;line-height:1.7;color:var(--text);white-space:pre-wrap;font-family:'JetBrains Mono',monospace}
+.ai-response .ai-thinking{color:var(--text3);font-size:11px;animation:ai-pulse 1.2s infinite}
+@keyframes ai-pulse{0%,100%{opacity:.4}50%{opacity:1}}
+.ai-input-row{display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--border);flex-shrink:0}
+.ai-input-row input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);padding:8px 12px;font-size:12px;outline:none}
+.ai-input-row input:focus{border-color:var(--gold)}
+.ai-send{background:var(--gold);color:#000;border:none;border-radius:var(--r);padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer}
+.ai-send:disabled{opacity:.4;cursor:not-allowed}
+.ai-key-warn{color:var(--bear);font-size:12px;text-align:center;padding:20px}
+.ai-key-warn a{color:var(--gold);text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<aside class="sidebar" id="sidebar">
+  <div class="sb-head">
+    <div class="sb-logo"><div class="sb-logo-icon">⚡</div><span class="sb-logo-text">LMR Capitals</span>
+      <button class="sb-collapse-btn" onclick="toggleSidebarCollapse()" title="Collapse sidebar"><span class="arrow">‹</span></button>
+    </div>
+    <div class="sb-status"><span class="dot"></span> Local · Auto-saved</div>
+  </div>
+  
+  <div class="sb-day">
+    <div class="sb-day-l">Current Day</div>
+    <div class="sb-day-v" id="dayCount">363</div>
+  </div>
+  
+  <nav class="sb-nav">
+    <div class="sb-sec">Session</div>
+    <button class="sb-item active" data-panel="dash" data-key="0"><span class="sb-icon">📊</span> Dashboard<span class="sb-key">0</span></button>
+    <button class="sb-item" data-panel="today" data-key="D"><span class="sb-icon">🔴</span> Today<span class="sb-key">D</span></button>
+    <button class="sb-item" data-panel="cal" data-key="C"><span class="sb-icon">📅</span> Calendar<span class="sb-key">C</span></button>
+    <div class="sb-sec">Analysis</div>
+    <button class="sb-item" data-panel="monthly" data-key="M"><span class="sb-icon">📆</span> Monthly<span class="sb-key">M</span></button>
+    <button class="sb-item" data-panel="weekly" data-key="W"><span class="sb-icon">📋</span> Weekly<span class="sb-key">W</span></button>
+    <button class="sb-item" data-panel="daily" data-key="L"><span class="sb-icon">📓</span> Daily Pages<span class="sb-key">L</span></button>
+    <div class="sb-sec">Trading</div>
+    <button class="sb-item" data-panel="trades" data-key="T"><span class="sb-icon">📈</span> Trades<span class="sb-key">T</span></button>
+    <button class="sb-item" data-panel="accounts" data-key="A"><span class="sb-icon">💰</span> Accounts<span class="sb-key">A</span></button>
+    <button class="sb-item" data-panel="trans" data-key="X"><span class="sb-icon">💳</span> Transactions<span class="sb-key">X</span></button>
+    <div class="sb-sec">Knowledge</div>
+    <button class="sb-item" data-panel="notes" data-key="N"><span class="sb-icon">📝</span> Notes<span class="sb-key">N</span></button>
+    <button class="sb-item" data-panel="journal" data-key="J"><span class="sb-icon">📔</span> Journal<span class="sb-key">J</span></button>
+    <button class="sb-item" data-panel="ict" data-key="K"><span class="sb-icon">🧠</span> ICT Terminology<span class="sb-key">K</span></button>
+    <button class="sb-item" data-panel="perf" data-key="P"><span class="sb-icon">📉</span> Performance<span class="sb-key">P</span></button>
+    <button class="sb-item" data-panel="settings"><span class="sb-icon">⚙️</span> Settings</button>
+  </nav>
+  
+  <div class="sb-foot">
+    <div class="sb-pnl-l">Active Account</div>
+    <div class="sb-pnl-v" id="sbBalance">$0</div>
+    <div class="sb-pnl-sub"><span id="sbTrades">0</span>T · <span id="sbWR">0%</span> WR</div>
+    <button class="btn btn-sm" style="width:100%;margin-top:6px;font-size:9px" onclick="showHotkeys()">? Hotkeys</button>
+  </div>
+</aside>
+
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<main class="main">
+  <div class="mobile-bar">
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+    <span style="font-size:13px;font-weight:600">LMR Capitals</span>
+    <span class="mono" style="font-size:11px;color:var(--gold)">Day <span id="mDayCount">363</span></span>
+  </div>
+  
+  <div class="topbar">
+    <div>
+      <div class="tb-title" id="tbTitle">Dashboard</div>
+      <div class="tb-sub" id="tbSub">Welcome back, Lunitic. Day <span id="tbDay">363</span></div>
+    </div>
+    <div class="tb-actions">
+      <button class="btn btn-sm" id="backBtn" onclick="navBack()" style="display:none" title="Go back">← Back</button>
+      <button class="btn btn-sm" id="themeBtn" onclick="toggleTheme()" title="Toggle day/night">🌙</button>
+      <button class="btn btn-sm" onclick="showHotkeys()">?</button>
+      <button class="btn btn-primary btn-sm" onclick="openTradeModal()">+ Trade <span class="sb-key" style="background:rgba(0,0,0,.2);border-color:rgba(0,0,0,.2);color:var(--bg)">T</span></button>
+    </div>
+  </div>
+
+<!-- DASHBOARD -->
+<div class="panel active" id="p-dash">
+<div class="panel-inner">
+
+  <div class="dash-grid">
+    <div class="tile gold">
+      <div class="tile-l">📍 Current Day</div>
+      <div class="tile-v" id="t-day">363</div>
+      <div class="tile-sub">Trading day · <span id="t-date">Today</span></div>
+    </div>
+    <div class="tile pos">
+      <div class="tile-l">💼 Active Account</div>
+      <div class="tile-v sm" id="t-acc">No account</div>
+      <div style="display:flex;gap:10px;margin-top:4px;flex-wrap:wrap">
+        <div style="flex:1;min-width:80px">
+          <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Balance</div>
+          <div class="mono txt-pos" id="t-acc-bal" style="font-size:13px;font-weight:700">$0</div>
+        </div>
+        <div style="flex:1;min-width:80px">
+          <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Net P&amp;L</div>
+          <div class="mono" id="t-acc-pnl" style="font-size:13px;font-weight:700">$0</div>
+        </div>
+      </div>
+    </div>
+    <div class="tile pur">
+      <div class="tile-l">📊 Monthly Bias</div>
+      <div class="tile-v sm" id="t-monthly">LTS Bullish</div>
+      <div class="tile-sub" id="t-monthly-sub">Q2 Expansion · $28,808</div>
+    </div>
+    <div class="tile blue">
+      <div class="tile-l">📋 Weekly Model</div>
+      <div class="tile-v sm" id="t-weekly">Not set</div>
+      <div class="tile-sub" id="t-weekly-sub">Set on Sunday</div>
+    </div>
+  </div>
+
+  <div class="dash-grid-2">
+    <div>
+      <div class="card">
+        <div class="card-head"><span class="card-tag t-d">Today's Chain</span><div class="card-title">Pre-Session Cascade</div><div class="card-meta" id="dash-chain-status">Not started</div></div>
+        <div class="card-body">
+          <div class="chain-red" id="dash-chain"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-tag t-r">Recent Trades</span><div class="card-title">Last 5 trades</div></div>
+        <div class="card-body">
+          <div class="tw"><table class="tbl">
+            <thead><tr><th>Day</th><th>Date</th><th>Model</th><th>Emotion</th><th>P&amp;L</th><th>R:R</th></tr></thead>
+            <tbody id="dash-trades"><tr><td colspan="6" class="empty">No trades. Press T to log one.</td></tr></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-head"><span class="card-tag t-g">Performance</span><div class="card-title">P&amp;L stats</div></div>
+        <div class="card-body">
+          <div class="kv"><span class="kv-k">Total trades</span><span class="kv-v" id="d-total">0</span></div>
+          <div class="kv"><span class="kv-k">Win rate</span><span class="kv-v txt-pos" id="d-wr">0%</span></div>
+          <div class="kv"><span class="kv-k">Net P&amp;L</span><span class="kv-v" id="d-pnl">$0</span></div>
+          <div class="kv"><span class="kv-k">Best trade</span><span class="kv-v txt-pos" id="d-best">$0</span></div>
+          <div class="kv"><span class="kv-k">Worst trade</span><span class="kv-v txt-neg" id="d-worst">$0</span></div>
+          <div class="kv"><span class="kv-k">Avg R:R</span><span class="kv-v" id="d-rr">0</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-tag t-m">Today's News</span><div class="card-title">USA 2★+ Events</div></div>
+        <div class="card-body" id="dash-news"><div class="empty">No high-impact events today</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card"><div class="chart-title">Equity curve</div><div class="chart-canvas"><canvas id="dash-equity"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">P&amp;L by model</div><div class="chart-canvas"><canvas id="dash-model"></canvas></div></div>
+  </div>
+
+  <div class="card" style="margin-top:14px;border:1px solid rgba(200,168,75,.2);background:linear-gradient(135deg,rgba(200,168,75,.05) 0%,var(--bg2) 100%)">
+    <div class="card-head"><span class="card-tag" style="background:rgba(200,168,75,.15);color:var(--gold)">AI</span><div class="card-title">Claude AI Coach</div><div class="card-meta">Powered by Claude Opus</div></div>
+    <div class="card-body">
+      <p style="font-size:11px;color:var(--text3);margin-bottom:10px">Ask Claude to analyze your trades, identify emotional patterns, or coach you through your journal.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="openAIModal()">🤖 Open AI Coach</button>
+        <button class="btn btn-sm" onclick="openAIModal('performance')">📊 Analyze performance</button>
+        <button class="btn btn-sm" onclick="openAIModal('emotions')">🧠 Emotion patterns</button>
+        <button class="btn btn-sm" onclick="openAIModal('models')">⚡ Best models</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- TODAY -->
+<div class="panel" id="p-today">
+<div class="panel-inner">
+
+  <div class="card">
+    <div class="card-head">
+      <span class="card-tag t-d">Daily Chain</span>
+      <div class="card-title" id="todayDate">Today · Day 363</div>
+      <div class="card-meta" id="todayStatus">Not started</div>
+    </div>
+    <div class="card-body">
+      <div class="chain-red">
+        <div class="chain-label">⚡ The Chain — fill before TradingView</div>
+        <div class="chain-row"><span class="chain-tf"><span class="ci">📆</span> Monthly</span><span class="mono" style="color:var(--text2);font-size:12px;padding-top:4px" id="ch-monthly-d">LTS Bullish · Trending · Q2 · Draw $28,808.75</span></div>
+        <div class="chain-row"><span class="chain-tf"><span class="ci">📋</span> Weekly</span><input id="ch-weekly" placeholder="MMBM/MMSM · NQ ___ ES ___ YM ___ · Draw $______"></div>
+        <div class="chain-row"><span class="chain-tf"><span class="ci">🎯</span> Daily Bias</span>
+          <div class="chips">
+            <button class="chip bull" data-grp="dbias" data-val="Bullish">🟢 Bullish</button>
+            <button class="chip bear" data-grp="dbias" data-val="Bearish">🔴 Bearish</button>
+            <button class="chip" data-grp="dbias" data-val="Neutral">⚪ Neutral</button>
+          </div>
+        </div>
+        <div class="chain-row"><span class="chain-tf"><span class="ci">📍</span> HTF POI</span><input id="ch-poi" placeholder="$______"></div>
+        <div class="chain-row"><span class="chain-tf"><span class="ci">🎯</span> Week Draws</span><input id="ch-draws" placeholder="$______"></div>
+        <div class="chain-row"><span class="chain-tf"><span class="ci">🌍</span> London</span>
+          <div class="chips">
+            <button class="chip pur" data-grp="london" data-val="Accumulation">Accumulation</button>
+            <button class="chip bear" data-grp="london" data-val="Manipulation">Manipulation</button>
+            <button class="chip" data-grp="london" data-val="Distribution">Distribution</button>
+          </div>
+        </div>
+        <div class="chain-row"><span class="chain-tf"><span class="ci">🗽</span> New York</span>
+          <div class="chips">
+            <button class="chip bear" data-grp="ny" data-val="Rebalance / Reversal">Rebalance / Reversal</button>
+            <button class="chip" data-grp="ny" data-val="Manipulation / Distribution">Manip / Distrib</button>
+            <button class="chip bull" data-grp="ny" data-val="Retracement / Continuations">Retracement / Cont.</button>
+          </div>
+        </div>
+        <div class="chain-row"><span class="chain-tf"><span class="ci">🌏</span> Asian Range</span>
+          <div class="chips" id="asianRange"></div>
+        </div>
+        <div class="chain-row"><span class="chain-tf"><span class="ci">📌</span> Price Refs</span>
+          <div class="chips" id="priceRefs"></div>
+        </div>
+        <div class="chain-row"><span class="chain-tf"><span class="ci">⏰</span> Session</span>
+          <div class="chips">
+            <button class="chip bull" data-grp="session" data-val="AM">NY AM</button>
+            <button class="chip pur" data-grp="session" data-val="PM">NY PM</button>
+          </div>
+        </div>
+        <div class="chain-row"><span class="chain-tf"><span class="ci">📊</span> RTH Delivery</span><select id="ch-rth"><option value="">Select RTH Profile...</option></select></div>
+        <div class="chain-row"><span class="chain-tf"><span class="ci">✅</span> Plan</span>
+          <div class="chips">
+            <button class="chip bull" data-grp="plan" data-val="Followed">✓ Followed</button>
+            <button class="chip bear" data-grp="plan" data-val="Unfollowed">✗ Unfollowed</button>
+          </div>
+        </div>
+        <div class="chain-row"><span class="chain-tf"><span class="ci">🔮</span> Prediction</span>
+          <div class="chips">
+            <button class="chip bull" data-grp="pred" data-val="Correct">✓ Correct</button>
+            <button class="chip bear" data-grp="pred" data-val="Incorrect">✗ Incorrect</button>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="saveDaily()">💾 Save</button>
+        <button class="btn" onclick="loadDaily()">↻ Reload</button>
+        <button class="btn btn-bear btn-sm" onclick="clearDaily()">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="card-tag t-m">Today's Events</span><div class="card-title">USA Economic Calendar</div></div>
+    <div class="card-body" id="today-news"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="card-tag t-g">Today's Charts</span><div class="card-title">TradingView Screenshots</div></div>
+    <div class="card-body">
+      <div class="cols2">
+        <div><div class="col-title">15m Chart</div><div class="img-zone" data-imgkey="today-15m" onclick="pickImage(this)"><div class="img-zone-text">+ Add 15m</div></div></div>
+        <div><div class="col-title">1H Chart</div><div class="img-zone" data-imgkey="today-1h" onclick="pickImage(this)"><div class="img-zone-text">+ Add 1H</div></div></div>
+      </div>
+      <div class="cols2" style="margin-top:8px">
+        <div><div class="col-title">9:30 Purge</div><div class="img-zone" data-imgkey="today-purge" onclick="pickImage(this)"><div class="img-zone-text">+ Add purge</div></div></div>
+        <div><div class="col-title">Entry / Result</div><div class="img-zone" data-imgkey="today-result" onclick="pickImage(this)"><div class="img-zone-text">+ Add result</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- CALENDAR -->
+<div class="panel" id="p-cal">
+<div class="panel-inner">
+  <div class="card">
+    <div class="card-head">
+      <span class="card-tag t-m">Trading Calendar</span>
+      <div class="card-title" id="cal-month-label">May 2026</div>
+      <div class="tb-actions">
+        <button class="btn btn-sm" onclick="calMonth(-1)">◀</button>
+        <button class="btn btn-sm" onclick="calToday()">Today</button>
+        <button class="btn btn-sm" onclick="calMonth(1)">▶</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="cal-grid" id="cal-grid"></div>
+      <div style="margin-top:10px;display:flex;gap:14px;flex-wrap:wrap;font-size:10px;color:var(--text3)">
+        <span><span style="display:inline-block;width:10px;height:10px;background:rgba(200,168,75,.2);border:1px solid var(--gold);border-radius:2px;vertical-align:middle"></span> Today</span>
+        <span><span style="display:inline-block;width:10px;height:10px;background:rgba(212,92,92,.1);border-radius:2px;vertical-align:middle"></span> US Bank Holiday</span>
+        <span><span class="txt-pos">●</span> Winning day</span>
+        <span><span class="txt-neg">●</span> Losing day</span>
+        <span><span class="txt-gold mono">D###</span> Day count</span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="card">
+    <div class="card-head"><span class="card-tag t-g">This Week's Events</span><div class="card-title">USA 2★+ High Impact</div></div>
+    <div class="card-body" id="weekNews"></div>
+  </div>
+</div>
+</div>
+
+<!-- MONTHLY -->
+<div class="panel" id="p-monthly">
+<div class="panel-inner">
+  <div class="card">
+    <div class="card-head">
+      <span class="card-tag t-m" id="mh-tag">MAY 2026</span>
+      <div class="card-title">Monthly Analysis</div>
+      <select id="mh-select" style="width:auto;font-size:11px;padding:4px 8px" onchange="switchMonth(this.value)"></select>
+    </div>
+    <div class="card-body">
+      <div class="form-row"><label class="form-label">Quarterly Shift (3M)</label>
+        <select data-key="m-qshift" data-monthly="">
+          <option value="">Select...</option>
+          <option>STS Bearish</option><option>STS Bullish</option><option>LTS Bearish</option><option>LTS Bullish</option>
+        </select>
+      </div>
+      <div class="form-row"><label class="form-label">Market Profile</label>
+        <select data-key="m-profile" data-monthly="">
+          <option value="">Select...</option>
+          <option>Trending</option><option>Retracing</option><option>Consolidating</option><option>Manipulative</option>
+        </select>
+      </div>
+      <div class="form-row"><label class="form-label">Seasonal</label>
+        <select data-key="m-seasonal" data-monthly="">
+          <option value="">Select...</option>
+          <option>Average Returns</option><option>Positive Returns</option><option>Negative Returns</option>
+        </select>
+      </div>
+      <div class="form-row"><label class="form-label">Interest Rate %</label><input data-key="m-rate" data-monthly="" placeholder="3.75%"></div>
+      <div class="form-row"><label class="form-label">Predictions</label>
+        <select data-key="m-pred" data-monthly="">
+          <option value="">Select...</option>
+          <option>Partial Delivered</option><option>Delivered</option>
+        </select>
+      </div>
+      <div class="form-row"><label class="form-label">IM Analysis</label><textarea data-key="m-im" data-monthly="" rows="3" placeholder="NQ/ES/YM · DXY · Yield · Bond..."></textarea></div>
+      <div class="form-row"><label class="form-label">Key Levels</label><textarea data-key="m-keylevels" data-monthly="" rows="3" placeholder="Premium $______
+Discount $______
+SD Target $______"></textarea></div>
+    </div>
+  </div>
+
+  <div class="sec"><div class="sec-head">📊 Projection / Result</div><div class="sec-body">
+    <div class="cols2">
+      <div><div class="col-title">Projection</div><div class="img-zone" data-imgkey="m-proj" onclick="pickImage(this)"><div class="img-zone-text">+ Chart</div></div></div>
+      <div><div class="col-title">Result</div><div class="img-zone" data-imgkey="m-result" onclick="pickImage(this)"><div class="img-zone-text">+ Chart</div></div></div>
+    </div>
+  </div></div>
+
+  <div class="sec"><div class="sec-head">🔄 Quarterly Shift Profile</div><div class="sec-body">
+    <div class="img-zone" data-imgkey="m-qshift-img" onclick="pickImage(this)"><div class="img-zone-text">+ Quarterly chart</div></div>
+  </div></div>
+
+  <div class="sec"><div class="sec-head">📈 Market Profile</div><div class="sec-body">
+    <div class="img-zone" data-imgkey="m-profile-img" onclick="pickImage(this)"><div class="img-zone-text">+ Market profile chart</div></div>
+  </div></div>
+
+  <div class="sec"><div class="sec-head">🌐 Inter-Market Analysis</div><div class="sec-body">
+    <div class="cols3">
+      <div><div class="col-title">Equities (NQ/ES/YM)</div><div class="img-zone" data-imgkey="m-im-eq" onclick="pickImage(this)"><div class="img-zone-text">+ Chart</div></div></div>
+      <div><div class="col-title">T-Note Yield</div><div class="img-zone" data-imgkey="m-im-yield" onclick="pickImage(this)"><div class="img-zone-text">+ Chart</div></div></div>
+      <div><div class="col-title">DXY / Bond</div><div class="img-zone" data-imgkey="m-im-dxy" onclick="pickImage(this)"><div class="img-zone-text">+ Chart</div></div></div>
+    </div>
+  </div></div>
+
+  <div class="sec"><div class="sec-head">📅 Week Unfolds</div><div class="sec-body">
+    <div class="cols4">
+      <div><div class="col-title">W1</div><div class="img-zone" data-imgkey="m-w1" onclick="pickImage(this)"><div class="img-zone-text">+ Chart</div></div></div>
+      <div><div class="col-title">W2</div><div class="img-zone" data-imgkey="m-w2" onclick="pickImage(this)"><div class="img-zone-text">+ Chart</div></div></div>
+      <div><div class="col-title">W3</div><div class="img-zone" data-imgkey="m-w3" onclick="pickImage(this)"><div class="img-zone-text">+ Chart</div></div></div>
+      <div><div class="col-title">W4</div><div class="img-zone" data-imgkey="m-w4" onclick="pickImage(this)"><div class="img-zone-text">+ Chart</div></div></div>
+    </div>
+  </div></div>
+
+  <div style="text-align:center;margin-top:14px"><button class="btn btn-primary" onclick="saveMonthly()">💾 Save Monthly</button></div>
+</div>
+</div>
+
+<!-- WEEKLY -->
+<div class="panel" id="p-weekly">
+<div class="panel-inner">
+  <div class="card">
+    <div class="card-head">
+      <span class="card-tag t-w" id="wk-tag">MAY Week 1</span>
+      <div class="card-title">Weekly Analysis</div>
+    </div>
+  </div>
+
+  <div class="wk-tabs" id="wkTabs">
+    <button class="wk-tab active" onclick="selectWeek(1)">Week 1</button>
+    <button class="wk-tab" onclick="selectWeek(2)">Week 2</button>
+    <button class="wk-tab" onclick="selectWeek(3)">Week 3</button>
+    <button class="wk-tab" onclick="selectWeek(4)">Week 4</button>
+  </div>
+
+  <div class="card"><div class="card-body">
+    <div class="form-row"><label class="form-label">Weekly Model</label>
+      <select data-key="w-model" data-week="">
+        <option value="">Select...</option><option>MMBM</option><option>MMSM</option>
+      </select>
+    </div>
+    <div class="form-row"><label class="form-label">Week Profile</label>
+      <select data-key="w-profile" data-week="">
+        <option value="">Select...</option>
+        <option>Bullish Retracement</option><option>Bearish Retracement</option>
+        <option>Bullish Reversal</option><option>Bearish Reversal</option>
+        <option>Bullish Continuation</option><option>Bearish Continuation</option>
+        <option>Expansion Bullish</option><option>Expansion Bearish</option>
+        <option>Consolidation</option><option>Distribution</option><option>Accumulation</option>
+      </select>
+    </div>
+    <div class="form-row"><label class="form-label">Range Behaviour</label>
+      <select data-key="w-range" data-week="">
+        <option value="">Select...</option>
+        <option>Premium Target</option><option>Discount Target</option>
+        <option>EQ Target</option><option>Above Old High</option><option>Below Old Low</option>
+        <option>NWOG Fill</option><option>NDOG Fill</option><option>PWH Sweep</option><option>PWL Sweep</option>
+      </select>
+    </div>
+    <div class="form-row"><label class="form-label">Market Phase</label>
+      <select data-key="w-phase" data-week="">
+        <option value="">Select...</option>
+        <option>Accumulation</option><option>Manipulation</option><option>Distribution</option>
+        <option>Reversal</option><option>Retracement</option><option>Continuation</option>
+        <option>Expansion</option><option>Consolidation</option>
+      </select>
+    </div>
+    <div class="form-row"><label class="form-label">SMT</label>
+      <div class="chips" id="smtChips"></div>
+    </div>
+    <div class="form-row"><label class="form-label">Key Levels</label>
+      <textarea data-key="w-keylevels" data-week="" rows="6" placeholder="NWOG Upper $______
+NWOG Lower $______
+PWH $______
+PWL $______
+Weekly EQ $______
+Midnight Open $______"></textarea>
+    </div>
+    <div class="form-row"><label class="form-label">P/D Arrays</label>
+      <textarea data-key="w-pd" data-week="" rows="3" placeholder="Premium / Discount notes"></textarea>
+    </div>
+  </div></div>
+
+  <div class="sec"><div class="sec-head">📐 SMT Co-relations</div><div class="sec-body">
+    <div class="cols3">
+      <div class="col-cell"><div class="col-title">NQ</div><textarea data-key="w-nq" data-week="" rows="3"></textarea></div>
+      <div class="col-cell"><div class="col-title">ES</div><textarea data-key="w-es" data-week="" rows="3"></textarea></div>
+      <div class="col-cell"><div class="col-title">YM</div><textarea data-key="w-ym" data-week="" rows="3"></textarea></div>
+    </div>
+    <div class="img-zone" data-imgkey="w-smt" data-week="" onclick="pickImage(this)" style="margin-top:8px"><div class="img-zone-text">+ SMT chart</div></div>
+  </div></div>
+
+  <div class="sec"><div class="sec-head">📊 Weekly · Daily · 4H · 1H Profiles</div><div class="sec-body">
+    <div class="cols2">
+      <div><div class="col-title">Weekly Profile</div><div class="img-zone" data-imgkey="w-wprof" data-week="" onclick="pickImage(this)"><div class="img-zone-text">+ Chart</div></div></div>
+      <div><div class="col-title">Daily Profile</div><div class="img-zone" data-imgkey="w-dprof" data-week="" onclick="pickImage(this)"><div class="img-zone-text">+ Chart</div></div></div>
+    </div>
+    <div class="cols2" style="margin-top:8px">
+      <div><div class="col-title">4H MMSM</div><div class="img-zone" data-imgkey="w-4h" data-week="" onclick="pickImage(this)"><div class="img-zone-text">+ Chart</div></div></div>
+      <div><div class="col-title">1H MMSM</div><div class="img-zone" data-imgkey="w-1h" data-week="" onclick="pickImage(this)"><div class="img-zone-text">+ Chart</div></div></div>
+    </div>
+  </div></div>
+
+  <div class="sec"><div class="sec-head">📅 Mon — Fri</div><div class="sec-body">
+    <div class="cols5">
+      <div><div class="col-title">MON</div><div class="img-zone" data-imgkey="w-mon" data-week="" onclick="pickImage(this)"><div class="img-zone-text">+ Chart</div></div></div>
+      <div><div class="col-title">TUE</div><div class="img-zone" data-imgkey="w-tue" data-week="" onclick="pickImage(this)"><div class="img-zone-text">+ Chart</div></div></div>
+      <div><div class="col-title">WED</div><div class="img-zone" data-imgkey="w-wed" data-week="" onclick="pickImage(this)"><div class="img-zone-text">+ Chart</div></div></div>
+      <div><div class="col-title">THU</div><div class="img-zone" data-imgkey="w-thu" data-week="" onclick="pickImage(this)"><div class="img-zone-text">+ Chart</div></div></div>
+      <div><div class="col-title">FRI</div><div class="img-zone" data-imgkey="w-fri" data-week="" onclick="pickImage(this)"><div class="img-zone-text">+ Chart</div></div></div>
+    </div>
+  </div></div>
+
+  <div style="text-align:center;margin-top:14px"><button class="btn btn-primary" onclick="saveWeekly()">💾 Save Week</button></div>
+</div>
+</div>
+
+<!-- DAILY -->
+<div class="panel" id="p-daily">
+<div class="panel-inner">
+  <div class="card">
+    <div class="card-head"><span class="card-tag t-d">Daily Pages</span><div class="card-title">All saved daily entries (continues from Day 362)</div></div>
+    <div class="card-body" id="dailyList"></div>
+  </div>
+</div>
+</div>
+
+<!-- TRADES -->
+<div class="panel" id="p-trades">
+<div class="panel-inner">
+  <div class="dash-grid">
+    <div class="tile pur"><div class="tile-l">Total</div><div class="tile-v" id="tr-total">0</div></div>
+    <div class="tile pos"><div class="tile-l">Win Rate</div><div class="tile-v" id="tr-wr">0%</div></div>
+    <div class="tile"><div class="tile-l">Net P&amp;L</div><div class="tile-v" id="tr-pnl">$0</div></div>
+    <div class="tile gold"><div class="tile-l">Avg RR</div><div class="tile-v" id="tr-rr">0</div></div>
+  </div>
+  
+  <div class="card">
+    <div class="card-head">
+      <span class="card-tag t-r">Trade Log</span>
+      <div class="card-title">All trades · grouped by month</div>
+      <button class="btn btn-primary btn-sm" onclick="openTradeModal()">+ Trade <span class="sb-key" style="background:rgba(0,0,0,.2);color:var(--bg)">T</span></button>
+    </div>
+    <div class="card-body">
+      <div class="tw"><table class="tbl">
+        <thead><tr><th>Date</th><th>Day</th><th>Market</th><th>Pos</th><th>Model</th><th>Session</th><th>Time</th><th>MMM</th><th>Emotions</th><th>HTF</th><th>Risk</th><th>P&amp;L</th><th>R:R</th></tr></thead>
+        <tbody id="tradeTable"><tr><td colspan="13" class="empty">No trades. Press T to log one.</td></tr></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ACCOUNTS -->
+<div class="panel" id="p-accounts">
+<div class="panel-inner">
+  <div class="card">
+    <div class="card-head"><span class="card-tag t-g">Accounts</span><div class="card-title">Funded · Live · Eval</div>
+      <button class="btn btn-primary btn-sm" onclick="openAccountModal()">+ Account <span class="sb-key" style="background:rgba(0,0,0,.2);color:var(--bg)">A</span></button>
+    </div>
+    <div class="card-body">
+      <div class="tabs">
+        <button class="tab active" onclick="filterAcc(&#39;All&#39;)">All</button>
+        <button class="tab" onclick="filterAcc(&#39;Funded&#39;)">Funded</button>
+        <button class="tab" onclick="filterAcc(&#39;Live&#39;)">Live</button>
+        <button class="tab" onclick="filterAcc(&#39;Eval&#39;)">Eval</button>
+      </div>
+      <div class="tw"><table class="tbl">
+        <thead><tr><th>Account</th><th>Type</th><th>Status</th><th>Deposit</th><th>Net PnL</th><th>Balance</th><th>Win Rate</th><th>W:B:L</th><th>Total</th><th>Active</th><th></th></tr></thead>
+        <tbody id="accTable"><tr><td colspan="11" class="empty">No accounts. Press A to add.</td></tr></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- TRANSACTIONS -->
+<div class="panel" id="p-trans">
+<div class="panel-inner">
+  <div class="card">
+    <div class="card-head"><span class="card-tag t-g">Transactions</span><div class="card-title">Deposits &amp; Withdrawals</div>
+      <button class="btn btn-primary btn-sm" onclick="openTransModal()">+ Transaction <span class="sb-key" style="background:rgba(0,0,0,.2);color:var(--bg)">X</span></button>
+    </div>
+    <div class="card-body">
+      <div class="tw"><table class="tbl">
+        <thead><tr><th>Date</th><th>Type</th><th>Account</th><th>Amount</th><th>Note</th><th></th></tr></thead>
+        <tbody id="transTable"><tr><td colspan="6" class="empty">No transactions yet.</td></tr></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- NOTES -->
+<div class="panel" id="p-notes">
+<div class="panel-inner">
+  <div class="card">
+    <div class="card-head"><span class="card-tag t-w">Notes</span><div class="card-title">Quick notes linked to daily entries</div>
+      <button class="btn btn-primary btn-sm" onclick="openNoteModal()">+ Note <span class="sb-key" style="background:rgba(0,0,0,.2);color:var(--bg)">N</span></button>
+    </div>
+    <div class="card-body" id="notesList"></div>
+  </div>
+</div>
+</div>
+
+<!-- JOURNAL -->
+<div class="panel" id="p-journal">
+<div class="panel-inner">
+  <div class="card">
+    <div class="card-head"><span class="card-tag t-w">New Journal Entry</span><div class="card-title">Lessons &amp; observations</div></div>
+    <div class="card-body">
+      <div class="form-row"><label class="form-label">Type</label>
+        <select id="j-type"><option value="lesson">Lesson</option><option value="bull">Win / Followed Plan</option><option value="bear">Loss / Mistake</option><option value="neutral">Note</option></select>
+      </div>
+      <div class="form-row"><label class="form-label">Date</label><input type="date" id="j-date"></div>
+      <div class="form-row"><label class="form-label">Entry</label><textarea id="j-text" rows="4"></textarea></div>
+      <div style="margin-top:12px"><button class="btn btn-primary" onclick="saveJournal()">+ Add</button></div>
+    </div>
+  </div>
+  <div class="card"><div class="card-head"><span class="card-tag t-m">History</span><div class="card-title">All journal entries</div></div>
+    <div class="card-body"><div id="journalList"></div></div>
+  </div>
+</div>
+</div>
+
+<!-- ICT TERMINOLOGY -->
+<div class="panel" id="p-ict">
+<div class="panel-inner">
+
+  <div class="term-toolbar">
+    <input type="text" id="ict-search" placeholder="Search concepts, terms, patterns..." oninput="renderTerminology()">
+    <button class="btn btn-primary btn-sm" onclick="openTermModal()">+ Add Term <span class="sb-key" style="background:rgba(0,0,0,.2);border-color:rgba(0,0,0,.2);color:var(--bg)">K</span></button>
+  </div>
+
+  <div class="term-cats" id="ict-cats">
+    <button class="term-cat-btn active" data-cat="All" onclick="ictSetCat('All')">All</button>
+    <button class="term-cat-btn" data-cat="Market Structure" onclick="ictSetCat('Market Structure')">Market Structure</button>
+    <button class="term-cat-btn" data-cat="Liquidity" onclick="ictSetCat('Liquidity')">Liquidity</button>
+    <button class="term-cat-btn" data-cat="ICT Model" onclick="ictSetCat('ICT Model')">ICT Model</button>
+    <button class="term-cat-btn" data-cat="Order Flow" onclick="ictSetCat('Order Flow')">Order Flow</button>
+    <button class="term-cat-btn" data-cat="Price Delivery" onclick="ictSetCat('Price Delivery')">Price Delivery</button>
+    <button class="term-cat-btn" data-cat="Session / Time" onclick="ictSetCat('Session / Time')">Session / Time</button>
+    <button class="term-cat-btn" data-cat="SMT / Intermarket" onclick="ictSetCat('SMT / Intermarket')">SMT / Intermarket</button>
+    <button class="term-cat-btn" data-cat="Risk Management" onclick="ictSetCat('Risk Management')">Risk Management</button>
+    <button class="term-cat-btn" data-cat="Other" onclick="ictSetCat('Other')">Other</button>
+  </div>
+
+  <div style="margin-top:14px" id="ict-count"></div>
+  <div class="term-grid" id="termGrid" style="margin-top:10px"></div>
+
+</div>
+</div>
+
+<!-- PERFORMANCE -->
+<div class="panel" id="p-perf">
+<div class="panel-inner">
+  <div class="dash-grid">
+    <div class="tile pur"><div class="tile-l">Total trades</div><div class="tile-v" id="p-total">0</div></div>
+    <div class="tile pos"><div class="tile-l">Win Rate</div><div class="tile-v" id="p-wr">0%</div></div>
+    <div class="tile"><div class="tile-l">Net P&amp;L</div><div class="tile-v" id="p-pnl">$0</div></div>
+    <div class="tile gold"><div class="tile-l">Best Trade</div><div class="tile-v" id="p-best">$0</div></div>
+  </div>
+  <div class="chart-grid">
+    <div class="chart-card"><div class="chart-title">P&amp;L by Model</div><div class="chart-canvas"><canvas id="ch-model"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Trades by Emotion</div><div class="chart-canvas"><canvas id="ch-emotion"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">P&amp;L by Day</div><div class="chart-canvas"><canvas id="ch-day"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Equity Curve</div><div class="chart-canvas"><canvas id="ch-trend"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">P&amp;L by Time Period</div><div class="chart-canvas"><canvas id="ch-time"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">P&amp;L by Session</div><div class="chart-canvas"><canvas id="ch-session"></canvas></div></div>
+  </div>
+</div>
+</div>
+
+<!-- SETTINGS -->
+<div class="panel" id="p-settings">
+<div class="panel-inner">
+
+  <div class="card">
+    <div class="card-head"><span class="card-tag t-g">🎨 Appearance</span><div class="card-title">Theme &amp; Display</div></div>
+    <div class="card-body">
+      <div class="form-row"><label class="form-label">Theme</label>
+        <select id="set-theme" onchange="applyThemeSetting(this.value)">
+          <option value="dark">Dark (Default)</option>
+          <option value="light">Light</option>
+        </select>
+      </div>
+      <div class="form-row"><label class="form-label">Date Format</label>
+        <select id="set-datefmt">
+          <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+          <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+          <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+        </select>
+      </div>
+      <div class="form-row"><label class="form-label">Number Format</label>
+        <select id="set-numfmt">
+          <option value="comma">10,000.00 (US)</option>
+          <option value="dot">10.000,00 (EU)</option>
+        </select>
+      </div>
+      <div class="form-row"><label class="form-label">Start of Week</label>
+        <select id="set-weekstart">
+          <option value="sunday">Sunday</option>
+          <option value="monday">Monday</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="card-head"><span class="card-tag t-m">🌍 Regional</span><div class="card-title">Timezone &amp; Language</div></div>
+    <div class="card-body">
+      <div class="form-row"><label class="form-label">Timezone</label>
+        <select id="set-tz">
+          <option value="Australia/Sydney">Sydney (AEST/AEDT)</option>
+          <option value="America/New_York">New York (ET)</option>
+          <option value="America/Chicago">Chicago (CT)</option>
+          <option value="Europe/London">London (GMT/BST)</option>
+          <option value="Europe/Zurich">Zurich (CET)</option>
+          <option value="Asia/Tokyo">Tokyo (JST)</option>
+          <option value="Asia/Singapore">Singapore (SGT)</option>
+          <option value="UTC">UTC</option>
+        </select>
+      </div>
+      <div class="form-row"><label class="form-label">Currency Display</label>
+        <select id="set-currency">
+          <option value="USD">USD — US Dollar</option>
+          <option value="AUD">AUD — Australian Dollar</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="card-head"><span class="card-tag t-d">🔔 Notifications</span><div class="card-title">Trading Reminders</div></div>
+    <div class="card-body">
+      <p style="font-size:11px;color:var(--text3);margin-bottom:10px">Daily browser reminder at your trading time. Requires notification permission.</p>
+      <div class="form-row"><label class="form-label">Reminder Time</label><input type="time" id="set-notif-time" value="09:00"></div>
+      <div class="form-row"><label class="form-label">Reminder Message</label><input id="set-notif-msg" placeholder="Time to review your trading plan!"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-primary btn-sm" onclick="enableNotifications()">🔔 Enable</button>
+        <button class="btn btn-sm" onclick="testNotification()">Test</button>
+        <button class="btn btn-sm btn-bear" onclick="disableNotifications()">Disable</button>
+      </div>
+      <div id="notif-status" style="font-size:10px;color:var(--text3);margin-top:6px"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="card-head"><span class="card-tag t-w">🔗 Social Links</span><div class="card-title">Your Handles</div></div>
+    <div class="card-body">
+      <div class="form-row"><label class="form-label">Twitter / X</label><input id="set-twitter" placeholder="@yourusername"></div>
+      <div class="form-row"><label class="form-label">TradingView</label><input id="set-tv" placeholder="tradingview.com/u/..."></div>
+      <div class="form-row"><label class="form-label">YouTube</label><input id="set-yt" placeholder="youtube.com/@..."></div>
+      <div class="form-row"><label class="form-label">Instagram</label><input id="set-ig" placeholder="@yourusername"></div>
+      <div class="form-row"><label class="form-label">Discord</label><input id="set-discord" placeholder="invite link or username"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="card-head"><span class="card-tag t-g">⚙️ Trading Setup</span><div class="card-title">Day Count &amp; Claude AI</div></div>
+    <div class="card-body">
+      <div class="form-row"><label class="form-label">Starting Day Count</label><input type="number" id="set-day" placeholder="362"></div>
+      <div class="form-row"><label class="form-label">Day Count Start Date</label><input type="date" id="set-day-date"></div>
+      <hr class="div">
+      <div class="form-row"><label class="form-label">Claude API Key</label><input type="password" id="set-claude-key" placeholder="sk-ant-..."></div>
+      <div style="font-size:10px;color:var(--text3);margin:-4px 0 10px">AI Coach key — stored locally only. Get one at <a href="https://console.anthropic.com" target="_blank" style="color:var(--gold)">console.anthropic.com</a></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <div class="card-head"><span class="card-tag t-r">💾 Data</span><div class="card-title">Backup &amp; Restore</div></div>
+    <div class="card-body">
+      <p style="color:var(--text2);font-size:12px;margin-bottom:12px">All data stored locally in your browser. Export regularly as a backup.</p>
+      <div class="flex-row">
+        <button class="btn btn-primary" onclick="exportData()">📤 Export JSON</button>
+        <button class="btn" onclick="document.getElementById('importFile').click()">📥 Import</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+        <button class="btn btn-bear" onclick="clearAllData()">🗑 Clear All</button>
+      </div>
+      <hr class="div">
+      <div id="storageStats"></div>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:16px;padding-bottom:10px">
+    <button class="btn btn-primary" onclick="saveSettings()" style="padding:10px 28px">💾 Save All Settings</button>
+  </div>
+
+</div>
+</div>
+
+</main>
+</div>
+
+<!-- TRADE MODAL (FULL LMR Trade Data fields) -->
+<div class="modal-bg" id="tradeModal">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">+ Log Trade</div><button class="close" onclick="closeModal(&#39;tradeModal&#39;)">×</button></div>
+    <div class="modal-body">
+      <div class="cols2">
+        <div><label class="form-label">Date</label><input type="date" id="tm-date"></div>
+        <div><label class="form-label">Market</label><select id="tm-market"><option>NQ</option><option>ES</option><option>YM</option><option>MNQ</option><option>MES</option></select></div>
+      </div>
+      <div class="cols2" style="margin-top:8px">
+        <div><label class="form-label">Position</label><select id="tm-pos"><option>Long</option><option>Short</option></select></div>
+        <div><label class="form-label">Day</label><select id="tm-day"><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option></select></div>
+      </div>
+      <div class="cols2" style="margin-top:8px">
+        <div><label class="form-label">Session</label><select id="tm-session"><option>NY AM</option><option>NY PM</option></select></div>
+        <div><label class="form-label">Time Period</label><select id="tm-tp"></select></div>
+      </div>
+      <hr class="div">
+      <label class="form-label">Trade Entry Drill (Model)</label>
+      <div class="chips" id="modelChips" style="margin-bottom:8px"></div>
+      <label class="form-label">Confirmation</label>
+      <div class="chips" id="confChips" style="margin-bottom:8px"></div>
+      <label class="form-label">Emotions</label>
+      <div class="chips" id="emoChips" style="margin-bottom:8px"></div>
+      <label class="form-label">Market Phase</label>
+      <div class="chips" id="phaseChips" style="margin-bottom:8px"></div>
+      <label class="form-label">Market Maker Model</label>
+      <div class="chips" id="mmmChips" style="margin-bottom:8px"></div>
+      <label class="form-label">Movement</label>
+      <div class="chips" id="movChips" style="margin-bottom:8px"></div>
+      <label class="form-label">T Frame</label>
+      <div class="chips" id="tfChips" style="margin-bottom:8px"></div>
+      <hr class="div">
+      <div class="cols2">
+        <div><label class="form-label">RTH Profile</label><select id="tm-rth"></select></div>
+        <div><label class="form-label">HTF Delivery</label><select id="tm-htf"><option>Delivered</option><option>Undelivered</option></select></div>
+      </div>
+      <div class="cols3" style="margin-top:8px">
+        <div><label class="form-label">Net P&amp;L ($)</label><input type="number" id="tm-pnl" step="0.01"></div>
+        <div><label class="form-label">Risk ($)</label><input type="number" id="tm-risk" step="0.01"></div>
+        <div><label class="form-label">Lots</label><input type="number" id="tm-lots" step="0.01"></div>
+      </div>
+      <div class="form-row" style="margin-top:8px"><label class="form-label">Account</label><select id="tm-acc"><option value="">No account</option></select></div>
+      <div class="form-row"><label class="form-label">Draws</label><input id="tm-draws" placeholder="e.g. Sell-side at $25,840"></div>
+      <div class="form-row"><label class="form-label">Feedback</label><textarea id="tm-fb" rows="3"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal(&#39;tradeModal&#39;)">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTrade()">Save Trade</button>
+    </div>
+  </div>
+</div>
+
+<!-- ACCOUNT MODAL -->
+<div class="modal-bg" id="accModal">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">+ Account</div><button class="close" onclick="closeModal(&#39;accModal&#39;)">×</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label class="form-label">Account Name</label><input id="am-name" placeholder="e.g. Apex 50k"></div>
+      <div class="cols2">
+        <div><label class="form-label">Type</label><select id="am-type"><option>Funded</option><option>Live</option><option>Eval</option></select></div>
+        <div><label class="form-label">Status</label><select id="am-status"><option>In-Progress</option><option>Passed</option><option>Blown</option></select></div>
+      </div>
+      <div class="form-row" style="margin-top:8px"><label class="form-label">Date</label><input type="date" id="am-date"></div>
+      <div class="form-row"><label class="form-label">Initial Deposit</label><input type="number" id="am-deposit" step="0.01"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal(&#39;accModal&#39;)">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAccount()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRANSACTION MODAL -->
+<div class="modal-bg" id="transModal">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">+ Transaction</div><button class="close" onclick="closeModal(&#39;transModal&#39;)">×</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label class="form-label">Date</label><input type="date" id="xm-date"></div>
+      <div class="form-row"><label class="form-label">Type</label><select id="xm-type"><option>Deposit</option><option>Withdrawal</option><option>Payout</option><option>Fee</option></select></div>
+      <div class="form-row"><label class="form-label">Account</label><select id="xm-acc"></select></div>
+      <div class="form-row"><label class="form-label">Amount</label><input type="number" id="xm-amt" step="0.01"></div>
+      <div class="form-row"><label class="form-label">Note</label><input id="xm-note"></div>
+      <div class="form-row"><label class="form-label">Receipt / Screenshot</label>
+        <div class="img-zone" id="xm-receipt-zone" onclick="xmPickReceipt()" style="height:90px"><div class="img-zone-text">+ Add receipt or screenshot</div></div>
+        <input type="file" id="xm-receipt-file" accept="image/*" style="display:none" onchange="xmReceiptSelected(event)">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal(&#39;transModal&#39;)">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTrans()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRADE DETAIL MODAL -->
+<div class="modal-bg" id="tradeDetailModal">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="tdm-title">Trade Detail</div>
+        <div id="tdm-locked" style="font-size:10px;color:var(--text3);margin-top:2px">🔒 Sealed record — P&amp;L and trade data are read-only</div>
+      </div>
+      <button class="close" onclick="closeModal('tradeDetailModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <!-- TradingView screenshot zone -->
+      <div style="margin-bottom:14px">
+        <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">📸 TradingView Screenshot</div>
+        <div id="tdm-img-zone" style="width:100%;height:220px;background:var(--bg3);border-radius:var(--r);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:var(--text3);overflow:hidden;transition:border-color .15s" onclick="tdmPickImage()">
+          + Click to add TradingView screenshot
+        </div>
+        <input type="file" id="tdm-file" accept="image/*" style="display:none" onchange="tdmImageSelected(event)">
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <button class="btn btn-primary btn-sm" onclick="tdmPickImage()">📷 Add / Replace</button>
+          <button class="btn btn-sm" onclick="tdmRemoveImage()">Remove</button>
+          <button class="btn btn-primary btn-sm" onclick="tdmSaveScreenshot()" id="tdm-save-btn" style="margin-left:auto">💾 Save Screenshot</button>
+        </div>
+      </div>
+      <hr class="div">
+      <!-- Trade properties — read-only -->
+      <div id="tdm-props" style="display:grid;grid-template-columns:1fr 1fr;gap:0"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ICT TERMINOLOGY MODAL -->
+<div class="modal-bg" id="termModal">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-head"><div class="modal-title" id="termModalTitle">+ ICT Term / Concept</div><button class="close" onclick="closeModal('termModal')">×</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label class="form-label">Term / Concept Name *</label><input id="trm-name" placeholder="e.g. Order Block, Silver Bullet, IFVG..."></div>
+      <div class="cols2">
+        <div><label class="form-label">Category</label>
+          <select id="trm-cat">
+            <option>Market Structure</option>
+            <option>Liquidity</option>
+            <option>ICT Model</option>
+            <option>Order Flow</option>
+            <option>Price Delivery</option>
+            <option>Session / Time</option>
+            <option>SMT / Intermarket</option>
+            <option>Risk Management</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div><label class="form-label">Tags (comma separated)</label><input id="trm-tags" placeholder="OB, LTF, SMC..."></div>
+      </div>
+      <div class="form-row" style="margin-top:8px"><label class="form-label">Description / Definition</label><textarea id="trm-desc" rows="4" placeholder="What is this concept? How do you identify it?"></textarea></div>
+      <div class="form-row"><label class="form-label">Rules / Examples / Notes</label><textarea id="trm-ex" rows="3" placeholder="Entry rules, confluences, real examples from your journal..."></textarea></div>
+      <div class="form-row"><label class="form-label">Reference Image / Chart</label>
+        <div class="term-img-zone" id="trm-img-zone" onclick="termPickImage()"><div class="img-zone-text">+ Add chart or screenshot</div></div>
+        <input type="file" id="trm-file-input" accept="image/*" style="display:none" onchange="termImageSelected(event)">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('termModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTerm()">Save Term</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTE MODAL -->
+<div class="modal-bg" id="noteModal">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">+ Note</div><button class="close" onclick="closeModal(&#39;noteModal&#39;)">×</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label class="form-label">Title</label><input id="nm-title" placeholder="Quick note..."></div>
+      <div class="form-row"><label class="form-label">Linked Day</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="nm-date" type="date" oninput="nmDateChanged()" style="flex:1">
+          <span id="nm-daycount" class="mono txt-gold" style="font-size:12px;font-weight:700;min-width:60px"></span>
+        </div>
+      </div>
+      <div class="form-row"><label class="form-label">Content</label><textarea id="nm-text" rows="6"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal(&#39;noteModal&#39;)">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNote()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- HOTKEYS -->
+<!-- CLAUDE AI MODAL -->
+<div id="aiModal" onclick="if(event.target===this)closeAIModal()">
+  <div class="ai-panel">
+    <div class="ai-head">
+      <span class="ai-head-icon">🤖</span>
+      <div class="ai-head-title">Claude AI Coach</div>
+      <button class="ai-close" onclick="closeAIModal()">×</button>
+    </div>
+    <div class="ai-prompts">
+      <button class="ai-prompt-btn" onclick="runAIPrompt('performance')">📊 Performance review</button>
+      <button class="ai-prompt-btn" onclick="runAIPrompt('emotions')">🧠 Emotion patterns</button>
+      <button class="ai-prompt-btn" onclick="runAIPrompt('models')">⚡ Best models</button>
+      <button class="ai-prompt-btn" onclick="runAIPrompt('week')">📅 Week summary</button>
+      <button class="ai-prompt-btn" onclick="runAIPrompt('journal')">📖 Journal insights</button>
+      <button class="ai-prompt-btn" onclick="runAIPrompt('mistakes')">❌ Key mistakes</button>
+      <button class="ai-prompt-btn" onclick="runAIPrompt('plan')">🎯 Improvement plan</button>
+    </div>
+    <div class="ai-body" id="aiBody">
+      <div class="ai-response" id="aiResponse"><span style="color:var(--text3);font-size:12px">Pick a prompt above or ask your own question below.</span></div>
+    </div>
+    <div class="ai-input-row">
+      <input type="text" id="aiInput" placeholder="Ask Claude anything about your trading..." onkeydown="if(event.key==='Enter')sendAIMessage()">
+      <button class="ai-send" id="aiSendBtn" onclick="sendAIMessage()">Send</button>
+    </div>
+  </div>
+</div>
+
+<div class="hk-overlay" id="hkOverlay" onclick="closeHotkeys(event)">
+  <div class="hk-panel" onclick="event.stopPropagation()">
+    <div class="hk-title">⌨️ Keyboard Shortcuts</div>
+    <div class="hk-row"><span class="hk-key">0</span><span class="hk-desc">Dashboard</span></div>
+    <div class="hk-row"><span class="hk-key">D</span><span class="hk-desc">Today's chain</span></div>
+    <div class="hk-row"><span class="hk-key">M</span><span class="hk-desc">Monthly analysis</span></div>
+    <div class="hk-row"><span class="hk-key">W</span><span class="hk-desc">Weekly analysis</span></div>
+    <div class="hk-row"><span class="hk-key">L</span><span class="hk-desc">Daily pages list</span></div>
+    <div class="hk-row"><span class="hk-key">C</span><span class="hk-desc">Calendar</span></div>
+    <div class="hk-row"><span class="hk-key">T</span><span class="hk-desc">New trade</span></div>
+    <div class="hk-row"><span class="hk-key">A</span><span class="hk-desc">Accounts (or new account in panel)</span></div>
+    <div class="hk-row"><span class="hk-key">X</span><span class="hk-desc">Transactions</span></div>
+    <div class="hk-row"><span class="hk-key">N</span><span class="hk-desc">New note</span></div>
+    <div class="hk-row"><span class="hk-key">J</span><span class="hk-desc">Journal</span></div>
+    <div class="hk-row"><span class="hk-key">P</span><span class="hk-desc">Performance</span></div>
+    <div class="hk-row"><span class="hk-key">I</span><span class="hk-desc">Claude AI Coach</span></div>
+    <div class="hk-row"><span class="hk-key">K</span><span class="hk-desc">ICT Terminology (or new term if in panel)</span></div>
+    <div class="hk-row"><span class="hk-key">?</span><span class="hk-desc">Show this menu</span></div>
+    <div class="hk-row"><span class="hk-key">Esc</span><span class="hk-desc">Close modal/menu</span></div>
+    <div style="text-align:center;margin-top:14px;font-size:10px;color:var(--text3)">Press any key to navigate · Esc to close</div>
+  </div>
+</div>
+
+<div class="lb" id="lightbox" onclick="closeLightbox()">
+  <div class="lb-close">×</div>
+  <img id="lightboxImg" alt="">
+</div>
+
+<input type="file" id="fileInput" accept="image/*" style="display:none">
+
+<script>
+// ============= DATA CONSTANTS =============
+const TIME_PERIODS = ["9:31 - 10:00 AM","9:45 - 10:10 AM","8:50 - 9:10 AM","6:50 - 7:10 AM","AM Silver Bullet 10:00 - 11:00 AM","10:50 - 11:10 AM","11:50 - 12:10 PM","12:50 - 13:00 PM","13:50 - 14:10 PM","14:50 - 15:10 PM","15:15 - 15:45 PM","PM Silver Bullet 14:00 - 15:00","15:50 - 16:10 PM","PM FH 16:10 - 16:45 PM"];
+const MODELS = ["Breaker Block","OB","OTE","CSID","IOFED","Silver Bullet","Turtle Soup","IFVG","ICT 2022 Model","Stupidity"];
+const CONFIRMATIONS = ["Macro Time","Liquidity Sweep","Displacement Candle","CSID","LTF OTE","OB","MSS","IDM","Breaker Block","SMT","Clean Draws","Prior To Confirmation","HTF Delivery"];
+const EMOTIONS = ["Emotional Decision","Revenge Trading","FOMO","Neutral","Disciplined","Flow State"];
+const MARKET_PHASES = ["Accumulation","Retracement","Manipulation","Distribution","Reversal","Continuation"];
+const MMM_OPTS = ["MMBM","MMSM"];
+const MOVEMENT = ["ERL-IRL","IRL-ERL","IRL-IRL","ERL - ERL"];
+const T_FRAMES = ["1m-15m-4hr-1W","1m-5m-1hr-1D"];
+const RTH_PROFILES = ["Premium Bullish Above RTH","Discout Bullish RTH-HQ","Discount Bullish RTH-CME","Discount Bullish RTH-LQ","Discount  Bullish Purged RTH","Premium Bearish Purged  RTH","Premium Bearish  RTH-HQ","Premium Bearish  RTH-CME","Premium Bearish RTH-LQ","Discount Bearish Below RTH"];
+const ASIAN_RANGE = ["Reversal","Retracement","Accumulation","Distribution","Expansion"];
+const PRICE_REFS = ["Premium","Above Swing HIgh","Above Weekly Open","Above Monthly Open","PMH","PWH","PDH","Daily -OB","Daily SIBI","Higher Qudrant","HTF EQ","HTF DRT","HTF OTE","NWOG","Daily Wick","Daily IFVG","Suspension Block","Daily Imbalance","NDOG","Lower Qudrant","Daily BISI","Daily +OB","PDL","PWL","PML","Below Swing Low","Below Weekly Open","Below Monthly Open","Discount","All time High"];
+const SMT_OPTS = ["Bearish SMT","Bullish SMT","NQ / YM","ES / YM","ES / NQ"];
+
+// USA Bank holidays 2026 (NYSE)
+const US_HOLIDAYS_2026 = {
+  '2026-01-01': "New Year's Day",
+  '2026-01-19': "MLK Day",
+  '2026-02-16': "Presidents Day",
+  '2026-04-03': "Good Friday",
+  '2026-05-25': "Memorial Day",
+  '2026-06-19': "Juneteenth",
+  '2026-07-03': "Independence Day (observed)",
+  '2026-09-07': "Labor Day",
+  '2026-11-26': "Thanksgiving",
+  '2026-11-27': "Day after Thanksgiving (early close)",
+  '2026-12-25': "Christmas Day"
+};
+
+// Full 2026 US Economic Calendar — 2★ yellow, 3★ red
+const NEWS_EVENTS_2026_05 = []; // legacy alias — real data below
+const ECONOMIC_CALENDAR_2026 = [
+  // ── JANUARY ──
+  {date:'2026-01-02',time:'09:45',name:'ISM Manufacturing PMI',impact:2},
+  {date:'2026-01-06',time:'10:00',name:'ISM Services PMI',impact:2},
+  {date:'2026-01-09',time:'08:30',name:'Non-Farm Payrolls',impact:3},
+  {date:'2026-01-09',time:'08:30',name:'Unemployment Rate',impact:3},
+  {date:'2026-01-14',time:'08:30',name:'CPI MoM',impact:3},
+  {date:'2026-01-14',time:'08:30',name:'Core CPI MoM',impact:3},
+  {date:'2026-01-14',time:'08:30',name:'PPI MoM',impact:2},
+  {date:'2026-01-15',time:'08:30',name:'Retail Sales MoM',impact:3},
+  {date:'2026-01-16',time:'10:00',name:'Michigan Consumer Sentiment',impact:2},
+  {date:'2026-01-27',time:'10:00',name:'Consumer Confidence',impact:2},
+  {date:'2026-01-28',time:'14:00',name:'Fed Interest Rate Decision',impact:3},
+  {date:'2026-01-28',time:'14:30',name:'FOMC Press Conference',impact:3},
+  {date:'2026-01-29',time:'08:30',name:'GDP Growth Rate QoQ Advance',impact:3},
+  {date:'2026-01-30',time:'08:30',name:'Core PCE Price Index',impact:3},
+  // ── FEBRUARY ──
+  {date:'2026-02-02',time:'09:45',name:'ISM Manufacturing PMI',impact:2},
+  {date:'2026-02-04',time:'10:00',name:'ISM Services PMI',impact:2},
+  {date:'2026-02-06',time:'08:30',name:'Non-Farm Payrolls',impact:3},
+  {date:'2026-02-06',time:'08:30',name:'Unemployment Rate',impact:3},
+  {date:'2026-02-11',time:'08:30',name:'CPI MoM',impact:3},
+  {date:'2026-02-11',time:'08:30',name:'Core CPI MoM',impact:3},
+  {date:'2026-02-12',time:'08:30',name:'PPI MoM',impact:2},
+  {date:'2026-02-13',time:'08:30',name:'Retail Sales MoM',impact:3},
+  {date:'2026-02-13',time:'10:00',name:'Michigan Consumer Sentiment',impact:2},
+  {date:'2026-02-18',time:'14:00',name:'FOMC Minutes',impact:3},
+  {date:'2026-02-24',time:'10:00',name:'Consumer Confidence',impact:2},
+  {date:'2026-02-26',time:'08:30',name:'GDP Growth Rate QoQ 2nd Est.',impact:3},
+  {date:'2026-02-27',time:'08:30',name:'Core PCE Price Index',impact:3},
+  // ── MARCH ──
+  {date:'2026-03-02',time:'09:45',name:'ISM Manufacturing PMI',impact:2},
+  {date:'2026-03-04',time:'10:00',name:'ISM Services PMI',impact:2},
+  {date:'2026-03-06',time:'08:30',name:'Non-Farm Payrolls',impact:3},
+  {date:'2026-03-06',time:'08:30',name:'Unemployment Rate',impact:3},
+  {date:'2026-03-11',time:'08:30',name:'CPI MoM',impact:3},
+  {date:'2026-03-11',time:'08:30',name:'Core CPI MoM',impact:3},
+  {date:'2026-03-12',time:'08:30',name:'PPI MoM',impact:2},
+  {date:'2026-03-13',time:'10:00',name:'Michigan Consumer Sentiment',impact:2},
+  {date:'2026-03-17',time:'08:30',name:'Retail Sales MoM',impact:3},
+  {date:'2026-03-18',time:'14:00',name:'Fed Interest Rate Decision',impact:3},
+  {date:'2026-03-18',time:'14:30',name:'FOMC Press Conference',impact:3},
+  {date:'2026-03-27',time:'08:30',name:'Core PCE Price Index',impact:3},
+  {date:'2026-03-31',time:'10:00',name:'Consumer Confidence',impact:2},
+  // ── APRIL ──
+  {date:'2026-04-01',time:'09:45',name:'ISM Manufacturing PMI',impact:2},
+  {date:'2026-04-03',time:'08:30',name:'Non-Farm Payrolls',impact:3},
+  {date:'2026-04-03',time:'08:30',name:'Unemployment Rate',impact:3},
+  {date:'2026-04-03',time:'10:00',name:'ISM Services PMI',impact:2},
+  {date:'2026-04-08',time:'14:00',name:'FOMC Minutes',impact:2},
+  {date:'2026-04-10',time:'08:30',name:'CPI MoM',impact:3},
+  {date:'2026-04-10',time:'08:30',name:'Core CPI MoM',impact:3},
+  {date:'2026-04-11',time:'08:30',name:'PPI MoM',impact:2},
+  {date:'2026-04-15',time:'08:30',name:'Retail Sales MoM',impact:3},
+  {date:'2026-04-17',time:'10:00',name:'Michigan Consumer Sentiment',impact:2},
+  {date:'2026-04-28',time:'10:00',name:'Consumer Confidence',impact:2},
+  {date:'2026-04-29',time:'08:30',name:'GDP Growth Rate QoQ Advance',impact:3},
+  {date:'2026-04-30',time:'08:30',name:'Core PCE Price Index',impact:3},
+  // ── MAY ──
+  {date:'2026-05-01',time:'08:30',name:'Non-Farm Payrolls',impact:3},
+  {date:'2026-05-01',time:'08:30',name:'Unemployment Rate',impact:3},
+  {date:'2026-05-01',time:'09:45',name:'ISM Manufacturing PMI',impact:2},
+  {date:'2026-05-05',time:'10:00',name:'ISM Services PMI',impact:2},
+  {date:'2026-05-06',time:'14:00',name:'Fed Interest Rate Decision',impact:3},
+  {date:'2026-05-06',time:'14:30',name:'FOMC Press Conference',impact:3},
+  {date:'2026-05-13',time:'08:30',name:'CPI MoM',impact:3},
+  {date:'2026-05-13',time:'08:30',name:'Core CPI MoM',impact:3},
+  {date:'2026-05-14',time:'08:30',name:'PPI MoM',impact:2},
+  {date:'2026-05-15',time:'08:30',name:'Retail Sales MoM',impact:3},
+  {date:'2026-05-22',time:'10:00',name:'Michigan Consumer Sentiment',impact:2},
+  {date:'2026-05-27',time:'14:00',name:'FOMC Minutes',impact:2},
+  {date:'2026-05-28',time:'08:30',name:'GDP Growth Rate QoQ 2nd Est.',impact:3},
+  {date:'2026-05-29',time:'08:30',name:'Core PCE Price Index',impact:3},
+  // ── JUNE ──
+  {date:'2026-06-01',time:'09:45',name:'ISM Manufacturing PMI',impact:2},
+  {date:'2026-06-03',time:'10:00',name:'ISM Services PMI',impact:2},
+  {date:'2026-06-05',time:'08:30',name:'Non-Farm Payrolls',impact:3},
+  {date:'2026-06-05',time:'08:30',name:'Unemployment Rate',impact:3},
+  {date:'2026-06-10',time:'08:30',name:'CPI MoM',impact:3},
+  {date:'2026-06-10',time:'08:30',name:'Core CPI MoM',impact:3},
+  {date:'2026-06-11',time:'08:30',name:'PPI MoM',impact:2},
+  {date:'2026-06-12',time:'10:00',name:'Michigan Consumer Sentiment',impact:2},
+  {date:'2026-06-16',time:'08:30',name:'Retail Sales MoM',impact:3},
+  {date:'2026-06-17',time:'14:00',name:'Fed Interest Rate Decision',impact:3},
+  {date:'2026-06-17',time:'14:30',name:'FOMC Press Conference',impact:3},
+  {date:'2026-06-26',time:'08:30',name:'Core PCE Price Index',impact:3},
+  {date:'2026-06-30',time:'10:00',name:'Consumer Confidence',impact:2},
+  // ── JULY ──
+  {date:'2026-07-01',time:'09:45',name:'ISM Manufacturing PMI',impact:2},
+  {date:'2026-07-07',time:'10:00',name:'ISM Services PMI',impact:2},
+  {date:'2026-07-08',time:'14:00',name:'FOMC Minutes',impact:2},
+  {date:'2026-07-10',time:'08:30',name:'Non-Farm Payrolls',impact:3},
+  {date:'2026-07-10',time:'08:30',name:'Unemployment Rate',impact:3},
+  {date:'2026-07-14',time:'08:30',name:'PPI MoM',impact:2},
+  {date:'2026-07-15',time:'08:30',name:'CPI MoM',impact:3},
+  {date:'2026-07-15',time:'08:30',name:'Core CPI MoM',impact:3},
+  {date:'2026-07-15',time:'08:30',name:'Retail Sales MoM',impact:3},
+  {date:'2026-07-17',time:'10:00',name:'Michigan Consumer Sentiment',impact:2},
+  {date:'2026-07-28',time:'10:00',name:'Consumer Confidence',impact:2},
+  {date:'2026-07-29',time:'14:00',name:'Fed Interest Rate Decision',impact:3},
+  {date:'2026-07-29',time:'14:30',name:'FOMC Press Conference',impact:3},
+  {date:'2026-07-30',time:'08:30',name:'GDP Growth Rate QoQ Advance',impact:3},
+  {date:'2026-07-31',time:'08:30',name:'Core PCE Price Index',impact:3},
+  // ── AUGUST ──
+  {date:'2026-08-03',time:'09:45',name:'ISM Manufacturing PMI',impact:2},
+  {date:'2026-08-05',time:'10:00',name:'ISM Services PMI',impact:2},
+  {date:'2026-08-07',time:'08:30',name:'Non-Farm Payrolls',impact:3},
+  {date:'2026-08-07',time:'08:30',name:'Unemployment Rate',impact:3},
+  {date:'2026-08-12',time:'08:30',name:'CPI MoM',impact:3},
+  {date:'2026-08-12',time:'08:30',name:'Core CPI MoM',impact:3},
+  {date:'2026-08-13',time:'08:30',name:'PPI MoM',impact:2},
+  {date:'2026-08-14',time:'08:30',name:'Retail Sales MoM',impact:3},
+  {date:'2026-08-14',time:'10:00',name:'Michigan Consumer Sentiment',impact:2},
+  {date:'2026-08-25',time:'10:00',name:'Consumer Confidence',impact:2},
+  {date:'2026-08-26',time:'14:00',name:'FOMC Minutes',impact:2},
+  {date:'2026-08-27',time:'08:30',name:'GDP Growth Rate QoQ 2nd Est.',impact:3},
+  {date:'2026-08-28',time:'08:30',name:'Core PCE Price Index',impact:3},
+  // ── SEPTEMBER ──
+  {date:'2026-09-01',time:'09:45',name:'ISM Manufacturing PMI',impact:2},
+  {date:'2026-09-03',time:'10:00',name:'ISM Services PMI',impact:2},
+  {date:'2026-09-04',time:'08:30',name:'Non-Farm Payrolls',impact:3},
+  {date:'2026-09-04',time:'08:30',name:'Unemployment Rate',impact:3},
+  {date:'2026-09-11',time:'08:30',name:'CPI MoM',impact:3},
+  {date:'2026-09-11',time:'08:30',name:'Core CPI MoM',impact:3},
+  {date:'2026-09-12',time:'08:30',name:'PPI MoM',impact:2},
+  {date:'2026-09-16',time:'08:30',name:'Retail Sales MoM',impact:3},
+  {date:'2026-09-16',time:'14:00',name:'Fed Interest Rate Decision',impact:3},
+  {date:'2026-09-16',time:'14:30',name:'FOMC Press Conference',impact:3},
+  {date:'2026-09-18',time:'10:00',name:'Michigan Consumer Sentiment',impact:2},
+  {date:'2026-09-25',time:'08:30',name:'Core PCE Price Index',impact:3},
+  {date:'2026-09-29',time:'10:00',name:'Consumer Confidence',impact:2},
+  // ── OCTOBER ──
+  {date:'2026-10-01',time:'09:45',name:'ISM Manufacturing PMI',impact:2},
+  {date:'2026-10-02',time:'08:30',name:'Non-Farm Payrolls',impact:3},
+  {date:'2026-10-02',time:'08:30',name:'Unemployment Rate',impact:3},
+  {date:'2026-10-07',time:'10:00',name:'ISM Services PMI',impact:2},
+  {date:'2026-10-07',time:'14:00',name:'FOMC Minutes',impact:2},
+  {date:'2026-10-13',time:'08:30',name:'CPI MoM',impact:3},
+  {date:'2026-10-13',time:'08:30',name:'Core CPI MoM',impact:3},
+  {date:'2026-10-14',time:'08:30',name:'PPI MoM',impact:2},
+  {date:'2026-10-15',time:'08:30',name:'Retail Sales MoM',impact:3},
+  {date:'2026-10-16',time:'10:00',name:'Michigan Consumer Sentiment',impact:2},
+  {date:'2026-10-27',time:'10:00',name:'Consumer Confidence',impact:2},
+  {date:'2026-10-29',time:'08:30',name:'GDP Growth Rate QoQ Advance',impact:3},
+  {date:'2026-10-30',time:'08:30',name:'Core PCE Price Index',impact:3},
+  // ── NOVEMBER ──
+  {date:'2026-11-02',time:'09:45',name:'ISM Manufacturing PMI',impact:2},
+  {date:'2026-11-04',time:'10:00',name:'ISM Services PMI',impact:2},
+  {date:'2026-11-04',time:'14:00',name:'Fed Interest Rate Decision',impact:3},
+  {date:'2026-11-04',time:'14:30',name:'FOMC Press Conference',impact:3},
+  {date:'2026-11-06',time:'08:30',name:'Non-Farm Payrolls',impact:3},
+  {date:'2026-11-06',time:'08:30',name:'Unemployment Rate',impact:3},
+  {date:'2026-11-12',time:'08:30',name:'CPI MoM',impact:3},
+  {date:'2026-11-12',time:'08:30',name:'Core CPI MoM',impact:3},
+  {date:'2026-11-13',time:'08:30',name:'PPI MoM',impact:2},
+  {date:'2026-11-13',time:'10:00',name:'Michigan Consumer Sentiment',impact:2},
+  {date:'2026-11-17',time:'08:30',name:'Retail Sales MoM',impact:3},
+  {date:'2026-11-24',time:'08:30',name:'GDP Growth Rate QoQ 2nd Est.',impact:3},
+  {date:'2026-11-25',time:'14:00',name:'FOMC Minutes',impact:2},
+  {date:'2026-11-25',time:'08:30',name:'Core PCE Price Index',impact:3},
+  // ── DECEMBER ──
+  {date:'2026-12-01',time:'09:45',name:'ISM Manufacturing PMI',impact:2},
+  {date:'2026-12-02',time:'10:00',name:'ISM Services PMI',impact:2},
+  {date:'2026-12-04',time:'08:30',name:'Non-Farm Payrolls',impact:3},
+  {date:'2026-12-04',time:'08:30',name:'Unemployment Rate',impact:3},
+  {date:'2026-12-10',time:'08:30',name:'CPI MoM',impact:3},
+  {date:'2026-12-10',time:'08:30',name:'Core CPI MoM',impact:3},
+  {date:'2026-12-11',time:'08:30',name:'PPI MoM',impact:2},
+  {date:'2026-12-11',time:'10:00',name:'Michigan Consumer Sentiment',impact:2},
+  {date:'2026-12-16',time:'08:30',name:'Retail Sales MoM',impact:3},
+  {date:'2026-12-16',time:'14:00',name:'Fed Interest Rate Decision',impact:3},
+  {date:'2026-12-16',time:'14:30',name:'FOMC Press Conference',impact:3},
+  {date:'2026-12-23',time:'08:30',name:'Core PCE Price Index',impact:3},
+  {date:'2026-12-30',time:'10:00',name:'Consumer Confidence',impact:2},
+];
+
+// ============= INDEXEDDB =============
+const DB_NAME='lmr_v3',STORE='images';
+let db;
+function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,1);r.onerror=()=>rej(r.error);r.onsuccess=()=>{db=r.result;res(db)};r.onupgradeneeded=e=>{if(!e.target.result.objectStoreNames.contains(STORE))e.target.result.createObjectStore(STORE)}});}
+async function saveImg(k,b){await openDB();return new Promise((res,rej)=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(b,k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})}
+async function getImg(k){await openDB();return new Promise((res)=>{const t=db.transaction(STORE,'readonly');const r=t.objectStore(STORE).get(k);r.onsuccess=()=>res(r.result)})}
+async function delImg(k){await openDB();return new Promise((res)=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).delete(k);t.oncomplete=()=>res()})}
+async function allImgKeys(){await openDB();return new Promise(res=>{const t=db.transaction(STORE,'readonly');const r=t.objectStore(STORE).getAllKeys();r.onsuccess=()=>res(r.result||[])})}
+
+// ============= STATE =============
+const STORE_KEY='lmr_v3_state';
+let state={
+  daily:{}, monthly:{}, weekly:{}, trades:[], journal:[], notes:[], accounts:[], transactions:[], terminology:[],
+  currentMonth:'2026-05', currentWeek:1, currentAcc:null,
+  dayCountStart:362, dayCountStartDate:'2026-05-19',
+  calMonth:'2026-05', settings:{}, ictCat:'All'
+};
+
+function load(){try{const r=localStorage.getItem(STORE_KEY);if(r)state={...state,...JSON.parse(r)}}catch(e){}}
+function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch(e){alert('Storage: '+e.message)}}
+
+// ============= UTILS =============
+const todayStr=()=>new Date().toISOString().split('T')[0];
+const fmtDate=s=>{const d=new Date(s+'T12:00');return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})};
+function tradingDaysBetween(start, end){
+  let s = new Date(start+'T12:00'), e = new Date(end+'T12:00');
+  if (e < s) return -tradingDaysBetween(end, start);
+  let days = 0, cur = new Date(s);
+  while (cur < e) {
+    cur.setDate(cur.getDate()+1);
+    const dow = cur.getDay();
+    const iso = cur.toISOString().split('T')[0];
+    if (dow !== 0 && dow !== 6 && !US_HOLIDAYS_2026[iso]) days++;
+  }
+  return days;
+}
+function dayCountFor(dateStr){
+  return state.dayCountStart + tradingDaysBetween(state.dayCountStartDate, dateStr);
+}
+
+// ============= NAVIGATION =============
+const panels=['dash','today','cal','monthly','weekly','daily','trades','accounts','trans','notes','journal','ict','perf','settings'];
+const titles={
+  dash:['Dashboard','Welcome back · Day '],
+  today:['Today','Fill the chain · Day '],
+  cal:['Calendar','Trading calendar · USA holidays · 2★+ news'],
+  monthly:['Monthly Analysis','LMR Monthly framework'],
+  weekly:['Weekly Analysis','LMR Weekly framework · MMBM/MMSM · SMT'],
+  daily:['Daily Pages','All daily entries with day count'],
+  trades:['Trade Log','All Trade Data fields from your Notion'],
+  accounts:['Accounts','Funded · Live · Eval'],
+  trans:['Transactions','Deposits and withdrawals'],
+  notes:['Notes','Quick notes linked to daily'],
+  journal:['Journal','Lessons and observations'],
+  ict:['ICT Terminology','Your personal LMR knowledge base · concepts · patterns · rules'],
+  perf:['Performance','Live analytics from your trades'],
+  settings:['Settings','Backup and storage']
+};
+
+function navTo(p){
+  if(navHistory.length===0||navHistory[navHistory.length-1]!==p)navHistory.push(p);
+  _updateBackBtn();
+  panels.forEach(pn=>document.getElementById('p-'+pn).classList.toggle('active',pn===p));
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.toggle('active',i.dataset.panel===p));
+  const [t,s]=titles[p];
+  document.getElementById('tbTitle').textContent=t;
+  let sub = s;
+  if(s.endsWith('Day ')) sub = s + dayCountFor(todayStr());
+  document.getElementById('tbSub').innerHTML = sub.replace(/Day (\d+)/, 'Day <span id="tbDay">$1</span>');
+  if(window.innerWidth<=900)toggleSidebar();
+  if(p==='dash') renderDashboard();
+  if(p==='perf') renderPerfCharts();
+  if(p==='trades') renderTradeTable();
+  if(p==='journal') renderJournalList();
+  if(p==='ict') renderTerminology();
+  if(p==='monthly') loadMonthly();
+  if(p==='weekly') loadWeekly();
+  if(p==='daily') renderDailyList();
+  if(p==='cal') renderCal();
+  if(p==='accounts') renderAccountTable();
+  if(p==='trans') renderTransTable();
+  if(p==='notes') renderNotesList();
+  if(p==='today') loadDaily();
+  if(p==='settings') renderSettings();
+}
+
+// Event delegation: ONE click handler routes all sidebar clicks.
+// Survives any init() failure — works even if other JS errors.
+document.addEventListener('click', function(e){
+  const sb = e.target.closest('.sb-item');
+  if (sb && sb.dataset.panel) {
+    e.preventDefault();
+    try { navTo(sb.dataset.panel); } catch(err){ console.error('navTo failed:', err); showErrorBanner('Navigation error: '+err.message); }
+    return;
+  }
+  const burger = e.target.closest('.menu-btn');
+  if (burger) {
+    e.preventDefault();
+    toggleSidebar();
+    return;
+  }
+});
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+
+function showErrorBanner(msg){
+  let b = document.getElementById('errBanner');
+  if (!b) {
+    b = document.createElement('div');
+    b.id = 'errBanner';
+    b.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#d45c5c;color:#fff;padding:10px 14px;font-size:12px;z-index:9999;font-family:Inter,sans-serif;text-align:center;cursor:pointer';
+    b.title = 'Click to dismiss';
+    b.onclick = () => b.remove();
+    document.body.appendChild(b);
+  }
+  b.textContent = '⚠ ' + msg + ' (click to dismiss)';
+}
+
+// ============= HOTKEYS =============
+const HOTKEYS = {
+  '0':'dash', 'd':'today', 'D':'today', 'm':'monthly', 'M':'monthly',
+  'w':'weekly', 'W':'weekly', 'l':'daily', 'L':'daily', 'c':'cal', 'C':'cal',
+  'a':'accounts', 'A':'accounts', 'x':'trans', 'X':'trans',
+  'n':'notes_action', 'N':'notes_action', 'j':'journal', 'J':'journal',
+  'p':'perf', 'P':'perf', 't':'trade_action', 'T':'trade_action',
+  'i':'ai_action', 'I':'ai_action',
+  'k':'ict_action', 'K':'ict_action'
+};
+
+document.addEventListener('keydown', e => {
+  if (e.target.matches('input, textarea, select')) return;
+  if (document.querySelector('.modal-bg.show')) {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-bg.show').forEach(m => m.classList.remove('show'));
+    }
+    return;
+  }
+  if (e.key === 'Escape') {
+    document.getElementById('hkOverlay').classList.remove('show');
+    closeAIModal();
+    return;
+  }
+  if (e.key === '?') { e.preventDefault(); showHotkeys(); return; }
+  const action = HOTKEYS[e.key];
+  if (!action) return;
+  e.preventDefault();
+  if (action === 'trade_action') openTradeModal();
+  else if (action === 'ai_action') openAIModal();
+  else if (action === 'ict_action') {
+    if (document.getElementById('p-ict').classList.contains('active')) openTermModal();
+    else navTo('ict');
+  }
+  else if (action === 'notes_action') {
+    if (document.getElementById('p-notes').classList.contains('active')) openNoteModal();
+    else navTo('notes');
+  }
+  else if (action === 'accounts' && document.getElementById('p-accounts').classList.contains('active')) openAccountModal();
+  else navTo(action);
+});
+
+function showHotkeys(){document.getElementById('hkOverlay').classList.add('show')}
+function closeHotkeys(e){if(e.target.id==='hkOverlay')document.getElementById('hkOverlay').classList.remove('show')}
+
+// ============= IMAGE =============
+let curZone=null;
+function pickImage(z){curZone=z;document.getElementById('fileInput').click()}
+document.getElementById('fileInput').addEventListener('change',async e=>{const f=e.target.files[0];if(f)await uploadImage(curZone,f);e.target.value=''});
+async function uploadImage(zone,file){
+  const key=getImgKey(zone);
+  const blob=await compress(file,1920,0.85);
+  await saveImg(key,blob);
+  await renderImgZone(zone);
+}
+function getImgKey(z){
+  const base=z.dataset.imgkey;
+  if(z.dataset.week) return `${state.currentMonth}-W${state.currentWeek}-${base}`;
+  if(base.startsWith('m-')) return `${state.currentMonth}-${base}`;
+  if(base.startsWith('today-')) return `${todayStr()}-${base}`;
+  return base;
+}
+async function renderImgZone(z){
+  const blob=await getImg(getImgKey(z));
+  if(!blob){z.classList.remove('has-img');z.innerHTML='<div class="img-zone-text">+ Add image</div>';return}
+  const url=URL.createObjectURL(blob);
+  z.classList.add('has-img');
+  z.innerHTML=`<div class="img-thumb"><img src="${url}" onclick="openLightbox('${url}')"><button class="img-thumb-del" onclick="event.stopPropagation();removeImg('${getImgKey(z)}',this)">×</button></div>`;
+}
+async function removeImg(k,btn){
+  if(!confirm('Remove?'))return;
+  await delImg(k);
+  const z=btn.closest('.img-zone');
+  await renderImgZone(z);
+}
+function compress(f,maxW,q){return new Promise(r=>{const fr=new FileReader();fr.onload=e=>{const img=new Image();img.onload=()=>{let w=img.width,h=img.height;if(w>maxW){h=h*(maxW/w);w=maxW}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(b=>r(b),'image/jpeg',q)};img.src=e.target.result};fr.readAsDataURL(f)})}
+document.addEventListener('paste',async e=>{const z=document.querySelector('.img-zone:hover')||curZone;if(!z)return;const items=e.clipboardData?.items;if(!items)return;for(const it of items)if(it.type.startsWith('image/')){e.preventDefault();await uploadImage(z,it.getAsFile());return}});
+function openLightbox(u){document.getElementById('lightboxImg').src=u;document.getElementById('lightbox').classList.add('show')}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('show')}
+
+// ============= CHIPS =============
+function buildChips(containerId, options, multi=true, grp){
+  const c=document.getElementById(containerId);
+  if(!c) return;
+  c.innerHTML=options.map(o=>`<button type="button" class="chip" data-val="${o}" data-grp="${grp||containerId}" data-multi="${multi}">${o}</button>`).join('');
+}
+document.addEventListener('click',e=>{
+  if(!e.target.classList.contains('chip')) return;
+  const multi=e.target.dataset.multi==='true';
+  const grp=e.target.dataset.grp;
+  if(multi){e.target.classList.toggle('on')}
+  else{document.querySelectorAll(`.chip[data-grp="${grp}"]`).forEach(c=>c.classList.remove('on'));e.target.classList.add('on')}
+});
+function getChipsValues(grp,multi=true){
+  const sel=document.querySelectorAll(`.chip[data-grp="${grp}"].on`);
+  const vals=[...sel].map(c=>c.dataset.val);
+  return multi?vals:(vals[0]||'');
+}
+function setChipsValues(grp,vals){
+  if(!Array.isArray(vals)) vals=[vals];
+  document.querySelectorAll(`.chip[data-grp="${grp}"]`).forEach(c=>c.classList.toggle('on',vals.includes(c.dataset.val)));
+}
+
+// ============= DAILY =============
+function loadDaily(){
+  const d=state.daily[todayStr()]||{};
+  document.getElementById('ch-weekly').value=d.weekly||'';
+  document.getElementById('ch-poi').value=d.htfpoi||'';
+  document.getElementById('ch-draws').value=d.weekdraws||'';
+  setChipsValues('dbias',d.bias||'');
+  setChipsValues('london',d.london||'');
+  setChipsValues('ny',d.ny||'');
+  setChipsValues('asianRange',d.asianRange||[]);
+  setChipsValues('priceRefs',d.priceRefs||[]);
+  setChipsValues('session',d.session||'');
+  setChipsValues('plan',d.plan||'');
+  setChipsValues('pred',d.pred||'');
+  document.getElementById('ch-rth').value=d.rth||'';
+  document.getElementById('todayStatus').textContent=d.savedAt?('Saved '+new Date(d.savedAt).toLocaleTimeString()):'Not started';
+  // render images
+  document.querySelectorAll('#p-today .img-zone').forEach(z=>renderImgZone(z));
+  // render news
+  renderTodayNews();
+  document.getElementById('todayDate').textContent = `Today · Day ${dayCountFor(todayStr())} · ${fmtDate(todayStr())}`;
+}
+function saveDaily(){
+  state.daily[todayStr()]={
+    weekly:document.getElementById('ch-weekly').value,
+    bias:getChipsValues('dbias',false),
+    london:getChipsValues('london',false),
+    ny:getChipsValues('ny',false),
+    asianRange:getChipsValues('asianRange',true),
+    priceRefs:getChipsValues('priceRefs',true),
+    session:getChipsValues('session',false),
+    plan:getChipsValues('plan',false),
+    pred:getChipsValues('pred',false),
+    htfpoi:document.getElementById('ch-poi').value,
+    weekdraws:document.getElementById('ch-draws').value,
+    rth:document.getElementById('ch-rth').value,
+    dayCount:dayCountFor(todayStr()),
+    savedAt:new Date().toISOString()
+  };
+  save();
+  document.getElementById('todayStatus').textContent='Saved '+new Date().toLocaleTimeString();
+  flash('✓ Saved');
+}
+function clearDaily(){if(!confirm('Clear?'))return;delete state.daily[todayStr()];save();loadDaily()}
+function renderDailyList(){
+  const dates=Object.keys(state.daily).sort().reverse();
+  const w=document.getElementById('dailyList');
+  if(!dates.length){w.innerHTML='<div class="empty">No daily entries.</div>';return}
+  w.innerHTML=dates.map(d=>{
+    const x=state.daily[d];
+    return `<div style="padding:10px 12px;background:var(--bg3);border-radius:var(--r);margin-bottom:6px;border-left:3px solid var(--gold)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <div class="mono" style="color:var(--gold);font-size:11px;font-weight:600">Day ${x.dayCount||dayCountFor(d)} · ${fmtDate(d)} · ${d}</div>
+        ${x.bias?`<span class="tag tg-${x.bias==='Bullish'?'bull':x.bias==='Bearish'?'bear':'gray'}">${x.bias}</span>`:''}
+      </div>
+      ${x.weekly?`<div style="font-size:11px;color:var(--text2);margin:2px 0"><span style="color:var(--text3)">Weekly:</span> ${x.weekly}</div>`:''}
+      ${x.htfpoi?`<div style="font-size:11px;color:var(--text2);margin:2px 0"><span style="color:var(--text3)">HTF POI:</span> ${x.htfpoi}</div>`:''}
+      ${x.london?`<div style="font-size:11px;color:var(--text2);margin:2px 0"><span style="color:var(--text3)">London:</span> ${x.london} <span style="color:var(--text3);margin-left:8px">NY:</span> ${x.ny||''}</div>`:''}
+      ${x.plan?`<div style="font-size:11px;margin:2px 0"><span style="color:var(--text3)">Plan:</span> <span class="tag tg-${x.plan==='Followed'?'bull':'bear'}">${x.plan}</span> <span style="color:var(--text3);margin-left:8px">Prediction:</span> <span class="tag tg-${x.pred==='Correct'?'bull':'bear'}">${x.pred||'-'}</span></div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ============= MONTHLY =============
+function switchMonth(m){state.currentMonth=m;save();loadMonthly()}
+function loadMonthly(){
+  document.getElementById('mh-tag').textContent=monthLabel(state.currentMonth);
+  document.getElementById('mh-select').value=state.currentMonth;
+  const data=state.monthly[state.currentMonth]||{};
+  document.querySelectorAll('#p-monthly [data-monthly]').forEach(el=>{el.value=data[el.dataset.key]||''});
+  document.querySelectorAll('#p-monthly .img-zone').forEach(z=>renderImgZone(z));
+}
+function saveMonthly(){
+  state.monthly[state.currentMonth]=state.monthly[state.currentMonth]||{};
+  document.querySelectorAll('#p-monthly [data-monthly]').forEach(el=>{state.monthly[state.currentMonth][el.dataset.key]=el.value});
+  save();flash('✓ Monthly saved');updateMonthlyDisplay()
+}
+function monthLabel(s){const [y,m]=s.split('-');return ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][parseInt(m)-1]+' '+y}
+function updateMonthlyDisplay(){
+  const m=state.monthly[state.currentMonth]||{};
+  const parts=[m['m-qshift']||'LTS Bullish',m['m-profile']||'Trending',m['m-pred']||'',m['m-keylevels']?m['m-keylevels'].split('\n')[0]:''].filter(Boolean);
+  document.getElementById('ch-monthly-d').textContent=parts.join(' · ');
+}
+
+// ============= WEEKLY =============
+function selectWeek(w){state.currentWeek=w;save();loadWeekly()}
+function loadWeekly(){
+  document.getElementById('wk-tag').textContent=`${monthLabel(state.currentMonth)} Week ${state.currentWeek}`;
+  document.querySelectorAll('.wk-tab').forEach((t,i)=>t.classList.toggle('active',i+1===state.currentWeek));
+  const key=`${state.currentMonth}-W${state.currentWeek}`;
+  const data=state.weekly[key]||{};
+  document.querySelectorAll('#p-weekly [data-week]').forEach(el=>{el.value=data[el.dataset.key]||''});
+  setChipsValues('smtChips',data['smt']||[]);
+  document.querySelectorAll('#p-weekly .img-zone').forEach(z=>renderImgZone(z));
+}
+function saveWeekly(){
+  const key=`${state.currentMonth}-W${state.currentWeek}`;
+  state.weekly[key]=state.weekly[key]||{};
+  document.querySelectorAll('#p-weekly [data-week]').forEach(el=>{state.weekly[key][el.dataset.key]=el.value});
+  state.weekly[key]['smt']=getChipsValues('smtChips',true);
+  save();flash(`✓ Week ${state.currentWeek} saved`);
+}
+
+// ============= TRADES (Full LMR Trade Data) =============
+function openTradeModal(){
+  document.getElementById('tm-date').value=todayStr();
+  // build chips
+  buildChips('modelChips',MODELS,true,'modelChips');
+  buildChips('confChips',CONFIRMATIONS,true,'confChips');
+  buildChips('emoChips',EMOTIONS,true,'emoChips');
+  buildChips('phaseChips',MARKET_PHASES,true,'phaseChips');
+  buildChips('mmmChips',MMM_OPTS,true,'mmmChips');
+  buildChips('movChips',MOVEMENT,true,'movChips');
+  buildChips('tfChips',T_FRAMES,true,'tfChips');
+  // build selects
+  const tp=document.getElementById('tm-tp');tp.innerHTML='<option value="">Select...</option>'+TIME_PERIODS.map(t=>`<option>${t}</option>`).join('');
+  const rth=document.getElementById('tm-rth');rth.innerHTML='<option value="">Select...</option>'+RTH_PROFILES.map(t=>`<option>${t}</option>`).join('');
+  const acc=document.getElementById('tm-acc');acc.innerHTML='<option value="">No account</option>'+state.accounts.map(a=>`<option value="${a.id}">${a.name} (${a.type})</option>`).join('');
+  if(state.currentAcc)document.getElementById('tm-acc').value=state.currentAcc;
+  document.getElementById('tradeModal').classList.add('show');
+}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function saveTrade(){
+  const date=document.getElementById('tm-date').value||todayStr();
+  const t={
+    id:Date.now(),date,
+    market:document.getElementById('tm-market').value,
+    position:document.getElementById('tm-pos').value,
+    day:document.getElementById('tm-day').value,
+    month:['Dec','Jan','Feb','March','April','May','June','July','Aug','Sep','Oct','Nov'][new Date(date+'T12:00').getMonth()],
+    session:document.getElementById('tm-session').value,
+    timePeriod:document.getElementById('tm-tp').value,
+    models:getChipsValues('modelChips',true),
+    confirmations:getChipsValues('confChips',true),
+    emotions:getChipsValues('emoChips',true),
+    phases:getChipsValues('phaseChips',true),
+    mmm:getChipsValues('mmmChips',true),
+    movement:getChipsValues('movChips',true),
+    tframes:getChipsValues('tfChips',true),
+    rth:document.getElementById('tm-rth').value,
+    htf:document.getElementById('tm-htf').value,
+    pnl:parseFloat(document.getElementById('tm-pnl').value)||0,
+    risk:parseFloat(document.getElementById('tm-risk').value)||0,
+    lots:parseFloat(document.getElementById('tm-lots').value)||0,
+    accountId:document.getElementById('tm-acc').value,
+    draws:document.getElementById('tm-draws').value,
+    feedback:document.getElementById('tm-fb').value,
+    dayCount:dayCountFor(date)
+  };
+  t.rr=t.risk>0?(t.pnl/t.risk).toFixed(2):0;
+  t.win=t.pnl>0;
+  state.trades.unshift(t);
+  save();closeModal('tradeModal');
+  renderTradeTable();updateAllStats();
+  // clear
+  ['tm-pnl','tm-risk','tm-lots','tm-draws','tm-fb'].forEach(id=>document.getElementById(id).value='');
+  flash('✓ Trade logged');
+}
+function renderTradeTable(){
+  const w=document.getElementById('tradeTable');
+  if(!state.trades.length){w.innerHTML='<tr><td colspan="13" class="empty">No trades. Press T to log one.</td></tr>';return}
+  w.innerHTML=state.trades.map(t=>{
+    const modelTag=t.models?.[0]||'-';
+    const isStupid=modelTag==='Stupidity';
+    const locked=t.locked?'🔒 ':'';
+    return `<tr style="cursor:pointer" onclick="openTradeDetail(${t.id})" title="Click to open · ${locked}${t.date}">
+      <td class="mono" style="white-space:nowrap">${locked}<span style="color:var(--text3);font-size:9px">D${t.dayCount||'-'}</span> ${t.date}</td>
+      <td style="font-size:10px">${t.day||'-'}</td>
+      <td><strong>${t.market}</strong></td>
+      <td><span class="tag tg-${t.position==='Long'?'bull':'bear'}">${t.position}</span></td>
+      <td><span class="tag ${isStupid?'tg-bear':'tg-pur'}">${modelTag}</span></td>
+      <td style="font-size:10px">${t.session||'-'}</td>
+      <td style="font-size:9px;max-width:80px;overflow:hidden;text-overflow:ellipsis">${t.timePeriod||'-'}</td>
+      <td style="font-size:10px">${(t.mmm||[]).join('+')||'-'}</td>
+      <td style="font-size:10px;max-width:100px;overflow:hidden;text-overflow:ellipsis">${(t.emotions||[]).join(', ')||'-'}</td>
+      <td><span class="tag tg-${t.htf==='Delivered'?'bull':'bear'}">${t.htf||'-'}</span></td>
+      <td class="mono" style="font-size:11px">$${t.risk||0}</td>
+      <td class="mono ${t.pnl>=0?'txt-pos':'txt-neg'}" style="font-weight:700;font-size:13px">${t.pnl>=0?'+':''}$${t.pnl.toFixed(2)}</td>
+      <td class="mono ${parseFloat(t.rr)>=0?'txt-pos':'txt-neg'}" style="font-size:11px">${t.rr}R</td>
+    </tr>`;
+  }).join('');
+  // update stats tiles
+  const ts=state.trades;
+  const wins=ts.filter(t=>t.win).length;
+  const wr=ts.length?Math.round(wins/ts.length*100):0;
+  const pnl=ts.reduce((s,t)=>s+t.pnl,0);
+  const rrs=ts.filter(t=>t.risk>0).map(t=>parseFloat(t.rr));
+  const avgRR=rrs.length?(rrs.reduce((a,b)=>a+b,0)/rrs.length).toFixed(2):'0';
+  document.getElementById('tr-total').textContent=ts.length;
+  document.getElementById('tr-wr').textContent=wr+'%';
+  document.getElementById('tr-pnl').textContent=(pnl>=0?'+':'-')+'$'+Math.abs(pnl).toFixed(2);
+  document.getElementById('tr-pnl').className='tile-v '+(pnl>=0?'txt-pos':'txt-neg');
+  document.getElementById('tr-rr').textContent=avgRR;
+}
+
+// ============= ACCOUNTS =============
+let accFilter='All';
+function filterAcc(t){accFilter=t;document.querySelectorAll('.tabs .tab').forEach((tab,i)=>tab.classList.toggle('active',tab.textContent===t));renderAccountTable()}
+function openAccountModal(){document.getElementById('am-date').value=todayStr();document.getElementById('accModal').classList.add('show')}
+function saveAccount(){
+  const a={
+    id:Date.now(),name:document.getElementById('am-name').value,
+    type:document.getElementById('am-type').value,
+    status:document.getElementById('am-status').value,
+    date:document.getElementById('am-date').value,
+    deposit:parseFloat(document.getElementById('am-deposit').value)||0,
+  };
+  if(!a.name){alert('Name required');return}
+  state.accounts.push(a);
+  if(!state.currentAcc)state.currentAcc=a.id;
+  save();closeModal('accModal');renderAccountTable();updateAllStats();
+  ['am-name','am-deposit'].forEach(id=>document.getElementById(id).value='');
+  flash('✓ Account saved');
+}
+function setActiveAccount(id){state.currentAcc=id;save();renderAccountTable();updateAllStats();flash('✓ Active account set')}
+function deleteAccount(id){if(!confirm('Delete account?'))return;state.accounts=state.accounts.filter(a=>a.id!==id);if(state.currentAcc===id)state.currentAcc=state.accounts[0]?.id||null;save();renderAccountTable();updateAllStats()}
+function renderAccountTable(){
+  const w=document.getElementById('accTable');
+  const accs=accFilter==='All'?state.accounts:state.accounts.filter(a=>a.type===accFilter);
+  if(!accs.length){w.innerHTML='<tr><td colspan="11" class="empty">No accounts. Press A to add.</td></tr>';return}
+  w.innerHTML=accs.map(a=>{
+    const ts=state.trades.filter(t=>t.accountId==a.id);
+    const pnl=ts.reduce((s,t)=>s+t.pnl,0);
+    const balance=a.deposit+pnl;
+    const wins=ts.filter(t=>t.win).length;
+    const losses=ts.filter(t=>t.pnl<0).length;
+    const breakeven=ts.filter(t=>t.pnl===0).length;
+    const wr=ts.length?Math.round(wins/ts.length*100):0;
+    return `<tr>
+      <td>${a.name}</td>
+      <td><span class="tag tg-${a.type==='Funded'?'bull':a.type==='Live'?'bear':'warn'}">${a.type}</span></td>
+      <td>${a.status}</td>
+      <td class="mono">$${a.deposit.toFixed(2)}</td>
+      <td class="mono ${pnl>=0?'txt-pos':'txt-neg'}">${pnl>=0?'+':''}$${pnl.toFixed(2)}</td>
+      <td class="mono" style="font-weight:600">${balance>=0?'$':'-$'}${Math.abs(balance).toFixed(2)}</td>
+      <td class="mono">${wr}%</td>
+      <td class="mono" style="font-size:10px">${wins}:${breakeven}:${losses}</td>
+      <td class="mono">${ts.length}</td>
+      <td>${state.currentAcc==a.id?'<span class="tag tg-bull">ACTIVE</span>':`<button class="btn btn-sm" onclick="setActiveAccount(${a.id})">Set</button>`}</td>
+      <td><button class="btn btn-sm btn-bear" onclick="deleteAccount(${a.id})">✗</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ============= TRANSACTIONS =============
+function openTransModal(){
+  document.getElementById('xm-date').value=todayStr();
+  const acc=document.getElementById('xm-acc');acc.innerHTML='<option value="">No account</option>'+state.accounts.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
+  document.getElementById('transModal').classList.add('show');
+}
+async function saveTrans(){
+  const x={
+    id:Date.now(),date:document.getElementById('xm-date').value||todayStr(),
+    type:document.getElementById('xm-type').value,
+    accountId:document.getElementById('xm-acc').value,
+    amount:parseFloat(document.getElementById('xm-amt').value)||0,
+    note:document.getElementById('xm-note').value
+  };
+  if(xmReceiptBlob)await saveImg('receipt-'+x.id,xmReceiptBlob);
+  xmReceiptBlob=null;
+  const z=document.getElementById('xm-receipt-zone');
+  if(z){z.classList.remove('has-img');z.innerHTML='<div class="img-zone-text">+ Add receipt or screenshot</div>';}
+  state.transactions.unshift(x);
+  save();closeModal('transModal');renderTransTable();
+  ['xm-amt','xm-note'].forEach(id=>document.getElementById(id).value='');
+  flash('✓ Transaction saved');
+}
+function renderTransTable(){
+  const w=document.getElementById('transTable');
+  if(!state.transactions.length){w.innerHTML='<tr><td colspan="6" class="empty">No transactions.</td></tr>';return}
+  w.innerHTML=state.transactions.map(x=>{
+    const acc=state.accounts.find(a=>a.id==x.accountId);
+    return `<tr>
+      <td class="mono">${x.date}</td>
+      <td><span class="tag tg-${x.type==='Deposit'?'bull':x.type==='Withdrawal'?'bear':'gray'}">${x.type}</span></td>
+      <td>${acc?acc.name:'-'}</td>
+      <td class="mono ${x.type==='Deposit'?'txt-pos':'txt-neg'}">${x.type==='Deposit'?'+':'-'}$${Math.abs(x.amount).toFixed(2)}</td>
+      <td>${x.note||'-'}</td>
+      <td><button class="btn btn-sm btn-bear" onclick="if(confirm('Delete?')){state.transactions=state.transactions.filter(t=>t.id!==${x.id});save();renderTransTable()}">✗</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ============= NOTES =============
+function openNoteModal(){
+  document.getElementById('nm-date').value=todayStr();
+  document.getElementById('nm-daycount').textContent='Day '+dayCountFor(todayStr());
+  document.getElementById('noteModal').classList.add('show');
+}
+function saveNote(){
+  const n={
+    id:Date.now(),title:document.getElementById('nm-title').value,
+    date:document.getElementById('nm-date').value,
+    text:document.getElementById('nm-text').value,
+    createdAt:new Date().toISOString()
+  };
+  if(!n.title&&!n.text){alert('Add title or content');return}
+  state.notes.unshift(n);save();closeModal('noteModal');renderNotesList();
+  ['nm-title','nm-text'].forEach(id=>document.getElementById(id).value='');
+  flash('✓ Note saved');
+}
+function deleteNote(id){if(!confirm('Delete?'))return;state.notes=state.notes.filter(n=>n.id!==id);save();renderNotesList()}
+function renderNotesList(){
+  const w=document.getElementById('notesList');
+  if(!state.notes.length){w.innerHTML='<div class="empty">No notes yet. Press N to add.</div>';return}
+  w.innerHTML=state.notes.map(n=>`
+    <div style="padding:12px;background:var(--bg3);border-radius:var(--r);margin-bottom:8px;border-left:3px solid var(--pur)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-size:13px;font-weight:600">${n.title||'(no title)'}</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="mono" style="font-size:10px;color:var(--text3)">${n.date?'Day '+dayCountFor(n.date)+' · '+n.date:''}</span>
+          <button class="btn btn-sm btn-bear" onclick="deleteNote(${n.id})">✗</button>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);white-space:pre-wrap;line-height:1.5">${n.text||''}</div>
+    </div>
+  `).join('');
+}
+
+// ============= JOURNAL =============
+function saveJournal(){
+  const j={id:Date.now(),type:document.getElementById('j-type').value,date:document.getElementById('j-date').value||todayStr(),text:document.getElementById('j-text').value};
+  if(!j.text.trim()){alert('Add text');return}
+  state.journal.unshift(j);save();document.getElementById('j-text').value='';renderJournalList();
+  flash('✓ Added');
+}
+function deleteJournal(id){if(!confirm('Delete?'))return;state.journal=state.journal.filter(j=>j.id!==id);save();renderJournalList()}
+function renderJournalList(){
+  const w=document.getElementById('journalList');
+  if(!state.journal.length){w.innerHTML='<div class="empty">No entries.</div>';return}
+  w.innerHTML=state.journal.map(j=>`
+    <div class="j-entry ${j.type}">
+      <div class="j-date"><span>Day ${dayCountFor(j.date)} · ${fmtDate(j.date)} · ${j.type.toUpperCase()}</span><button class="btn btn-sm btn-bear" onclick="deleteJournal(${j.id})">✗</button></div>
+      <div class="j-text">${j.text}</div>
+    </div>
+  `).join('');
+}
+
+// ============= CALENDAR =============
+function calMonth(delta){
+  const [y,m]=state.calMonth.split('-').map(Number);
+  let nm=m+delta,ny=y;
+  if(nm>12){nm=1;ny++}
+  if(nm<1){nm=12;ny--}
+  state.calMonth=`${ny}-${String(nm).padStart(2,'0')}`;
+  save();renderCal();
+}
+function calToday(){state.calMonth=todayStr().slice(0,7);save();renderCal()}
+function renderCal(){
+  const [y,m]=state.calMonth.split('-').map(Number);
+  document.getElementById('cal-month-label').textContent=new Date(y,m-1).toLocaleString('en-US',{month:'long',year:'numeric'});
+  const first=new Date(y,m-1,1);
+  const firstDay=first.getDay();
+  const daysInMonth=new Date(y,m,0).getDate();
+  const cells=[];
+  // headers
+  ['SUN','MON','TUE','WED','THU','FRI','SAT'].forEach(d=>cells.push(`<div class="cal-h">${d}</div>`));
+  // padding
+  for(let i=0;i<firstDay;i++) cells.push(`<div class="cal-c other"></div>`);
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow=new Date(ds+'T12:00').getDay();
+    const isWeekend=dow===0||dow===6;
+    const holiday=US_HOLIDAYS_2026[ds];
+    const isToday=ds===todayStr();
+    const dayPnL=state.trades.filter(t=>t.date===ds).reduce((s,t)=>s+t.pnl,0);
+    const dayCount=(!isWeekend&&!holiday)?dayCountFor(ds):null;
+    const events=ECONOMIC_CALENDAR_2026.filter(e=>e.date===ds&&e.impact>=2);
+    let cls='cal-c';
+    if(isToday)cls+=' today';
+    if(isWeekend)cls+=' weekend';
+    if(holiday)cls+=' holiday';
+    cells.push(`<div class="${cls}" title="${holiday||''}">
+      <div class="cal-num">${d}</div>
+      ${dayCount?`<div class="cal-day-num">D${dayCount}</div>`:''}
+      ${holiday?`<div class="cal-evt" style="color:var(--bear);font-weight:600">${holiday}</div>`:''}
+      ${events.filter(e=>e.impact===3).length?`<div class="cal-evt" style="color:#d45c5c;font-weight:600">🔴 ${events.filter(e=>e.impact===3).length} High</div>`:''}
+      ${events.filter(e=>e.impact===2).length?`<div class="cal-evt" style="color:#c8a84b">🟡 ${events.filter(e=>e.impact===2).length} Med</div>`:''}
+      ${dayPnL!==0?`<div class="cal-pnl ${dayPnL>=0?'pos':'neg'}">${dayPnL>=0?'+':'-'}$${Math.abs(dayPnL).toFixed(0)}</div>`:''}
+    </div>`);
+  }
+  document.getElementById('cal-grid').innerHTML=cells.join('');
+  // this week's news
+  renderWeekNews();
+}
+
+function renderTodayNews(){
+  const events=ECONOMIC_CALENDAR_2026.filter(e=>e.date===todayStr()&&e.impact>=2);
+  const w=document.getElementById('today-news');
+  if(!w)return;
+  if(!events.length){w.innerHTML='<div class="empty">No 2★+ events today</div>';return}
+  w.innerHTML=events.map(e=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg3);border-radius:var(--r);margin-bottom:5px;border-left:3px solid var(--${e.impact===3?'bear':'warn'})">
+      <div><span class="mono" style="font-size:11px;color:var(--gold);font-weight:600">${e.time}</span> <span style="font-size:12px">${e.name}</span></div>
+      <span class="tag tg-${e.impact===3?'bear':'warn'}">${'★'.repeat(e.impact)}</span>
+    </div>
+  `).join('');
+}
+
+function renderWeekNews(){
+  // get this week's range from today
+  const today=new Date(todayStr()+'T12:00');
+  const monday=new Date(today);monday.setDate(today.getDate()-((today.getDay()+6)%7));
+  const friday=new Date(monday);friday.setDate(monday.getDate()+4);
+  const mondayStr=monday.toISOString().split('T')[0];
+  const fridayStr=friday.toISOString().split('T')[0];
+  const events=ECONOMIC_CALENDAR_2026.filter(e=>e.date>=mondayStr&&e.date<=fridayStr&&e.impact>=2);
+  const w=document.getElementById('weekNews');
+  if(!w)return;
+  if(!events.length){w.innerHTML='<div class="empty">No 2★+ events this week</div>';return}
+  // group by date
+  const byDate={};
+  events.forEach(e=>{(byDate[e.date]=byDate[e.date]||[]).push(e)});
+  w.innerHTML=Object.entries(byDate).map(([d,evts])=>`
+    <div style="margin-bottom:8px">
+      <div style="font-size:11px;font-weight:600;color:var(--gold);margin-bottom:4px;display:flex;align-items:center;gap:8px">
+        <span class="mono">${fmtDate(d)}</span><span class="mono" style="color:var(--text3)">Day ${dayCountFor(d)}</span>
+      </div>
+      ${evts.map(e=>`<div style="padding:6px 10px;background:var(--bg3);border-radius:var(--r);margin-bottom:3px;display:flex;justify-content:space-between;align-items:center">
+        <span><span class="mono" style="font-size:10px;color:var(--gold);font-weight:600">${e.time}</span> <span style="font-size:11px">${e.name}</span></span>
+        <span class="tag tg-${e.impact===3?'bear':'warn'}">${'★'.repeat(e.impact)}</span>
+      </div>`).join('')}
+    </div>
+  `).join('');
+}
+
+// ============= DASHBOARD =============
+function renderDashboard(){
+  const day=dayCountFor(todayStr());
+  document.getElementById('t-day').textContent=day;
+  document.getElementById('t-date').textContent=fmtDate(todayStr());
+  
+  // active account
+  const acc=state.accounts.find(a=>a.id==state.currentAcc);
+  document.getElementById('t-acc').textContent=acc?acc.name:'None';
+  if(acc){
+    const ts=state.trades.filter(t=>t.accountId==acc.id);
+    const pnl=ts.reduce((s,t)=>s+t.pnl,0);
+    const bal=acc.deposit+pnl;
+    const balEl=document.getElementById('t-acc-bal');
+    const pnlEl=document.getElementById('t-acc-pnl');
+    if(balEl)balEl.textContent='$'+bal.toFixed(2);
+    if(pnlEl){pnlEl.textContent=(pnl>=0?'+':'')+`$${pnl.toFixed(2)}`;pnlEl.className='mono '+(pnl>=0?'txt-pos':'txt-neg');}
+  }
+  
+  // monthly
+  const m=state.monthly[state.currentMonth]||{};
+  document.getElementById('t-monthly').textContent=m['m-qshift']||'LTS Bullish';
+  document.getElementById('t-monthly-sub').textContent=`${m['m-profile']||'Trending'} · ${m['m-keylevels']?m['m-keylevels'].split('\n')[0].split(':')[1]||'$28,808.75':'$28,808.75'}`;
+  
+  // weekly
+  const wk=state.weekly[`${state.currentMonth}-W${state.currentWeek}`]||{};
+  document.getElementById('t-weekly').textContent=wk['w-model']||'Not set';
+  document.getElementById('t-weekly-sub').textContent=wk['w-phase']?`${wk['w-phase']} · ${wk['w-range']||''}`:'Set on Sunday';
+  
+  // today chain
+  const d=state.daily[todayStr()];
+  const chainBox=document.getElementById('dash-chain');
+  if(d){
+    chainBox.innerHTML=`
+      <div class="chain-label">Today's Chain — Day ${day}</div>
+      ${d.weekly?`<div class="chain-row"><span class="chain-tf">Weekly</span><span class="mono" style="color:var(--text2);font-size:11px">${d.weekly}</span></div>`:''}
+      ${d.bias?`<div class="chain-row"><span class="chain-tf">Bias</span><span class="tag tg-${d.bias==='Bullish'?'bull':d.bias==='Bearish'?'bear':'gray'}">${d.bias}</span></div>`:''}
+      ${d.htfpoi?`<div class="chain-row"><span class="chain-tf">HTF POI</span><span class="mono" style="color:var(--text2);font-size:11px">${d.htfpoi}</span></div>`:''}
+      ${d.london?`<div class="chain-row"><span class="chain-tf">London</span><span class="mono" style="color:var(--text2);font-size:11px">${d.london} → NY ${d.ny||''}</span></div>`:''}
+      ${d.plan?`<div class="chain-row"><span class="chain-tf">Plan</span><span class="tag tg-${d.plan==='Followed'?'bull':'bear'}">${d.plan}</span></div>`:''}
+    `;
+    document.getElementById('dash-chain-status').textContent=`Saved ${new Date(d.savedAt).toLocaleTimeString()}`;
+  } else {
+    chainBox.innerHTML='<div class="chain-label">Today\'s Chain</div><div style="color:var(--text3);font-size:11px;padding:10px 0">Not started. Press D to open.</div>';
+    document.getElementById('dash-chain-status').textContent='Not started';
+  }
+  
+  // recent trades
+  const trBox=document.getElementById('dash-trades');
+  const recent=state.trades.slice(0,5);
+  if(!recent.length){trBox.innerHTML='<tr><td colspan="6" class="empty">No trades. Press T.</td></tr>'}
+  else trBox.innerHTML=recent.map(t=>`
+    <tr><td class="mono">D${t.dayCount||dayCountFor(t.date)}</td><td class="mono">${t.date}</td><td><span class="tag tg-pur">${t.models?.[0]||'-'}</span></td><td style="font-size:10px;max-width:80px;overflow:hidden;text-overflow:ellipsis">${(t.emotions||[])[0]||'-'}</td><td class="mono ${t.pnl>=0?'txt-pos':'txt-neg'}">${t.pnl>=0?'+':''}$${t.pnl.toFixed(2)}</td><td class="mono ${t.rr>=0?'txt-pos':'txt-neg'}">${t.rr}R</td></tr>
+  `).join('');
+  
+  // stats
+  const ts=state.trades;
+  const wins=ts.filter(t=>t.win).length;
+  const wr=ts.length?Math.round(wins/ts.length*100):0;
+  const pnl=ts.reduce((s,t)=>s+t.pnl,0);
+  const best=ts.length?Math.max(...ts.map(t=>t.pnl)):0;
+  const worst=ts.length?Math.min(...ts.map(t=>t.pnl)):0;
+  const rrs=ts.filter(t=>t.risk>0).map(t=>parseFloat(t.rr));
+  document.getElementById('d-total').textContent=ts.length;
+  document.getElementById('d-wr').textContent=wr+'%';
+  document.getElementById('d-pnl').textContent=(pnl>=0?'+':'-')+'$'+Math.abs(pnl).toFixed(2);
+  document.getElementById('d-pnl').className='kv-v '+(pnl>=0?'txt-pos':'txt-neg');
+  document.getElementById('d-best').textContent='+$'+best.toFixed(2);
+  document.getElementById('d-worst').textContent='-$'+Math.abs(worst).toFixed(2);
+  document.getElementById('d-rr').textContent=rrs.length?(rrs.reduce((a,b)=>a+b,0)/rrs.length).toFixed(2):'0';
+  
+  renderTodayNewsForDash();
+  setTimeout(renderDashCharts,50);
+}
+function renderTodayNewsForDash(){
+  const events=ECONOMIC_CALENDAR_2026.filter(e=>e.date===todayStr()&&e.impact>=2);
+  const w=document.getElementById('dash-news');
+  if(!events.length){w.innerHTML='<div class="empty">No 2★+ events today</div>';return}
+  w.innerHTML=events.map(e=>`
+    <div style="padding:6px 10px;background:var(--bg3);border-radius:var(--r);margin-bottom:4px;border-left:2px solid var(--${e.impact===3?'bear':'warn'});display:flex;justify-content:space-between;align-items:center">
+      <span><span class="mono" style="font-size:10px;color:var(--gold);font-weight:600">${e.time}</span> <span style="font-size:11px">${e.name}</span></span>
+      <span class="tag tg-${e.impact===3?'bear':'warn'}">${'★'.repeat(e.impact)}</span>
+    </div>
+  `).join('');
+}
+let dashCharts={};
+function renderDashCharts(){
+  if(!window.Chart)return;
+  const ts=state.trades;
+  const sorted=[...ts].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const cum=[];let run=0;sorted.forEach(t=>{run+=t.pnl;cum.push(run)});
+  drawLine('dash-equity',sorted.map((_,i)=>i+1),cum);
+  const byModel={};ts.forEach(t=>{const m=t.models?.[0]||'?';byModel[m]=(byModel[m]||0)+t.pnl});
+  drawBar('dash-model',Object.keys(byModel),Object.values(byModel));
+}
+
+// ============= PERFORMANCE CHARTS =============
+let perfCharts={};
+function renderPerfCharts(){
+  const ts=state.trades;
+  const wins=ts.filter(t=>t.win).length;
+  const wr=ts.length?Math.round(wins/ts.length*100):0;
+  const pnl=ts.reduce((s,t)=>s+t.pnl,0);
+  const best=ts.length?Math.max(...ts.map(t=>t.pnl)):0;
+  document.getElementById('p-total').textContent=ts.length;
+  document.getElementById('p-wr').textContent=wr+'%';
+  document.getElementById('p-pnl').textContent=(pnl>=0?'+':'-')+'$'+Math.abs(pnl).toFixed(2);
+  document.getElementById('p-best').textContent='+$'+best.toFixed(2);
+  setTimeout(()=>{
+    if(!window.Chart)return;
+    const byModel={};ts.forEach(t=>{const m=t.models?.[0]||'?';byModel[m]=(byModel[m]||0)+t.pnl});
+    drawBar('ch-model',Object.keys(byModel),Object.values(byModel));
+    const byEm={};ts.forEach(t=>{(t.emotions||['?']).forEach(e=>{byEm[e]=(byEm[e]||0)+1})});
+    drawDonut('ch-emotion',Object.keys(byEm),Object.values(byEm));
+    const days=['Mon','Tue','Wed','Thu','Fri'];const byDay=days.map(()=>0);ts.forEach(t=>{const d=new Date(t.date+'T12:00').getDay();if(d>=1&&d<=5)byDay[d-1]+=t.pnl});
+    drawBar('ch-day',days,byDay);
+    const sorted=[...ts].sort((a,b)=>new Date(a.date)-new Date(b.date));const cum=[];let run=0;sorted.forEach(t=>{run+=t.pnl;cum.push(run)});
+    drawLine('ch-trend',sorted.map((_,i)=>i+1),cum);
+    const byTime={};ts.forEach(t=>{if(t.timePeriod){byTime[t.timePeriod]=(byTime[t.timePeriod]||0)+t.pnl}});
+    drawBar('ch-time',Object.keys(byTime).map(k=>k.length>14?k.slice(0,14)+'...':k),Object.values(byTime));
+    const bySess={};ts.forEach(t=>{const s=t.session||'?';bySess[s]=(bySess[s]||0)+t.pnl});
+    drawBar('ch-session',Object.keys(bySess),Object.values(bySess));
+  },50);
+}
+function drawBar(id,labels,data){if(perfCharts[id])perfCharts[id].destroy();const ctx=document.getElementById(id);if(!ctx)return;if(!data.length){data=[0];labels=['No data']}perfCharts[id]=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data,backgroundColor:data.map(v=>v>=0?'#5dba80':'#d45c5c'),borderRadius:3}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#9a9690',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#9a9690',font:{size:9},callback:v=>'$'+v},grid:{color:'#262626'}}}}})}
+function drawDonut(id,labels,data){if(perfCharts[id])perfCharts[id].destroy();const ctx=document.getElementById(id);if(!ctx)return;if(!data.length){data=[1];labels=['No data']}perfCharts[id]=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:['#5dba80','#c8a84b','#9b8aff','#d45c5c','#5d9ee8','#c49b4a','#888'],borderColor:'#141414',borderWidth:2}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#9a9690',font:{size:9},boxWidth:8}}}}})}
+function drawLine(id,labels,data){if(perfCharts[id])perfCharts[id].destroy();if(dashCharts[id])dashCharts[id].destroy();const ctx=document.getElementById(id);if(!ctx)return;if(!data.length){data=[0];labels=['0']}const last=data[data.length-1]||0;const chart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data,borderColor:last>=0?'#5dba80':'#d45c5c',backgroundColor:last>=0?'rgba(93,186,128,0.1)':'rgba(212,92,92,0.1)',fill:true,tension:0.3,pointRadius:0}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#9a9690',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#9a9690',font:{size:9},callback:v=>'$'+v},grid:{color:'#262626'}}}}});if(id.startsWith('dash'))dashCharts[id]=chart;else perfCharts[id]=chart}
+
+// ============= EXPORT/IMPORT =============
+async function exportData(){
+  const imgKeys=await allImgKeys();const images={};
+  for(const k of imgKeys){const b=await getImg(k);if(b)images[k]=await blobToB64(b)}
+  const payload={state,images,version:3,exported:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='lmr-v3-backup-'+todayStr()+'.json';a.click();URL.revokeObjectURL(url);
+  flash('✓ Exported');
+}
+function blobToB64(b){return new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result);r.readAsDataURL(b)})}
+function b64ToBlob(s){const [m,d]=s.split(',');const mt=m.match(/:(.*?);/)[1];const bin=atob(d);const arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);return new Blob([arr],{type:mt})}
+function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=async ev=>{try{const p=JSON.parse(ev.target.result);if(!confirm('Replace all?'))return;state={...state,...p.state};if(p.images)for(const [k,b] of Object.entries(p.images))await saveImg(k,b64ToBlob(b));save();location.reload()}catch(err){alert('Error: '+err.message)}};r.readAsText(f)}
+async function clearAllData(){if(!confirm('DELETE ALL?'))return;if(!confirm('Really?'))return;localStorage.removeItem(STORE_KEY);const keys=await allImgKeys();for(const k of keys)await delImg(k);location.reload()}
+
+function saveSettings(){
+  const d=parseInt(document.getElementById('set-day').value);
+  const dd=document.getElementById('set-day-date').value;
+  if(d)state.dayCountStart=d;
+  if(dd)state.dayCountStartDate=dd;
+  if(!state.settings)state.settings={};
+  const key=document.getElementById('set-claude-key')?.value.trim();
+  if(key)state.settings.claudeApiKey=key;
+  state.settings.datefmt=document.getElementById('set-datefmt')?.value||'DD/MM/YYYY';
+  state.settings.numfmt=document.getElementById('set-numfmt')?.value||'comma';
+  state.settings.weekstart=document.getElementById('set-weekstart')?.value||'sunday';
+  state.settings.timezone=document.getElementById('set-tz')?.value||'Australia/Sydney';
+  state.settings.currency=document.getElementById('set-currency')?.value||'USD';
+  state.settings.notifTime=document.getElementById('set-notif-time')?.value||'09:00';
+  state.settings.notifMsg=document.getElementById('set-notif-msg')?.value||'Time to review your trading plan!';
+  state.settings.notifEnabled=Notification.permission==='granted';
+  state.settings.twitter=document.getElementById('set-twitter')?.value||'';
+  state.settings.tradingview=document.getElementById('set-tv')?.value||'';
+  state.settings.youtube=document.getElementById('set-yt')?.value||'';
+  state.settings.instagram=document.getElementById('set-ig')?.value||'';
+  state.settings.discord=document.getElementById('set-discord')?.value||'';
+  const theme=document.getElementById('set-theme')?.value||'dark';
+  applyThemeSetting(theme);
+  save();updateDayCount();
+  if(state.settings.notifEnabled)scheduleNotification();
+  flash('✓ Settings saved');
+}
+async function renderSettings(){
+  document.getElementById('set-day').value=state.dayCountStart;
+  document.getElementById('set-day-date').value=state.dayCountStartDate;
+  const s=state.settings||{};
+  if(s.claudeApiKey)document.getElementById('set-claude-key').value=s.claudeApiKey;
+  if(s.datefmt)document.getElementById('set-datefmt').value=s.datefmt;
+  if(s.numfmt)document.getElementById('set-numfmt').value=s.numfmt;
+  if(s.weekstart)document.getElementById('set-weekstart').value=s.weekstart;
+  if(s.timezone)document.getElementById('set-tz').value=s.timezone;
+  if(s.currency)document.getElementById('set-currency').value=s.currency;
+  if(s.notifTime)document.getElementById('set-notif-time').value=s.notifTime;
+  if(s.notifMsg)document.getElementById('set-notif-msg').value=s.notifMsg;
+  if(s.twitter)document.getElementById('set-twitter').value=s.twitter;
+  if(s.tradingview)document.getElementById('set-tv').value=s.tradingview;
+  if(s.youtube)document.getElementById('set-yt').value=s.youtube;
+  if(s.instagram)document.getElementById('set-ig').value=s.instagram;
+  if(s.discord)document.getElementById('set-discord').value=s.discord;
+  const theme=document.body.classList.contains('light-mode')?'light':'dark';
+  document.getElementById('set-theme').value=theme;
+  const notifEl=document.getElementById('notif-status');
+  if(notifEl)notifEl.textContent=Notification.permission==='granted'?'✓ Notifications enabled':'Not enabled — click Enable to activate';
+
+  const imgKeys=await allImgKeys();
+  const lsSize=new Blob([JSON.stringify(state)]).size;
+  let imgSize=0;
+  for(const k of imgKeys){const b=await getImg(k);if(b)imgSize+=b.size}
+  document.getElementById('storageStats').innerHTML=`
+    <div class="chart-title">Storage</div>
+    <div class="cols2" style="font-size:11px;color:var(--text2)">
+      <div>Trades: <strong>${state.trades.length}</strong></div>
+      <div>Journal: <strong>${state.journal.length}</strong></div>
+      <div>Notes: <strong>${state.notes.length}</strong></div>
+      <div>Daily entries: <strong>${Object.keys(state.daily).length}</strong></div>
+      <div>Monthly: <strong>${Object.keys(state.monthly).length}</strong></div>
+      <div>Weekly: <strong>${Object.keys(state.weekly).length}</strong></div>
+      <div>Accounts: <strong>${state.accounts.length}</strong></div>
+      <div>Transactions: <strong>${state.transactions.length}</strong></div>
+      <div>Images: <strong>${imgKeys.length}</strong> (${(imgSize/1024/1024).toFixed(1)} MB)</div>
+      <div>Data: <strong>${(lsSize/1024).toFixed(1)} KB</strong></div>
+    </div>
+  `;
+}
+
+// ============= MISC =============
+function updateAllStats(){
+  document.getElementById('dayCount').textContent=dayCountFor(todayStr());
+  document.getElementById('mDayCount').textContent=dayCountFor(todayStr());
+  const acc=state.accounts.find(a=>a.id==state.currentAcc);
+  if(acc){
+    const ts=state.trades.filter(t=>t.accountId==acc.id);
+    const pnl=ts.reduce((s,t)=>s+t.pnl,0);
+    document.getElementById('sbBalance').textContent='$'+(acc.deposit+pnl).toFixed(0);
+    document.getElementById('sbTrades').textContent=ts.length;
+    const wins=ts.filter(t=>t.win).length;
+    document.getElementById('sbWR').textContent=(ts.length?Math.round(wins/ts.length*100):0)+'%';
+  } else {
+    const ts=state.trades;const pnl=ts.reduce((s,t)=>s+t.pnl,0);
+    document.getElementById('sbBalance').textContent='$'+pnl.toFixed(0);
+    document.getElementById('sbTrades').textContent=ts.length;
+    const wins=ts.filter(t=>t.win).length;
+    document.getElementById('sbWR').textContent=(ts.length?Math.round(wins/ts.length*100):0)+'%';
+  }
+}
+function updateDayCount(){updateAllStats();document.getElementById('todayDate').textContent=`Today · Day ${dayCountFor(todayStr())} · ${fmtDate(todayStr())}`}
+function flash(m){const s=document.getElementById('todayStatus');if(!s)return;const o=s.textContent;s.textContent=m;s.style.color='var(--bull)';setTimeout(()=>{s.textContent=o;s.style.color=''},2000)}
+
+// ============= TRADE DETAIL (immutable + screenshot) =============
+let _tdmTradeId = null;
+let _tdmBlob = null;
+
+async function openTradeDetail(id){
+  const t = state.trades.find(x => x.id === id);
+  if(!t) return;
+  _tdmTradeId = id;
+  _tdmBlob = null;
+
+  document.getElementById('tdm-title').textContent =
+    `Day ${t.dayCount||'-'} · ${t.date} · ${t.market} ${t.position}`;
+
+  // Load existing screenshot
+  const zone = document.getElementById('tdm-img-zone');
+  const blob = await getImg('tradeshot-'+id);
+  if(blob){
+    const url = URL.createObjectURL(blob);
+    zone.style.cssText='width:100%;height:220px;border-radius:6px;overflow:hidden;cursor:pointer;border:1px solid var(--border)';
+    zone.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover;display:block" onclick="openLightbox('${url}')">`;
+  } else {
+    zone.style.cssText='width:100%;height:220px;background:var(--bg3);border-radius:6px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:var(--text3);overflow:hidden;transition:border-color .15s';
+    zone.innerHTML='+ Click to add TradingView screenshot';
+    zone.onclick=()=>tdmPickImage();
+  }
+
+  // Build property list
+  const prop = (icon, label, val, cls='') =>
+    val ? `<div style="padding:9px 12px;border-bottom:1px solid var(--border)">
+      <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">${icon} ${label}</div>
+      <div style="font-size:12px;font-weight:500;${cls?'color:'+cls:''}">${val}</div>
+    </div>` : '';
+
+  const pnlCol = t.pnl>=0?'var(--bull)':'var(--bear)';
+  const posCol = t.position==='Long'?'var(--bull)':'var(--bear)';
+
+  document.getElementById('tdm-props').innerHTML = `
+    ${prop('📅','Date', t.date)}
+    ${prop('🔢','Day Count', t.dayCount ? 'Day '+t.dayCount : '-')}
+    ${prop('📈','Market', t.market)}
+    ${prop('↕️','Position', t.position, posCol)}
+    ${prop('💰','Net P&L', (t.pnl>=0?'+':'')+'$'+t.pnl.toFixed(2), pnlCol)}
+    ${prop('⚖️','R:R', t.rr+'R', pnlCol)}
+    ${prop('🎯','Risk', '$'+t.risk)}
+    ${prop('📦','Lots', t.lots)}
+    ${prop('⏰','Session', t.session)}
+    ${prop('🕐','Time Period', t.timePeriod)}
+    ${prop('⚡','Model(s)', (t.models||[]).join(' · '))}
+    ${prop('✅','Confirmations', (t.confirmations||[]).join(' · '))}
+    ${prop('🧠','Emotions', (t.emotions||[]).join(' · '))}
+    ${prop('📊','Market Phase', (t.phases||[]).join(' · '))}
+    ${prop('🔄','MMM', (t.mmm||[]).join(' · '))}
+    ${prop('↔️','Movement', (t.movement||[]).join(' · '))}
+    ${prop('📐','T-Frame', (t.tframes||[]).join(' · '))}
+    ${prop('📋','RTH Profile', t.rth)}
+    ${prop('🏦','HTF Delivery', t.htf)}
+    ${prop('🎯','Draws', t.draws)}
+    ${prop('💬','Feedback', t.feedback)}
+    ${prop('🔒','Status', t.locked?'Sealed — imported from Notion':'Active record')}
+  `;
+
+  document.getElementById('tradeDetailModal').classList.add('show');
+}
+
+function tdmPickImage(){ document.getElementById('tdm-file').click(); }
+
+async function tdmImageSelected(e){
+  const f = e.target.files[0]; if(!f) return;
+  _tdmBlob = await compress(f, 1920, 0.88);
+  const url = URL.createObjectURL(_tdmBlob);
+  const zone = document.getElementById('tdm-img-zone');
+  zone.style.cssText='width:100%;height:220px;border-radius:6px;overflow:hidden;cursor:pointer;border:1px solid var(--gold)';
+  zone.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover;display:block" onclick="openLightbox('${url}')">`;
+  zone.onclick=null;
+  e.target.value='';
+}
+
+function tdmRemoveImage(){
+  if(!_tdmTradeId) return;
+  delImg('tradeshot-'+_tdmTradeId);
+  _tdmBlob = null;
+  const zone = document.getElementById('tdm-img-zone');
+  zone.style.cssText='width:100%;height:220px;background:var(--bg3);border-radius:6px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:var(--text3);overflow:hidden';
+  zone.innerHTML='+ Click to add TradingView screenshot';
+  zone.onclick=()=>tdmPickImage();
+}
+
+async function tdmSaveScreenshot(){
+  if(!_tdmBlob){ flash('No new screenshot to save'); return; }
+  await saveImg('tradeshot-'+_tdmTradeId, _tdmBlob);
+  _tdmBlob = null;
+  flash('✓ Screenshot saved');
+  closeModal('tradeDetailModal');
+}
+
+// ============= SIDEBAR COLLAPSE =============
+function toggleSidebarCollapse(){
+  const sb=document.getElementById('sidebar');
+  const collapsed=sb.classList.toggle('collapsed');
+  try{localStorage.setItem('lmr_sidebar',collapsed?'collapsed':'open')}catch(e){}
+}
+function initSidebar(){
+  try{const s=localStorage.getItem('lmr_sidebar');if(s==='collapsed')document.getElementById('sidebar').classList.add('collapsed')}catch(e){}
+}
+
+// ============= CURRENCY / DATE / NUMBER FORMAT =============
+function fmtCurrency(n){
+  const fmt=state.settings?.numfmt||'comma';
+  const sign=n<0?'-':n>0?'+':'';
+  const abs=Math.abs(n).toFixed(2);
+  let parts=abs.split('.');
+  parts[0]=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,fmt==='dot'?'.':',');
+  const num=fmt==='dot'?parts.join(','):parts.join('.');
+  const sym=state.settings?.currency||'USD';
+  return `${sign}$${num}`;
+}
+function fmtDateSetting(dateStr){
+  if(!dateStr)return '';
+  const [y,m,d]=dateStr.split('-');
+  const fmt=state.settings?.datefmt||'DD/MM/YYYY';
+  if(fmt==='DD/MM/YYYY')return `${d}/${m}/${y}`;
+  if(fmt==='MM/DD/YYYY')return `${m}/${d}/${y}`;
+  return dateStr;
+}
+
+// ============= THEME =============
+function applyThemeSetting(val){
+  if(val==='light'){document.body.classList.add('light-mode');document.getElementById('themeBtn').textContent='☀️'}
+  else{document.body.classList.remove('light-mode');document.getElementById('themeBtn').textContent='🌙'}
+  try{localStorage.setItem('lmr_theme',val)}catch(e){}
+}
+
+// ============= NOTIFICATIONS =============
+let _notifTimer=null;
+function enableNotifications(){
+  if(!('Notification' in window)){document.getElementById('notif-status').textContent='⚠ Browser does not support notifications';return}
+  Notification.requestPermission().then(p=>{
+    if(p==='granted'){
+      saveSettings();
+      scheduleNotification();
+      document.getElementById('notif-status').textContent='✓ Enabled — reminder set for '+document.getElementById('set-notif-time').value;
+    } else {
+      document.getElementById('notif-status').textContent='⚠ Permission denied — check browser settings';
+    }
+  });
+}
+function disableNotifications(){
+  if(_notifTimer)clearTimeout(_notifTimer);
+  _notifTimer=null;
+  if(state.settings)state.settings.notifEnabled=false;
+  save();
+  document.getElementById('notif-status').textContent='Notifications disabled';
+}
+function testNotification(){
+  if(Notification.permission==='granted'){
+    new Notification('LMR Capitals',{body:'Trading reminder test — '+new Date().toLocaleTimeString(),icon:''});
+  } else {
+    alert('Enable notifications first');
+  }
+}
+function scheduleNotification(){
+  if(_notifTimer)clearTimeout(_notifTimer);
+  const time=state.settings?.notifTime||'09:00';
+  const msg=state.settings?.notifMsg||'Time to review your trading plan!';
+  const [h,mi]=time.split(':').map(Number);
+  const now=new Date();
+  const target=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,mi,0);
+  if(target<=now)target.setDate(target.getDate()+1);
+  const delay=target-now;
+  _notifTimer=setTimeout(()=>{
+    if(Notification.permission==='granted')new Notification('⚡ LMR Capitals — Trading Time',{body:msg});
+    scheduleNotification();
+  },delay);
+}
+function initNotifications(){
+  if(state.settings?.notifEnabled&&Notification.permission==='granted')scheduleNotification();
+}
+
+// ============= NAV HISTORY / BACK =============
+let navHistory=[];
+function navBack(){
+  if(navHistory.length>1){navHistory.pop();const p=navHistory.pop();navTo(p)}
+}
+function _updateBackBtn(){
+  const b=document.getElementById('backBtn');
+  if(b)b.style.display=navHistory.length>1?'':'none';
+}
+
+// ============= DAY / NIGHT THEME =============
+function toggleTheme(){
+  const light=document.body.classList.toggle('light-mode');
+  document.getElementById('themeBtn').textContent=light?'☀️':'🌙';
+  try{localStorage.setItem('lmr_theme',light?'light':'dark')}catch(e){}
+}
+function initTheme(){
+  try{const t=localStorage.getItem('lmr_theme');if(t==='light'){document.body.classList.add('light-mode');const b=document.getElementById('themeBtn');if(b)b.textContent='☀️'}}catch(e){}
+}
+
+// ============= MONTH SELECTOR =============
+function buildMonthSelector(){
+  const sel=document.getElementById('mh-select');
+  if(!sel)return;
+  const MONTHS=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  sel.innerHTML='';
+  // 2025 Oct–Dec + all 2026 + 2027 Jan–Jun
+  const ranges=[[2025,9],[2025,10],[2025,11]];
+  for(let m=0;m<12;m++)ranges.push([2026,m]);
+  for(let m=0;m<6;m++)ranges.push([2027,m]);
+  ranges.forEach(([y,m])=>{
+    const val=`${y}-${String(m+1).padStart(2,'0')}`;
+    const o=document.createElement('option');
+    o.value=val;o.textContent=`${MONTHS[m]} ${y}`;
+    if(val===state.currentMonth)o.selected=true;
+    sel.appendChild(o);
+  });
+}
+
+// ============= TRANSACTION RECEIPT =============
+let xmReceiptBlob=null;
+function xmPickReceipt(){document.getElementById('xm-receipt-file').click()}
+async function xmReceiptSelected(e){
+  const f=e.target.files[0];if(!f)return;
+  xmReceiptBlob=await compress(f,1200,0.82);
+  const u=URL.createObjectURL(xmReceiptBlob);
+  const z=document.getElementById('xm-receipt-zone');
+  z.classList.add('has-img');
+  z.innerHTML=`<div class="img-thumb"><img src="${u}"><button class="img-thumb-del" onclick="event.stopPropagation();xmClearReceipt()">×</button></div>`;
+  e.target.value='';
+}
+function xmClearReceipt(){
+  xmReceiptBlob=null;
+  const z=document.getElementById('xm-receipt-zone');
+  z.classList.remove('has-img');
+  z.innerHTML='<div class="img-zone-text">+ Add receipt or screenshot</div>';
+}
+// Patch saveTrans to save receipt
+const _origSaveTrans=typeof saveTrans==='function'?saveTrans:null;
+
+// ============= NOTES DAY COUNT =============
+function nmDateChanged(){
+  const d=document.getElementById('nm-date').value;
+  const el=document.getElementById('nm-daycount');
+  if(el&&d)el.textContent=`Day ${dayCountFor(d)}`;
+}
+
+// ============= ICT TERMINOLOGY =============
+let editingTermId = null;
+let termImgBlob = null;
+
+function ictSetCat(cat){
+  state.ictCat = cat;
+  document.querySelectorAll('.term-cat-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+  renderTerminology();
+}
+
+function openTermModal(id){
+  editingTermId = id || null;
+  termImgBlob = null;
+  document.getElementById('termModalTitle').textContent = id ? 'Edit Term' : '+ ICT Term / Concept';
+  const zone = document.getElementById('trm-img-zone');
+  if(id){
+    const t = state.terminology.find(x => x.id === id);
+    if(!t) return;
+    document.getElementById('trm-name').value = t.term;
+    document.getElementById('trm-cat').value = t.category;
+    document.getElementById('trm-tags').value = (t.tags||[]).join(', ');
+    document.getElementById('trm-desc').value = t.description||'';
+    document.getElementById('trm-ex').value = t.examples||'';
+    // load existing image
+    getImg('term-'+id).then(blob => {
+      if(blob){ const u=URL.createObjectURL(blob); zone.classList.add('has-img'); zone.innerHTML=`<img src="${u}" onclick="openLightbox('${u}')"><button style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:13px" onclick="event.stopPropagation();clearTermImg()">×</button>`; zone.style.position='relative'; }
+      else { zone.classList.remove('has-img'); zone.innerHTML='<div class="img-zone-text">+ Add chart or screenshot</div>'; zone.style.position=''; }
+    });
+  } else {
+    ['trm-name','trm-tags','trm-desc','trm-ex'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('trm-cat').value = 'ICT Model';
+    zone.classList.remove('has-img'); zone.innerHTML='<div class="img-zone-text">+ Add chart or screenshot</div>'; zone.style.position='';
+  }
+  document.getElementById('termModal').classList.add('show');
+}
+
+function termPickImage(){ document.getElementById('trm-file-input').click(); }
+async function termImageSelected(e){
+  const f = e.target.files[0]; if(!f) return;
+  termImgBlob = await compress(f, 1600, 0.85);
+  const u = URL.createObjectURL(termImgBlob);
+  const zone = document.getElementById('trm-img-zone');
+  zone.classList.add('has-img'); zone.style.position='relative';
+  zone.innerHTML=`<img src="${u}" onclick="openLightbox('${u}')"><button style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:13px" onclick="event.stopPropagation();clearTermImg()">×</button>`;
+  e.target.value='';
+}
+function clearTermImg(){
+  termImgBlob = null;
+  const zone = document.getElementById('trm-img-zone');
+  zone.classList.remove('has-img'); zone.style.position='';
+  zone.innerHTML='<div class="img-zone-text">+ Add chart or screenshot</div>';
+  if(editingTermId) delImg('term-'+editingTermId);
+}
+
+async function saveTerm(){
+  const name = document.getElementById('trm-name').value.trim();
+  if(!name){ alert('Term name required'); return; }
+  const id = editingTermId || Date.now();
+  const t = {
+    id, term: name,
+    category: document.getElementById('trm-cat').value,
+    tags: document.getElementById('trm-tags').value.split(',').map(s=>s.trim()).filter(Boolean),
+    description: document.getElementById('trm-desc').value.trim(),
+    examples: document.getElementById('trm-ex').value.trim(),
+    createdAt: editingTermId ? (state.terminology.find(x=>x.id===editingTermId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  if(termImgBlob) await saveImg('term-'+id, termImgBlob);
+  if(editingTermId){
+    state.terminology = state.terminology.map(x => x.id===editingTermId ? t : x);
+  } else {
+    state.terminology.unshift(t);
+  }
+  save(); closeModal('termModal'); renderTerminology();
+  flash('✓ Term saved');
+}
+
+function deleteTerm(id){
+  if(!confirm('Delete this term?')) return;
+  state.terminology = state.terminology.filter(t => t.id !== id);
+  delImg('term-'+id);
+  save(); renderTerminology();
+}
+
+async function renderTerminology(){
+  const search = (document.getElementById('ict-search')?.value||'').toLowerCase();
+  const cat = state.ictCat || 'All';
+  let list = state.terminology || [];
+  if(cat !== 'All') list = list.filter(t => t.category === cat);
+  if(search) list = list.filter(t =>
+    t.term.toLowerCase().includes(search) ||
+    (t.description||'').toLowerCase().includes(search) ||
+    (t.examples||'').toLowerCase().includes(search) ||
+    (t.tags||[]).some(tag => tag.toLowerCase().includes(search))
+  );
+  const count = document.getElementById('ict-count');
+  if(count) count.innerHTML = `<span style="font-size:10px;color:var(--text3)">${list.length} term${list.length!==1?'s':''} · ${(state.terminology||[]).length} total</span>`;
+  const grid = document.getElementById('termGrid');
+  if(!grid) return;
+  if(!list.length){
+    grid.innerHTML=`<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text3);font-size:12px">${(state.terminology||[]).length?'No results. Try a different filter or search.':'No terms yet. Press K to add your first ICT concept.'}</div>`;
+    return;
+  }
+  // render cards (images loaded async after)
+  grid.innerHTML = list.map(t => `
+    <div class="term-card" id="tcard-${t.id}">
+      <div class="term-card-img-empty" id="timg-${t.id}" onclick="openLightbox(this.dataset.url||'')" data-url="">📷 Loading...</div>
+      <div class="term-card-body">
+        <div class="term-card-cat">${t.category}</div>
+        <div class="term-card-title">${t.term}</div>
+        ${t.description?`<div class="term-card-desc">${t.description}</div>`:''}
+        ${t.examples?`<div class="term-card-ex">${t.examples}</div>`:''}
+      </div>
+      <div class="term-card-foot">
+        <div class="term-tags">${(t.tags||[]).map(tag=>`<span class="term-tag">${tag}</span>`).join('')}</div>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-sm" onclick="openTermModal(${t.id})">✎ Edit</button>
+          <button class="btn btn-sm btn-bear" onclick="deleteTerm(${t.id})">✗</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  // load images async
+  for(const t of list){
+    const blob = await getImg('term-'+t.id);
+    const el = document.getElementById('timg-'+t.id);
+    if(!el) continue;
+    if(blob){
+      const u = URL.createObjectURL(blob);
+      el.dataset.url = u;
+      el.className = 'term-card-img';
+      el.innerHTML = `<img src="${u}" style="width:100%;height:170px;object-fit:cover;display:block;cursor:pointer" onclick="openLightbox('${u}')">`;
+    } else {
+      el.className='term-card-img-empty';
+      el.innerHTML=`<span onclick="openTermModal(${t.id})" style="cursor:pointer">+ Add chart</span>`;
+    }
+  }
+}
+
+// ============= CLAUDE AI =============
+function openAIModal(prompt){
+  document.getElementById('aiModal').classList.add('show');
+  if(prompt) runAIPrompt(prompt);
+}
+function closeAIModal(){document.getElementById('aiModal').classList.remove('show')}
+
+function buildTradingContext(){
+  const ts=state.trades;
+  const wins=ts.filter(t=>t.win).length;
+  const pnl=ts.reduce((s,t)=>s+t.pnl,0);
+  const wr=ts.length?Math.round(wins/ts.length*100):0;
+  const rrs=ts.filter(t=>t.risk>0).map(t=>parseFloat(t.rr));
+  const avgRR=rrs.length?(rrs.reduce((a,b)=>a+b,0)/rrs.length).toFixed(2):'0';
+  const best=ts.length?Math.max(...ts.map(t=>t.pnl)):0;
+  const worst=ts.length?Math.min(...ts.map(t=>t.pnl)):0;
+  // by model
+  const byModel={};
+  ts.forEach(t=>(t.models||[]).forEach(m=>{
+    byModel[m]=byModel[m]||{count:0,pnl:0,wins:0};
+    byModel[m].count++;byModel[m].pnl+=t.pnl;if(t.win)byModel[m].wins++;
+  }));
+  const modelSummary=Object.entries(byModel).sort((a,b)=>b[1].pnl-a[1].pnl)
+    .map(([m,s])=>`  ${m}: ${s.count} trades · ${Math.round(s.wins/s.count*100)}% WR · $${s.pnl.toFixed(2)} P&L`).join('\n');
+  // by emotion
+  const byEmo={};
+  ts.forEach(t=>(t.emotions||[]).forEach(e=>{
+    byEmo[e]=byEmo[e]||{count:0,pnl:0};byEmo[e].count++;byEmo[e].pnl+=t.pnl;
+  }));
+  const emoSummary=Object.entries(byEmo).sort((a,b)=>b[1].count-a[1].count).slice(0,8)
+    .map(([e,s])=>`  ${e}: ${s.count}x · avg $${(s.pnl/s.count).toFixed(2)}`).join('\n');
+  // recent trades
+  const recent=ts.slice(0,15).map(t=>`  Day${t.dayCount||''} ${t.date} | ${t.market} ${t.position} | ${(t.models||[]).join('+')||'?'} | Emotions:${(t.emotions||[]).join(',')||'none'} | P&L:${t.pnl>=0?'+':''}$${t.pnl.toFixed(2)} R:R:${t.rr}R | ${t.win?'WIN':'LOSS'}${t.feedback?` | "${t.feedback}"`:''}`)  .join('\n');
+  // journal
+  const jEntries=state.journal.slice(0,8).map(j=>`  [${j.type.toUpperCase()}] ${j.date}: ${j.text.slice(0,200)}`).join('\n');
+  // today's chain
+  const today=state.daily[todayStr()]||{};
+  const todayStr_=today.savedAt?`Bias:${today.bias||'?'} London:${today.london||'?'} NY:${today.ny||'?'} Plan:${today.plan||'?'} Pred:${today.pred||'?'}`:'Not filled today';
+  return `TRADER: LMR Capitals (Lunitic) · Day ${dayCountFor(todayStr())} · ${todayStr()}
+
+OVERALL STATS:
+  Total trades: ${ts.length} · Win rate: ${wr}% · Net P&L: $${pnl.toFixed(2)}
+  Best: +$${best.toFixed(2)} · Worst: -$${Math.abs(worst).toFixed(2)} · Avg R:R: ${avgRR}R
+
+BY MODEL:
+${modelSummary||'  No trades yet'}
+
+EMOTION DATA:
+${emoSummary||'  No emotion data'}
+
+RECENT TRADES (last ${Math.min(15,ts.length)}):
+${recent||'  No trades yet'}
+
+TODAY'S CHAIN: ${todayStr_}
+
+RECENT JOURNAL ENTRIES:
+${jEntries||'  No journal entries'}`;
+}
+
+const AI_PROMPTS={
+  performance:'Analyze my trading performance. Identify my strengths, weaknesses, and the most important patterns in my data. Be specific and direct.',
+  emotions:'Analyze my emotional patterns while trading. Which emotions appear most? When I have certain emotions, what is my average P&L? What does this tell me about my psychology?',
+  models:'Which trade models (Entry Drills) work best for me based on the data? Which should I trade more, which should I avoid? Give me a clear ranking with reasoning.',
+  week:'Give me a summary of my recent trading week. What went well, what did not, and what is the one thing I should focus on next week?',
+  journal:'Review my journal entries. What are the recurring themes and lessons? What am I still struggling with that I keep writing about?',
+  mistakes:'What are my top 3 biggest mistakes based on the trade data and journal? Be blunt and specific — I need to hear this.',
+  plan:'Based on all my data, give me a specific 3-step improvement plan for the next 30 days of trading.'
+};
+
+let aiStreaming=false;
+async function runAIPrompt(key){
+  const q=AI_PROMPTS[key];
+  if(q)await sendAIQuestion(q);
+}
+async function sendAIMessage(){
+  const input=document.getElementById('aiInput');
+  const q=input.value.trim();
+  if(!q||aiStreaming)return;
+  input.value='';
+  await sendAIQuestion(q);
+}
+async function sendAIQuestion(question){
+  if(aiStreaming)return;
+  const key=state.settings?.claudeApiKey;
+  const resp=document.getElementById('aiResponse');
+  if(!key){
+    resp.innerHTML=`<div class="ai-key-warn">No API key set.<br><br>Go to <strong>Settings → Claude API Key</strong> and paste your key from <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></div>`;
+    return;
+  }
+  aiStreaming=true;
+  document.getElementById('aiSendBtn').disabled=true;
+  resp.innerHTML='<span class="ai-thinking">Claude is thinking...</span>';
+  const ctx=buildTradingContext();
+  const system=`You are an expert trading coach and performance analyst reviewing a futures trader's personal journal. You have deep knowledge of ICT concepts, Smart Money Concepts, market structure, and trader psychology. Be specific, data-driven, direct, and actionable. Never be vague. The trader values brutal honesty over comfort.`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-allow-browser':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-opus-4-7',
+        max_tokens:1500,
+        stream:true,
+        system,
+        messages:[{role:'user',content:`Here is my trading data:\n\n${ctx}\n\n---\n\n${question}`}]
+      })
+    });
+    if(!r.ok){const e=await r.json();throw new Error(e.error?.message||`API error ${r.status}`)}
+    const reader=r.body.getReader();
+    const dec=new TextDecoder();
+    let buf='',text='';
+    resp.textContent='';
+    while(true){
+      const{done,value}=await reader.read();
+      if(done)break;
+      buf+=dec.decode(value,{stream:true});
+      const lines=buf.split('\n');
+      buf=lines.pop();
+      for(const line of lines){
+        if(!line.startsWith('data: '))continue;
+        const d=line.slice(6);
+        if(d==='[DONE]')continue;
+        try{
+          const j=JSON.parse(d);
+          if(j.type==='content_block_delta'&&j.delta?.type==='text_delta'){
+            text+=j.delta.text;
+            resp.textContent=text;
+            document.getElementById('aiBody').scrollTop=document.getElementById('aiBody').scrollHeight;
+          }
+        }catch(e){}
+      }
+    }
+  }catch(err){
+    resp.innerHTML=`<span style="color:var(--bear)">Error: ${err.message}</span>`;
+  }finally{
+    aiStreaming=false;
+    document.getElementById('aiSendBtn').disabled=false;
+  }
+}
+
+// ============= INIT =============
+async function init(){
+  console.log('[LMR] init start');
+  try {
+    console.log('[LMR] opening IndexedDB...');
+    await openDB();
+    console.log('[LMR] IDB opened');
+    
+    console.log('[LMR] loading state from localStorage...');
+    load();
+    console.log('[LMR] state loaded:', {trades:state.trades.length, daily:Object.keys(state.daily).length});
+    
+    console.log('[LMR] building chips...');
+    buildChips('asianRange',ASIAN_RANGE,true,'asianRange');
+    buildChips('priceRefs',PRICE_REFS,true,'priceRefs');
+    buildChips('smtChips',SMT_OPTS,true,'smtChips');
+    
+    console.log('[LMR] populating RTH select...');
+    const chRth=document.getElementById('ch-rth');
+    if (chRth) RTH_PROFILES.forEach(r=>{const o=document.createElement('option');o.textContent=r;chRth.appendChild(o)});
+    
+    const jd=document.getElementById('j-date');
+    if (jd) jd.value=todayStr();
+    
+    initTheme();
+    initSidebar();
+    initNotifications();
+    buildMonthSelector();
+    console.log('[LMR] updating stats...');
+    updateAllStats();
+    
+    console.log('[LMR] loading daily...');
+    loadDaily();
+    
+    console.log('[LMR] navigating to dashboard...');
+    navTo('dash');
+    
+    console.log('[LMR] ✓ init complete');
+  } catch (err) {
+    console.error('[LMR] init failed:', err);
+    showErrorBanner('Init failed: ' + err.message + ' — sidebar still works, try clicking it.');
+    // Even on failure, ensure dashboard is visible
+    try { navTo('dash'); } catch(e){}
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+
+
+</body></html>
