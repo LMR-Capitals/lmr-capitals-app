@@ -13,6 +13,7 @@
 <link href="./css2" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="./chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 
@@ -512,6 +513,30 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 <!-- DASHBOARD -->
 <div class="panel active" id="p-dash">
 <div class="panel-inner">
+
+  <!-- ── Prop-firm stat row ── -->
+  <div class="dash-grid" style="margin-bottom:12px">
+    <div class="tile" id="pf-pnl-tile">
+      <div class="tile-l">💰 Net P&amp;L</div>
+      <div class="tile-v" id="pf-net-pnl">$0</div>
+      <div class="tile-sub" id="pf-pnl-sub">All accounts</div>
+    </div>
+    <div class="tile" id="pf-wr-tile">
+      <div class="tile-l">🎯 Win Rate</div>
+      <div class="tile-v" id="pf-winrate">0%</div>
+      <div class="tile-sub" id="pf-wr-sub">0W · 0L</div>
+    </div>
+    <div class="tile" id="pf-pf-tile">
+      <div class="tile-l">⚖️ Profit Factor</div>
+      <div class="tile-v" id="pf-pf">0</div>
+      <div class="tile-sub" id="pf-pf-sub">Profit / Loss</div>
+    </div>
+    <div class="tile" id="pf-dd-tile">
+      <div class="tile-l">📉 Max Drawdown</div>
+      <div class="tile-v" id="pf-dd">$0</div>
+      <div class="tile-sub" id="pf-dd-sub">Peak to trough</div>
+    </div>
+  </div>
 
   <div class="dash-grid">
     <div class="tile gold">
@@ -1062,6 +1087,39 @@ Midnight Open $______"></textarea>
       <div id="storageStats"></div>
     </div>
   </div>
+
+  <!-- ── CLOUD SYNC ── -->
+  <div class="card" style="margin-top:14px">
+    <div class="card-head">
+      <span class="card-tag t-g">Cloud</span>
+      <div class="card-title">Cloud Sync</div>
+      <span id="cloud-status" style="font-size:11px;margin-left:auto;color:var(--text3)">— Loading…</span>
+    </div>
+    <div class="card-body">
+      <p style="color:var(--text2);font-size:12px;margin-bottom:12px;line-height:1.6">Sign in to access your data from any device. Data syncs to your Supabase project.</p>
+      <div id="cloud-auth">
+        <div class="form-row"><label class="form-label">Email</label><input type="email" id="sb-email" placeholder="you@example.com"></div>
+        <div class="form-row"><label class="form-label">Password</label><input type="password" id="sb-pass" placeholder="••••••••"></div>
+        <div class="flex-row" style="margin-top:8px;gap:8px">
+          <button class="btn btn-sm btn-primary" onclick="sbDoSignIn()">🔑 Sign In</button>
+          <button class="btn btn-sm" onclick="sbDoSignUp()">✉️ Create Account</button>
+        </div>
+        <div id="sb-auth-err" style="color:var(--bear);font-size:11px;margin-top:6px;display:none"></div>
+      </div>
+      <div id="cloud-user" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <span id="cloud-user-email" style="font-size:12px;color:var(--text2)"></span>
+          <button class="btn btn-sm" onclick="sbDoSignOut()">Sign Out</button>
+        </div>
+        <div class="flex-row" style="gap:8px">
+          <button class="btn btn-sm btn-primary" onclick="sbPushNow()">☁ Push to Cloud</button>
+          <button class="btn btn-sm" onclick="sbPullNow()">⬇ Pull from Cloud</button>
+        </div>
+        <p style="font-size:10px;color:var(--text3);margin-top:8px">Push: send local data up · Pull: load cloud data down (overwrites local).</p>
+      </div>
+    </div>
+  </div>
+
 </div>
 </div>
 
@@ -1987,11 +2045,20 @@ function renderDashboard(){
   // stats
   const ts=state.trades;
   const wins=ts.filter(t=>t.win).length;
+  const losses=ts.filter(t=>t.pnl<0).length;
   const wr=ts.length?Math.round(wins/ts.length*100):0;
   const pnl=ts.reduce((s,t)=>s+t.pnl,0);
   const best=ts.length?Math.max(...ts.map(t=>t.pnl)):0;
   const worst=ts.length?Math.min(...ts.map(t=>t.pnl)):0;
   const rrs=ts.filter(t=>t.risk>0).map(t=>parseFloat(t.rr));
+  const grossProfit=ts.filter(t=>t.pnl>0).reduce((s,t)=>s+t.pnl,0);
+  const grossLoss=Math.abs(ts.filter(t=>t.pnl<0).reduce((s,t)=>s+t.pnl,0));
+  const pf=grossLoss>0?(grossProfit/grossLoss).toFixed(2):'∞';
+  // Max drawdown calc
+  const sorted=[...ts].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  let peak=0, run=0, maxDD=0;
+  sorted.forEach(t=>{run+=t.pnl;if(run>peak)peak=run;const dd=peak-run;if(dd>maxDD)maxDD=dd;});
+
   document.getElementById('d-total').textContent=ts.length;
   document.getElementById('d-wr').textContent=wr+'%';
   document.getElementById('d-pnl').textContent=(pnl>=0?'+':'-')+'$'+Math.abs(pnl).toFixed(2);
@@ -1999,7 +2066,39 @@ function renderDashboard(){
   document.getElementById('d-best').textContent='+$'+best.toFixed(2);
   document.getElementById('d-worst').textContent='-$'+Math.abs(worst).toFixed(2);
   document.getElementById('d-rr').textContent=rrs.length?(rrs.reduce((a,b)=>a+b,0)/rrs.length).toFixed(2):'0';
-  
+
+  // Prop-firm tiles
+  const pfPnlEl=document.getElementById('pf-net-pnl');
+  if(pfPnlEl){
+    pfPnlEl.textContent=(pnl>=0?'+':'-')+'$'+Math.abs(pnl).toFixed(2);
+    pfPnlEl.className='tile-v '+(pnl>=0?'txt-pos':'txt-neg');
+    document.getElementById('pf-pnl-tile').className='tile '+(pnl>=0?'pos':'neg');
+    document.getElementById('pf-pnl-sub').textContent=ts.length+' trades';
+  }
+  const pfWrEl=document.getElementById('pf-winrate');
+  if(pfWrEl){
+    pfWrEl.textContent=wr+'%';
+    pfWrEl.className='tile-v '+(wr>=50?'txt-pos':'txt-neg');
+    document.getElementById('pf-wr-tile').className='tile '+(wr>=50?'pos':'neg');
+    document.getElementById('pf-wr-sub').textContent=wins+'W · '+losses+'L';
+  }
+  const pfPfEl=document.getElementById('pf-pf');
+  if(pfPfEl){
+    pfPfEl.textContent=pf;
+    const pfNum=parseFloat(pf);
+    pfPfEl.className='tile-v '+(pfNum>=1?'txt-pos':'txt-neg');
+    document.getElementById('pf-pf-tile').className='tile '+(pfNum>=1?'pos':'neg');
+    document.getElementById('pf-pf-sub').textContent='+$'+grossProfit.toFixed(0)+' / -$'+grossLoss.toFixed(0);
+  }
+  const pfDdEl=document.getElementById('pf-dd');
+  if(pfDdEl){
+    pfDdEl.textContent='-$'+maxDD.toFixed(2);
+    pfDdEl.className='tile-v txt-neg';
+    document.getElementById('pf-dd-tile').className='tile neg';
+    const pct=peak>0?((maxDD/peak)*100).toFixed(1):0;
+    document.getElementById('pf-dd-sub').textContent=pct+'% from peak';
+  }
+
   renderTodayNewsForDash();
   setTimeout(renderDashCharts,50);
 }
@@ -2432,6 +2531,152 @@ if(typeof navTo==='function'){
     if(p==='daily')renderDailyHeatmap();
   };
 }
+
+// ───────────────────────────────────────────────────────────────
+// SUPABASE CLOUD SYNC
+// ───────────────────────────────────────────────────────────────
+const SB_URL = 'https://agrvylclhvxyevsmmexf.supabase.co';
+const SB_KEY = 'sb_publishable_vUhBxc3efVrs41yc9WZmAA_SnhBIrDh';
+let _sb = null;
+
+function sbInit() {
+  if (!window.supabase) { setSbStatus('SDK loading…', 'var(--text3)'); return null; }
+  if (_sb) return _sb;
+  try { _sb = window.supabase.createClient(SB_URL, SB_KEY); }
+  catch (e) { setSbStatus('Init failed', 'var(--bear)'); return null; }
+  return _sb;
+}
+
+function setSbStatus(text, color) {
+  const el = document.getElementById('cloud-status');
+  if (el) { el.textContent = text; el.style.color = color || 'var(--text3)'; }
+}
+
+async function sbRefreshUI() {
+  if (!sbInit()) return;
+  const auth = document.getElementById('cloud-auth');
+  const user = document.getElementById('cloud-user');
+  try {
+    const { data: { user: u } } = await _sb.auth.getUser();
+    if (u) {
+      auth.style.display = 'none';
+      user.style.display = '';
+      document.getElementById('cloud-user-email').textContent = u.email;
+      setSbStatus('✓ Signed in', 'var(--bull)');
+    } else {
+      auth.style.display = '';
+      user.style.display = 'none';
+      setSbStatus('Not signed in', 'var(--text3)');
+    }
+  } catch (e) {
+    setSbStatus('Connection error', 'var(--bear)');
+  }
+}
+
+async function sbDoSignIn() {
+  if (!sbInit()) return;
+  const email = document.getElementById('sb-email').value.trim();
+  const pass = document.getElementById('sb-pass').value;
+  const err = document.getElementById('sb-auth-err');
+  err.style.display = 'none';
+  if (!email || !pass) { err.textContent = 'Email + password required'; err.style.display = ''; return; }
+  setSbStatus('Signing in…', 'var(--gold)');
+  const { error } = await _sb.auth.signInWithPassword({ email, password: pass });
+  if (error) { err.textContent = error.message; err.style.display = ''; setSbStatus('Sign-in failed', 'var(--bear)'); return; }
+  await sbRefreshUI();
+}
+
+async function sbDoSignUp() {
+  if (!sbInit()) return;
+  const email = document.getElementById('sb-email').value.trim();
+  const pass = document.getElementById('sb-pass').value;
+  const err = document.getElementById('sb-auth-err');
+  err.style.display = 'none';
+  if (pass.length < 6) { err.textContent = 'Password must be 6+ characters'; err.style.display = ''; return; }
+  const { error } = await _sb.auth.signUp({ email, password: pass });
+  if (error) { err.textContent = error.message; err.style.display = ''; return; }
+  err.style.color = 'var(--bull)'; err.textContent = '✓ Account created. Now sign in.'; err.style.display = '';
+}
+
+async function sbDoSignOut() {
+  if (!_sb) return;
+  await _sb.auth.signOut();
+  await sbRefreshUI();
+}
+
+async function sbPushNow() {
+  if (!sbInit()) return;
+  const { data: { user } } = await _sb.auth.getUser();
+  if (!user) { flash('Sign in first'); return; }
+  setSbStatus('⟳ Pushing…', 'var(--gold)');
+  try {
+    // Wipe + replace all rows for this user
+    const tables = ['trades', 'accounts', 'transactions', 'notes', 'journal'];
+    for (const t of tables) await _sb.from(t).delete().eq('user_id', user.id);
+    await _sb.from('daily').delete().eq('user_id', user.id);
+    await _sb.from('monthly').delete().eq('user_id', user.id);
+    await _sb.from('weekly').delete().eq('user_id', user.id);
+
+    if (state.trades.length) await _sb.from('trades').insert(state.trades.map(t => ({ ...t, id: String(t.id), user_id: user.id, models: t.models||[], confirmations: t.confirmations||[], emotions: t.emotions||[], phases: t.phases||[], mmm: t.mmm||[], movement: t.movement||[], tframes: t.tframes||[] })));
+    if (state.accounts.length) await _sb.from('accounts').insert(state.accounts.map(a => ({ ...a, id: String(a.id), user_id: user.id })));
+    if (state.transactions.length) await _sb.from('transactions').insert(state.transactions.map(x => ({ ...x, id: String(x.id), user_id: user.id })));
+    if (state.notes.length) await _sb.from('notes').insert(state.notes.map(n => ({ ...n, id: String(n.id), user_id: user.id })));
+    if (state.journal.length) await _sb.from('journal').insert(state.journal.map(j => ({ ...j, id: String(j.id), user_id: user.id })));
+    const dailyRows = Object.entries(state.daily).map(([date, d]) => ({ ...d, date, user_id: user.id }));
+    if (dailyRows.length) await _sb.from('daily').insert(dailyRows);
+    const monthlyRows = Object.entries(state.monthly).map(([key, data]) => ({ key, data, user_id: user.id }));
+    if (monthlyRows.length) await _sb.from('monthly').insert(monthlyRows);
+    const weeklyRows = Object.entries(state.weekly).map(([week_key, data]) => ({ week_key, data, user_id: user.id }));
+    if (weeklyRows.length) await _sb.from('weekly').insert(weeklyRows);
+
+    setSbStatus('✓ Pushed', 'var(--bull)');
+    flash('✓ Pushed to cloud');
+  } catch (e) {
+    setSbStatus('Push failed', 'var(--bear)');
+    flash('Push error: ' + e.message);
+  }
+}
+
+async function sbPullNow() {
+  if (!sbInit()) return;
+  const { data: { user } } = await _sb.auth.getUser();
+  if (!user) { flash('Sign in first'); return; }
+  if (!confirm('Pull will OVERWRITE your local data with cloud data. Continue?')) return;
+  setSbStatus('⟳ Pulling…', 'var(--gold)');
+  try {
+    const [tr, ac, tx, no, ju, da, mo, we] = await Promise.all([
+      _sb.from('trades').select('*'),
+      _sb.from('accounts').select('*'),
+      _sb.from('transactions').select('*'),
+      _sb.from('notes').select('*'),
+      _sb.from('journal').select('*'),
+      _sb.from('daily').select('*'),
+      _sb.from('monthly').select('*'),
+      _sb.from('weekly').select('*'),
+    ]);
+    state.trades = (tr.data||[]).map(t => ({ ...t, id: Number(t.id)||t.id }));
+    state.accounts = (ac.data||[]).map(a => ({ ...a, id: Number(a.id)||a.id }));
+    state.transactions = (tx.data||[]).map(x => ({ ...x, id: Number(x.id)||x.id }));
+    state.notes = (no.data||[]).map(n => ({ ...n, id: Number(n.id)||n.id }));
+    state.journal = (ju.data||[]).map(j => ({ ...j, id: Number(j.id)||j.id }));
+    state.daily = {};
+    (da.data||[]).forEach(d => { state.daily[d.date] = d; });
+    state.monthly = {};
+    (mo.data||[]).forEach(m => { state.monthly[m.key] = m.data || {}; });
+    state.weekly = {};
+    (we.data||[]).forEach(w => { state.weekly[w.week_key] = w.data || {}; });
+    save();
+    setSbStatus('✓ Pulled', 'var(--bull)');
+    flash('✓ Pulled from cloud — reloading…');
+    setTimeout(() => location.reload(), 600);
+  } catch (e) {
+    setSbStatus('Pull failed', 'var(--bear)');
+    flash('Pull error: ' + e.message);
+  }
+}
+
+// Init when DOM ready
+window.addEventListener('DOMContentLoaded', () => { setTimeout(sbRefreshUI, 500); });
 </script>
 
 <script>
