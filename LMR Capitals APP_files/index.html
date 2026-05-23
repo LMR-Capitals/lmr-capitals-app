@@ -179,6 +179,10 @@ textarea{resize:vertical;min-height:50px}
 .tbl td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text2);white-space:nowrap}
 .tbl tr:hover td{background:var(--bg3)}
 .tbl tr:last-child td{border-bottom:none}
+/* Click-to-edit rows */
+.edit-row{cursor:pointer;transition:background .12s}
+.edit-row:hover td{background:var(--bg4)!important;color:var(--text)}
+.edit-row:hover{box-shadow:inset 3px 0 0 var(--gold)}
 
 /* CHART */
 .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
@@ -945,7 +949,7 @@ Midnight Open $______"></textarea>
     </div>
     <div class="card-body">
       <div class="tw"><table class="tbl">
-        <thead><tr><th>Date</th><th>Day</th><th>Market</th><th>Pos</th><th>Model</th><th>Session</th><th>Time</th><th>MMM</th><th>Emotions</th><th>HTF</th><th>Risk</th><th>P&amp;L</th><th>R:R</th></tr></thead>
+        <thead><tr><th>Date</th><th>Day</th><th>Market</th><th>Pos</th><th>Model</th><th>Session</th><th>Time</th><th>MMM</th><th>Emotions</th><th>HTF</th><th>Risk</th><th>P&amp;L</th><th>R:R</th><th></th></tr></thead>
         <tbody id="tradeTable"><tr><td colspan="13" class="empty">No trades. Press T to log one.</td></tr></tbody>
       </table></div>
     </div>
@@ -1678,8 +1682,11 @@ function saveWeekly(){
 }
 
 // ============= TRADES (Full LMR Trade Data) =============
-function openTradeModal(){
-  document.getElementById('tm-date').value=todayStr();
+let _tmEditId=null;
+function openTradeModal(editId){
+  _tmEditId=editId||null;
+  const ex=editId?state.trades.find(t=>t.id===editId):null;
+  document.getElementById('tm-date').value=ex?ex.date:todayStr();
   // build chips
   buildChips('modelChips',MODELS,true,'modelChips');
   buildChips('confChips',CONFIRMATIONS,true,'confChips');
@@ -1692,14 +1699,42 @@ function openTradeModal(){
   const tp=document.getElementById('tm-tp');tp.innerHTML='<option value="">Select...</option>'+TIME_PERIODS.map(t=>`<option>${t}</option>`).join('');
   const rth=document.getElementById('tm-rth');rth.innerHTML='<option value="">Select...</option>'+RTH_PROFILES.map(t=>`<option>${t}</option>`).join('');
   const acc=document.getElementById('tm-acc');acc.innerHTML='<option value="">No account</option>'+state.accounts.map(a=>`<option value="${a.id}">${a.name} (${a.type})</option>`).join('');
-  if(state.currentAcc)document.getElementById('tm-acc').value=state.currentAcc;
+  // Title reflects mode
+  const titleEl=document.querySelector('#tradeModal .modal-title');
+  if(titleEl)titleEl.textContent=ex?'Edit Trade':'+ Log Trade';
+  if(ex){
+    // Pre-fill from existing
+    document.getElementById('tm-market').value=ex.market||'NQ';
+    document.getElementById('tm-pos').value=ex.position||'Long';
+    document.getElementById('tm-day').value=ex.day||'';
+    document.getElementById('tm-session').value=ex.session||'';
+    if(ex.timePeriod)document.getElementById('tm-tp').value=ex.timePeriod;
+    setChipsValues('modelChips',ex.models||[]);
+    setChipsValues('confChips',ex.confirmations||[]);
+    setChipsValues('emoChips',ex.emotions||[]);
+    setChipsValues('phaseChips',ex.phases||[]);
+    setChipsValues('mmmChips',ex.mmm||[]);
+    setChipsValues('movChips',ex.movement||[]);
+    setChipsValues('tfChips',ex.tframes||[]);
+    if(ex.rth)document.getElementById('tm-rth').value=ex.rth;
+    document.getElementById('tm-htf').value=ex.htf||'Delivered';
+    document.getElementById('tm-pnl').value=ex.pnl||'';
+    document.getElementById('tm-risk').value=ex.risk||'';
+    document.getElementById('tm-lots').value=ex.lots||'';
+    document.getElementById('tm-acc').value=ex.accountId||'';
+    document.getElementById('tm-draws').value=ex.draws||'';
+    document.getElementById('tm-fb').value=ex.feedback||'';
+  } else {
+    if(state.currentAcc)document.getElementById('tm-acc').value=state.currentAcc;
+    ['tm-pnl','tm-risk','tm-lots','tm-draws','tm-fb'].forEach(id=>document.getElementById(id).value='');
+  }
   document.getElementById('tradeModal').classList.add('show');
 }
 function closeModal(id){document.getElementById(id).classList.remove('show')}
 function saveTrade(){
   const date=document.getElementById('tm-date').value||todayStr();
   const t={
-    id:Date.now(),date,
+    id:_tmEditId||Date.now(),date,
     market:document.getElementById('tm-market').value,
     position:document.getElementById('tm-pos').value,
     day:document.getElementById('tm-day').value,
@@ -1725,21 +1760,20 @@ function saveTrade(){
   };
   t.rr=t.risk>0?(t.pnl/t.risk).toFixed(2):0;
   t.win=t.pnl>0;
-  state.trades.unshift(t);
+  if(_tmEditId){state.trades=state.trades.map(x=>x.id===_tmEditId?t:x);flash('✓ Trade updated');}
+  else{state.trades.unshift(t);flash('✓ Trade logged');}
   save();closeModal('tradeModal');
   renderTradeTable();updateAllStats();
-  // clear
   ['tm-pnl','tm-risk','tm-lots','tm-draws','tm-fb'].forEach(id=>document.getElementById(id).value='');
-  flash('✓ Trade logged');
 }
 function deleteTrade(id){if(!confirm('Delete?'))return;state.trades=state.trades.filter(t=>t.id!==id);save();renderTradeTable();updateAllStats()}
 function renderTradeTable(){
   const w=document.getElementById('tradeTable');
-  if(!state.trades.length){w.innerHTML='<tr><td colspan="13" class="empty">No trades.</td></tr>';return}
+  if(!state.trades.length){w.innerHTML='<tr><td colspan="14" class="empty">No trades.</td></tr>';return}
   w.innerHTML=state.trades.map(t=>{
     const modelTag=t.models?.[0]||'-';
     const isStupid=modelTag==='Stupidity';
-    return `<tr>
+    return `<tr class="edit-row" onclick="openTradeModal(${t.id})" title="Click to edit">
       <td class="mono">${t.date}</td>
       <td>${t.day||'-'}</td>
       <td>${t.market}</td>
@@ -1753,6 +1787,7 @@ function renderTradeTable(){
       <td class="mono">$${t.risk||0}</td>
       <td class="mono ${t.pnl>=0?'txt-pos':'txt-neg'}" style="font-weight:600">${t.pnl>=0?'+':''}$${t.pnl.toFixed(2)}</td>
       <td class="mono ${t.rr>=0?'txt-pos':'txt-neg'}">${t.rr}R</td>
+      <td onclick="event.stopPropagation()"><button class="btn btn-sm btn-bear" onclick="deleteTrade(${t.id})">✗</button></td>
     </tr>`;
   }).join('');
   // update stats tiles
@@ -1772,21 +1807,32 @@ function renderTradeTable(){
 // ============= ACCOUNTS =============
 let accFilter='All';
 function filterAcc(t){accFilter=t;document.querySelectorAll('.tabs .tab').forEach((tab,i)=>tab.classList.toggle('active',tab.textContent===t));renderAccountTable()}
-function openAccountModal(){document.getElementById('am-date').value=todayStr();document.getElementById('accModal').classList.add('show')}
+let _amEditId=null;
+function openAccountModal(editId){
+  _amEditId=editId||null;
+  const ex=editId?state.accounts.find(a=>a.id===editId):null;
+  const titleEl=document.querySelector('#accModal .modal-title');
+  if(titleEl)titleEl.textContent=ex?'Edit Account':'+ Account';
+  document.getElementById('am-name').value=ex?ex.name:'';
+  document.getElementById('am-type').value=ex?ex.type:'Funded';
+  document.getElementById('am-status').value=ex?ex.status:'In progress';
+  document.getElementById('am-date').value=ex?ex.date:todayStr();
+  document.getElementById('am-deposit').value=ex?ex.deposit:'';
+  document.getElementById('accModal').classList.add('show');
+}
 function saveAccount(){
   const a={
-    id:Date.now(),name:document.getElementById('am-name').value,
+    id:_amEditId||Date.now(),
+    name:document.getElementById('am-name').value,
     type:document.getElementById('am-type').value,
     status:document.getElementById('am-status').value,
     date:document.getElementById('am-date').value,
     deposit:parseFloat(document.getElementById('am-deposit').value)||0,
   };
   if(!a.name){alert('Name required');return}
-  state.accounts.push(a);
-  if(!state.currentAcc)state.currentAcc=a.id;
+  if(_amEditId){state.accounts=state.accounts.map(x=>x.id===_amEditId?a:x);flash('✓ Account updated');}
+  else{state.accounts.push(a);if(!state.currentAcc)state.currentAcc=a.id;flash('✓ Account saved');}
   save();closeModal('accModal');renderAccountTable();updateAllStats();
-  ['am-name','am-deposit'].forEach(id=>document.getElementById(id).value='');
-  flash('✓ Account saved');
 }
 function setActiveAccount(id){state.currentAcc=id;save();renderAccountTable();updateAllStats();flash('✓ Active account set')}
 function deleteAccount(id){if(!confirm('Delete account?'))return;state.accounts=state.accounts.filter(a=>a.id!==id);if(state.currentAcc===id)state.currentAcc=state.accounts[0]?.id||null;save();renderAccountTable();updateAllStats()}
@@ -1802,7 +1848,7 @@ function renderAccountTable(){
     const losses=ts.filter(t=>t.pnl<0).length;
     const breakeven=ts.filter(t=>t.pnl===0).length;
     const wr=ts.length?Math.round(wins/ts.length*100):0;
-    return `<tr>
+    return `<tr class="edit-row" onclick="openAccountModal(${a.id})" title="Click to edit">
       <td>${a.name}</td>
       <td><span class="tag tg-${a.type==='Funded'?'bull':a.type==='Live'?'bear':'warn'}">${a.type}</span></td>
       <td>${a.status}</td>
@@ -1812,43 +1858,54 @@ function renderAccountTable(){
       <td class="mono">${wr}%</td>
       <td class="mono" style="font-size:10px">${wins}:${breakeven}:${losses}</td>
       <td class="mono">${ts.length}</td>
-      <td>${state.currentAcc==a.id?'<span class="tag tg-bull">ACTIVE</span>':`<button class="btn btn-sm" onclick="setActiveAccount(${a.id})">Set</button>`}</td>
-      <td><button class="btn btn-sm btn-bear" onclick="deleteAccount(${a.id})">✗</button></td>
+      <td onclick="event.stopPropagation()">${state.currentAcc==a.id?'<span class="tag tg-bull">ACTIVE</span>':`<button class="btn btn-sm" onclick="setActiveAccount(${a.id})">Set</button>`}</td>
+      <td onclick="event.stopPropagation()"><button class="btn btn-sm btn-bear" onclick="deleteAccount(${a.id})">✗</button></td>
     </tr>`;
   }).join('');
 }
 
 // ============= TRANSACTIONS =============
-function openTransModal(){
-  document.getElementById('xm-date').value=todayStr();
-  const acc=document.getElementById('xm-acc');acc.innerHTML='<option value="">No account</option>'+state.accounts.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
+let _xmEditId=null;
+function openTransModal(editId){
+  _xmEditId=editId||null;
+  const ex=editId?state.transactions.find(t=>t.id===editId):null;
+  const titleEl=document.querySelector('#transModal .modal-title');
+  if(titleEl)titleEl.textContent=ex?'Edit Transaction':'+ Transaction';
+  document.getElementById('xm-date').value=ex?ex.date:todayStr();
+  document.getElementById('xm-type').value=ex?ex.type:'Deposit';
+  const acc=document.getElementById('xm-acc');
+  acc.innerHTML='<option value="">No account</option>'+state.accounts.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
+  if(ex)acc.value=ex.accountId||'';
+  document.getElementById('xm-amt').value=ex?ex.amount:'';
+  document.getElementById('xm-note').value=ex?ex.note||'':'';
   document.getElementById('transModal').classList.add('show');
 }
 function saveTrans(){
   const x={
-    id:Date.now(),date:document.getElementById('xm-date').value||todayStr(),
+    id:_xmEditId||Date.now(),
+    date:document.getElementById('xm-date').value||todayStr(),
     type:document.getElementById('xm-type').value,
     accountId:document.getElementById('xm-acc').value,
     amount:parseFloat(document.getElementById('xm-amt').value)||0,
     note:document.getElementById('xm-note').value
   };
-  state.transactions.unshift(x);
+  if(_xmEditId){state.transactions=state.transactions.map(t=>t.id===_xmEditId?x:t);flash('✓ Transaction updated');}
+  else{state.transactions.unshift(x);flash('✓ Transaction saved');}
   save();closeModal('transModal');renderTransTable();
   ['xm-amt','xm-note'].forEach(id=>document.getElementById(id).value='');
-  flash('✓ Transaction saved');
 }
 function renderTransTable(){
   const w=document.getElementById('transTable');
   if(!state.transactions.length){w.innerHTML='<tr><td colspan="6" class="empty">No transactions.</td></tr>';return}
   w.innerHTML=state.transactions.map(x=>{
     const acc=state.accounts.find(a=>a.id==x.accountId);
-    return `<tr>
+    return `<tr class="edit-row" onclick="openTransModal(${x.id})" title="Click to edit">
       <td class="mono">${x.date}</td>
       <td><span class="tag tg-${x.type==='Deposit'?'bull':x.type==='Withdrawal'?'bear':'gray'}">${x.type}</span></td>
       <td>${acc?acc.name:'-'}</td>
       <td class="mono ${x.type==='Deposit'?'txt-pos':'txt-neg'}">${x.type==='Deposit'?'+':'-'}$${Math.abs(x.amount).toFixed(2)}</td>
       <td>${x.note||'-'}</td>
-      <td><button class="btn btn-sm btn-bear" onclick="if(confirm('Delete?')){state.transactions=state.transactions.filter(t=>t.id!==${x.id});save();renderTransTable()}">✗</button></td>
+      <td onclick="event.stopPropagation()"><button class="btn btn-sm btn-bear" onclick="if(confirm('Delete?')){state.transactions=state.transactions.filter(t=>t.id!==${x.id});save();renderTransTable()}">✗</button></td>
     </tr>`;
   }).join('');
 }
