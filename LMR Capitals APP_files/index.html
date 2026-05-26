@@ -1230,11 +1230,42 @@ Midnight Open $______"></textarea>
     <div class="tile"><div class="tile-l">Net P&amp;L</div><div class="tile-v" id="tr-pnl">$0</div></div>
     <div class="tile gold"><div class="tile-l">Avg RR</div><div class="tile-v" id="tr-rr">0</div></div>
   </div>
-  
+
+  <!-- Trade image section — shows for selected trade -->
+  <div class="card" id="trade-img-panel" style="display:none">
+    <div class="card-head">
+      <span class="card-tag t-r">📸 Trade Images</span>
+      <div class="card-title" id="trade-img-title">Screenshots</div>
+      <button class="btn btn-sm" style="margin-left:auto" onclick="document.getElementById('trade-img-panel').style.display='none'">✕</button>
+    </div>
+    <div class="card-body">
+      <div class="img-grid-2">
+        <div class="img-zone-wrap">
+          <div class="img-zone-label">HTF Delivery <span>Daily / 4H / 1H</span></div>
+          <div class="img-zone" id="tl-img-htf" data-imgkey="tl-htf" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or upload</div></div>
+        </div>
+        <div class="img-zone-wrap">
+          <div class="img-zone-label">15min Chart <span>execution context</span></div>
+          <div class="img-zone" id="tl-img-15m" data-imgkey="tl-15m" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or upload</div></div>
+        </div>
+      </div>
+      <div class="img-grid-2" style="margin-top:10px">
+        <div class="img-zone-wrap">
+          <div class="img-zone-label">Entry <span>1m / 3m / 5m trigger</span></div>
+          <div class="img-zone" id="tl-img-entry" data-imgkey="tl-entry" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or upload</div></div>
+        </div>
+        <div class="img-zone-wrap">
+          <div class="img-zone-label">Result <span>exit / outcome</span></div>
+          <div class="img-zone" id="tl-img-result" data-imgkey="tl-result" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or upload</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="card">
     <div class="card-head">
       <span class="card-tag t-r">Trade Log</span>
-      <div class="card-title">All trades · grouped by month</div>
+      <div class="card-title">All trades — click row for details &amp; images</div>
       <button class="btn btn-primary btn-sm" onclick="openTradeModal()">+ Trade <span class="sb-key" style="background:rgba(0,0,0,.2);color:var(--bg)">T</span></button>
     </div>
     <div class="card-body">
@@ -1562,7 +1593,7 @@ Midnight Open $______"></textarea>
 <!-- TRADE MODAL (FULL LMR Trade Data fields) -->
 <div class="modal-bg" id="tradeModal">
   <div class="modal" style="max-width:780px">
-    <div class="modal-head"><div class="modal-title">+ Log Trade</div><button class="close" onclick="closeModal('tradeModal')">×</button></div>
+    <div class="modal-head"><div class="modal-title">+ Log Trade</div><span style="font-size:9px;color:var(--bull);margin-left:8px;font-weight:700">AUTO-SAVE</span><button class="close" style="margin-left:auto" onclick="saveTradeAndClose()">×</button></div>
     <div class="modal-body">
       <div class="cols2">
         <div><label class="form-label">Date</label><input type="date" id="tm-date"></div>
@@ -1629,9 +1660,14 @@ Midnight Open $______"></textarea>
         </div>
       </div>
     </div>
-    <div class="modal-actions">
-      <button class="btn" onclick="closeModal('tradeModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveTrade()">Save Trade</button>
+      <div style="padding:10px 0 4px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:10px;color:var(--text3)" id="tm-autosave-label">Closes &amp; auto-saves</span>
+        <span class="dot" style="width:6px;height:6px"></span>
+      </div>
+    </div>
+    <div class="modal-actions" style="justify-content:flex-end">
+      <button class="btn btn-bear btn-sm" onclick="discardTrade()">Discard</button>
+      <button class="btn btn-primary" onclick="saveTradeAndClose()">✓ Done</button>
     </div>
   </div>
 </div>
@@ -2045,10 +2081,23 @@ const HOTKEYS = {
   'k':'terminology', 'K':'terminology'
 };
 
+// Click on modal overlay — auto-save trade if that modal is open
+document.querySelectorAll('.modal-bg').forEach(bg=>{
+  bg.addEventListener('click',e=>{
+    if(e.target!==bg)return;
+    if(bg.id==='tradeModal'){saveTradeAndClose();return;}
+    bg.classList.remove('show');
+  });
+});
+
 document.addEventListener('keydown', e => {
   if (e.target.matches('input, textarea, select')) return;
   if (document.querySelector('.modal-bg.show')) {
     if (e.key === 'Escape') {
+      // Auto-save trade on Escape if trade modal is open
+      if(document.getElementById('tradeModal').classList.contains('show')){
+        saveTradeAndClose();return;
+      }
       document.querySelectorAll('.modal-bg.show').forEach(m => m.classList.remove('show'));
     }
     return;
@@ -2301,6 +2350,8 @@ function openTradeModal(editId){
   // Set image keys — use existing trade ID for edits, pre-generate for new
   const imgId = editId || ('new-'+Date.now());
   _setTradeImgKeys(imgId);
+  // Also load inline trade-log image panel if Trade panel is active
+  if(editId) showTradeImgPanel(editId);
   document.getElementById('tradeModal').classList.add('show');
 }
 function closeModal(id){document.getElementById(id).classList.remove('show')}
@@ -2342,6 +2393,39 @@ function saveTrade(){
   ['tm-pnl','tm-risk','tm-lots','tm-draws','tm-fb'].forEach(id=>document.getElementById(id).value='');
 }
 function deleteTrade(id){if(!confirm('Delete?'))return;state.trades=state.trades.filter(t=>t.id!==id);save();renderTradeTable();updateAllStats()}
+
+function saveTradeAndClose(){
+  const pnl=document.getElementById('tm-pnl').value;
+  const date=document.getElementById('tm-date').value;
+  if(!date&&!pnl&&!_tmEditId){closeModal('tradeModal');return;}
+  saveTrade();
+}
+function discardTrade(){
+  _tmEditId=null;_tmCurrentImgId=null;
+  closeModal('tradeModal');
+}
+function showTradeImgPanel(tradeId){
+  const panel=document.getElementById('trade-img-panel');
+  if(!panel)return;
+  const t=state.trades.find(x=>x.id==tradeId);
+  if(!t)return;
+  // Set image keys for the 4 inline zones
+  const zones={
+    'tl-img-htf':   `trade-${tradeId}-htf`,
+    'tl-img-15m':   `trade-${tradeId}-15m`,
+    'tl-img-entry': `trade-${tradeId}-entry`,
+    'tl-img-result':`trade-${tradeId}-result`
+  };
+  Object.entries(zones).forEach(([zid,key])=>{
+    const z=document.getElementById(zid);
+    if(z){z.dataset.imgkey=key;renderImgZone(z);}
+  });
+  const title=document.getElementById('trade-img-title');
+  if(title)title.textContent=`D${t.dayCount||''} · ${t.date} · ${t.market} ${t.position} · ${t.pnl>=0?'+':''}$${t.pnl?.toFixed(2)||0}`;
+  panel.style.display='';
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
 function renderTradeTable(){
   const w=document.getElementById('tradeTable');
   if(!state.trades.length){w.innerHTML='<tr><td colspan="14" class="empty">No trades.</td></tr>';return}
@@ -2350,7 +2434,7 @@ function renderTradeTable(){
     const isStupid=modelTag==='Stupidity';
     const rowCls=t.pnl>0?'edit-row trade-win':t.pnl<0?'edit-row trade-loss':'edit-row';
     const winLoss=t.pnl>0?'<span class="win-pill">WIN</span>':t.pnl<0?'<span class="loss-pill">LOSS</span>':'<span class="tag tg-gray">BE</span>';
-    return `<tr class="${rowCls}" onclick="openTradeModal(${t.id})" title="Click to edit">
+    return `<tr class="${rowCls}" onclick="openTradeModal(${t.id})" title="Click to edit · images inside">
       <td class="mono">${t.date}</td>
       <td>${t.day||'-'}</td>
       <td>${t.market}</td>
