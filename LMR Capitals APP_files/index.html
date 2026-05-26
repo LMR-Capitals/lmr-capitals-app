@@ -449,6 +449,110 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .empty{padding:32px 20px;text-align:center;color:var(--text3);font-size:12px;font-weight:500}
 .panel{padding:20px}
 .panel-inner{max-width:1360px;margin:0 auto}
+
+/* ── NY CLOCK ── */
+.ny-clock{margin:6px 8px;padding:8px 12px;background:linear-gradient(135deg,rgba(91,168,255,.08),rgba(91,168,255,.03));border:1px solid rgba(91,168,255,.18);border-radius:var(--r2);text-align:center}
+.ny-clock-label{font-size:7px;color:var(--blue);text-transform:uppercase;letter-spacing:.16em;font-weight:700}
+.ny-clock-time{font-size:19px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--text);letter-spacing:.04em;margin:2px 0;text-shadow:0 0 14px rgba(91,168,255,.35)}
+.ny-clock-date{font-size:9px;color:var(--text2);font-family:'JetBrains Mono',monospace;font-weight:600}
+.ny-clock-sub{font-size:8px;color:var(--text3);margin-top:1px}
+
+/* ── TICKER BAR ── */
+.ticker-bar{background:linear-gradient(90deg,rgba(167,139,250,.07),rgba(91,168,255,.05));border:1px solid rgba(167,139,250,.18);border-radius:var(--r2);padding:9px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color var(--t)}
+.ticker-bar:hover{border-color:rgba(167,139,250,.35)}
+.ticker-icon{font-size:15px;animation:tickPulse 2.5s infinite}
+@keyframes tickPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.85)}}
+.ticker-content{font-size:11px;color:var(--text2);flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;line-height:1.5;font-style:italic}
+.ticker-badge{font-size:8px;padding:2px 7px;border-radius:99px;background:rgba(167,139,250,.14);color:var(--pur);border:1px solid rgba(167,139,250,.22);white-space:nowrap;font-weight:700;letter-spacing:.04em}
+
+/* ── NOTION-STYLE CHAIN PROPERTIES ── */
+.chain-props{display:flex;flex-direction:column;gap:0}
+.prop-block{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:start;padding:9px 12px;border-radius:var(--r);transition:background var(--t)}
+.prop-block:hover{background:rgba(255,255,255,.02)}
+.prop-block:not(:last-child){border-bottom:1px solid rgba(84,141,196,.06)}
+.prop-left{display:flex;flex-direction:column;gap:2px;padding-top:3px}
+.prop-label{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.02em}
+.prop-type{font-size:8px;color:var(--text3);font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.prop-right{display:flex;flex-direction:column;gap:4px}
+.prop-display{font-size:12px;color:var(--text2);padding:6px 10px;background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r);font-family:'JetBrains Mono',monospace;font-weight:500;line-height:1.5}
+/* property accent colors */
+.prop-block.p-monthly .prop-label{color:var(--blue)}
+.prop-block.p-weekly .prop-label{color:var(--pur)}
+.prop-block.p-bias .prop-label{color:var(--bear)}
+.prop-block.p-htf .prop-label{color:var(--gold)}
+.prop-block.p-draws .prop-label{color:var(--warn)}
+.prop-block.p-london .prop-label{color:var(--pur)}
+.prop-block.p-ny .prop-label{color:var(--bull)}
+.prop-block.p-asian .prop-label{color:var(--blue)}
+.prop-block.p-session .prop-label{color:var(--bull)}
+.prop-block.p-plan .prop-label{color:var(--gold)}
+.prop-block.p-pred .prop-label{color:var(--bull)}
+/* section dividers in chain */
+.chain-sec-header{font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.14em;padding:10px 12px 4px;display:flex;align-items:center;gap:6px;opacity:.7}
+.chain-sec-header::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border2),transparent)}
+
+/* ── IMAGE ZONES IMPROVED ── */
+.img-zone-wrap{position:relative}
+.img-zone-wrap .img-zone-label{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.img-zone-wrap .img-zone-label span{font-size:8px;color:var(--text3);font-weight:500;text-transform:none;letter-spacing:0}
+.img-zone{min-height:90px;position:relative;transition:border-color var(--t),background var(--t)}
+.img-zone-hint{font-size:10px;color:var(--text3);margin-top:3px}
+.img-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.img-grid-full{margin-top:8px}
+.img-grid-single{margin-top:8px}
+/* Ensure images are NOT compressed display-wise */
+.img-thumb img{width:100%;display:block;cursor:zoom-in;border-radius:var(--r)}
+
+/* ── STATUS BADGES ── */
+.status-passed{display:inline-flex;align-items:center;gap:4px;background:rgba(0,212,164,.1);color:var(--bull);border:1px solid rgba(0,212,164,.25);padding:3px 10px;border-radius:99px;font-size:10px;font-weight:700}
+.status-inprogress{display:inline-flex;align-items:center;gap:4px;background:rgba(245,166,35,.1);color:var(--gold);border:1px solid rgba(245,166,35,.25);padding:3px 10px;border-radius:99px;font-size:10px;font-weight:700}
+.status-blown{display:inline-flex;align-items:center;gap:4px;background:rgba(255,68,102,.1);color:var(--bear);border:1px solid rgba(255,68,102,.25);padding:3px 10px;border-radius:99px;font-size:10px;font-weight:700}
+
+/* ── TRADE WIN/LOSS ROWS ── */
+.tbl tr.trade-win td{background:rgba(0,212,164,.035)!important}
+.tbl tr.trade-win td:first-child{border-left:3px solid var(--bull)}
+.tbl tr.trade-loss td{background:rgba(255,68,102,.035)!important}
+.tbl tr.trade-loss td:first-child{border-left:3px solid var(--bear)}
+.win-pill{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(0,212,164,.12);color:var(--bull);border:1px solid rgba(0,212,164,.2)}
+.loss-pill{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(255,68,102,.12);color:var(--bear);border:1px solid rgba(255,68,102,.2)}
+
+/* ── SUMMARY STRIP ── */
+.sum-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+@media(max-width:768px){.sum-strip{grid-template-columns:repeat(2,1fr)}}
+.sum-tile{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border);border-radius:var(--r2);padding:10px 14px;transition:transform var(--t)}
+.sum-tile:hover{transform:translateY(-1px);border-color:var(--border2)}
+.sum-tile-l{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:4px}
+.sum-tile-v{font-size:18px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1;letter-spacing:-.02em}
+.sum-tile-c{font-size:9px;color:var(--text3);margin-top:3px}
+
+/* ── PREV DAY CHAIN ── */
+.prev-chain-card{background:linear-gradient(135deg,rgba(167,139,250,.06),rgba(91,168,255,.03));border:1px solid rgba(167,139,250,.18);border-radius:var(--r2);padding:12px 16px;margin-bottom:8px}
+.pdc-head{font-size:9px;font-weight:700;color:var(--pur);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.pdc-head span{font-size:11px;color:var(--text2);font-weight:600;text-transform:none;letter-spacing:0;font-family:'JetBrains Mono',monospace}
+.pdc-row{display:flex;align-items:center;gap:8px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px}
+.pdc-row:last-child{border-bottom:none;padding-bottom:0}
+.pdc-key{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;min-width:75px}
+.pdc-val{color:var(--text2);font-family:'JetBrains Mono',monospace;font-size:11px}
+
+/* ── LMR FREE PAGE ── */
+.lmr-page-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+.lmr-page-toolbar{display:flex;gap:4px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.lmr-page-toolbar .btn{font-size:10px;padding:4px 9px}
+.lmr-page-content{min-height:360px;outline:none;font-size:14px;line-height:1.75;color:var(--text);padding:20px 24px}
+.lmr-page-content h1{font-size:22px;font-weight:800;color:var(--gold);margin:14px 0 6px;letter-spacing:-.02em;text-shadow:0 0 20px var(--gold-glow)}
+.lmr-page-content h2{font-size:17px;font-weight:700;color:var(--text);margin:12px 0 5px}
+.lmr-page-content h3{font-size:14px;font-weight:700;color:var(--blue);margin:10px 0 4px}
+.lmr-page-content p,.lmr-page-content div{color:var(--text2);margin:2px 0}
+.lmr-page-content blockquote{border-left:3px solid var(--gold);padding:6px 12px;background:rgba(245,166,35,.05);border-radius:0 var(--r) var(--r) 0;margin:8px 0;color:var(--text2)}
+.lmr-page-content ul,ol{padding-left:18px;color:var(--text2)}
+.lmr-page-save-row{padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg3)}
+
+/* ── ACC SELECTOR IN SIDEBAR ── */
+.acc-quick{margin:4px 8px;padding:8px 10px;background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.15);border-radius:var(--r2);cursor:pointer;transition:border-color var(--t)}
+.acc-quick:hover{border-color:rgba(245,166,35,.35)}
+.acc-quick-label{font-size:7px;color:var(--gold);text-transform:uppercase;letter-spacing:.14em;font-weight:700;margin-bottom:3px}
+.acc-quick-name{font-size:11px;font-weight:700;color:var(--text);font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acc-quick-stats{font-size:9px;color:var(--text3);margin-top:2px;font-family:'JetBrains Mono',monospace}
 </style>
 </head>
 <body>
@@ -465,7 +569,19 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
     <div class="sb-day-l">Current Day</div>
     <div class="sb-day-v" id="dayCount">363</div>
   </div>
-  
+
+  <div class="ny-clock">
+    <div class="ny-clock-label">🕐 New York Time</div>
+    <div class="ny-clock-time" id="nyClockTime">--:--:--</div>
+    <div class="ny-clock-date" id="nyClockDate">--- NY</div>
+  </div>
+
+  <div class="acc-quick" onclick="navTo('accounts')" id="accQuick">
+    <div class="acc-quick-label">Active Account</div>
+    <div class="acc-quick-name" id="accQuickName">No account set</div>
+    <div class="acc-quick-stats" id="accQuickStats">Click to manage accounts</div>
+  </div>
+
   <nav class="sb-nav">
     <div class="sb-sec">Session</div>
     <button class="sb-item active" data-panel="dash" data-key="0"><span class="sb-icon">📊</span> Dashboard<span class="sb-key">0</span></button>
@@ -480,14 +596,16 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
     <button class="sb-item" data-panel="accounts" data-key="A"><span class="sb-icon">💰</span> Accounts<span class="sb-key">A</span></button>
     <button class="sb-item" data-panel="trans" data-key="X"><span class="sb-icon">💳</span> Transactions<span class="sb-key">X</span></button>
     <div class="sb-sec">Knowledge</div>
-    <button class="sb-item" data-panel="notes" data-key="N"><span class="sb-icon">📝</span> Notes<span class="sb-key">N</span></button>
-    <button class="sb-item" data-panel="journal" data-key="J"><span class="sb-icon">📔</span> Journal<span class="sb-key">J</span></button>
+    <button class="sb-item" data-panel="notes" data-key="N"><span class="sb-icon">📔</span> Journal<span class="sb-key">N</span></button>
+    <button class="sb-item" data-panel="journal" data-key="J"><span class="sb-icon">🧠</span> Observations<span class="sb-key">J</span></button>
+    <button class="sb-item" data-panel="terminology"><span class="sb-icon">📖</span> LMR Terminology</button>
+    <button class="sb-item" data-panel="psychology"><span class="sb-icon">🎯</span> LMR Psychology</button>
     <button class="sb-item" data-panel="perf" data-key="P"><span class="sb-icon">📉</span> Performance<span class="sb-key">P</span></button>
     <button class="sb-item" data-panel="settings"><span class="sb-icon">⚙️</span> Settings</button>
   </nav>
   
   <div class="sb-foot">
-    <div class="sb-pnl-l">Active Account</div>
+    <div class="sb-pnl-l">Total P&amp;L</div>
     <div class="sb-pnl-v" id="sbBalance">$0</div>
     <div class="sb-pnl-sub"><span id="sbTrades">0</span>T · <span id="sbWR">0%</span> WR</div>
     <button class="btn btn-sm" style="width:100%;margin-top:6px;font-size:9px" onclick="showHotkeys()">? Hotkeys</button>
@@ -518,7 +636,14 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 <div class="panel active" id="p-dash">
 <div class="panel-inner">
 
-  <!-- ── Prop-firm stat row ── -->
+  <!-- Journal reminder ticker -->
+  <div class="ticker-bar" id="journalTicker" onclick="navTo('notes')">
+    <span class="ticker-icon">📔</span>
+    <span class="ticker-content" id="tickerText">Loading journal reminder…</span>
+    <span class="ticker-badge">JOURNAL</span>
+  </div>
+
+  <!-- Prop-firm performance row -->
   <div class="dash-grid" style="margin-bottom:12px">
     <div class="tile" id="pf-pnl-tile">
       <div class="tile-l">💰 Net P&amp;L</div>
@@ -542,50 +667,60 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
     </div>
   </div>
 
-  <div class="dash-grid">
+  <!-- Context tiles: Day → Monthly → Weekly → Account -->
+  <div class="dash-grid" style="margin-bottom:12px">
     <div class="tile gold">
       <div class="tile-l">📍 Current Day</div>
-      <div class="tile-v" id="t-day">363</div>
+      <div class="tile-v" id="t-day">—</div>
       <div class="tile-sub">Trading day · <span id="t-date">Today</span></div>
-    </div>
-    <div class="tile pos">
-      <div class="tile-l">💼 Active Account</div>
-      <div class="tile-v sm" id="t-acc">No account</div>
-      <div class="tile-sub" id="t-acc-bal">$0 balance</div>
     </div>
     <div class="tile pur">
       <div class="tile-l">📊 Monthly Bias</div>
       <div class="tile-v sm" id="t-monthly">LTS Bullish</div>
-      <div class="tile-sub" id="t-monthly-sub">Q2 Expansion · $28,808</div>
+      <div class="tile-sub" id="t-monthly-sub">Q2 Expansion</div>
     </div>
     <div class="tile blue">
       <div class="tile-l">📋 Weekly Model</div>
       <div class="tile-v sm" id="t-weekly">Not set</div>
       <div class="tile-sub" id="t-weekly-sub">Set on Sunday</div>
     </div>
+    <div class="tile pos" style="cursor:pointer" onclick="navTo('accounts')">
+      <div class="tile-l">💼 Active Account</div>
+      <div class="tile-v sm" id="t-acc">None</div>
+      <div class="tile-sub" id="t-acc-bal">— click to set</div>
+    </div>
   </div>
 
   <div class="dash-grid-2">
     <div>
+      <!-- Previous Day Chain -->
       <div class="card">
-        <div class="card-head"><span class="card-tag t-d">Today's Chain</span><div class="card-title">Pre-Session Cascade</div><div class="card-meta" id="dash-chain-status">Not started</div></div>
-        <div class="card-body">
-          <div class="chain-red" id="dash-chain"></div>
+        <div class="card-head">
+          <span class="card-tag t-d">Previous Day</span>
+          <div class="card-title">Yesterday's Chain</div>
+          <div class="card-meta" id="dash-chain-status">—</div>
         </div>
+        <div class="card-body" id="dash-chain"></div>
       </div>
+
+      <!-- Last 5 trades — win=green / loss=red -->
       <div class="card">
-        <div class="card-head"><span class="card-tag t-r">Recent Trades</span><div class="card-title">Last 5 trades</div></div>
+        <div class="card-head">
+          <span class="card-tag t-r">Recent Trades</span>
+          <div class="card-title">Last 5 trades</div>
+        </div>
         <div class="card-body">
           <div class="tw"><table class="tbl">
-            <thead><tr><th>Day</th><th>Date</th><th>Model</th><th>Emotion</th><th>P&amp;L</th><th>R:R</th></tr></thead>
-            <tbody id="dash-trades"><tr><td colspan="6" class="empty">No trades. Press T to log one.</td></tr></tbody>
+            <thead><tr><th>Day</th><th>Date</th><th>Model</th><th>Emotion</th><th>Result</th><th>P&amp;L</th><th>R:R</th></tr></thead>
+            <tbody id="dash-trades"><tr><td colspan="7" class="empty">No trades. Press T to log one.</td></tr></tbody>
           </table></div>
         </div>
       </div>
     </div>
     <div>
+      <!-- Performance summary -->
       <div class="card">
-        <div class="card-head"><span class="card-tag t-g">Performance</span><div class="card-title">P&amp;L stats</div></div>
+        <div class="card-head"><span class="card-tag t-g">Performance</span><div class="card-title">Summary</div></div>
         <div class="card-body">
           <div class="kv"><span class="kv-k">Total trades</span><span class="kv-v" id="d-total">0</span></div>
           <div class="kv"><span class="kv-k">Win rate</span><span class="kv-v txt-pos" id="d-wr">0%</span></div>
@@ -593,8 +728,10 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
           <div class="kv"><span class="kv-k">Best trade</span><span class="kv-v txt-pos" id="d-best">$0</span></div>
           <div class="kv"><span class="kv-k">Worst trade</span><span class="kv-v txt-neg" id="d-worst">$0</span></div>
           <div class="kv"><span class="kv-k">Avg R:R</span><span class="kv-v" id="d-rr">0</span></div>
+          <div class="kv"><span class="kv-k">Profit Factor</span><span class="kv-v" id="d-pf">0</span></div>
         </div>
       </div>
+      <!-- Today's News from Calendar -->
       <div class="card">
         <div class="card-head"><span class="card-tag t-m">Today's News</span><div class="card-title">USA 2★+ Events</div></div>
         <div class="card-body" id="dash-news"><div class="empty">No high-impact events today</div></div>
@@ -603,8 +740,8 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
   </div>
 
   <div class="chart-grid">
-    <div class="chart-card"><div class="chart-title">Equity curve</div><div class="chart-canvas"><canvas id="dash-equity"></canvas></div></div>
-    <div class="chart-card"><div class="chart-title">P&amp;L by model</div><div class="chart-canvas"><canvas id="dash-model"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Equity Curve</div><div class="chart-canvas"><canvas id="dash-equity"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">P&amp;L by Model</div><div class="chart-canvas"><canvas id="dash-model"></canvas></div></div>
   </div>
 
 </div>
@@ -617,89 +754,242 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
   <div class="card">
     <div class="card-head">
       <span class="card-tag t-d">Daily Chain</span>
-      <div class="card-title" id="todayDate">Today · Day 363</div>
-      <div class="card-meta" id="todayStatus">Not started</div>
-    </div>
-    <div class="card-body">
-      <div class="chain-red">
-        <div class="chain-label">⚡ The Chain — fill before TradingView</div>
-        <div class="chain-row"><span class="chain-tf">Monthly →</span><span class="mono" style="color:var(--text2);font-size:11px" id="ch-monthly-d">LTS Bullish · Trending · Q2 · Draw $28,808.75</span></div>
-        <div class="chain-row"><span class="chain-tf">Weekly →</span><input id="ch-weekly" placeholder="MMBM/MMSM · NQ ___ ES ___ YM ___ · Draw $______"></div>
-        <div class="chain-row"><span class="chain-tf">Daily Bias →</span>
-          <div class="chips">
-            <button class="chip bull" data-grp="dbias" data-val="Bullish">Bullish</button>
-            <button class="chip bear" data-grp="dbias" data-val="Bearish">Bearish</button>
-            <button class="chip" data-grp="dbias" data-val="Neutral">Neutral</button>
-          </div>
-        </div>
-        <div class="chain-row"><span class="chain-tf">HTF POI →</span><input id="ch-poi" placeholder="$______"></div>
-        <div class="chain-row"><span class="chain-tf">Week Draws →</span><input id="ch-draws" placeholder="$______"></div>
-        <div class="chain-row"><span class="chain-tf">London →</span>
-          <div class="chips">
-            <button class="chip pur" data-grp="london" data-val="Accumulation">Accumulation</button>
-            <button class="chip bear" data-grp="london" data-val="Manipulation">Manipulation</button>
-            <button class="chip" data-grp="london" data-val="Disitribution">Distribution</button>
-          </div>
-        </div>
-        <div class="chain-row"><span class="chain-tf">New York →</span>
-          <div class="chips">
-            <button class="chip bear" data-grp="ny" data-val="Rebalance / Reversal">Rebalance / Reversal</button>
-            <button class="chip" data-grp="ny" data-val="Manipulation/ Distibution">Manip / Distrib</button>
-            <button class="chip bull" data-grp="ny" data-val="Retracement / Continuations">Retracement / Continuation</button>
-          </div>
-        </div>
-        <div class="chain-row"><span class="chain-tf">Asian Range →</span>
-          <div class="chips" id="asianRange"></div>
-        </div>
-        <div class="chain-row"><span class="chain-tf">Price refs →</span>
-          <div class="chips" id="priceRefs"></div>
-        </div>
-        <div class="chain-row"><span class="chain-tf">Session →</span>
-          <div class="chips">
-            <button class="chip bull" data-grp="session" data-val="AM">NY AM</button>
-            <button class="chip pur" data-grp="session" data-val="PM">NY PM</button>
-          </div>
-        </div>
-        <div class="chain-row"><span class="chain-tf">RTH Delivery →</span><select id="ch-rth"><option value="">Select RTH Profile...</option></select></div>
-        <div class="chain-row"><span class="chain-tf">Plan →</span>
-          <div class="chips">
-            <button class="chip bull" data-grp="plan" data-val="Followed">Followed</button>
-            <button class="chip bear" data-grp="plan" data-val="Unfollowed">Unfollowed</button>
-          </div>
-        </div>
-        <div class="chain-row"><span class="chain-tf">Prediction →</span>
-          <div class="chips">
-            <button class="chip bull" data-grp="pred" data-val="Correct">Correct</button>
-            <button class="chip bear" data-grp="pred" data-val="Incorrect">Incorrect</button>
-          </div>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-        <button class="btn btn-primary" onclick="saveDaily()">💾 Save</button>
-        <button class="btn" onclick="loadDaily()">↻ Reload</button>
+      <div class="card-title" id="todayDate">Today · Day —</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+        <div class="card-meta" id="todayStatus">Not started</div>
+        <button class="btn btn-primary btn-sm" onclick="saveDaily()">💾 Save</button>
+        <button class="btn btn-sm" onclick="loadDaily()">↻</button>
         <button class="btn btn-bear btn-sm" onclick="clearDaily()">Clear</button>
       </div>
     </div>
-  </div>
+    <div class="card-body" style="padding:0">
 
+      <!-- ⚡ THE CHAIN HEADER -->
+      <div class="chain-sec-header" style="margin:0;padding:12px 16px 6px">⚡ THE CHAIN — Fill Before Opening TradingView</div>
+
+      <div class="chain-props">
+
+        <!-- HTF CONTEXT from Monthly + Weekly (auto-populated) -->
+        <div class="chain-sec-header" style="padding:8px 16px 4px;font-size:8px;opacity:.5">▼ HTF CONTEXT — AUTO FROM MONTHLY &amp; WEEKLY</div>
+
+        <div class="prop-block p-monthly" style="padding:8px 16px">
+          <div class="prop-left">
+            <div class="prop-label">Monthly →</div>
+            <div class="prop-type">Read-only · From Monthly</div>
+          </div>
+          <div class="prop-right">
+            <div class="prop-display" id="ch-monthly-d">LTS Bullish · Trending · Q2</div>
+          </div>
+        </div>
+
+        <div class="prop-block p-weekly" style="padding:8px 16px">
+          <div class="prop-left">
+            <div class="prop-label">Weekly →</div>
+            <div class="prop-type">Text · MMBM/MMSM</div>
+          </div>
+          <div class="prop-right">
+            <input id="ch-weekly" placeholder="MMBM/MMSM · NQ ___ ES ___ YM ___ · Draw $______" style="font-size:12px">
+          </div>
+        </div>
+
+        <!-- DAILY CHAIN PROPERTIES -->
+        <div class="chain-sec-header" style="padding:8px 16px 4px;font-size:8px;opacity:.5">▼ DAILY CHAIN — FILL BEFORE 9:30</div>
+
+        <div class="prop-block p-bias" style="padding:8px 16px">
+          <div class="prop-left">
+            <div class="prop-label">Daily Bias →</div>
+            <div class="prop-type">Select · Single</div>
+          </div>
+          <div class="prop-right">
+            <div class="chips" style="padding:2px 0">
+              <button class="chip bull" data-grp="dbias" data-val="Bullish">Bullish</button>
+              <button class="chip bear" data-grp="dbias" data-val="Bearish">Bearish</button>
+              <button class="chip" data-grp="dbias" data-val="Neutral">Neutral</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="prop-block p-htf" style="padding:8px 16px">
+          <div class="prop-left">
+            <div class="prop-label">HTF POI →</div>
+            <div class="prop-type">Text · Price level</div>
+          </div>
+          <div class="prop-right">
+            <input id="ch-poi" placeholder="$______" style="font-size:13px;font-family:'JetBrains Mono',monospace">
+          </div>
+        </div>
+
+        <div class="prop-block p-draws" style="padding:8px 16px">
+          <div class="prop-left">
+            <div class="prop-label">Week Draws →</div>
+            <div class="prop-type">Text · Price targets</div>
+          </div>
+          <div class="prop-right">
+            <input id="ch-draws" placeholder="$______" style="font-size:13px;font-family:'JetBrains Mono',monospace">
+          </div>
+        </div>
+
+        <div class="prop-block p-london" style="padding:8px 16px">
+          <div class="prop-left">
+            <div class="prop-label">London →</div>
+            <div class="prop-type">Select · Session type</div>
+          </div>
+          <div class="prop-right">
+            <div class="chips" style="padding:2px 0">
+              <button class="chip pur" data-grp="london" data-val="Accumulation">Accumulation</button>
+              <button class="chip bear" data-grp="london" data-val="Manipulation">Manipulation</button>
+              <button class="chip" data-grp="london" data-val="Distribution">Distribution</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="prop-block p-ny" style="padding:8px 16px">
+          <div class="prop-left">
+            <div class="prop-label">New York →</div>
+            <div class="prop-type">Select · Session profile</div>
+          </div>
+          <div class="prop-right">
+            <div class="chips" style="padding:2px 0">
+              <button class="chip bear" data-grp="ny" data-val="Rebalance / Reversal">Rebalance / Reversal</button>
+              <button class="chip" data-grp="ny" data-val="Manipulation/ Distibution">Manip / Distrib</button>
+              <button class="chip bull" data-grp="ny" data-val="Retracement / Continuations">Retracement / Continuation</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="prop-block p-asian" style="padding:8px 16px">
+          <div class="prop-left">
+            <div class="prop-label">Asian Range →</div>
+            <div class="prop-type">Multi-select</div>
+          </div>
+          <div class="prop-right">
+            <div class="chips" id="asianRange" style="padding:2px 0"></div>
+          </div>
+        </div>
+
+        <div class="prop-block" style="padding:8px 16px">
+          <div class="prop-left">
+            <div class="prop-label" style="color:var(--text2)">Price Refs →</div>
+            <div class="prop-type">Multi-select · PD Arrays</div>
+          </div>
+          <div class="prop-right">
+            <div class="chips" id="priceRefs" style="padding:2px 0"></div>
+          </div>
+        </div>
+
+        <div class="prop-block p-session" style="padding:8px 16px">
+          <div class="prop-left">
+            <div class="prop-label">Session →</div>
+            <div class="prop-type">Select · AM or PM</div>
+          </div>
+          <div class="prop-right">
+            <div class="chips" style="padding:2px 0">
+              <button class="chip bull" data-grp="session" data-val="AM">NY AM</button>
+              <button class="chip pur" data-grp="session" data-val="PM">NY PM</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="prop-block" style="padding:8px 16px">
+          <div class="prop-left">
+            <div class="prop-label" style="color:var(--text2)">RTH Delivery →</div>
+            <div class="prop-type">Select · Profile</div>
+          </div>
+          <div class="prop-right">
+            <select id="ch-rth" style="font-size:12px"><option value="">Select RTH Profile…</option></select>
+          </div>
+        </div>
+
+        <!-- RESULT PROPERTIES -->
+        <div class="chain-sec-header" style="padding:8px 16px 4px;font-size:8px;opacity:.5">▼ END OF DAY REVIEW</div>
+
+        <div class="prop-block p-plan" style="padding:8px 16px">
+          <div class="prop-left">
+            <div class="prop-label">Plan →</div>
+            <div class="prop-type">Select · Did you follow it?</div>
+          </div>
+          <div class="prop-right">
+            <div class="chips" style="padding:2px 0">
+              <button class="chip bull" data-grp="plan" data-val="Followed">✓ Followed</button>
+              <button class="chip bear" data-grp="plan" data-val="Unfollowed">✗ Unfollowed</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="prop-block p-pred" style="padding:8px 16px">
+          <div class="prop-left">
+            <div class="prop-label">Prediction →</div>
+            <div class="prop-type">Select · Was it correct?</div>
+          </div>
+          <div class="prop-right">
+            <div class="chips" style="padding:2px 0">
+              <button class="chip bull" data-grp="pred" data-val="Correct">✓ Correct</button>
+              <button class="chip bear" data-grp="pred" data-val="Incorrect">✗ Incorrect</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="prop-block" style="padding:8px 16px">
+          <div class="prop-left">
+            <div class="prop-label" style="color:var(--bull)">Status →</div>
+            <div class="prop-type">Select · Day result</div>
+          </div>
+          <div class="prop-right">
+            <div class="chips" style="padding:2px 0">
+              <button class="chip bull" data-grp="daystatus" data-val="Passed">✅ Passed</button>
+              <button class="chip" data-grp="daystatus" data-val="In Process">⏳ In Process</button>
+              <button class="chip bear" data-grp="daystatus" data-val="Blown">💥 Blown</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /chain-props -->
+    </div>
+  </div><!-- /card -->
+
+  <!-- Today's Events -->
   <div class="card">
     <div class="card-head"><span class="card-tag t-m">Today's Events</span><div class="card-title">USA Economic Calendar</div></div>
     <div class="card-body" id="today-news"></div>
   </div>
 
+  <!-- TODAY'S CHARTS — paste-first image zones -->
   <div class="card">
-    <div class="card-head"><span class="card-tag t-g">Today's Charts</span><div class="card-title">TradingView Screenshots</div></div>
+    <div class="card-head"><span class="card-tag t-g">Today's Charts</span><div class="card-title">Screenshots — hover &amp; paste, or click to upload</div></div>
     <div class="card-body">
-      <div class="cols2">
-        <div><div class="col-title">15m Chart</div><div class="img-zone" data-imgkey="today-15m" onclick="pickImage(this)"><div class="img-zone-text">+ Add 15m</div></div></div>
-        <div><div class="col-title">1H Chart</div><div class="img-zone" data-imgkey="today-1h" onclick="pickImage(this)"><div class="img-zone-text">+ Add 1H</div></div></div>
+
+      <div class="img-grid-2">
+        <div class="img-zone-wrap">
+          <div class="img-zone-label">Daily / Weekly Chart <span>paste or click</span></div>
+          <div class="img-zone" data-imgkey="today-daily" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or + upload</div></div>
+        </div>
+        <div class="img-zone-wrap">
+          <div class="img-zone-label">4H / 1H Chart <span>paste or click</span></div>
+          <div class="img-zone" data-imgkey="today-4h1h" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or + upload</div></div>
+        </div>
       </div>
-      <div class="cols2" style="margin-top:8px">
-        <div><div class="col-title">9:30 Purge</div><div class="img-zone" data-imgkey="today-purge" onclick="pickImage(this)"><div class="img-zone-text">+ Add purge</div></div></div>
-        <div><div class="col-title">Entry / Result</div><div class="img-zone" data-imgkey="today-result" onclick="pickImage(this)"><div class="img-zone-text">+ Add result</div></div></div>
+
+      <div class="img-grid-2" style="margin-top:10px">
+        <div class="img-zone-wrap">
+          <div class="img-zone-label">15min Chart <span>paste or click</span></div>
+          <div class="img-zone" data-imgkey="today-15m" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or + upload</div></div>
+        </div>
+        <div class="img-zone-wrap">
+          <div class="img-zone-label">Inter-Market <span>NQ/ES · Yield · DXY</span></div>
+          <div class="img-zone" data-imgkey="today-im" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or + upload</div></div>
+        </div>
       </div>
+
+      <div class="img-grid-full" style="margin-top:10px">
+        <div class="img-zone-wrap">
+          <div class="img-zone-label">Today's Summary <span>end-of-day screenshot</span></div>
+          <div class="img-zone" data-imgkey="today-summary" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or + upload summary</div></div>
+        </div>
+      </div>
+
     </div>
   </div>
+
 </div>
 </div>
 
@@ -949,7 +1239,7 @@ Midnight Open $______"></textarea>
     </div>
     <div class="card-body">
       <div class="tw"><table class="tbl">
-        <thead><tr><th>Date</th><th>Day</th><th>Market</th><th>Pos</th><th>Model</th><th>Session</th><th>Time</th><th>MMM</th><th>Emotions</th><th>HTF</th><th>Risk</th><th>P&amp;L</th><th>R:R</th><th></th></tr></thead>
+        <thead><tr><th>Date</th><th>Day</th><th>Market</th><th>Pos</th><th>Model</th><th>Session</th><th>Time</th><th>MMM</th><th>Emotions</th><th>HTF</th><th>Risk</th><th>Result</th><th>P&amp;L</th><th>R:R</th><th></th></tr></thead>
         <tbody id="tradeTable"><tr><td colspan="13" class="empty">No trades. Press T to log one.</td></tr></tbody>
       </table></div>
     </div>
@@ -960,20 +1250,28 @@ Midnight Open $______"></textarea>
 <!-- ACCOUNTS -->
 <div class="panel" id="p-accounts">
 <div class="panel-inner">
+  <!-- Summary strip -->
+  <div class="sum-strip" id="accSummary">
+    <div class="sum-tile gold"><div class="sum-tile-l">Total Accounts</div><div class="sum-tile-v txt-gold" id="acc-count">0</div><div class="sum-tile-c">Funded + Live + Eval</div></div>
+    <div class="sum-tile pos"><div class="sum-tile-l">Total Deposited</div><div class="sum-tile-v txt-pos" id="acc-dep">$0</div><div class="sum-tile-c">Initial deposits</div></div>
+    <div class="sum-tile"><div class="sum-tile-l">Net P&amp;L</div><div class="sum-tile-v" id="acc-pnl">$0</div><div class="sum-tile-c">Across all accounts</div></div>
+    <div class="sum-tile"><div class="sum-tile-l">Active Balance</div><div class="sum-tile-v" id="acc-bal">$0</div><div class="sum-tile-c">Active account</div></div>
+  </div>
+
   <div class="card">
     <div class="card-head"><span class="card-tag t-g">Accounts</span><div class="card-title">Funded · Live · Eval</div>
       <button class="btn btn-primary btn-sm" onclick="openAccountModal()">+ Account <span class="sb-key" style="background:rgba(0,0,0,.2);color:var(--bg)">A</span></button>
     </div>
     <div class="card-body">
       <div class="tabs">
-        <button class="tab active" onclick="filterAcc(&#39;All&#39;)">All</button>
-        <button class="tab" onclick="filterAcc(&#39;Funded&#39;)">Funded</button>
-        <button class="tab" onclick="filterAcc(&#39;Live&#39;)">Live</button>
-        <button class="tab" onclick="filterAcc(&#39;Eval&#39;)">Eval</button>
+        <button class="tab active" onclick="filterAcc('All')">All</button>
+        <button class="tab" onclick="filterAcc('Funded')">Funded</button>
+        <button class="tab" onclick="filterAcc('Live')">Live</button>
+        <button class="tab" onclick="filterAcc('Eval')">Eval</button>
       </div>
       <div class="tw"><table class="tbl">
-        <thead><tr><th>Account</th><th>Type</th><th>Status</th><th>Deposit</th><th>Net PnL</th><th>Balance</th><th>Win Rate</th><th>W:B:L</th><th>Total</th><th>Active</th><th></th></tr></thead>
-        <tbody id="accTable"><tr><td colspan="11" class="empty">No accounts. Press A to add.</td></tr></tbody>
+        <thead><tr><th>Account</th><th>Type</th><th>Status</th><th>Created</th><th>Deposit</th><th>Net PnL</th><th>Balance</th><th>Win Rate</th><th>W:B:L</th><th>Total</th><th>Active</th><th></th></tr></thead>
+        <tbody id="accTable"><tr><td colspan="12" class="empty">No accounts. Press A to add.</td></tr></tbody>
       </table></div>
     </div>
   </div>
@@ -983,8 +1281,16 @@ Midnight Open $______"></textarea>
 <!-- TRANSACTIONS -->
 <div class="panel" id="p-trans">
 <div class="panel-inner">
+  <!-- Summary strip -->
+  <div class="sum-strip" id="transSummary">
+    <div class="sum-tile pos"><div class="sum-tile-l">💰 Deposits (ED)</div><div class="sum-tile-v txt-pos" id="tx-dep">$0</div><div class="sum-tile-c" id="tx-dep-c">0 transactions</div></div>
+    <div class="sum-tile neg" style="border-top:2px solid var(--bear)"><div class="sum-tile-l">📤 Withdrawals</div><div class="sum-tile-v txt-neg" id="tx-wdl">$0</div><div class="sum-tile-c" id="tx-wdl-c">0 transactions</div></div>
+    <div class="sum-tile" style="border-top:2px solid var(--bull)"><div class="sum-tile-l">🏆 Payouts</div><div class="sum-tile-v txt-pos" id="tx-pay">$0</div><div class="sum-tile-c" id="tx-pay-c">0 payouts</div></div>
+    <div class="sum-tile" style="border-top:2px solid var(--warn)"><div class="sum-tile-l">📑 Fees</div><div class="sum-tile-v" id="tx-fee" style="color:var(--warn)">$0</div><div class="sum-tile-c" id="tx-fee-c">0 fees</div></div>
+  </div>
+
   <div class="card">
-    <div class="card-head"><span class="card-tag t-g">Transactions</span><div class="card-title">Deposits &amp; Withdrawals</div>
+    <div class="card-head"><span class="card-tag t-g">Transactions</span><div class="card-title">Deposits · Withdrawals · Payouts · Fees</div>
       <button class="btn btn-primary btn-sm" onclick="openTransModal()">+ Transaction <span class="sb-key" style="background:rgba(0,0,0,.2);color:var(--bg)">X</span></button>
     </div>
     <div class="card-body">
@@ -997,34 +1303,141 @@ Midnight Open $______"></textarea>
 </div>
 </div>
 
-<!-- NOTES -->
+<!-- NOTES (renamed to JOURNAL) -->
 <div class="panel" id="p-notes">
 <div class="panel-inner">
   <div class="card">
-    <div class="card-head"><span class="card-tag t-w">Notes</span><div class="card-title">Quick notes linked to daily entries</div>
-      <button class="btn btn-primary btn-sm" onclick="openNoteModal()">+ Note <span class="sb-key" style="background:rgba(0,0,0,.2);color:var(--bg)">N</span></button>
+    <div class="card-head">
+      <span class="card-tag t-w">📔 New Journal Entry</span>
+      <div class="card-title">Journal — Trade Psychology &amp; Notes</div>
+      <button class="btn btn-primary btn-sm" onclick="openNoteModal()">+ Entry <span class="sb-key" style="background:rgba(0,0,0,.2);color:var(--bg)">N</span></button>
     </div>
+    <div class="card-body">
+      <div class="form-row"><label class="form-label">Type</label>
+        <select id="nm-jtype">
+          <option value="lesson">💡 Lesson</option>
+          <option value="bull">✅ Win / Plan Followed</option>
+          <option value="bear">❌ Loss / Mistake</option>
+          <option value="neutral">📝 Note</option>
+        </select>
+      </div>
+      <div class="form-row"><label class="form-label">Title</label><input id="nm-title" placeholder="Quick summary…"></div>
+      <div class="form-row"><label class="form-label">Linked Day</label><input id="nm-date" type="date"></div>
+      <div class="form-row"><label class="form-label">Content</label><textarea id="nm-text" rows="5" placeholder="Write your journal entry…"></textarea></div>
+      <div style="margin-top:8px">
+        <div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.09em;margin-bottom:6px">Attach Image</div>
+        <div class="img-zone" id="nm-img-zone" data-imgkey="note-img-placeholder" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or click to attach image</div></div>
+      </div>
+      <div style="margin-top:12px"><button class="btn btn-primary" onclick="saveNote()">+ Save Entry</button></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><span class="card-tag t-m">History</span><div class="card-title">All journal entries — newest first</div></div>
     <div class="card-body" id="notesList"></div>
   </div>
 </div>
 </div>
 
-<!-- JOURNAL -->
+<!-- OBSERVATIONS (old Journal) -->
 <div class="panel" id="p-journal">
 <div class="panel-inner">
   <div class="card">
-    <div class="card-head"><span class="card-tag t-w">New Journal Entry</span><div class="card-title">Lessons &amp; observations</div></div>
+    <div class="card-head"><span class="card-tag t-w">🧠 New Observation</span><div class="card-title">Lessons &amp; Trade Observations</div></div>
     <div class="card-body">
       <div class="form-row"><label class="form-label">Type</label>
-        <select id="j-type"><option value="lesson">Lesson</option><option value="bull">Win / Followed Plan</option><option value="bear">Loss / Mistake</option><option value="neutral">Note</option></select>
+        <select id="j-type"><option value="lesson">💡 Lesson</option><option value="bull">✅ Win / Followed Plan</option><option value="bear">❌ Loss / Mistake</option><option value="neutral">📝 Note</option></select>
       </div>
       <div class="form-row"><label class="form-label">Date</label><input type="date" id="j-date"></div>
-      <div class="form-row"><label class="form-label">Entry</label><textarea id="j-text" rows="4"></textarea></div>
-      <div style="margin-top:12px"><button class="btn btn-primary" onclick="saveJournal()">+ Add</button></div>
+      <div class="form-row"><label class="form-label">Entry</label><textarea id="j-text" rows="5" placeholder="Write your lesson or observation…"></textarea></div>
+      <div style="margin-top:12px"><button class="btn btn-primary" onclick="saveJournal()">+ Add Observation</button></div>
     </div>
   </div>
-  <div class="card"><div class="card-head"><span class="card-tag t-m">History</span><div class="card-title">All journal entries</div></div>
+  <div class="card">
+    <div class="card-head"><span class="card-tag t-m">History</span><div class="card-title">All observations</div></div>
     <div class="card-body"><div id="journalList"></div></div>
+  </div>
+</div>
+</div>
+
+<!-- LMR TERMINOLOGY -->
+<div class="panel" id="p-terminology">
+<div class="panel-inner">
+  <div class="card">
+    <div class="card-head">
+      <span class="card-tag t-m">📖 LMR Terminology</span>
+      <div class="card-title">Free-form knowledge base — write anything</div>
+    </div>
+    <div class="card-body" style="padding:0">
+      <div class="lmr-page-wrap">
+        <div class="lmr-page-toolbar">
+          <button class="btn btn-sm" onclick="lmrFmt('h1')">H1</button>
+          <button class="btn btn-sm" onclick="lmrFmt('h2')">H2</button>
+          <button class="btn btn-sm" onclick="lmrFmt('h3')">H3</button>
+          <button class="btn btn-sm" onclick="lmrFmt('p')">¶ Para</button>
+          <button class="btn btn-sm" onclick="lmrFmt('b')"><b>B</b></button>
+          <button class="btn btn-sm" onclick="lmrFmt('i')"><i>I</i></button>
+          <button class="btn btn-sm" onclick="lmrFmt('ul')">• List</button>
+          <button class="btn btn-sm" onclick="lmrFmt('hr')">— Divider</button>
+          <button class="btn btn-sm" onclick="lmrFmt('quote')">❝ Quote</button>
+          <button class="btn btn-sm" onclick="lmrInsertImg('terminology')" style="color:var(--gold)">🖼 Image</button>
+        </div>
+        <div class="lmr-page-content" id="terminology-content" contenteditable="true" spellcheck="false" data-page="terminology"
+          placeholder="Start writing LMR terminology, concepts, PD arrays, key levels, model explanations…">
+        </div>
+        <div class="lmr-save-row" style="padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg3)">
+          <span style="font-size:10px;color:var(--text3)" id="terminology-saved">Not saved</span>
+          <button class="btn btn-primary btn-sm" onclick="saveLmrPage('terminology')">💾 Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Image zone for paste-in -->
+  <div class="card" id="terminology-img-card" style="display:none">
+    <div class="card-head"><span class="card-tag t-g">Image</span><div class="card-title">Paste or upload an image for the page</div></div>
+    <div class="card-body">
+      <div class="img-zone" id="terminology-img-zone" data-imgkey="terminology-inline" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or upload image</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- LMR PSYCHOLOGY -->
+<div class="panel" id="p-psychology">
+<div class="panel-inner">
+  <div class="card">
+    <div class="card-head">
+      <span class="card-tag t-r">🎯 LMR Psychology</span>
+      <div class="card-title">Mindset · Discipline · Trade Psychology</div>
+    </div>
+    <div class="card-body" style="padding:0">
+      <div class="lmr-page-wrap">
+        <div class="lmr-page-toolbar">
+          <button class="btn btn-sm" onclick="lmrFmtPsych('h1')">H1</button>
+          <button class="btn btn-sm" onclick="lmrFmtPsych('h2')">H2</button>
+          <button class="btn btn-sm" onclick="lmrFmtPsych('h3')">H3</button>
+          <button class="btn btn-sm" onclick="lmrFmtPsych('p')">¶ Para</button>
+          <button class="btn btn-sm" onclick="lmrFmtPsych('b')"><b>B</b></button>
+          <button class="btn btn-sm" onclick="lmrFmtPsych('i')"><i>I</i></button>
+          <button class="btn btn-sm" onclick="lmrFmtPsych('ul')">• List</button>
+          <button class="btn btn-sm" onclick="lmrFmtPsych('hr')">— Divider</button>
+          <button class="btn btn-sm" onclick="lmrFmtPsych('quote')">❝ Quote</button>
+          <button class="btn btn-sm" onclick="lmrInsertImg('psychology')" style="color:var(--gold)">🖼 Image</button>
+        </div>
+        <div class="lmr-page-content" id="psychology-content" contenteditable="true" spellcheck="false" data-page="psychology"
+          placeholder="Mindset rules, trading psychology notes, emotional triggers, discipline checklist…">
+        </div>
+        <div class="lmr-save-row" style="padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg3)">
+          <span style="font-size:10px;color:var(--text3)" id="psychology-saved">Not saved</span>
+          <button class="btn btn-primary btn-sm" onclick="saveLmrPage('psychology')">💾 Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card" id="psychology-img-card" style="display:none">
+    <div class="card-head"><span class="card-tag t-r">Image</span><div class="card-title">Paste or upload an image</div></div>
+    <div class="card-body">
+      <div class="img-zone" id="psychology-img-zone" data-imgkey="psychology-inline" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or upload image</div></div>
+    </div>
   </div>
 </div>
 </div>
@@ -1084,8 +1497,24 @@ Midnight Open $______"></textarea>
         <div id="syncImgResult" style="font-size:11px;margin-top:6px"></div>
       </div>
       <hr class="div">
+      <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:10px;text-transform:uppercase;letter-spacing:.08em">⚙️ App Settings</div>
       <div class="form-row"><label class="form-label">Starting Day Count</label><input type="number" id="set-day" placeholder="362"></div>
       <div class="form-row"><label class="form-label">Day Count Start Date</label><input type="date" id="set-day-date"></div>
+      <div class="form-row"><label class="form-label">🕐 Timezone</label>
+        <select id="set-tz">
+          <option value="America/New_York" selected>New York (ET) — Default</option>
+          <option value="America/Chicago">Chicago (CT)</option>
+          <option value="America/Los_Angeles">Los Angeles (PT)</option>
+          <option value="Europe/London">London (GMT/BST)</option>
+          <option value="UTC">UTC</option>
+        </select>
+      </div>
+      <div class="form-row"><label class="form-label">📔 Journal Ticker</label>
+        <select id="set-ticker">
+          <option value="1" selected>Enabled — shows on dashboard</option>
+          <option value="0">Disabled</option>
+        </select>
+      </div>
       <button class="btn btn-sm btn-primary" onclick="saveSettings()" style="margin-top:6px">💾 Save Settings</button>
       <hr class="div">
       <div id="storageStats"></div>
@@ -1186,18 +1615,23 @@ Midnight Open $______"></textarea>
 <!-- ACCOUNT MODAL -->
 <div class="modal-bg" id="accModal">
   <div class="modal">
-    <div class="modal-head"><div class="modal-title">+ Account</div><button class="close" onclick="closeModal(&#39;accModal&#39;)">×</button></div>
+    <div class="modal-head"><div class="modal-title">+ Account</div><button class="close" onclick="closeModal('accModal')">×</button></div>
     <div class="modal-body">
       <div class="form-row"><label class="form-label">Account Name</label><input id="am-name" placeholder="e.g. Apex 50k"></div>
       <div class="cols2">
         <div><label class="form-label">Type</label><select id="am-type"><option>Funded</option><option>Live</option><option>Eval</option></select></div>
-        <div><label class="form-label">Status</label><select id="am-status"><option>Not started</option><option>In progress</option><option>Done</option></select></div>
+        <div><label class="form-label">Status</label><select id="am-status"><option>Passed</option><option>In Progress</option><option>Blown</option></select></div>
       </div>
-      <div class="form-row" style="margin-top:8px"><label class="form-label">Date</label><input type="date" id="am-date"></div>
+      <div class="form-row" style="margin-top:8px"><label class="form-label">Date Created</label><input type="date" id="am-date"></div>
       <div class="form-row"><label class="form-label">Initial Deposit</label><input type="number" id="am-deposit" step="0.01"></div>
+      <hr class="div">
+      <div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.09em;margin-bottom:6px">Account Screenshot</div>
+      <div class="img-zone-wrap">
+        <div class="img-zone" id="am-img-zone" data-imgkey="acc-img-placeholder" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or click to upload account screenshot</div></div>
+      </div>
     </div>
     <div class="modal-actions">
-      <button class="btn" onclick="closeModal(&#39;accModal&#39;)">Cancel</button>
+      <button class="btn" onclick="closeModal('accModal')">Cancel</button>
       <button class="btn btn-primary" onclick="saveAccount()">Save</button>
     </div>
   </div>
@@ -1206,16 +1640,21 @@ Midnight Open $______"></textarea>
 <!-- TRANSACTION MODAL -->
 <div class="modal-bg" id="transModal">
   <div class="modal">
-    <div class="modal-head"><div class="modal-title">+ Transaction</div><button class="close" onclick="closeModal(&#39;transModal&#39;)">×</button></div>
+    <div class="modal-head"><div class="modal-title">+ Transaction</div><button class="close" onclick="closeModal('transModal')">×</button></div>
     <div class="modal-body">
       <div class="form-row"><label class="form-label">Date</label><input type="date" id="xm-date"></div>
       <div class="form-row"><label class="form-label">Type</label><select id="xm-type"><option>Deposit</option><option>Withdrawal</option><option>Payout</option><option>Fee</option></select></div>
       <div class="form-row"><label class="form-label">Account</label><select id="xm-acc"></select></div>
       <div class="form-row"><label class="form-label">Amount</label><input type="number" id="xm-amt" step="0.01"></div>
       <div class="form-row"><label class="form-label">Note</label><input id="xm-note"></div>
+      <hr class="div">
+      <div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.09em;margin-bottom:6px">Receipt / Screenshot</div>
+      <div class="img-zone-wrap">
+        <div class="img-zone" id="xm-img-zone" data-imgkey="tx-img-placeholder" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or click to upload receipt</div></div>
+      </div>
     </div>
     <div class="modal-actions">
-      <button class="btn" onclick="closeModal(&#39;transModal&#39;)">Cancel</button>
+      <button class="btn" onclick="closeModal('transModal')">Cancel</button>
       <button class="btn btn-primary" onclick="saveTrans()">Save</button>
     </div>
   </div>
@@ -1279,13 +1718,14 @@ Midnight Open $______"></textarea>
 
 <!-- DAY DETAIL / EDIT MODAL -->
 <div class="modal-bg" id="dayModal">
-  <div class="modal" style="max-width:820px">
+  <div class="modal" style="max-width:900px">
     <div class="modal-head">
       <div style="display:flex;flex-direction:column;gap:2px">
         <div class="modal-title" id="dm-title">Day</div>
         <div style="font-size:10px;color:var(--text3)" id="dm-subtitle"></div>
       </div>
       <div id="dm-pnl" class="mono" style="font-size:15px;font-weight:700;margin-left:auto;margin-right:12px"></div>
+      <div id="dm-status-badge" style="margin-right:12px"></div>
       <button class="close" onclick="closeModal('dayModal')" style="font-size:20px;opacity:.6">×</button>
     </div>
     <input type="hidden" id="dm-ds">
@@ -1301,11 +1741,19 @@ Midnight Open $______"></textarea>
           <div class="form-row"><label class="form-label">Prediction</label>
             <select id="dm-pred"><option value="">—</option><option>Correct</option><option>Incorrect</option></select></div>
           <div class="form-row"><label class="form-label">London</label>
-            <select id="dm-london"><option value="">—</option><option>Accumulation</option><option>Manipulation</option><option>Disitribution</option></select></div>
+            <select id="dm-london"><option value="">—</option><option>Accumulation</option><option>Manipulation</option><option>Distribution</option></select></div>
           <div class="form-row"><label class="form-label">New York</label>
-            <select id="dm-ny"><option value="">—</option><option>Rebalance / Reversal</option><option>Manipulation/ Distibution</option><option>Retracement / Continuations</option></select></div>
+            <select id="dm-ny"><option value="">—</option><option>Rebalance / Reversal</option><option>Manipulation / Distribution</option><option>Retracement / Continuations</option></select></div>
           <div class="form-row"><label class="form-label">Asian Range</label>
             <input id="dm-asian" placeholder="Retracement, Accumulation…"></div>
+          <div class="form-row"><label class="form-label" style="color:var(--bull)">Status</label>
+            <select id="dm-daystatus">
+              <option value="">— Not set</option>
+              <option value="Passed">✅ Passed</option>
+              <option value="In Process">⏳ In Process</option>
+              <option value="Blown">💥 Blown</option>
+            </select>
+          </div>
         </div>
         <div>
           <div class="form-row"><label class="form-label">HTF POI</label>
@@ -1314,9 +1762,9 @@ Midnight Open $______"></textarea>
             <textarea id="dm-weekdraws" rows="2" placeholder="PWH, PWL, NWOG…"></textarea></div>
           <div class="form-row"><label class="form-label">RTH Delivery</label>
             <select id="dm-rth"><option value="">—</option>
-              <option>Premium Bullish Above RTH</option><option>Discout Bullish RTH-HQ</option>
+              <option>Premium Bullish Above RTH</option><option>Discount Bullish RTH-HQ</option>
               <option>Discount Bullish RTH-CME</option><option>Discount Bullish RTH-LQ</option>
-              <option>Premium Bearish Purged  RTH</option><option>Premium Bearish  RTH-HQ</option>
+              <option>Premium Bearish Purged RTH</option><option>Premium Bearish RTH-HQ</option>
               <option>Discount Bearish Below RTH</option></select></div>
           <div class="form-row"><label class="form-label">Price Context</label>
             <input id="dm-price" placeholder="Premium, Discount, NWOG…"></div>
@@ -1324,6 +1772,39 @@ Midnight Open $______"></textarea>
             <input id="dm-monthly-bias"></div>
         </div>
       </div>
+
+      <!-- Images: 2x2 grid -->
+      <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+        <div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.09em;margin-bottom:8px">Charts — paste here or click to upload</div>
+        <div class="img-grid-2">
+          <div class="img-zone-wrap">
+            <div class="img-zone-label">Daily / Weekly</div>
+            <div class="img-zone" data-imgkey="dm-daily" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or upload</div></div>
+          </div>
+          <div class="img-zone-wrap">
+            <div class="img-zone-label">4H / 1H</div>
+            <div class="img-zone" data-imgkey="dm-4h1h" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or upload</div></div>
+          </div>
+        </div>
+        <div class="img-grid-2" style="margin-top:8px">
+          <div class="img-zone-wrap">
+            <div class="img-zone-label">15min</div>
+            <div class="img-zone" data-imgkey="dm-15m" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or upload</div></div>
+          </div>
+          <div class="img-zone-wrap">
+            <div class="img-zone-label">Inter-Market</div>
+            <div class="img-zone" data-imgkey="dm-im" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or upload</div></div>
+          </div>
+        </div>
+        <div class="img-grid-full" style="margin-top:8px">
+          <div class="img-zone-wrap">
+            <div class="img-zone-label">Today's Summary</div>
+            <div class="img-zone" data-imgkey="dm-summary" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or upload</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trades this day -->
       <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
           <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.09em">Trades this day</div>
@@ -1414,8 +1895,51 @@ function load(){try{const r=localStorage.getItem(STORE_KEY);if(r)state={...state
 function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch(e){alert('Storage: '+e.message)}}
 
 // ============= UTILS =============
-const todayStr=()=>new Date().toISOString().split('T')[0];
-const fmtDate=s=>{const d=new Date(s+'T12:00');return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})};
+// NY-aware date string (always returns YYYY-MM-DD in America/New_York)
+const NY_TZ='America/New_York';
+const todayStr=()=>new Intl.DateTimeFormat('en-CA',{timeZone:NY_TZ}).format(new Date());
+const nyNow=()=>new Date(new Date().toLocaleString('en-US',{timeZone:NY_TZ}));
+// Display a YYYY-MM-DD date string in human-readable form (timezone-neutral noon trick)
+const fmtDate=s=>{
+  const d=new Date(s+'T12:00:00');
+  return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+};
+// Get day-of-week (0=Sun) from a YYYY-MM-DD string, timezone-neutral
+const dowOf=s=>new Date(s+'T12:00:00').getDay();
+// Get YYYY-MM from today in NY timezone
+const currentMonthStr=()=>todayStr().slice(0,7);
+
+// ── NY CLOCK ────────────────────────────────────────────
+function updateNyClock(){
+  const now=new Date();
+  const timeStr=now.toLocaleTimeString('en-US',{timeZone:'America/New_York',hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const dateStr=now.toLocaleDateString('en-US',{timeZone:'America/New_York',weekday:'short',month:'short',day:'numeric'});
+  const el=document.getElementById('nyClockTime');
+  const del=document.getElementById('nyClockDate');
+  if(el)el.textContent=timeStr;
+  if(del)del.textContent=dateStr+' · NY';
+}
+
+// ── JOURNAL TICKER ───────────────────────────────────────
+let _tickerIdx=0;
+function updateTicker(){
+  const all=[...state.journal,...state.notes];
+  const el=document.getElementById('tickerText');
+  if(!el)return;
+  if(!all.length){el.textContent='No journal entries yet — press N to add your first.';return;}
+  const entry=all[_tickerIdx%all.length];
+  const text=entry.text||entry.title||'Journal entry';
+  el.textContent=`"${text.slice(0,80)}${text.length>80?'…':''}"`;
+  _tickerIdx++;
+}
+// Get previous trading day (skip weekends + holidays)
+function getPrevTradingDay(ds){
+  const d=new Date(ds+'T12:00');
+  do{d.setDate(d.getDate()-1);}
+  while(d.getDay()===0||d.getDay()===6||US_HOLIDAYS_2026[d.toISOString().split('T')[0]]);
+  return d.toISOString().split('T')[0];
+}
+
 function tradingDaysBetween(start, end){
   let s = new Date(start+'T12:00'), e = new Date(end+'T12:00');
   if (e < s) return -tradingDaysBetween(end, start);
@@ -1433,7 +1957,7 @@ function dayCountFor(dateStr){
 }
 
 // ============= NAVIGATION =============
-const panels=['dash','today','cal','monthly','weekly','daily','trades','accounts','trans','notes','journal','perf','settings'];
+const panels=['dash','today','cal','monthly','weekly','daily','trades','accounts','trans','notes','journal','terminology','psychology','perf','settings'];
 const titles={
   dash:['Dashboard','Welcome back · Day '],
   today:['Today','Fill the chain · Day '],
@@ -1443,9 +1967,11 @@ const titles={
   daily:['Daily Pages','All daily entries with day count'],
   trades:['Trade Log','All Trade Data fields from your Notion'],
   accounts:['Accounts','Funded · Live · Eval'],
-  trans:['Transactions','Deposits and withdrawals'],
-  notes:['Notes','Quick notes linked to daily'],
-  journal:['Journal','Lessons and observations'],
+  trans:['Transactions','Deposits · Withdrawals · Payouts · Fees'],
+  notes:['Journal','Trade psychology · lessons · notes'],
+  journal:['Observations','Lessons and trade observations'],
+  terminology:['LMR Terminology','Free-form knowledge base'],
+  psychology:['LMR Psychology','Mindset · Discipline · Trade psychology'],
   perf:['Performance','Live analytics from your trades'],
   settings:['Settings','Backup and storage']
 };
@@ -1465,13 +1991,15 @@ function navTo(p){
   if(p==='journal') renderJournalList();
   if(p==='monthly') loadMonthly();
   if(p==='weekly') loadWeekly();
-  if(p==='daily') renderDailyList();
+  if(p==='daily') renderDailyHeatmap();
   if(p==='cal') renderCal();
-  if(p==='accounts') renderAccountTable();
-  if(p==='trans') renderTransTable();
+  if(p==='accounts'){renderAccountTable();renderAccSummary();}
+  if(p==='trans'){renderTransTable();renderTransSummary();}
   if(p==='notes') renderNotesList();
   if(p==='today') loadDaily();
   if(p==='settings') renderSettings();
+  if(p==='terminology') loadLmrPage('terminology');
+  if(p==='psychology') loadLmrPage('psychology');
 }
 
 document.querySelectorAll('.sb-item').forEach(b=>{
@@ -1489,7 +2017,8 @@ const HOTKEYS = {
   'w':'weekly', 'W':'weekly', 'l':'daily', 'L':'daily', 'c':'cal', 'C':'cal',
   'a':'accounts', 'A':'accounts', 'x':'trans', 'X':'trans',
   'n':'notes_action', 'N':'notes_action', 'j':'journal', 'J':'journal',
-  'p':'perf', 'P':'perf', 't':'trade_action', 'T':'trade_action'
+  'p':'perf', 'P':'perf', 't':'trade_action', 'T':'trade_action',
+  'k':'terminology', 'K':'terminology'
 };
 
 document.addEventListener('keydown', e => {
@@ -1580,7 +2109,8 @@ function setChipsValues(grp,vals){
 
 // ============= DAILY =============
 function loadDaily(){
-  const d=state.daily[todayStr()]||{};
+  const ds=todayStr();
+  const d=state.daily[ds]||{};
   document.getElementById('ch-weekly').value=d.weekly||'';
   document.getElementById('ch-poi').value=d.htfpoi||'';
   document.getElementById('ch-draws').value=d.weekdraws||'';
@@ -1592,16 +2122,20 @@ function loadDaily(){
   setChipsValues('session',d.session||'');
   setChipsValues('plan',d.plan||'');
   setChipsValues('pred',d.pred||'');
+  setChipsValues('daystatus',d.daystatus||'');
   document.getElementById('ch-rth').value=d.rth||'';
   document.getElementById('todayStatus').textContent=d.savedAt?('Saved '+new Date(d.savedAt).toLocaleTimeString()):'Not started';
   // render images
   document.querySelectorAll('#p-today .img-zone').forEach(z=>renderImgZone(z));
   // render news
   renderTodayNews();
-  document.getElementById('todayDate').textContent = `Today · Day ${dayCountFor(todayStr())} · ${fmtDate(todayStr())}`;
+  document.getElementById('todayDate').textContent=`Today · Day ${dayCountFor(ds)} · ${fmtDate(ds)}`;
+  // update monthly display from state
+  updateMonthlyDisplay();
 }
 function saveDaily(){
-  state.daily[todayStr()]={
+  const ds=todayStr();
+  state.daily[ds]={
     weekly:document.getElementById('ch-weekly').value,
     bias:getChipsValues('dbias',false),
     london:getChipsValues('london',false),
@@ -1611,10 +2145,11 @@ function saveDaily(){
     session:getChipsValues('session',false),
     plan:getChipsValues('plan',false),
     pred:getChipsValues('pred',false),
+    daystatus:getChipsValues('daystatus',false),
     htfpoi:document.getElementById('ch-poi').value,
     weekdraws:document.getElementById('ch-draws').value,
     rth:document.getElementById('ch-rth').value,
-    dayCount:dayCountFor(todayStr()),
+    dayCount:dayCountFor(ds),
     savedAt:new Date().toISOString()
   };
   save();
@@ -1773,7 +2308,9 @@ function renderTradeTable(){
   w.innerHTML=state.trades.map(t=>{
     const modelTag=t.models?.[0]||'-';
     const isStupid=modelTag==='Stupidity';
-    return `<tr class="edit-row" onclick="openTradeModal(${t.id})" title="Click to edit">
+    const rowCls=t.pnl>0?'edit-row trade-win':t.pnl<0?'edit-row trade-loss':'edit-row';
+    const winLoss=t.pnl>0?'<span class="win-pill">WIN</span>':t.pnl<0?'<span class="loss-pill">LOSS</span>':'<span class="tag tg-gray">BE</span>';
+    return `<tr class="${rowCls}" onclick="openTradeModal(${t.id})" title="Click to edit">
       <td class="mono">${t.date}</td>
       <td>${t.day||'-'}</td>
       <td>${t.market}</td>
@@ -1785,8 +2322,9 @@ function renderTradeTable(){
       <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis">${(t.emotions||[]).join(', ')||'-'}</td>
       <td><span class="tag tg-${t.htf==='Delivered'?'bull':'bear'}">${t.htf||'-'}</span></td>
       <td class="mono">$${t.risk||0}</td>
-      <td class="mono ${t.pnl>=0?'txt-pos':'txt-neg'}" style="font-weight:600">${t.pnl>=0?'+':''}$${t.pnl.toFixed(2)}</td>
-      <td class="mono ${t.rr>=0?'txt-pos':'txt-neg'}">${t.rr}R</td>
+      <td>${winLoss}</td>
+      <td class="mono ${t.pnl>=0?'txt-pos':'txt-neg'}" style="font-weight:700">${t.pnl>=0?'+':''}$${t.pnl.toFixed(2)}</td>
+      <td class="mono ${parseFloat(t.rr)>=0?'txt-pos':'txt-neg'}">${t.rr}R</td>
       <td onclick="event.stopPropagation()"><button class="btn btn-sm btn-bear" onclick="deleteTrade(${t.id})">✗</button></td>
     </tr>`;
   }).join('');
@@ -1838,8 +2376,10 @@ function setActiveAccount(id){state.currentAcc=id;save();renderAccountTable();up
 function deleteAccount(id){if(!confirm('Delete account?'))return;state.accounts=state.accounts.filter(a=>a.id!==id);if(state.currentAcc===id)state.currentAcc=state.accounts[0]?.id||null;save();renderAccountTable();updateAllStats()}
 function renderAccountTable(){
   const w=document.getElementById('accTable');
-  const accs=accFilter==='All'?state.accounts:state.accounts.filter(a=>a.type===accFilter);
-  if(!accs.length){w.innerHTML='<tr><td colspan="11" class="empty">No accounts. Press A to add.</td></tr>';return}
+  let accs=accFilter==='All'?[...state.accounts]:[...state.accounts].filter(a=>a.type===accFilter);
+  // sort newest first (by date created)
+  accs.sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+  if(!accs.length){w.innerHTML='<tr><td colspan="12" class="empty">No accounts. Press A to add.</td></tr>';return}
   w.innerHTML=accs.map(a=>{
     const ts=state.trades.filter(t=>t.accountId==a.id);
     const pnl=ts.reduce((s,t)=>s+t.pnl,0);
@@ -1848,20 +2388,35 @@ function renderAccountTable(){
     const losses=ts.filter(t=>t.pnl<0).length;
     const breakeven=ts.filter(t=>t.pnl===0).length;
     const wr=ts.length?Math.round(wins/ts.length*100):0;
-    return `<tr class="edit-row" onclick="openAccountModal(${a.id})" title="Click to edit">
-      <td>${a.name}</td>
+    const statusCls=a.status==='Passed'?'tg-bull':a.status==='Blown'?'tg-bear':'tg-warn';
+    return `<tr class="edit-row ${pnl>0?'trade-win':pnl<0?'trade-loss':''}" onclick="openAccountModal(${a.id})" title="Click to edit">
+      <td style="font-weight:600">${a.name}</td>
       <td><span class="tag tg-${a.type==='Funded'?'bull':a.type==='Live'?'bear':'warn'}">${a.type}</span></td>
-      <td>${a.status}</td>
+      <td><span class="tag ${statusCls}">${a.status||'—'}</span></td>
+      <td class="mono" style="font-size:10px;color:var(--text3)">${a.date||'—'}</td>
       <td class="mono">$${a.deposit.toFixed(2)}</td>
       <td class="mono ${pnl>=0?'txt-pos':'txt-neg'}">${pnl>=0?'+':''}$${pnl.toFixed(2)}</td>
-      <td class="mono" style="font-weight:600">${balance>=0?'$':'-$'}${Math.abs(balance).toFixed(2)}</td>
+      <td class="mono" style="font-weight:700">${balance>=0?'$':'-$'}${Math.abs(balance).toFixed(2)}</td>
       <td class="mono">${wr}%</td>
       <td class="mono" style="font-size:10px">${wins}:${breakeven}:${losses}</td>
       <td class="mono">${ts.length}</td>
-      <td onclick="event.stopPropagation()">${state.currentAcc==a.id?'<span class="tag tg-bull">ACTIVE</span>':`<button class="btn btn-sm" onclick="setActiveAccount(${a.id})">Set</button>`}</td>
+      <td onclick="event.stopPropagation()">${state.currentAcc==a.id?'<span class="tag tg-bull">✓ ACTIVE</span>':`<button class="btn btn-sm" onclick="setActiveAccount(${a.id})">Set Active</button>`}</td>
       <td onclick="event.stopPropagation()"><button class="btn btn-sm btn-bear" onclick="deleteAccount(${a.id})">✗</button></td>
     </tr>`;
   }).join('');
+}
+
+function renderAccSummary(){
+  const accs=state.accounts;
+  const totalDep=accs.reduce((s,a)=>s+a.deposit,0);
+  const allPnl=state.trades.reduce((s,t)=>s+t.pnl,0);
+  const activeAcc=state.accounts.find(a=>a.id==state.currentAcc);
+  let activeBal=0;
+  if(activeAcc){const ts=state.trades.filter(t=>t.accountId==activeAcc.id);activeBal=activeAcc.deposit+ts.reduce((s,t)=>s+t.pnl,0);}
+  const cnt=document.getElementById('acc-count');if(cnt)cnt.textContent=accs.length;
+  const dep=document.getElementById('acc-dep');if(dep)dep.textContent='$'+totalDep.toFixed(0);
+  const pnlEl=document.getElementById('acc-pnl');if(pnlEl){pnlEl.textContent=(allPnl>=0?'+':'')+' $'+Math.abs(allPnl).toFixed(0);pnlEl.className='sum-tile-v '+(allPnl>=0?'txt-pos':'txt-neg');}
+  const balEl=document.getElementById('acc-bal');if(balEl)balEl.textContent='$'+activeBal.toFixed(0);
 }
 
 // ============= TRANSACTIONS =============
@@ -1896,18 +2451,38 @@ function saveTrans(){
 }
 function renderTransTable(){
   const w=document.getElementById('transTable');
-  if(!state.transactions.length){w.innerHTML='<tr><td colspan="6" class="empty">No transactions.</td></tr>';return}
-  w.innerHTML=state.transactions.map(x=>{
+  // sort newest first
+  const sorted=[...state.transactions].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+  if(!sorted.length){w.innerHTML='<tr><td colspan="6" class="empty">No transactions.</td></tr>';return}
+  w.innerHTML=sorted.map(x=>{
     const acc=state.accounts.find(a=>a.id==x.accountId);
-    return `<tr class="edit-row" onclick="openTransModal(${x.id})" title="Click to edit">
+    const isPos=x.type==='Deposit'||x.type==='Payout';
+    const isNeg=x.type==='Withdrawal'||x.type==='Fee';
+    const tagCls=x.type==='Deposit'?'tg-bull':x.type==='Withdrawal'?'tg-bear':x.type==='Payout'?'tg-bull':'tg-warn';
+    return `<tr class="edit-row ${isPos?'trade-win':isNeg?'trade-loss':''}" onclick="openTransModal(${x.id})" title="Click to edit">
       <td class="mono">${x.date}</td>
-      <td><span class="tag tg-${x.type==='Deposit'?'bull':x.type==='Withdrawal'?'bear':'gray'}">${x.type}</span></td>
+      <td><span class="tag ${tagCls}">${x.type}</span></td>
       <td>${acc?acc.name:'-'}</td>
-      <td class="mono ${x.type==='Deposit'?'txt-pos':'txt-neg'}">${x.type==='Deposit'?'+':'-'}$${Math.abs(x.amount).toFixed(2)}</td>
+      <td class="mono ${isPos?'txt-pos':'txt-neg'}" style="font-weight:700">${isPos?'+':'-'}$${Math.abs(x.amount).toFixed(2)}</td>
       <td>${x.note||'-'}</td>
-      <td onclick="event.stopPropagation()"><button class="btn btn-sm btn-bear" onclick="if(confirm('Delete?')){state.transactions=state.transactions.filter(t=>t.id!==${x.id});save();renderTransTable()}">✗</button></td>
+      <td onclick="event.stopPropagation()"><button class="btn btn-sm btn-bear" onclick="if(confirm('Delete?')){state.transactions=state.transactions.filter(t=>t.id!==${x.id});save();renderTransTable();renderTransSummary()}">✗</button></td>
     </tr>`;
   }).join('');
+}
+
+function renderTransSummary(){
+  const txs=state.transactions;
+  const byType=(t)=>txs.filter(x=>x.type===t);
+  const sum=(t)=>byType(t).reduce((s,x)=>s+Math.abs(x.amount),0);
+  const el=(id,v,c)=>{const e=document.getElementById(id);if(e){e.textContent=v;if(c)e.className=c;}};
+  el('tx-dep','$'+sum('Deposit').toFixed(0));
+  el('tx-dep-c',byType('Deposit').length+' deposits');
+  el('tx-wdl','$'+sum('Withdrawal').toFixed(0));
+  el('tx-wdl-c',byType('Withdrawal').length+' withdrawals');
+  el('tx-pay','$'+sum('Payout').toFixed(0));
+  el('tx-pay-c',byType('Payout').length+' payouts');
+  el('tx-fee','$'+sum('Fee').toFixed(0));
+  el('tx-fee-c',byType('Fee').length+' fees');
 }
 
 // ============= NOTES =============
@@ -2073,30 +2648,49 @@ function renderDashboard(){
   document.getElementById('t-weekly').textContent=wk['w-model']||'Not set';
   document.getElementById('t-weekly-sub').textContent=wk['w-phase']?`${wk['w-phase']} · ${wk['w-range']||''}`:'Set on Sunday';
   
-  // today chain
-  const d=state.daily[todayStr()];
+  // previous day chain
+  const prevDs=getPrevTradingDay(todayStr());
+  const prevD=state.daily[prevDs];
   const chainBox=document.getElementById('dash-chain');
-  if(d){
+  if(prevD){
+    const statusCls=prevD.daystatus==='Passed'?'status-passed':prevD.daystatus==='Blown'?'status-blown':prevD.daystatus==='In Process'?'status-inprogress':'';
     chainBox.innerHTML=`
-      <div class="chain-label">Today's Chain — Day ${day}</div>
-      ${d.weekly?`<div class="chain-row"><span class="chain-tf">Weekly</span><span class="mono" style="color:var(--text2);font-size:11px">${d.weekly}</span></div>`:''}
-      ${d.bias?`<div class="chain-row"><span class="chain-tf">Bias</span><span class="tag tg-${d.bias==='Bullish'?'bull':d.bias==='Bearish'?'bear':'gray'}">${d.bias}</span></div>`:''}
-      ${d.htfpoi?`<div class="chain-row"><span class="chain-tf">HTF POI</span><span class="mono" style="color:var(--text2);font-size:11px">${d.htfpoi}</span></div>`:''}
-      ${d.london?`<div class="chain-row"><span class="chain-tf">London</span><span class="mono" style="color:var(--text2);font-size:11px">${d.london} → NY ${d.ny||''}</span></div>`:''}
-      ${d.plan?`<div class="chain-row"><span class="chain-tf">Plan</span><span class="tag tg-${d.plan==='Followed'?'bull':'bear'}">${d.plan}</span></div>`:''}
-    `;
-    document.getElementById('dash-chain-status').textContent=`Saved ${new Date(d.savedAt).toLocaleTimeString()}`;
+      <div class="prev-chain-card">
+        <div class="pdc-head">📅 Previous Day — <span>D${prevD.dayCount||dayCountFor(prevDs)} · ${fmtDate(prevDs)}</span>
+          ${prevD.daystatus?`<span class="${statusCls}" style="margin-left:auto">${prevD.daystatus}</span>`:''}
+        </div>
+        ${prevD.weekly?`<div class="pdc-row"><span class="pdc-key">Weekly</span><span class="pdc-val">${prevD.weekly}</span></div>`:''}
+        ${prevD.bias?`<div class="pdc-row"><span class="pdc-key">Bias</span><span class="tag tg-${prevD.bias==='Bullish'?'bull':prevD.bias==='Bearish'?'bear':'gray'}">${prevD.bias}</span></div>`:''}
+        ${prevD.htfpoi?`<div class="pdc-row"><span class="pdc-key">HTF POI</span><span class="pdc-val">${prevD.htfpoi}</span></div>`:''}
+        ${prevD.london?`<div class="pdc-row"><span class="pdc-key">London</span><span class="pdc-val">${prevD.london}${prevD.ny?' → NY '+prevD.ny:''}</span></div>`:''}
+        ${prevD.plan?`<div class="pdc-row"><span class="pdc-key">Plan</span><span class="tag tg-${prevD.plan==='Followed'?'bull':'bear'}">${prevD.plan}</span></div>`:''}
+        ${prevD.rth?`<div class="pdc-row"><span class="pdc-key">RTH</span><span class="pdc-val" style="font-size:10px">${prevD.rth}</span></div>`:''}
+      </div>
+      <div style="margin-top:8px;padding:6px 12px;background:rgba(245,166,35,.04);border:1px dashed rgba(245,166,35,.2);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:11px;color:var(--text3)">Today's chain not filled yet</span>
+        <button class="btn btn-primary btn-sm" onclick="navTo('today')">Fill Chain →</button>
+      </div>`;
+    document.getElementById('dash-chain-status').textContent=`Prev: ${fmtDate(prevDs)}`;
   } else {
-    chainBox.innerHTML='<div class="chain-label">Today\'s Chain</div><div style="color:var(--text3);font-size:11px;padding:10px 0">Not started. Press D to open.</div>';
-    document.getElementById('dash-chain-status').textContent='Not started';
+    chainBox.innerHTML=`<div style="color:var(--text3);font-size:11px;padding:8px 0">No previous day data.</div>
+      <div style="margin-top:8px"><button class="btn btn-primary btn-sm" onclick="navTo('today')">Fill Today's Chain →</button></div>`;
+    document.getElementById('dash-chain-status').textContent='No prev data';
   }
-  
-  // recent trades
+
+  // recent trades — green=win / red=loss
   const trBox=document.getElementById('dash-trades');
   const recent=state.trades.slice(0,5);
-  if(!recent.length){trBox.innerHTML='<tr><td colspan="6" class="empty">No trades. Press T.</td></tr>'}
+  if(!recent.length){trBox.innerHTML='<tr><td colspan="7" class="empty">No trades. Press T.</td></tr>'}
   else trBox.innerHTML=recent.map(t=>`
-    <tr><td class="mono">D${t.dayCount||dayCountFor(t.date)}</td><td class="mono">${t.date}</td><td><span class="tag tg-pur">${t.models?.[0]||'-'}</span></td><td style="font-size:10px;max-width:80px;overflow:hidden;text-overflow:ellipsis">${(t.emotions||[])[0]||'-'}</td><td class="mono ${t.pnl>=0?'txt-pos':'txt-neg'}">${t.pnl>=0?'+':''}$${t.pnl.toFixed(2)}</td><td class="mono ${t.rr>=0?'txt-pos':'txt-neg'}">${t.rr}R</td></tr>
+    <tr class="${t.pnl>0?'trade-win':t.pnl<0?'trade-loss':''}">
+      <td class="mono">D${t.dayCount||dayCountFor(t.date)}</td>
+      <td class="mono">${t.date}</td>
+      <td><span class="tag tg-pur">${t.models?.[0]||'-'}</span></td>
+      <td style="font-size:10px;max-width:80px;overflow:hidden;text-overflow:ellipsis">${(t.emotions||[])[0]||'-'}</td>
+      <td>${t.pnl>0?`<span class="win-pill">WIN</span>`:t.pnl<0?`<span class="loss-pill">LOSS</span>`:`<span class="tag tg-gray">BE</span>`}</td>
+      <td class="mono ${t.pnl>=0?'txt-pos':'txt-neg'}" style="font-weight:700">${t.pnl>=0?'+':''}$${t.pnl.toFixed(2)}</td>
+      <td class="mono ${parseFloat(t.rr)>=0?'txt-pos':'txt-neg'}">${t.rr}R</td>
+    </tr>
   `).join('');
   
   // stats
@@ -2123,6 +2717,8 @@ function renderDashboard(){
   document.getElementById('d-best').textContent='+$'+best.toFixed(2);
   document.getElementById('d-worst').textContent='-$'+Math.abs(worst).toFixed(2);
   document.getElementById('d-rr').textContent=rrs.length?(rrs.reduce((a,b)=>a+b,0)/rrs.length).toFixed(2):'0';
+  const dpfEl=document.getElementById('d-pf');
+  if(dpfEl){dpfEl.textContent=pf;dpfEl.className='kv-v '+(parseFloat(pf)>=1?'txt-pos':'txt-neg');}
 
   // Prop-firm tiles
   const pfPnlEl=document.getElementById('pf-net-pnl');
@@ -2232,11 +2828,23 @@ function saveSettings(){
   const dd=document.getElementById('set-day-date').value;
   if(d)state.dayCountStart=d;
   if(dd)state.dayCountStartDate=dd;
+  const tz=document.getElementById('set-tz');
+  if(tz)state.timezone=tz.value;
+  const ticker=document.getElementById('set-ticker');
+  if(ticker){
+    state.tickerEnabled=ticker.value==='1';
+    const tb=document.getElementById('journalTicker');
+    if(tb)tb.style.display=state.tickerEnabled!==false?'':'none';
+  }
   save();updateDayCount();flash('✓ Settings saved');
 }
 async function renderSettings(){
   document.getElementById('set-day').value=state.dayCountStart;
   document.getElementById('set-day-date').value=state.dayCountStartDate;
+  const tz=document.getElementById('set-tz');
+  if(tz&&state.timezone)tz.value=state.timezone;
+  const ticker=document.getElementById('set-ticker');
+  if(ticker)ticker.value=state.tickerEnabled!==false?'1':'0';
   const imgKeys=await allImgKeys();
   const lsSize=new Blob([JSON.stringify(state)]).size;
   let imgSize=0;
@@ -2260,22 +2868,33 @@ async function renderSettings(){
 
 // ============= MISC =============
 function updateAllStats(){
-  document.getElementById('dayCount').textContent=dayCountFor(todayStr());
-  document.getElementById('mDayCount').textContent=dayCountFor(todayStr());
+  const dc=dayCountFor(todayStr());
+  document.getElementById('dayCount').textContent=dc;
+  document.getElementById('mDayCount').textContent=dc;
   const acc=state.accounts.find(a=>a.id==state.currentAcc);
   if(acc){
     const ts=state.trades.filter(t=>t.accountId==acc.id);
     const pnl=ts.reduce((s,t)=>s+t.pnl,0);
-    document.getElementById('sbBalance').textContent='$'+(acc.deposit+pnl).toFixed(0);
+    const bal=acc.deposit+pnl;
+    document.getElementById('sbBalance').textContent='$'+bal.toFixed(0);
     document.getElementById('sbTrades').textContent=ts.length;
     const wins=ts.filter(t=>t.win).length;
     document.getElementById('sbWR').textContent=(ts.length?Math.round(wins/ts.length*100):0)+'%';
+    // update acc-quick widget
+    const aqn=document.getElementById('accQuickName');
+    const aqs=document.getElementById('accQuickStats');
+    if(aqn)aqn.textContent=acc.name;
+    if(aqs)aqs.textContent=`$${bal.toFixed(0)} · ${ts.length}T · ${ts.length?Math.round(wins/ts.length*100):0}% WR`;
   } else {
     const ts=state.trades;const pnl=ts.reduce((s,t)=>s+t.pnl,0);
     document.getElementById('sbBalance').textContent='$'+pnl.toFixed(0);
     document.getElementById('sbTrades').textContent=ts.length;
     const wins=ts.filter(t=>t.win).length;
     document.getElementById('sbWR').textContent=(ts.length?Math.round(wins/ts.length*100):0)+'%';
+    const aqn=document.getElementById('accQuickName');
+    const aqs=document.getElementById('accQuickStats');
+    if(aqn)aqn.textContent='No account set';
+    if(aqs)aqs.textContent='Click to manage accounts';
   }
 }
 function updateDayCount(){updateAllStats();document.getElementById('todayDate').textContent=`Today · Day ${dayCountFor(todayStr())} · ${fmtDate(todayStr())}`}
@@ -2285,8 +2904,10 @@ function flash(m){const s=document.getElementById('todayStatus');if(!s)return;co
 async function init(){
   await openDB();
   load();
+  // ensure new state keys exist
+  if(!state.terminologyPage)state.terminologyPage='';
+  if(!state.psychologyPage)state.psychologyPage='';
   // build chips that need rendering
-  document.querySelectorAll('.chip[data-grp]').forEach(c=>{}); // existing chips
   buildChips('asianRange',ASIAN_RANGE,true,'asianRange');
   buildChips('priceRefs',PRICE_REFS,true,'priceRefs');
   buildChips('smtChips',SMT_OPTS,true,'smtChips');
@@ -2295,6 +2916,12 @@ async function init(){
   RTH_PROFILES.forEach(r=>{const o=document.createElement('option');o.textContent=r;chRth.appendChild(o)});
   // init journal date
   document.getElementById('j-date').value=todayStr();
+  // Start NY clock — tick every second
+  updateNyClock();
+  setInterval(updateNyClock,1000);
+  // Start journal ticker — rotate every 6 seconds
+  updateTicker();
+  setInterval(updateTicker,6000);
   updateAllStats();
   loadDaily();
   navTo('dash');
@@ -2419,8 +3046,21 @@ function openDayModal(ds){
   document.getElementById('dm-asian').value=Array.isArray(entry.asianRange)?entry.asianRange.join(', '):(entry.asianRange||'');
   document.getElementById('dm-price').value=Array.isArray(entry.price)?entry.price.join(', '):(entry.price||'');
   document.getElementById('dm-monthly-bias').value=entry.monthlyBias||'';
+  document.getElementById('dm-daystatus').value=entry.daystatus||'';
   document.getElementById('dm-pnl').textContent=dayPnL!==0?`${dayPnL>=0?'+':''}$${dayPnL.toFixed(2)}`:'$0';
   document.getElementById('dm-pnl').className=`mono ${dayPnL>0?'txt-pos':dayPnL<0?'txt-neg':''}`;
+  // status badge
+  const sbEl=document.getElementById('dm-status-badge');
+  if(sbEl){
+    const s=entry.daystatus;
+    sbEl.innerHTML=s==='Passed'?'<span class="status-passed">✅ Passed</span>':s==='Blown'?'<span class="status-blown">💥 Blown</span>':s==='In Process'?'<span class="status-inprogress">⏳ In Process</span>':'';
+  }
+  // Load day modal images with date prefix
+  document.querySelectorAll('#dayModal .img-zone[data-imgkey]').forEach(z=>{
+    const base=z.dataset.imgkey.replace(/^.*-dm-/,'dm-');
+    z.dataset.imgkey=`${ds}-${base}`;
+    renderImgZone(z);
+  });
   const tbody=document.getElementById('dm-trades');
   tbody.innerHTML=trades.length?trades.map(t=>`<tr>
     <td><span class="tag tg-pur" style="font-size:9px">${(t.models||[])[0]||'-'}</span></td>
@@ -2441,6 +3081,7 @@ function saveDayModal(){
     session:document.getElementById('dm-session').value,
     plan:document.getElementById('dm-plan').value,
     pred:document.getElementById('dm-pred').value,
+    daystatus:document.getElementById('dm-daystatus').value,
     htfpoi:document.getElementById('dm-htfpoi').value,
     weekdraws:document.getElementById('dm-weekdraws').value,
     weekly:document.getElementById('dm-weekdraws').value,
@@ -2452,6 +3093,11 @@ function saveDayModal(){
     monthlyBias:document.getElementById('dm-monthly-bias').value,
     savedAt:new Date().toISOString()
   };
+  // fix imgkeys to be date-prefixed
+  document.querySelectorAll('#dayModal .img-zone[data-imgkey]').forEach(z=>{
+    const k=z.dataset.imgkey;
+    if(k&&!k.startsWith(ds))z.dataset.imgkey=`${ds}-${k}`;
+  });
   save();closeModal('dayModal');renderDailyHeatmap();flash('✓ Day saved');
 }
 function deleteDayEntry(ds){
@@ -2507,6 +3153,47 @@ function editJournal(id){
   document.getElementById('j-text').value=j.text||'';
   const btn=document.getElementById('j-save-btn')||document.querySelector('[onclick="saveJournal()"]');
   if(btn){btn.dataset.editId=id;btn.textContent='💾 Update';}
+}
+
+// ── LMR FREE PAGES (Terminology + Psychology) ────────────────────────────────
+function lmrFmt(tag,pageId='terminology'){
+  const el=document.getElementById(pageId+'-content');
+  if(!el)return;el.focus();
+  if(tag==='h1')document.execCommand('formatBlock',false,'h1');
+  else if(tag==='h2')document.execCommand('formatBlock',false,'h2');
+  else if(tag==='h3')document.execCommand('formatBlock',false,'h3');
+  else if(tag==='p')document.execCommand('formatBlock',false,'p');
+  else if(tag==='b')document.execCommand('bold');
+  else if(tag==='i')document.execCommand('italic');
+  else if(tag==='ul')document.execCommand('insertUnorderedList');
+  else if(tag==='hr'){document.execCommand('insertHorizontalRule');}
+  else if(tag==='quote')document.execCommand('formatBlock',false,'blockquote');
+}
+function lmrFmtPsych(tag){lmrFmt(tag,'psychology');}
+function lmrInsertImg(pageId){
+  const card=document.getElementById(pageId+'-img-card');
+  if(card){card.style.display='';const z=document.getElementById(pageId+'-img-zone');if(z)pickImage(z);}
+}
+function saveLmrPage(pageId){
+  const el=document.getElementById(pageId+'-content');
+  if(!el)return;
+  state[pageId+'Page']=el.innerHTML;
+  save();
+  const lbl=document.getElementById(pageId+'-saved');
+  if(lbl)lbl.textContent='Saved '+new Date().toLocaleTimeString();
+  flash('✓ '+pageId+' saved');
+}
+function loadLmrPage(pageId){
+  const el=document.getElementById(pageId+'-content');
+  if(!el)return;
+  const content=state[pageId+'Page']||'';
+  el.innerHTML=content;
+  if(!content){el.setAttribute('placeholder','Start writing…');}
+  const lbl=document.getElementById(pageId+'-saved');
+  if(lbl)lbl.textContent=content?'Auto-loaded':'Not saved';
+  // load page image if any
+  const imgZone=document.getElementById(pageId+'-img-zone');
+  if(imgZone)renderImgZone(imgZone);
 }
 
 // ── NOTION IMAGE SYNC ────────────────────────────────────────────────────────

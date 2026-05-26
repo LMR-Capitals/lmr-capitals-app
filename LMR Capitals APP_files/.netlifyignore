@@ -1,6 +1,20 @@
+# Secrets & credentials
 .env
+.env.*
+
+# Dev tooling
 node_modules/
 notion-export.js
 package.json
 package-lock.json
+
+# Large data files
 lmr-notion-export.json
+notion-images/
+
+# Schema & setup scripts (not needed at runtime)
+supabase-setup.sql
+
+# Editor / tool configs
+.claude/
+.DS_Store
