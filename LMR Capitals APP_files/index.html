@@ -1561,8 +1561,8 @@ Midnight Open $______"></textarea>
 
 <!-- TRADE MODAL (FULL LMR Trade Data fields) -->
 <div class="modal-bg" id="tradeModal">
-  <div class="modal">
-    <div class="modal-head"><div class="modal-title">+ Log Trade</div><button class="close" onclick="closeModal(&#39;tradeModal&#39;)">×</button></div>
+  <div class="modal" style="max-width:780px">
+    <div class="modal-head"><div class="modal-title">+ Log Trade</div><button class="close" onclick="closeModal('tradeModal')">×</button></div>
     <div class="modal-body">
       <div class="cols2">
         <div><label class="form-label">Date</label><input type="date" id="tm-date"></div>
@@ -1570,7 +1570,7 @@ Midnight Open $______"></textarea>
       </div>
       <div class="cols2" style="margin-top:8px">
         <div><label class="form-label">Position</label><select id="tm-pos"><option>Long</option><option>Short</option></select></div>
-        <div><label class="form-label">Day</label><select id="tm-day"><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursaday</option><option>Friday</option></select></div>
+        <div><label class="form-label">Day</label><select id="tm-day"><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option></select></div>
       </div>
       <div class="cols2" style="margin-top:8px">
         <div><label class="form-label">Session</label><select id="tm-session"><option>NY AM</option><option>NY PM</option></select></div>
@@ -1604,9 +1604,33 @@ Midnight Open $______"></textarea>
       <div class="form-row" style="margin-top:8px"><label class="form-label">Account</label><select id="tm-acc"><option value="">No account</option></select></div>
       <div class="form-row"><label class="form-label">Draws</label><input id="tm-draws" placeholder="e.g. Sell-side at $25,840"></div>
       <div class="form-row"><label class="form-label">Feedback</label><textarea id="tm-fb" rows="3"></textarea></div>
+
+      <!-- ── TRADE SCREENSHOTS ── -->
+      <hr class="div">
+      <div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.09em;margin-bottom:8px">📸 Trade Screenshots — paste or click to upload</div>
+      <div class="img-grid-2">
+        <div class="img-zone-wrap">
+          <div class="img-zone-label">HTF Delivery <span>Daily / 4H / 1H context</span></div>
+          <div class="img-zone" id="tm-img-htf" data-imgkey="tm-htf-img" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or upload HTF chart</div></div>
+        </div>
+        <div class="img-zone-wrap">
+          <div class="img-zone-label">15min Chart <span>execution context</span></div>
+          <div class="img-zone" id="tm-img-15m" data-imgkey="tm-15m-img" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or upload 15m chart</div></div>
+        </div>
+      </div>
+      <div class="img-grid-2" style="margin-top:8px">
+        <div class="img-zone-wrap">
+          <div class="img-zone-label">Entry <span>1m / 3m / 5m trigger</span></div>
+          <div class="img-zone" id="tm-img-entry" data-imgkey="tm-entry-img" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or upload entry</div></div>
+        </div>
+        <div class="img-zone-wrap">
+          <div class="img-zone-label">Result <span>exit / outcome</span></div>
+          <div class="img-zone" id="tm-img-result" data-imgkey="tm-result-img" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or upload result</div></div>
+        </div>
+      </div>
     </div>
     <div class="modal-actions">
-      <button class="btn" onclick="closeModal(&#39;tradeModal&#39;)">Cancel</button>
+      <button class="btn" onclick="closeModal('tradeModal')">Cancel</button>
       <button class="btn btn-primary" onclick="saveTrade()">Save Trade</button>
     </div>
   </div>
@@ -2218,6 +2242,17 @@ function saveWeekly(){
 
 // ============= TRADES (Full LMR Trade Data) =============
 let _tmEditId=null;
+let _tmCurrentImgId=null; // image key prefix for current modal session
+function _setTradeImgKeys(id){
+  _tmCurrentImgId=id;
+  ['tm-img-htf','tm-img-15m','tm-img-entry','tm-img-result'].forEach(zid=>{
+    const z=document.getElementById(zid);
+    if(!z)return;
+    const suffix=zid.replace('tm-img-','');
+    z.dataset.imgkey=`trade-${id}-${suffix}`;
+    renderImgZone(z);
+  });
+}
 function openTradeModal(editId){
   _tmEditId=editId||null;
   const ex=editId?state.trades.find(t=>t.id===editId):null;
@@ -2263,13 +2298,18 @@ function openTradeModal(editId){
     if(state.currentAcc)document.getElementById('tm-acc').value=state.currentAcc;
     ['tm-pnl','tm-risk','tm-lots','tm-draws','tm-fb'].forEach(id=>document.getElementById(id).value='');
   }
+  // Set image keys — use existing trade ID for edits, pre-generate for new
+  const imgId = editId || ('new-'+Date.now());
+  _setTradeImgKeys(imgId);
   document.getElementById('tradeModal').classList.add('show');
 }
 function closeModal(id){document.getElementById(id).classList.remove('show')}
 function saveTrade(){
   const date=document.getElementById('tm-date').value||todayStr();
+  // Use pre-generated imgId for new trades so images keep their keys
+  const newId=_tmEditId||((_tmCurrentImgId&&_tmCurrentImgId.startsWith('new-'))?parseInt(_tmCurrentImgId.replace('new-',''))||Date.now():Date.now());
   const t={
-    id:_tmEditId||Date.now(),date,
+    id:newId,date,
     market:document.getElementById('tm-market').value,
     position:document.getElementById('tm-pos').value,
     day:document.getElementById('tm-day').value,
