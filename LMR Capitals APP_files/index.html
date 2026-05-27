@@ -562,9 +562,17 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .lmr-page-content h1{font-size:22px;font-weight:800;color:var(--gold);margin:14px 0 6px;letter-spacing:-.02em;text-shadow:0 0 20px var(--gold-glow)}
 .lmr-page-content h2{font-size:17px;font-weight:700;color:var(--text);margin:12px 0 5px}
 .lmr-page-content h3{font-size:14px;font-weight:700;color:var(--blue);margin:10px 0 4px}
+.lmr-page-content h4{font-size:12px;font-weight:700;color:var(--pur);margin:8px 0 3px;text-transform:uppercase;letter-spacing:.06em}
 .lmr-page-content p,.lmr-page-content div{color:var(--text2);margin:2px 0}
 .lmr-page-content blockquote{border-left:3px solid var(--gold);padding:6px 12px;background:rgba(245,166,35,.05);border-radius:0 var(--r) var(--r) 0;margin:8px 0;color:var(--text2)}
 .lmr-page-content ul,ol{padding-left:18px;color:var(--text2)}
+/* Toggle/collapsible section */
+.lmr-toggle{border:1px solid var(--border);border-radius:var(--r);margin:6px 0;overflow:hidden}
+.lmr-toggle-head{padding:8px 12px;background:var(--bg3);cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;color:var(--text);user-select:none}
+.lmr-toggle-head::before{content:'▸';font-size:10px;transition:transform .15s;flex-shrink:0}
+.lmr-toggle.open .lmr-toggle-head::before{transform:rotate(90deg)}
+.lmr-toggle-body{display:none;padding:10px 12px;color:var(--text2);font-size:13px;line-height:1.65}
+.lmr-toggle.open .lmr-toggle-body{display:block}
 .lmr-page-save-row{padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg3)}
 
 /* ── SCROLL MIRROR (top + bottom scroll on tables) ── */
@@ -612,8 +620,18 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 <div class="app">
 
 <aside class="sidebar" id="sidebar">
-  <div class="sb-head" onclick="openSettingsPanel()" style="cursor:pointer;transition:background var(--t)" title="Click for Settings">
-    <div class="sb-logo"><div class="sb-logo-icon">⚡</div><span>LMR Capitals</span><span style="margin-left:auto;font-size:9px;color:var(--text3);opacity:.6">⚙</span></div>
+  <div class="sb-head" onclick="openSettingsPanel('profile')" style="cursor:pointer;transition:background var(--t)" title="Click to edit profile & settings">
+    <div class="sb-logo">
+      <div class="sb-logo-icon" id="sb-logo-icon-wrap" style="overflow:hidden;position:relative">
+        <img id="sb-logo-photo" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0">
+        <span id="sb-logo-initials">L</span>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:13px;line-height:1.2" id="sb-profile-name">Lunitic</div>
+        <div style="font-size:9px;color:var(--text3);font-weight:500" id="sb-profile-role">LMR Trader</div>
+      </div>
+      <span style="margin-left:auto;font-size:11px;color:var(--text3);opacity:.5">⚙</span>
+    </div>
     <div class="sb-status"><span class="dot"></span> <span id="sb-save-status">Auto-saved</span></div>
   </div>
   
@@ -654,16 +672,6 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
     <button class="sb-item" data-panel="psychology"><span class="sb-icon">◈</span> LMR Psychology</button>
   </nav>
   
-  <!-- Profile card in sidebar -->
-  <div class="sb-profile" onclick="openSettingsPanel('profile')" id="sb-profile-card">
-    <div class="sb-avatar" id="sb-avatar-thumb"><span id="sb-avatar-initials">L</span></div>
-    <div>
-      <div class="sb-profile-name" id="sb-profile-name">Lunitic</div>
-      <div class="sb-profile-role" id="sb-profile-role">LMR Trader</div>
-    </div>
-    <span style="font-size:11px;color:var(--text3);margin-left:auto">⚙</span>
-  </div>
-
   <div class="sb-foot">
     <div class="sb-pnl-l">Total P&amp;L</div>
     <div class="sb-pnl-v" id="sbBalance">$0</div>
@@ -1019,29 +1027,29 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
       <div class="img-grid-2">
         <div class="img-zone-wrap">
           <div class="img-zone-label">Daily / Weekly Chart <span>paste or click</span></div>
-          <div class="img-zone" data-imgkey="today-daily" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or + upload</div></div>
+          <div class="img-zone" data-imgkey="dm-daily" data-today="" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or + upload</div></div>
         </div>
         <div class="img-zone-wrap">
           <div class="img-zone-label">4H / 1H Chart <span>paste or click</span></div>
-          <div class="img-zone" data-imgkey="today-4h1h" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or + upload</div></div>
+          <div class="img-zone" data-imgkey="dm-4h1h" data-today="" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or + upload</div></div>
         </div>
       </div>
 
       <div class="img-grid-2" style="margin-top:10px">
         <div class="img-zone-wrap">
           <div class="img-zone-label">15min Chart <span>paste or click</span></div>
-          <div class="img-zone" data-imgkey="today-15m" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or + upload</div></div>
+          <div class="img-zone" data-imgkey="dm-15m" data-today="" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or + upload</div></div>
         </div>
         <div class="img-zone-wrap">
           <div class="img-zone-label">Inter-Market <span>NQ/ES · Yield · DXY</span></div>
-          <div class="img-zone" data-imgkey="today-im" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or + upload</div></div>
+          <div class="img-zone" data-imgkey="dm-im" data-today="" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or + upload</div></div>
         </div>
       </div>
 
       <div class="img-grid-full" style="margin-top:10px">
         <div class="img-zone-wrap">
           <div class="img-zone-label">Today's Summary <span>end-of-day screenshot</span></div>
-          <div class="img-zone" data-imgkey="today-summary" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or + upload summary</div></div>
+          <div class="img-zone" data-imgkey="dm-summary" data-today="" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or + upload summary</div></div>
         </div>
       </div>
 
@@ -1511,16 +1519,28 @@ Midnight Open $______"></textarea>
     </div>
     <div class="card-body" style="padding:0">
       <div class="lmr-page-wrap">
-        <div class="lmr-page-toolbar">
-          <button class="btn btn-sm" onclick="lmrFmt('h1')">H1</button>
-          <button class="btn btn-sm" onclick="lmrFmt('h2')">H2</button>
-          <button class="btn btn-sm" onclick="lmrFmt('h3')">H3</button>
-          <button class="btn btn-sm" onclick="lmrFmt('p')">¶ Para</button>
-          <button class="btn btn-sm" onclick="lmrFmt('b')"><b>B</b></button>
-          <button class="btn btn-sm" onclick="lmrFmt('i')"><i>I</i></button>
-          <button class="btn btn-sm" onclick="lmrFmt('ul')">• List</button>
-          <button class="btn btn-sm" onclick="lmrFmt('hr')">— Divider</button>
-          <button class="btn btn-sm" onclick="lmrFmt('quote')">❝ Quote</button>
+        <div class="lmr-page-toolbar" style="gap:3px;flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="lmrFmt('h1')" title="Heading 1">H1</button>
+          <button class="btn btn-sm" onclick="lmrFmt('h2')" title="Heading 2">H2</button>
+          <button class="btn btn-sm" onclick="lmrFmt('h3')" title="Heading 3">H3</button>
+          <button class="btn btn-sm" onclick="lmrFmt('h4')" title="Heading 4">H4</button>
+          <span style="width:1px;background:var(--border);margin:0 2px;align-self:stretch"></span>
+          <button class="btn btn-sm" onclick="lmrFmt('b')" title="Bold"><b>B</b></button>
+          <button class="btn btn-sm" onclick="lmrFmt('i')" title="Italic"><i>I</i></button>
+          <button class="btn btn-sm" onclick="lmrFmt('ul')" title="Bullet list">• List</button>
+          <button class="btn btn-sm" onclick="lmrFmt('ol')" title="Numbered list">1. List</button>
+          <span style="width:1px;background:var(--border);margin:0 2px;align-self:stretch"></span>
+          <button class="btn btn-sm" onclick="lmrFmt('quote')">❝</button>
+          <button class="btn btn-sm" onclick="lmrFmt('hr')">— HR</button>
+          <button class="btn btn-sm" onclick="lmrFmt('toggle')" title="Toggle/Collapsible section">▸ Toggle</button>
+          <span style="width:1px;background:var(--border);margin:0 2px;align-self:stretch"></span>
+          <select onchange="lmrSetFontSize(this.value,'terminology');this.value=''" style="font-size:10px;padding:3px 5px;width:auto;border-radius:var(--r);background:var(--bg4);color:var(--text2);border:1px solid var(--border)">
+            <option value="">Size</option>
+            <option value="11px">11</option><option value="12px">12</option><option value="13px">13</option>
+            <option value="14px">14</option><option value="16px">16</option><option value="18px">18</option>
+            <option value="20px">20</option><option value="24px">24</option>
+          </select>
+          <input type="color" title="Text color" onchange="lmrSetColor(this.value,'terminology')" style="width:28px;height:28px;padding:2px;border-radius:4px;border:1px solid var(--border);background:var(--bg4);cursor:pointer">
           <button class="btn btn-sm" onclick="lmrInsertImg('terminology')" style="color:var(--gold)">🖼 Image</button>
         </div>
         <div class="lmr-page-content" id="terminology-content" contenteditable="true" spellcheck="false" data-page="terminology"
@@ -1553,16 +1573,28 @@ Midnight Open $______"></textarea>
     </div>
     <div class="card-body" style="padding:0">
       <div class="lmr-page-wrap">
-        <div class="lmr-page-toolbar">
+        <div class="lmr-page-toolbar" style="gap:3px;flex-wrap:wrap">
           <button class="btn btn-sm" onclick="lmrFmtPsych('h1')">H1</button>
           <button class="btn btn-sm" onclick="lmrFmtPsych('h2')">H2</button>
           <button class="btn btn-sm" onclick="lmrFmtPsych('h3')">H3</button>
-          <button class="btn btn-sm" onclick="lmrFmtPsych('p')">¶ Para</button>
+          <button class="btn btn-sm" onclick="lmrFmtPsych('h4')">H4</button>
+          <span style="width:1px;background:var(--border);margin:0 2px;align-self:stretch"></span>
           <button class="btn btn-sm" onclick="lmrFmtPsych('b')"><b>B</b></button>
           <button class="btn btn-sm" onclick="lmrFmtPsych('i')"><i>I</i></button>
           <button class="btn btn-sm" onclick="lmrFmtPsych('ul')">• List</button>
-          <button class="btn btn-sm" onclick="lmrFmtPsych('hr')">— Divider</button>
-          <button class="btn btn-sm" onclick="lmrFmtPsych('quote')">❝ Quote</button>
+          <button class="btn btn-sm" onclick="lmrFmtPsych('ol')">1. List</button>
+          <span style="width:1px;background:var(--border);margin:0 2px;align-self:stretch"></span>
+          <button class="btn btn-sm" onclick="lmrFmtPsych('quote')">❝</button>
+          <button class="btn btn-sm" onclick="lmrFmtPsych('hr')">— HR</button>
+          <button class="btn btn-sm" onclick="lmrFmtPsych('toggle')">▸ Toggle</button>
+          <span style="width:1px;background:var(--border);margin:0 2px;align-self:stretch"></span>
+          <select onchange="lmrSetFontSize(this.value,'psychology');this.value=''" style="font-size:10px;padding:3px 5px;width:auto;border-radius:var(--r);background:var(--bg4);color:var(--text2);border:1px solid var(--border)">
+            <option value="">Size</option>
+            <option value="11px">11</option><option value="12px">12</option><option value="13px">13</option>
+            <option value="14px">14</option><option value="16px">16</option><option value="18px">18</option>
+            <option value="20px">20</option><option value="24px">24</option>
+          </select>
+          <input type="color" title="Text color" onchange="lmrSetColor(this.value,'psychology')" style="width:28px;height:28px;padding:2px;border-radius:4px;border:1px solid var(--border);background:var(--bg4);cursor:pointer">
           <button class="btn btn-sm" onclick="lmrInsertImg('psychology')" style="color:var(--gold)">🖼 Image</button>
         </div>
         <div class="lmr-page-content" id="psychology-content" contenteditable="true" spellcheck="false" data-page="psychology"
@@ -2447,8 +2479,25 @@ function tradingDaysBetween(start, end){
   }
   return days;
 }
+// Day count = sequential based on actual entries created, NOT calendar days
+function getNextDayCount(){
+  const counts=Object.values(state.daily).map(e=>Number(e.dayCount)||0).filter(Boolean);
+  return counts.length ? Math.max(...counts)+1 : state.dayCountStart;
+}
 function dayCountFor(dateStr){
-  return state.dayCountStart + tradingDaysBetween(state.dayCountStartDate, dateStr);
+  // Use stored count if entry exists
+  if(state.daily[dateStr]?.dayCount) return state.daily[dateStr].dayCount;
+  // Fallback: find the nearest prior entry's count and add offset
+  const sortedEntries=Object.keys(state.daily).filter(d=>state.daily[d]?.dayCount).sort();
+  const priorEntries=sortedEntries.filter(d=>d<dateStr);
+  if(priorEntries.length){
+    // Count only dates that have entries between last known and this date
+    const lastEntry=priorEntries[priorEntries.length-1];
+    const lastCount=state.daily[lastEntry].dayCount;
+    const entriesAfter=sortedEntries.filter(d=>d>lastEntry&&d<=dateStr);
+    return lastCount+entriesAfter.length+1;
+  }
+  return state.dayCountStart;
 }
 
 // ============= NAVIGATION =============
@@ -2543,20 +2592,31 @@ async function updateSidebarProfile(){
   const p=state.profile||{};
   const name=p.name||'Lunitic';
   const role=p.role||'LMR Trader';
+  // Update header name/role (consolidated profile in sb-head)
   const nameEl=document.getElementById('sb-profile-name');
   const roleEl=document.getElementById('sb-profile-role');
-  const initialsEl=document.getElementById('sb-avatar-initials');
+  const logoInitials=document.getElementById('sb-logo-initials');
   const unEl=document.getElementById('tb-username');
   if(nameEl)nameEl.textContent=name;
   if(roleEl)roleEl.textContent=role;
-  if(initialsEl)initialsEl.textContent=name.charAt(0).toUpperCase();
+  if(logoInitials)logoInitials.textContent=name.charAt(0).toUpperCase();
   if(unEl)unEl.textContent=name;
-  // Photo
+  // Photo in logo icon
   const blob=await getImg('profile-photo');
-  const thumbDiv=document.getElementById('sb-avatar-thumb');
-  if(blob&&thumbDiv){
+  const logoPhoto=document.getElementById('sb-logo-photo');
+  const logoIni=document.getElementById('sb-logo-initials');
+  if(blob&&logoPhoto){
     const url=URL.createObjectURL(blob);
-    thumbDiv.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    logoPhoto.src=url;logoPhoto.style.display='block';
+    if(logoIni)logoIni.style.display='none';
+  }
+  // Also update big avatar in settings profile tab
+  const avatarImg=document.getElementById('profileAvatarImg');
+  const avatarInitials=document.getElementById('profileAvatarInitials');
+  if(blob&&avatarImg){
+    const url2=URL.createObjectURL(blob);
+    avatarImg.src=url2;avatarImg.style.display='block';
+    if(avatarInitials)avatarInitials.style.display='none';
   }
 }
 function pickProfilePhoto(){
@@ -2651,6 +2711,8 @@ function getImgKey(z){
   if(z.dataset.week) return `${state.currentMonth}-W${state.currentWeek}-${base}`;
   if(base.startsWith('m-')) return `${state.currentMonth}-${base}`;
   if(base.startsWith('today-')) return `${todayStr()}-${base}`;
+  // Today panel dm-* keys (shared with Day Modal for same date)
+  if(z.dataset.today!==undefined && base.startsWith('dm-')) return `${todayStr()}-${base}`;
   return base;
 }
 async function renderImgZone(z){
@@ -2738,6 +2800,9 @@ function loadDaily(){
 }
 function saveDaily(){
   const ds=todayStr();
+  // Assign new sequential day count if this is the first save for this date
+  const existingCount=state.daily[ds]?.dayCount;
+  const dayCount=existingCount||getNextDayCount();
   state.daily[ds]={
     weekly:document.getElementById('ch-weekly').value,
     bias:getChipsValues('dbias',false),
@@ -2752,7 +2817,7 @@ function saveDaily(){
     htfpoi:document.getElementById('ch-poi').value,
     weekdraws:document.getElementById('ch-draws').value,
     rth:document.getElementById('ch-rth').value,
-    dayCount:dayCountFor(ds),
+    dayCount,
     savedAt:new Date().toISOString()
   };
   save();
@@ -3203,34 +3268,85 @@ function renderTransSummary(){
 
 // ============= NOTES =============
 function openNoteModal(){document.getElementById('nm-date').value=todayStr();document.getElementById('noteModal').classList.add('show')}
-function saveNote(){
+async function saveNote(){
+  const id=Date.now();
   const n={
-    id:Date.now(),title:document.getElementById('nm-title').value,
-    date:document.getElementById('nm-date').value,
+    id,title:document.getElementById('nm-title').value,
+    type:document.getElementById('nm-jtype').value||'lesson',
+    date:document.getElementById('nm-date').value||todayStr(),
     text:document.getElementById('nm-text').value,
+    imgKey:`note-img-${id}`,
+    dayCount:getNextDayCount(),
     createdAt:new Date().toISOString()
   };
   if(!n.title&&!n.text){alert('Add title or content');return}
-  state.notes.unshift(n);save();closeModal('noteModal');renderNotesList();
+  // Save image if one was picked in the zone
+  const imgZone=document.getElementById('nm-img-zone');
+  if(imgZone){imgZone.dataset.imgkey=n.imgKey;}
+  state.notes.unshift(n);save();
   ['nm-title','nm-text'].forEach(id=>document.getElementById(id).value='');
-  flash('✓ Note saved');
+  // Reset image zone
+  if(imgZone){imgZone.dataset.imgkey='note-img-placeholder';imgZone.classList.remove('has-img');imgZone.innerHTML='<div class="img-zone-text">📋 Paste or click to attach image</div>';}
+  renderNotesList();
+  flash('✓ Journal entry saved');
 }
 function deleteNote(id){if(!confirm('Delete?'))return;state.notes=state.notes.filter(n=>n.id!==id);save();renderNotesList()}
+
+async function openNoteDetail(id){
+  const n=state.notes.find(x=>x.id===id)||state.journal.find(x=>x.id===id);
+  if(!n)return;
+  const typeColors={lesson:'var(--blue)',bull:'var(--bull)',bear:'var(--bear)',neutral:'var(--text2)'};
+  const typeLabel={lesson:'💡 Lesson',bull:'✅ Win',bear:'❌ Loss/Mistake',neutral:'📝 Note'};
+  const dc=n.dayCount||dayCountFor(n.date||todayStr());
+  let imgHtml='';
+  const imgKey=n.imgKey||`note-img-${n.id}`;
+  const blob=await getImg(imgKey);
+  if(blob){
+    const url=URL.createObjectURL(blob);
+    imgHtml=`<div style="margin-top:12px"><img src="${url}" style="max-width:100%;border-radius:var(--r2);cursor:zoom-in;border:1px solid var(--border2)" onclick="openLightbox('${url}')"></div>`;
+  }
+  const modal=document.createElement('div');
+  modal.className='modal-bg show';
+  modal.innerHTML=`<div class="modal" style="max-width:640px">
+    <div class="modal-head">
+      <span style="font-size:11px;padding:3px 9px;border-radius:99px;background:rgba(255,255,255,.07);color:${typeColors[n.type]||'var(--text2)'};font-weight:700;margin-right:8px">${typeLabel[n.type]||n.type}</span>
+      <div class="modal-title">${n.title||'Journal Entry'}</div>
+      <div style="font-size:10px;color:var(--text3);margin-left:8px">D${dc} · ${n.date||''}</div>
+      <button class="close" style="margin-left:auto" onclick="this.closest('.modal-bg').remove()">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:var(--text2);line-height:1.75;white-space:pre-wrap">${n.text||''}</div>
+      ${imgHtml}
+    </div>
+  </div>`;
+  modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
+  document.body.appendChild(modal);
+}
+
 function renderNotesList(){
   const w=document.getElementById('notesList');
-  if(!state.notes.length){w.innerHTML='<div class="empty">No notes yet. Press N to add.</div>';return}
-  w.innerHTML=state.notes.map(n=>`
-    <div style="padding:12px;background:var(--bg3);border-radius:var(--r);margin-bottom:8px;border-left:3px solid var(--pur)">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div style="font-size:13px;font-weight:600">${n.title||'(no title)'}</div>
-        <div style="display:flex;gap:6px;align-items:center">
-          <span class="mono" style="font-size:10px;color:var(--text3)">${n.date?'Day '+dayCountFor(n.date)+' · '+n.date:''}</span>
-          <button class="btn btn-sm btn-bear" onclick="deleteNote(${n.id})">✗</button>
+  // Merge notes + old journal entries, sort newest first
+  const allEntries=[...state.notes,...(state.journal||[])].sort((a,b)=>b.id-a.id);
+  if(!allEntries.length){w.innerHTML='<div class="empty">No entries yet. Click + Entry to add.</div>';return}
+  w.innerHTML=allEntries.map(n=>{
+    const dc=n.dayCount||dayCountFor(n.date||todayStr());
+    const typeColor={lesson:'var(--blue)',bull:'var(--bull)',bear:'var(--bear)',neutral:'var(--text3)'}[n.type]||'var(--text3)';
+    const typeDot={lesson:'#5B8FFF',bull:'#00D4A4',bear:'#FF4060',neutral:'#555'}[n.type]||'#555';
+    const isNote=state.notes.some(x=>x.id===n.id);
+    return `<div class="j-entry ${n.type||'neutral'}" onclick="openNoteDetail(${n.id})" style="cursor:pointer">
+      <div class="j-date">
+        <span style="display:flex;align-items:center;gap:6px">
+          <span style="width:7px;height:7px;border-radius:50%;background:${typeDot};display:inline-block"></span>
+          D${dc} · ${fmtDate(n.date||todayStr())}
+        </span>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-sm" style="font-size:9px;padding:2px 6px" onclick="event.stopPropagation();openNoteDetail(${n.id})">Open</button>
+          ${isNote?`<button class="btn btn-sm btn-bear" style="font-size:9px;padding:2px 6px" onclick="event.stopPropagation();deleteNote(${n.id})">✗</button>`:''}
         </div>
       </div>
-      <div style="font-size:12px;color:var(--text2);white-space:pre-wrap;line-height:1.5">${n.text||''}</div>
-    </div>
-  `).join('');
+      <div class="j-text" style="max-height:60px;overflow:hidden;text-overflow:ellipsis">${n.title?`<b>${n.title}</b> — `:''}${(n.text||'').slice(0,140)}${(n.text||'').length>140?'…':''}</div>
+    </div>`;
+  }).join('');
 }
 
 // ============= JOURNAL =============
@@ -3908,8 +4024,9 @@ function openDayModal(ds){
 }
 function saveDayModal(){
   const ds=document.getElementById('dm-ds').value;
+  const existingDayCount=state.daily[ds]?.dayCount;
   state.daily[ds]={...(state.daily[ds]||{}),
-    dayCount:dayCountFor(ds),
+    dayCount:existingDayCount||getNextDayCount(),
     bias:document.getElementById('dm-bias').value,
     session:document.getElementById('dm-session').value,
     plan:document.getElementById('dm-plan').value,
@@ -3995,15 +4112,38 @@ function lmrFmt(tag,pageId='terminology'){
   if(tag==='h1')document.execCommand('formatBlock',false,'h1');
   else if(tag==='h2')document.execCommand('formatBlock',false,'h2');
   else if(tag==='h3')document.execCommand('formatBlock',false,'h3');
+  else if(tag==='h4')document.execCommand('formatBlock',false,'h4');
   else if(tag==='p')document.execCommand('formatBlock',false,'p');
   else if(tag==='b')document.execCommand('bold');
   else if(tag==='i')document.execCommand('italic');
   else if(tag==='ul')document.execCommand('insertUnorderedList');
-  else if(tag==='hr'){document.execCommand('insertHorizontalRule');}
+  else if(tag==='ol')document.execCommand('insertOrderedList');
+  else if(tag==='hr')document.execCommand('insertHorizontalRule');
   else if(tag==='quote')document.execCommand('formatBlock',false,'blockquote');
+  else if(tag==='toggle'){
+    // Insert a collapsible toggle section
+    const toggle=document.createElement('div');
+    toggle.className='lmr-toggle open';
+    toggle.innerHTML=`<div class="lmr-toggle-head" contenteditable="false" onclick="this.parentElement.classList.toggle('open')">Section Title (click to toggle)</div><div class="lmr-toggle-body" contenteditable="true"><br></div>`;
+    const sel=window.getSelection();
+    if(sel&&sel.rangeCount){const r=sel.getRangeAt(0);r.deleteContents();r.insertNode(toggle);}
+    else el.appendChild(toggle);
+  }
   autoSave(pageId,()=>saveLmrPage(pageId),1200);
 }
 function lmrFmtPsych(tag){lmrFmt(tag,'psychology');}
+function lmrSetFontSize(size,pageId){
+  if(!size)return;
+  const el=document.getElementById(pageId+'-content');if(!el)return;el.focus();
+  document.execCommand('fontSize',false,'7');
+  el.querySelectorAll('font[size="7"]').forEach(f=>{f.removeAttribute('size');f.style.fontSize=size;});
+  autoSave(pageId,()=>saveLmrPage(pageId),1200);
+}
+function lmrSetColor(color,pageId){
+  const el=document.getElementById(pageId+'-content');if(!el)return;el.focus();
+  document.execCommand('foreColor',false,color);
+  autoSave(pageId,()=>saveLmrPage(pageId),1200);
+}
 
 // ── LMR INLINE IMAGE ────────────────────────────────────────────
 let _lmrImgPageId='terminology';
@@ -4306,9 +4446,9 @@ async function _sbDoPull() {
     _sb.from('monthly').select('*'),
     _sb.from('weekly').select('*'),
   ]);
-  state.trades = (tr.data||[]).map(t => ({ ...t, id: Number(t.id)||t.id }));
-  state.accounts = (ac.data||[]).map(a => ({ ...a, id: Number(a.id)||a.id }));
-  state.transactions = (tx.data||[]).map(x => ({ ...x, id: Number(x.id)||x.id }));
+  state.trades = (tr.data||[]).map(t => ({ ...t, id: Number(t.id)||t.id, pnl:parseFloat(t.pnl)||0, risk:parseFloat(t.risk)||0, lots:parseFloat(t.lots)||0, rr:parseFloat(t.rr)||0 }));
+  state.accounts = (ac.data||[]).map(a => ({ ...a, id: Number(a.id)||a.id, deposit:parseFloat(a.deposit)||0 }));
+  state.transactions = (tx.data||[]).map(x => ({ ...x, id: Number(x.id)||x.id, amount:parseFloat(x.amount)||0 }));
   state.notes = (no.data||[]).map(n => ({ ...n, id: Number(n.id)||n.id }));
   state.journal = (ju.data||[]).map(j => ({ ...j, id: Number(j.id)||j.id }));
   state.daily = {};
