@@ -1772,7 +1772,7 @@ Midnight Open $______"></textarea>
         </div>
         <button class="btn btn-sm" onclick="sbDoSignOut()">Sign Out</button>
       </div>
-      <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Auto-syncing every 5 seconds ✓</div>
+      <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Syncs 30s after each save + on tab close ✓</div>
       <div style="display:flex;gap:8px">
         <button class="btn btn-primary btn-sm" style="flex:1" onclick="sbPushNow()">Force Push Now</button>
         <button class="btn btn-sm" style="flex:1" onclick="sbPullNow()">Pull from Cloud</button>
@@ -2344,44 +2344,101 @@ let state={
 
 function load(){try{const r=localStorage.getItem(STORE_KEY);if(r)state={...state,...JSON.parse(r)}}catch(e){}}
 function save(){
-  try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch(e){alert('Storage: '+e.message)}
-  // Auto-sync to Supabase (debounced 5s) when signed in
-  sbAutoSync();
+  // PRIMARY STORAGE = localStorage. Always reliable, never lost.
+  try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch(e){alert('Storage full: '+e.message)}
+  // Mark data as dirty — needs sync to cloud
+  _sbDirty=true;
+  sbScheduleSync();
 }
 
-// ── AUTO SYNC TO SUPABASE ────────────────────────────────────────
+// ── SAFE CLOUD SYNC ──────────────────────────────────────────────
+// Strategy: localStorage is the source of truth.
+// Cloud sync uses UPSERT (never delete-all), debounced 30s.
+// This prevents data loss if network cuts mid-sync.
 let _sbSyncTimer=null;
-let _sbSyncEnabled=false; // only enable after sign-in confirmed
-function sbAutoSync(){
-  if(!_sb||!_sbSyncEnabled)return;
+let _sbSyncEnabled=false;
+let _sbDirty=false;
+let _sbSyncing=false;
+
+function sbScheduleSync(){
+  if(!_sbSyncEnabled||_sbSyncing)return;
   clearTimeout(_sbSyncTimer);
-  _sbSyncTimer=setTimeout(async()=>{
-    try{
-      const {data:{user}}=await _sb.auth.getUser();
-      if(!user){_sbSyncEnabled=false;return;}
-      await _sbDoPush(user);
-      setSbStatus('✓ Synced '+new Date().toLocaleTimeString(),'var(--bull)');
-    }catch(e){setSbStatus('Sync error','var(--bear)');}
-  },5000);
+  // Debounce: sync 30s after last save (safe window)
+  _sbSyncTimer=setTimeout(()=>sbDoSafeSync(),30000);
 }
-async function _sbDoPush(user){
+
+async function sbDoSafeSync(){
+  if(!_sb||!_sbSyncEnabled||!_sbDirty||_sbSyncing)return;
+  try{
+    const {data:{user}}=await _sb.auth.getUser();
+    if(!user){_sbSyncEnabled=false;return;}
+    _sbSyncing=true;
+    setSbStatus('⟳ Syncing…','var(--gold)');
+    await _sbUpsertAll(user);
+    _sbDirty=false;
+    _sbSyncing=false;
+    const t=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    setSbStatus('✓ Synced '+t,'var(--bull)');
+    localStorage.setItem('lmr_lastSync',new Date().toISOString());
+  }catch(e){
+    _sbSyncing=false;
+    setSbStatus('Sync failed — data safe locally','var(--warn)');
+    // Retry in 60s
+    setTimeout(()=>sbDoSafeSync(),60000);
+  }
+}
+
+// Upsert strategy — never deletes all rows, only inserts/updates
+async function _sbUpsertAll(user){
   const uid=user.id;
-  const tables=['trades','accounts','transactions','notes','journal'];
-  for(const t of tables)await _sb.from(t).delete().eq('user_id',uid);
-  await _sb.from('daily').delete().eq('user_id',uid);
-  await _sb.from('monthly').delete().eq('user_id',uid);
-  await _sb.from('weekly').delete().eq('user_id',uid);
-  if(state.trades.length)await _sb.from('trades').insert(state.trades.map(t=>({...t,id:String(t.id),user_id:uid,models:t.models||[],confirmations:t.confirmations||[],emotions:t.emotions||[],phases:t.phases||[],mmm:t.mmm||[],movement:t.movement||[],tframes:t.tframes||[]})));
-  if(state.accounts.length)await _sb.from('accounts').insert(state.accounts.map(a=>({...a,id:String(a.id),user_id:uid})));
-  if(state.transactions.length)await _sb.from('transactions').insert(state.transactions.map(x=>({...x,id:String(x.id),user_id:uid})));
-  if(state.notes.length)await _sb.from('notes').insert(state.notes.map(n=>({...n,id:String(n.id),user_id:uid})));
-  if(state.journal.length)await _sb.from('journal').insert(state.journal.map(j=>({...j,id:String(j.id),user_id:uid})));
+  // Upsert each collection — safe even if insert fails mid-way
+  if(state.trades.length){
+    await _sb.from('trades').upsert(
+      state.trades.map(t=>({...t,id:String(t.id),user_id:uid,
+        models:t.models||[],confirmations:t.confirmations||[],
+        emotions:t.emotions||[],phases:t.phases||[],
+        mmm:t.mmm||[],movement:t.movement||[],tframes:t.tframes||[]})),
+      {onConflict:'id'}
+    );
+  }
+  if(state.accounts.length){
+    await _sb.from('accounts').upsert(
+      state.accounts.map(a=>({...a,id:String(a.id),user_id:uid})),
+      {onConflict:'id'}
+    );
+  }
+  if(state.transactions.length){
+    await _sb.from('transactions').upsert(
+      state.transactions.map(x=>({...x,id:String(x.id),user_id:uid})),
+      {onConflict:'id'}
+    );
+  }
+  if(state.notes.length){
+    await _sb.from('notes').upsert(
+      state.notes.map(n=>({...n,id:String(n.id),user_id:uid})),
+      {onConflict:'id'}
+    );
+  }
+  if(state.journal.length){
+    await _sb.from('journal').upsert(
+      state.journal.map(j=>({...j,id:String(j.id),user_id:uid})),
+      {onConflict:'id'}
+    );
+  }
+  // Daily, Monthly, Weekly — upsert by primary key
   const dailyRows=Object.entries(state.daily).map(([date,d])=>({...d,date,user_id:uid}));
-  if(dailyRows.length)await _sb.from('daily').insert(dailyRows);
+  if(dailyRows.length)await _sb.from('daily').upsert(dailyRows,{onConflict:'date,user_id'});
   const monthlyRows=Object.entries(state.monthly).map(([key,data])=>({key,data,user_id:uid}));
-  if(monthlyRows.length)await _sb.from('monthly').insert(monthlyRows);
+  if(monthlyRows.length)await _sb.from('monthly').upsert(monthlyRows,{onConflict:'key,user_id'});
   const weeklyRows=Object.entries(state.weekly).map(([week_key,data])=>({week_key,data,user_id:uid}));
-  if(weeklyRows.length)await _sb.from('weekly').insert(weeklyRows);
+  if(weeklyRows.length)await _sb.from('weekly').upsert(weeklyRows,{onConflict:'week_key,user_id'});
+}
+
+// Legacy function kept for manual "Force Push" button
+function sbAutoSync(){sbScheduleSync();}
+async function _sbDoPush(user){
+  // Safe push = upsert (never wipe-all)
+  await _sbUpsertAll(user);
 }
 
 // ============= UTILS =============
@@ -4484,6 +4541,14 @@ window.addEventListener('DOMContentLoaded', () => {
     await sbRefreshUI();
     await sbAutoLoadOnStart();
   }, 800);
+});
+
+// Sync when tab goes to background or page closes
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden'&&_sbDirty)sbDoSafeSync();
+});
+window.addEventListener('pagehide',()=>{
+  if(_sbDirty)sbDoSafeSync();
 });
 </script>
 
