@@ -1708,25 +1708,46 @@ Midnight Open $______"></textarea>
 
   <!-- ── CLOUD TAB ── -->
   <div id="set-tab-cloud" style="padding:16px 18px;display:none">
-    <div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px">☁ Cloud Sync</div>
-    <span id="cloud-status" style="font-size:11px;color:var(--text3)">Loading…</span>
-    <div id="cloud-auth" style="margin-top:8px">
-      <div class="form-row" style="margin-bottom:8px"><label class="form-label">Email</label><input type="email" id="sb-email" placeholder="you@example.com"></div>
+
+    <!-- Status banner -->
+    <div style="background:rgba(0,212,164,.07);border:1px solid rgba(0,212,164,.18);border-radius:var(--r2);padding:10px 14px;margin-bottom:14px">
+      <div style="font-size:9px;font-weight:700;color:var(--bull);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">☁ Supabase Database</div>
+      <div id="cloud-status" style="font-size:12px;color:var(--text2);font-weight:600">Loading…</div>
+    </div>
+
+    <!-- How it works -->
+    <div style="font-size:10px;color:var(--text3);line-height:1.6;margin-bottom:14px;padding:10px 12px;background:rgba(255,255,255,.03);border-radius:var(--r);border:1px solid var(--border)">
+      <b style="color:var(--text2)">How it works:</b><br>
+      Sign in → your data saves automatically to Supabase every 5 seconds. Open the app on any device, sign in, and all your data loads instantly.
+    </div>
+
+    <div id="cloud-auth">
+      <div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px">Sign In to Your Database</div>
+      <div class="form-row" style="margin-bottom:8px"><label class="form-label">Email</label><input type="email" id="sb-email" placeholder="admin@lmrcapitals.com"></div>
       <div class="form-row" style="margin-bottom:8px"><label class="form-label">Password</label><input type="password" id="sb-pass" placeholder="••••••••"></div>
-      <div class="flex-row" style="margin-top:8px;gap:8px">
-        <button class="btn btn-sm btn-primary" onclick="sbDoSignIn()">Sign In</button>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-primary" style="flex:1" onclick="sbDoSignIn()">Sign In & Sync</button>
         <button class="btn btn-sm" onclick="sbDoSignUp()">Create Account</button>
       </div>
       <div id="sb-auth-err" style="color:var(--bear);font-size:11px;margin-top:6px;display:none"></div>
     </div>
+
     <div id="cloud-user" style="display:none;margin-top:8px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <span id="cloud-user-email" style="font-size:12px;color:var(--text2)"></span>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:10px 12px;background:rgba(0,212,164,.06);border:1px solid rgba(0,212,164,.18);border-radius:var(--r2)">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--bull)">✓ Connected</div>
+          <div id="cloud-user-email" style="font-size:10px;color:var(--text2);margin-top:2px"></div>
+        </div>
         <button class="btn btn-sm" onclick="sbDoSignOut()">Sign Out</button>
       </div>
-      <div class="flex-row" style="gap:8px">
-        <button class="btn btn-sm btn-primary" onclick="sbPushNow()">Push to Cloud</button>
-        <button class="btn btn-sm" onclick="sbPullNow()">Pull from Cloud</button>
+      <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Auto-syncing every 5 seconds ✓</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" style="flex:1" onclick="sbPushNow()">Force Push Now</button>
+        <button class="btn btn-sm" style="flex:1" onclick="sbPullNow()">Pull from Cloud</button>
+      </div>
+      <div style="margin-top:10px;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:var(--r);border:1px solid var(--border);font-size:10px;color:var(--text3)">
+        <b style="color:var(--text2)">App link (any device):</b><br>
+        <span style="color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:10px;word-break:break-all">https://famous-crumble-827e75.netlify.app</span>
       </div>
     </div>
   </div>
@@ -2289,7 +2310,45 @@ let state={
 };
 
 function load(){try{const r=localStorage.getItem(STORE_KEY);if(r)state={...state,...JSON.parse(r)}}catch(e){}}
-function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch(e){alert('Storage: '+e.message)}}
+function save(){
+  try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch(e){alert('Storage: '+e.message)}
+  // Auto-sync to Supabase (debounced 5s) when signed in
+  sbAutoSync();
+}
+
+// ── AUTO SYNC TO SUPABASE ────────────────────────────────────────
+let _sbSyncTimer=null;
+function sbAutoSync(){
+  if(!_sb)return; // not initialised
+  clearTimeout(_sbSyncTimer);
+  _sbSyncTimer=setTimeout(async()=>{
+    try{
+      const {data:{user}}=await _sb.auth.getUser();
+      if(!user)return;
+      await _sbDoPush(user);
+      setSbStatus('✓ Auto-synced '+new Date().toLocaleTimeString(),'var(--bull)');
+    }catch(e){setSbStatus('Sync error','var(--bear)');}
+  },5000);
+}
+async function _sbDoPush(user){
+  const uid=user.id;
+  const tables=['trades','accounts','transactions','notes','journal'];
+  for(const t of tables)await _sb.from(t).delete().eq('user_id',uid);
+  await _sb.from('daily').delete().eq('user_id',uid);
+  await _sb.from('monthly').delete().eq('user_id',uid);
+  await _sb.from('weekly').delete().eq('user_id',uid);
+  if(state.trades.length)await _sb.from('trades').insert(state.trades.map(t=>({...t,id:String(t.id),user_id:uid,models:t.models||[],confirmations:t.confirmations||[],emotions:t.emotions||[],phases:t.phases||[],mmm:t.mmm||[],movement:t.movement||[],tframes:t.tframes||[]})));
+  if(state.accounts.length)await _sb.from('accounts').insert(state.accounts.map(a=>({...a,id:String(a.id),user_id:uid})));
+  if(state.transactions.length)await _sb.from('transactions').insert(state.transactions.map(x=>({...x,id:String(x.id),user_id:uid})));
+  if(state.notes.length)await _sb.from('notes').insert(state.notes.map(n=>({...n,id:String(n.id),user_id:uid})));
+  if(state.journal.length)await _sb.from('journal').insert(state.journal.map(j=>({...j,id:String(j.id),user_id:uid})));
+  const dailyRows=Object.entries(state.daily).map(([date,d])=>({...d,date,user_id:uid}));
+  if(dailyRows.length)await _sb.from('daily').insert(dailyRows);
+  const monthlyRows=Object.entries(state.monthly).map(([key,data])=>({key,data,user_id:uid}));
+  if(monthlyRows.length)await _sb.from('monthly').insert(monthlyRows);
+  const weeklyRows=Object.entries(state.weekly).map(([week_key,data])=>({week_key,data,user_id:uid}));
+  if(weeklyRows.length)await _sb.from('weekly').insert(weeklyRows);
+}
 
 // ============= UTILS =============
 // NY-aware date string (always returns YYYY-MM-DD in America/New_York)
@@ -4083,14 +4142,18 @@ async function sbRefreshUI() {
   try {
     const { data: { user: u } } = await _sb.auth.getUser();
     if (u) {
-      auth.style.display = 'none';
-      user.style.display = '';
-      document.getElementById('cloud-user-email').textContent = u.email;
-      setSbStatus('✓ Signed in', 'var(--bull)');
+      if(auth)auth.style.display = 'none';
+      if(user)user.style.display = '';
+      const emailEl=document.getElementById('cloud-user-email');
+      if(emailEl)emailEl.textContent = u.email;
+      setSbStatus('✓ Auto-sync ON — ' + u.email, 'var(--bull)');
+      // Update sidebar save status
+      const ss=document.getElementById('sb-save-status');
+      if(ss){ss.textContent='Cloud sync ON';ss.style.color='var(--bull)';}
     } else {
-      auth.style.display = '';
-      user.style.display = 'none';
-      setSbStatus('Not signed in', 'var(--text3)');
+      if(auth)auth.style.display = '';
+      if(user)user.style.display = 'none';
+      setSbStatus('Not signed in — data is local only', 'var(--text3)');
     }
   } catch (e) {
     setSbStatus('Connection error', 'var(--bear)');
@@ -4108,6 +4171,14 @@ async function sbDoSignIn() {
   const { error } = await _sb.auth.signInWithPassword({ email, password: pass });
   if (error) { err.textContent = error.message; err.style.display = ''; setSbStatus('Sign-in failed', 'var(--bear)'); return; }
   await sbRefreshUI();
+  // After sign-in, pull from cloud if local is empty, otherwise push current local data
+  const hasData = state.trades.length > 0 || state.accounts.length > 0 || Object.keys(state.daily).length > 0;
+  if (hasData) {
+    setSbStatus('⟳ Pushing local data to cloud…', 'var(--gold)');
+    try { const {data:{user:u}} = await _sb.auth.getUser(); await _sbDoPush(u); setSbStatus('✓ Synced to cloud', 'var(--bull)'); flash('✓ Signed in — data synced to cloud'); } catch(e) {}
+  } else {
+    await sbAutoLoadOnStart();
+  }
 }
 
 async function sbDoSignUp() {
@@ -4134,31 +4205,59 @@ async function sbPushNow() {
   if (!user) { flash('Sign in first'); return; }
   setSbStatus('⟳ Pushing…', 'var(--gold)');
   try {
-    // Wipe + replace all rows for this user
-    const tables = ['trades', 'accounts', 'transactions', 'notes', 'journal'];
-    for (const t of tables) await _sb.from(t).delete().eq('user_id', user.id);
-    await _sb.from('daily').delete().eq('user_id', user.id);
-    await _sb.from('monthly').delete().eq('user_id', user.id);
-    await _sb.from('weekly').delete().eq('user_id', user.id);
-
-    if (state.trades.length) await _sb.from('trades').insert(state.trades.map(t => ({ ...t, id: String(t.id), user_id: user.id, models: t.models||[], confirmations: t.confirmations||[], emotions: t.emotions||[], phases: t.phases||[], mmm: t.mmm||[], movement: t.movement||[], tframes: t.tframes||[] })));
-    if (state.accounts.length) await _sb.from('accounts').insert(state.accounts.map(a => ({ ...a, id: String(a.id), user_id: user.id })));
-    if (state.transactions.length) await _sb.from('transactions').insert(state.transactions.map(x => ({ ...x, id: String(x.id), user_id: user.id })));
-    if (state.notes.length) await _sb.from('notes').insert(state.notes.map(n => ({ ...n, id: String(n.id), user_id: user.id })));
-    if (state.journal.length) await _sb.from('journal').insert(state.journal.map(j => ({ ...j, id: String(j.id), user_id: user.id })));
-    const dailyRows = Object.entries(state.daily).map(([date, d]) => ({ ...d, date, user_id: user.id }));
-    if (dailyRows.length) await _sb.from('daily').insert(dailyRows);
-    const monthlyRows = Object.entries(state.monthly).map(([key, data]) => ({ key, data, user_id: user.id }));
-    if (monthlyRows.length) await _sb.from('monthly').insert(monthlyRows);
-    const weeklyRows = Object.entries(state.weekly).map(([week_key, data]) => ({ week_key, data, user_id: user.id }));
-    if (weeklyRows.length) await _sb.from('weekly').insert(weeklyRows);
-
-    setSbStatus('✓ Pushed', 'var(--bull)');
+    await _sbDoPush(user);
+    setSbStatus('✓ Pushed to cloud', 'var(--bull)');
     flash('✓ Pushed to cloud');
   } catch (e) {
     setSbStatus('Push failed', 'var(--bear)');
     flash('Push error: ' + e.message);
   }
+}
+
+async function sbAutoLoadOnStart() {
+  if (!sbInit()) return;
+  try {
+    const { data: { user } } = await _sb.auth.getUser();
+    if (!user) return;
+    // Only auto-pull if local state is empty (fresh browser)
+    const hasLocalData = state.trades.length > 0 || state.accounts.length > 0 || Object.keys(state.daily).length > 0;
+    if (hasLocalData) {
+      setSbStatus('✓ Signed in — ' + user.email.split('@')[0], 'var(--bull)');
+      return;
+    }
+    setSbStatus('⟳ Loading from cloud…', 'var(--gold)');
+    await _sbDoPull();
+    setSbStatus('✓ Loaded from cloud', 'var(--bull)');
+    flash('✓ Data loaded from cloud');
+    setTimeout(() => location.reload(), 600);
+  } catch (e) {
+    setSbStatus('Cloud load failed', 'var(--bear)');
+  }
+}
+
+async function _sbDoPull() {
+  const [tr, ac, tx, no, ju, da, mo, we] = await Promise.all([
+    _sb.from('trades').select('*'),
+    _sb.from('accounts').select('*'),
+    _sb.from('transactions').select('*'),
+    _sb.from('notes').select('*'),
+    _sb.from('journal').select('*'),
+    _sb.from('daily').select('*'),
+    _sb.from('monthly').select('*'),
+    _sb.from('weekly').select('*'),
+  ]);
+  state.trades = (tr.data||[]).map(t => ({ ...t, id: Number(t.id)||t.id }));
+  state.accounts = (ac.data||[]).map(a => ({ ...a, id: Number(a.id)||a.id }));
+  state.transactions = (tx.data||[]).map(x => ({ ...x, id: Number(x.id)||x.id }));
+  state.notes = (no.data||[]).map(n => ({ ...n, id: Number(n.id)||n.id }));
+  state.journal = (ju.data||[]).map(j => ({ ...j, id: Number(j.id)||j.id }));
+  state.daily = {};
+  (da.data||[]).forEach(d => { state.daily[d.date] = d; });
+  state.monthly = {};
+  (mo.data||[]).forEach(m => { state.monthly[m.key] = m.data || {}; });
+  state.weekly = {};
+  (we.data||[]).forEach(w => { state.weekly[w.week_key] = w.data || {}; });
+  try{localStorage.setItem(STORE_KEY, JSON.stringify(state));}catch(e){}
 }
 
 async function sbPullNow() {
@@ -4168,29 +4267,8 @@ async function sbPullNow() {
   if (!confirm('Pull will OVERWRITE your local data with cloud data. Continue?')) return;
   setSbStatus('⟳ Pulling…', 'var(--gold)');
   try {
-    const [tr, ac, tx, no, ju, da, mo, we] = await Promise.all([
-      _sb.from('trades').select('*'),
-      _sb.from('accounts').select('*'),
-      _sb.from('transactions').select('*'),
-      _sb.from('notes').select('*'),
-      _sb.from('journal').select('*'),
-      _sb.from('daily').select('*'),
-      _sb.from('monthly').select('*'),
-      _sb.from('weekly').select('*'),
-    ]);
-    state.trades = (tr.data||[]).map(t => ({ ...t, id: Number(t.id)||t.id }));
-    state.accounts = (ac.data||[]).map(a => ({ ...a, id: Number(a.id)||a.id }));
-    state.transactions = (tx.data||[]).map(x => ({ ...x, id: Number(x.id)||x.id }));
-    state.notes = (no.data||[]).map(n => ({ ...n, id: Number(n.id)||n.id }));
-    state.journal = (ju.data||[]).map(j => ({ ...j, id: Number(j.id)||j.id }));
-    state.daily = {};
-    (da.data||[]).forEach(d => { state.daily[d.date] = d; });
-    state.monthly = {};
-    (mo.data||[]).forEach(m => { state.monthly[m.key] = m.data || {}; });
-    state.weekly = {};
-    (we.data||[]).forEach(w => { state.weekly[w.week_key] = w.data || {}; });
-    save();
-    setSbStatus('✓ Pulled', 'var(--bull)');
+    await _sbDoPull();
+    setSbStatus('✓ Pulled from cloud', 'var(--bull)');
     flash('✓ Pulled from cloud — reloading…');
     setTimeout(() => location.reload(), 600);
   } catch (e) {
@@ -4199,8 +4277,14 @@ async function sbPullNow() {
   }
 }
 
-// Init when DOM ready
-window.addEventListener('DOMContentLoaded', () => { setTimeout(sbRefreshUI, 500); });
+// Init when DOM ready — auto-load from cloud if signed in with empty local state
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(async () => {
+    sbInit();
+    await sbRefreshUI();
+    await sbAutoLoadOnStart();
+  }, 800);
+});
 </script>
 
 <script>
