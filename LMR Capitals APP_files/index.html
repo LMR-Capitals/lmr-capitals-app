@@ -1922,6 +1922,7 @@ Midnight Open $______"></textarea>
 <input type="file" id="fileInput" accept="image/*" style="display:none">
 <input type="file" id="profilePhotoInput" accept="image/*" style="display:none">
 <input type="file" id="lmrInlineImgInput" accept="image/*" style="display:none">
+<input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="importData(event)">
 
 <!-- PWA Install Bar -->
 <div id="pwa-install-bar">
@@ -3585,7 +3586,52 @@ async function exportData(){
 }
 function blobToB64(b){return new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result);r.readAsDataURL(b)})}
 function b64ToBlob(s){const [m,d]=s.split(',');const mt=m.match(/:(.*?);/)[1];const bin=atob(d);const arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);return new Blob([arr],{type:mt})}
-function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=async ev=>{try{const p=JSON.parse(ev.target.result);if(!confirm('Replace all?'))return;state={...state,...p.state};if(p.images)for(const [k,b] of Object.entries(p.images))await saveImg(k,b64ToBlob(b));save();location.reload()}catch(err){alert('Error: '+err.message)}};r.readAsText(f)}
+function importData(e){
+  const f=e.target.files[0];if(!f)return;
+  e.target.value=''; // reset so same file can be picked again
+  const r=new FileReader();
+  r.onload=async ev=>{
+    try{
+      const raw=JSON.parse(ev.target.result);
+      if(!confirm('Import will replace ALL current data. Continue?'))return;
+      // Support both formats:
+      // 1. {state:{...}, images:{...}}  — from exportData()
+      // 2. raw state object directly
+      let importedState, importedImages={};
+      if(raw.state && typeof raw.state==='object'){
+        importedState=raw.state;
+        importedImages=raw.images||{};
+      } else if(raw.trades||raw.accounts||raw.daily||raw.monthly){
+        importedState=raw; // raw state blob
+      } else {
+        alert('Unrecognised file format. Make sure you exported from LMR Capitals.');
+        return;
+      }
+      // Merge into state (keep settings like dayCountStart)
+      state={
+        ...state,
+        ...importedState,
+        dayCountStart: importedState.dayCountStart||state.dayCountStart,
+        dayCountStartDate: importedState.dayCountStartDate||state.dayCountStartDate,
+      };
+      // Restore images
+      const imgEntries=Object.entries(importedImages);
+      if(imgEntries.length){
+        flash('⟳ Restoring '+imgEntries.length+' images…');
+        for(const[k,b] of imgEntries)await saveImg(k,b64ToBlob(b));
+      }
+      save();
+      flash('✓ Import complete — '+
+        (state.trades?.length||0)+' trades, '+
+        (state.accounts?.length||0)+' accounts, '+
+        Object.keys(state.daily||{}).length+' daily entries');
+      setTimeout(()=>location.reload(),1200);
+    }catch(err){
+      alert('Import failed: '+err.message+'\n\nMake sure the file is a valid LMR Capitals JSON export.');
+    }
+  };
+  r.readAsText(f);
+}
 async function clearAllData(){if(!confirm('DELETE ALL?'))return;if(!confirm('Really?'))return;localStorage.removeItem(STORE_KEY);const keys=await allImgKeys();for(const k of keys)await delImg(k);location.reload()}
 
 function saveSettings(){
