@@ -1774,12 +1774,15 @@ Midnight Open $______"></textarea>
       </div>
       <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Syncs 30s after each save + on tab close ✓</div>
       <div style="display:flex;gap:8px">
-        <button class="btn btn-primary btn-sm" style="flex:1" onclick="sbPushNow()">Force Push Now</button>
-        <button class="btn btn-sm" style="flex:1" onclick="sbPullNow()">Pull from Cloud</button>
+        <button class="btn btn-primary btn-sm" style="flex:1" onclick="sbPushNow()">⬆ Push to Cloud</button>
+        <button class="btn btn-sm btn-bear" style="flex:1" onclick="sbPullNow()">⬇ Restore from Cloud</button>
       </div>
-      <div style="margin-top:10px;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:var(--r);border:1px solid var(--border);font-size:10px;color:var(--text3)">
-        <b style="color:var(--text2)">App link (any device):</b><br>
-        <span style="color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:10px;word-break:break-all">https://famous-crumble-827e75.netlify.app</span>
+      <div style="margin-top:8px;padding:7px 10px;background:rgba(255,64,96,.06);border-radius:var(--r);border:1px solid rgba(255,64,96,.18);font-size:10px;color:var(--text3)">
+        ⚠ "Restore from Cloud" replaces all local data. Use only to move data from another device.
+      </div>
+      <div style="margin-top:8px;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:var(--r);border:1px solid var(--border);font-size:10px;color:var(--text3)">
+        <b style="color:var(--text2)">App link:</b>
+        <span style="color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:10px;word-break:break-all"> https://famous-crumble-827e75.netlify.app</span>
       </div>
     </div>
   </div>
@@ -2342,11 +2345,42 @@ let state={
   calMonth:'2026-05'
 };
 
-function load(){try{const r=localStorage.getItem(STORE_KEY);if(r)state={...state,...JSON.parse(r)}}catch(e){}}
+function load(){
+  try{
+    const r=localStorage.getItem(STORE_KEY);
+    if(r){
+      const parsed=JSON.parse(r);
+      state={...state,...parsed};
+    }
+    // Always restore backup if primary is empty and backup exists
+    const hasData=state.trades.length||state.accounts.length||Object.keys(state.daily).length;
+    if(!hasData){
+      const bk=localStorage.getItem(STORE_KEY+'_bk');
+      if(bk){const p=JSON.parse(bk);state={...state,...p};console.log('[LMR] Restored from backup');}
+    }
+  }catch(e){console.error('[LMR] load error',e);}
+}
+
 function save(){
-  // PRIMARY STORAGE = localStorage. Always reliable, never lost.
-  try{localStorage.setItem(STORE_KEY,JSON.stringify(state))}catch(e){alert('Storage full: '+e.message)}
-  // Mark data as dirty — needs sync to cloud
+  // Safety: never write completely empty state over existing data
+  const hasNewData=state.trades.length||state.accounts.length||Object.keys(state.daily).length||state.notes.length;
+  const prevRaw=localStorage.getItem(STORE_KEY);
+  if(!hasNewData && prevRaw){
+    try{
+      const prev=JSON.parse(prevRaw);
+      const hadData=prev.trades?.length||prev.accounts?.length||Object.keys(prev.daily||{}).length;
+      if(hadData){
+        console.warn('[LMR] BLOCKED empty-state save — keeping existing data');
+        return; // Don't overwrite good data with empty state
+      }
+    }catch(e){}
+  }
+  // Write to primary key
+  try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){alert('Storage full: '+e.message); return;}
+  // Write backup key (different name so one can't corrupt the other)
+  if(hasNewData){
+    try{localStorage.setItem(STORE_KEY+'_bk',JSON.stringify(state));}catch(e){}
+  }
   _sbDirty=true;
   sbScheduleSync();
 }
@@ -4417,14 +4451,12 @@ async function sbDoSignIn() {
   const { error } = await _sb.auth.signInWithPassword({ email, password: pass });
   if (error) { err.textContent = error.message; err.style.display = ''; setSbStatus('Sign-in failed', 'var(--bear)'); return; }
   await sbRefreshUI();
-  // After sign-in, pull from cloud if local is empty, otherwise push current local data
-  const hasData = state.trades.length > 0 || state.accounts.length > 0 || Object.keys(state.daily).length > 0;
-  if (hasData) {
-    setSbStatus('⟳ Pushing local data to cloud…', 'var(--gold)');
-    try { const {data:{user:u}} = await _sb.auth.getUser(); await _sbDoPush(u); setSbStatus('✓ Synced to cloud', 'var(--bull)'); flash('✓ Signed in — data synced to cloud'); } catch(e) {}
-  } else {
-    await sbAutoLoadOnStart();
-  }
+  // NEVER auto-pull on sign-in — only push local → cloud
+  // User must explicitly click "Pull from Cloud" if they want cloud data
+  setSbStatus('✓ Connected — use Force Push to backup your data', 'var(--bull)');
+  flash('✓ Signed in — cloud backup enabled');
+  _sbDirty = true;
+  sbScheduleSync(); // Push local data to cloud after 30s
 }
 
 async function sbDoSignUp() {
@@ -4460,35 +4492,22 @@ async function sbPushNow() {
   }
 }
 
-let _sbAutoLoadDone = false; // prevent repeat pulls in same session
+// Auto-pull DISABLED — causes data loss when Supabase empty/stale.
+// Pull only happens on explicit "Pull from Cloud" button click.
 async function sbAutoLoadOnStart() {
-  if (_sbAutoLoadDone) return;
   if (!sbInit()) return;
   try {
     const { data: { user } } = await _sb.auth.getUser();
-    if (!user) return;
-    _sbAutoLoadDone = true; // mark so this never runs twice per session
-    // Only pull if local state is empty (fresh browser / new device)
-    const hasLocalData = state.trades.length > 0 || state.accounts.length > 0 || Object.keys(state.daily).length > 0;
-    if (hasLocalData) {
-      setSbStatus('✓ Signed in — ' + user.email.split('@')[0], 'var(--bull)');
-      return;
-    }
-    setSbStatus('⟳ Loading your data from cloud…', 'var(--gold)');
-    await _sbDoPull();
-    // Check if cloud actually had data
-    const gotData = state.trades.length > 0 || state.accounts.length > 0 || Object.keys(state.daily).length > 0;
-    if (gotData) {
-      setSbStatus('✓ Data loaded from cloud', 'var(--bull)');
-      flash('✓ Data loaded from cloud');
-      // Re-render in place — no reload needed
-      updateAllStats();
-      renderDashboard();
-    } else {
-      setSbStatus('✓ Signed in — cloud is empty', 'var(--bull)');
-    }
-  } catch (e) {
-    setSbStatus('Cloud load failed', 'var(--bear)');
+    if (!user) { setSbStatus('Not signed in — data saved locally', 'var(--text3)'); return; }
+    setSbStatus('✓ Connected · ' + user.email.split('@')[0], 'var(--bull)');
+    const ss = document.getElementById('sb-save-status');
+    if(ss){ss.textContent='Cloud sync ON';ss.style.color='var(--bull)';}
+    _sbSyncEnabled = true;
+    _sbDirty = true;
+    // Schedule a push of current local data to cloud (no pull — never auto-pull)
+    sbScheduleSync();
+  } catch(e) {
+    setSbStatus('Cloud check failed', 'var(--text3)');
   }
 }
 
@@ -4521,26 +4540,37 @@ async function sbPullNow() {
   if (!sbInit()) return;
   const { data: { user } } = await _sb.auth.getUser();
   if (!user) { flash('Sign in first'); return; }
-  if (!confirm('Pull will OVERWRITE your local data with cloud data. Continue?')) return;
-  setSbStatus('⟳ Pulling…', 'var(--gold)');
+  if (!confirm('⚠️ PULL FROM CLOUD will REPLACE all your local data with what is stored in Supabase.\n\nOnly do this if you want to restore from a previous push.\n\nContinue?')) return;
+  setSbStatus('⟳ Pulling from cloud…', 'var(--gold)');
   try {
+    // Before pull, backup current local state
+    try{localStorage.setItem(STORE_KEY+'_pre_pull',JSON.stringify(state));}catch(e){}
     await _sbDoPull();
-    setSbStatus('✓ Pulled from cloud', 'var(--bull)');
-    flash('✓ Pulled from cloud — reloading…');
-    setTimeout(() => location.reload(), 600);
+    const gotData = state.trades.length > 0 || state.accounts.length > 0 || Object.keys(state.daily).length > 0;
+    if(gotData){
+      setSbStatus('✓ Restored from cloud', 'var(--bull)');
+      flash('✓ Cloud data restored — reloading…');
+      setTimeout(() => location.reload(), 800);
+    } else {
+      // Cloud was empty — restore the backup we just took
+      const bk=localStorage.getItem(STORE_KEY+'_pre_pull');
+      if(bk){const p=JSON.parse(bk);state={...state,...p};save();}
+      setSbStatus('Cloud is empty — local data restored', 'var(--warn)');
+      flash('⚠ Cloud had no data — your local data was kept');
+    }
   } catch (e) {
     setSbStatus('Pull failed', 'var(--bear)');
     flash('Pull error: ' + e.message);
   }
 }
 
-// Init when DOM ready — auto-load from cloud if signed in with empty local state
+// Init when DOM ready — check auth status and enable sync if signed in
 window.addEventListener('DOMContentLoaded', () => {
   setTimeout(async () => {
     sbInit();
     await sbRefreshUI();
-    await sbAutoLoadOnStart();
-  }, 800);
+    await sbAutoLoadOnStart(); // only checks auth, NO auto-pull
+  }, 1200); // longer delay to ensure init() fully loaded local state first
 });
 
 // Sync when tab goes to background or page closes
