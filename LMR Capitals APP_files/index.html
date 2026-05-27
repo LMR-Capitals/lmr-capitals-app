@@ -2318,15 +2318,16 @@ function save(){
 
 // ── AUTO SYNC TO SUPABASE ────────────────────────────────────────
 let _sbSyncTimer=null;
+let _sbSyncEnabled=false; // only enable after sign-in confirmed
 function sbAutoSync(){
-  if(!_sb)return; // not initialised
+  if(!_sb||!_sbSyncEnabled)return;
   clearTimeout(_sbSyncTimer);
   _sbSyncTimer=setTimeout(async()=>{
     try{
       const {data:{user}}=await _sb.auth.getUser();
-      if(!user)return;
+      if(!user){_sbSyncEnabled=false;return;}
       await _sbDoPush(user);
-      setSbStatus('✓ Auto-synced '+new Date().toLocaleTimeString(),'var(--bull)');
+      setSbStatus('✓ Synced '+new Date().toLocaleTimeString(),'var(--bull)');
     }catch(e){setSbStatus('Sync error','var(--bear)');}
   },5000);
 }
@@ -4142,6 +4143,7 @@ async function sbRefreshUI() {
   try {
     const { data: { user: u } } = await _sb.auth.getUser();
     if (u) {
+      _sbSyncEnabled = true; // enable auto-sync now that user is confirmed
       if(auth)auth.style.display = 'none';
       if(user)user.style.display = '';
       const emailEl=document.getElementById('cloud-user-email');
@@ -4151,6 +4153,7 @@ async function sbRefreshUI() {
       const ss=document.getElementById('sb-save-status');
       if(ss){ss.textContent='Cloud sync ON';ss.style.color='var(--bull)';}
     } else {
+      _sbSyncEnabled = false;
       if(auth)auth.style.display = '';
       if(user)user.style.display = 'none';
       setSbStatus('Not signed in — data is local only', 'var(--text3)');
@@ -4214,22 +4217,33 @@ async function sbPushNow() {
   }
 }
 
+let _sbAutoLoadDone = false; // prevent repeat pulls in same session
 async function sbAutoLoadOnStart() {
+  if (_sbAutoLoadDone) return;
   if (!sbInit()) return;
   try {
     const { data: { user } } = await _sb.auth.getUser();
     if (!user) return;
-    // Only auto-pull if local state is empty (fresh browser)
+    _sbAutoLoadDone = true; // mark so this never runs twice per session
+    // Only pull if local state is empty (fresh browser / new device)
     const hasLocalData = state.trades.length > 0 || state.accounts.length > 0 || Object.keys(state.daily).length > 0;
     if (hasLocalData) {
       setSbStatus('✓ Signed in — ' + user.email.split('@')[0], 'var(--bull)');
       return;
     }
-    setSbStatus('⟳ Loading from cloud…', 'var(--gold)');
+    setSbStatus('⟳ Loading your data from cloud…', 'var(--gold)');
     await _sbDoPull();
-    setSbStatus('✓ Loaded from cloud', 'var(--bull)');
-    flash('✓ Data loaded from cloud');
-    setTimeout(() => location.reload(), 600);
+    // Check if cloud actually had data
+    const gotData = state.trades.length > 0 || state.accounts.length > 0 || Object.keys(state.daily).length > 0;
+    if (gotData) {
+      setSbStatus('✓ Data loaded from cloud', 'var(--bull)');
+      flash('✓ Data loaded from cloud');
+      // Re-render in place — no reload needed
+      updateAllStats();
+      renderDashboard();
+    } else {
+      setSbStatus('✓ Signed in — cloud is empty', 'var(--bull)');
+    }
   } catch (e) {
     setSbStatus('Cloud load failed', 'var(--bear)');
   }
