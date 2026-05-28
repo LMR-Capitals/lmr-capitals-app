@@ -613,11 +613,104 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 /* ── LMR INLINE IMAGE in contenteditable ── */
 .lmr-page-content img{max-width:100%;border-radius:var(--r2);margin:10px 0;display:block;cursor:zoom-in;box-shadow:0 4px 20px rgba(0,0,0,.4)}
 .lmr-page-content img.lmr-inline-img{border:1px solid var(--border2)}
+
+/* ── LOGIN GATE ─────────────────────────────────────────── */
+#loginGate{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;
+  font-family:'Plus Jakarta Sans',sans-serif;
+}
+#loginGate.hidden{display:none}
+.lg-card{
+  width:100%;max-width:400px;padding:40px 36px;
+  background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:20px;
+  box-shadow:0 32px 80px rgba(0,0,0,.6),0 0 0 1px rgba(91,168,255,.06);
+}
+.lg-logo{
+  display:flex;align-items:center;gap:12px;margin-bottom:32px;
+}
+.lg-logo-icon{
+  width:44px;height:44px;border-radius:12px;
+  background:linear-gradient(135deg,var(--gold),#e8a020);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:900;color:#000;letter-spacing:-.5px;
+  box-shadow:0 4px 16px rgba(245,166,35,.3);
+}
+.lg-logo-text{line-height:1.2}
+.lg-logo-name{font-size:18px;font-weight:800;color:var(--text)}
+.lg-logo-sub{font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.lg-title{font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px}
+.lg-sub{font-size:12px;color:var(--text3);margin-bottom:28px}
+.lg-field{margin-bottom:16px}
+.lg-field label{display:block;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.lg-field input{
+  width:100%;padding:11px 14px;
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:10px;color:var(--text);font-size:14px;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  transition:border var(--t);outline:none;
+}
+.lg-field input:focus{border-color:var(--blue)}
+.lg-btn{
+  width:100%;padding:13px;margin-top:8px;
+  background:linear-gradient(135deg,var(--gold),#e8a020);
+  border:none;border-radius:10px;
+  font-size:14px;font-weight:800;color:#000;
+  cursor:pointer;letter-spacing:.01em;
+  transition:opacity .15s,transform .1s;
+  box-shadow:0 4px 16px rgba(245,166,35,.25);
+}
+.lg-btn:hover{opacity:.9;transform:translateY(-1px)}
+.lg-btn:active{transform:translateY(0)}
+.lg-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.lg-err{
+  margin-top:14px;padding:10px 12px;
+  background:rgba(255,64,96,.08);border:1px solid rgba(255,64,96,.25);
+  border-radius:8px;font-size:12px;color:var(--bear);
+  display:none;
+}
+.lg-footer{
+  margin-top:20px;text-align:center;
+  font-size:10px;color:var(--text3);letter-spacing:.04em;
+}
+.lg-footer span{color:var(--gold)}
+@keyframes lgFadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.lg-card{animation:lgFadeIn .35s ease both}
 </style>
 </head>
 <body>
 
-<div class="app">
+<!-- ── LOGIN GATE (shown before app loads) ──────────────── -->
+<div id="loginGate">
+  <div class="lg-card">
+    <div class="lg-logo">
+      <div class="lg-logo-icon">L</div>
+      <div class="lg-logo-text">
+        <div class="lg-logo-name">LMR Capitals</div>
+        <div class="lg-logo-sub">Trading Journal</div>
+      </div>
+    </div>
+    <div class="lg-title">Welcome back</div>
+    <div class="lg-sub">Sign in to access your trading dashboard</div>
+    <div class="lg-field">
+      <label>Email</label>
+      <input type="email" id="lg-email" placeholder="admin@lmrcapitals.com" autocomplete="email">
+    </div>
+    <div class="lg-field">
+      <label>Password</label>
+      <input type="password" id="lg-password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="lg-btn" id="lg-submit" onclick="lgSignIn()">Sign In →</button>
+    <div class="lg-err" id="lg-err"></div>
+    <div class="lg-footer">Secured by <span>Supabase Auth</span> · LMR Capitals © 2026</div>
+  </div>
+</div>
+
+<div class="app" id="mainApp" style="display:none">
 
 <aside class="sidebar" id="sidebar">
   <div class="sb-head" onclick="openSettingsPanel('profile')" style="cursor:pointer;transition:background var(--t)" title="Click to edit profile & settings">
@@ -4586,8 +4679,17 @@ async function sbDoSignUp() {
 
 async function sbDoSignOut() {
   if (!_sb) return;
+  if(!confirm('Sign out of LMR Capitals?\n\nYour data is saved locally and in the cloud.'))return;
   await _sb.auth.signOut();
-  await sbRefreshUI();
+  _sbSyncEnabled=false;_sbUserId=null;
+  // Show login gate again
+  document.getElementById('loginGate').classList.remove('hidden');
+  document.getElementById('mainApp').style.display='none';
+  document.getElementById('lg-email').value='';
+  document.getElementById('lg-password').value='';
+  document.getElementById('lg-err').style.display='none';
+  document.getElementById('lg-submit').disabled=false;
+  document.getElementById('lg-submit').textContent='Sign In →';
 }
 
 async function sbPushNow() {
@@ -4700,13 +4802,66 @@ async function sbPullNow() {
   }
 }
 
-// Init when DOM ready — check auth status and enable sync if signed in
+// ── LOGIN GATE ───────────────────────────────────────────────────────────────
+async function lgSignIn(){
+  if(!sbInit()){alert('Auth service unavailable');return;}
+  const email=document.getElementById('lg-email').value.trim();
+  const pass=document.getElementById('lg-password').value;
+  const err=document.getElementById('lg-err');
+  const btn=document.getElementById('lg-submit');
+  err.style.display='none';
+  if(!email||!pass){err.textContent='Email and password are required.';err.style.display='';return;}
+  btn.disabled=true;btn.textContent='Signing in…';
+  try{
+    const{data,error}=await _sb.auth.signInWithPassword({email,password:pass});
+    if(error)throw error;
+    lgUnlock(data.user);
+  }catch(e){
+    err.textContent=e.message||'Sign-in failed. Check your credentials.';
+    err.style.display='';
+    btn.disabled=false;btn.textContent='Sign In →';
+  }
+}
+
+function lgUnlock(user){
+  // Hide gate, show app
+  document.getElementById('loginGate').classList.add('hidden');
+  document.getElementById('mainApp').style.display='';
+  // Wire Supabase sync
+  _sbSyncEnabled=true;
+  _sbUserId=user.id;
+  const ss=document.getElementById('sb-save-status');
+  if(ss){ss.textContent='☁ Cloud ON';ss.style.color='var(--bull)';}
+  setSbStatus('✓ Real-time sync ON · '+user.email.split('@')[0],'var(--bull)');
+  _sbDirty=true;sbScheduleSync();
+  // Run app init
+  sbRefreshUI();
+  init();
+}
+
+// Allow Enter key on login form
+document.addEventListener('DOMContentLoaded',()=>{
+  ['lg-email','lg-password'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter')lgSignIn();});
+  });
+});
+
+// Init when DOM ready — check for existing session first
 window.addEventListener('DOMContentLoaded', () => {
   setTimeout(async () => {
-    sbInit();
-    await sbRefreshUI();
-    await sbAutoLoadOnStart(); // only checks auth, NO auto-pull
-  }, 1200); // longer delay to ensure init() fully loaded local state first
+    if(!sbInit())return;
+    try{
+      const{data:{user}}=await _sb.auth.getUser();
+      if(user){
+        // Already signed in — skip login screen, go straight to app
+        lgUnlock(user);
+      }
+      // else: login gate stays visible, user must sign in
+    }catch(e){
+      // Network error — still show login gate
+    }
+  }, 400);
 });
 
 // Sync when tab goes to background or page closes
