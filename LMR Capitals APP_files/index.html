@@ -1772,17 +1772,20 @@ Midnight Open $______"></textarea>
         </div>
         <button class="btn btn-sm" onclick="sbDoSignOut()">Sign Out</button>
       </div>
-      <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Syncs 30s after each save + on tab close ✓</div>
+      <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Auto-syncs after every save · real-time backup ✓</div>
       <div style="display:flex;gap:8px">
         <button class="btn btn-primary btn-sm" style="flex:1" onclick="sbPushNow()">⬆ Push to Cloud</button>
         <button class="btn btn-sm btn-bear" style="flex:1" onclick="sbPullNow()">⬇ Restore from Cloud</button>
       </div>
-      <div style="margin-top:8px;padding:7px 10px;background:rgba(255,64,96,.06);border-radius:var(--r);border:1px solid rgba(255,64,96,.18);font-size:10px;color:var(--text3)">
-        ⚠ "Restore from Cloud" replaces all local data. Use only to move data from another device.
+      <div style="margin-top:8px;padding:7px 10px;background:rgba(91,168,255,.06);border-radius:var(--r);border:1px solid rgba(91,168,255,.18);font-size:10px;color:var(--text2)">
+        💡 <b style="color:var(--blue)">Safe workflow:</b> Always use <b>Push to Cloud</b> first to back up your local data, then use Restore only to move data from another device.
+      </div>
+      <div style="margin-top:6px;padding:7px 10px;background:rgba(255,64,96,.06);border-radius:var(--r);border:1px solid rgba(255,64,96,.18);font-size:10px;color:var(--text3)">
+        ⚠ "Restore from Cloud" is protected — it will abort if cloud has fewer trades than your local data.
       </div>
       <div style="margin-top:8px;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:var(--r);border:1px solid var(--border);font-size:10px;color:var(--text3)">
         <b style="color:var(--text2)">App link:</b>
-        <span style="color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:10px;word-break:break-all"> https://famous-crumble-827e75.netlify.app</span>
+        <span style="color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:10px;word-break:break-all"> https://lmrcapitals.com</span>
       </div>
     </div>
   </div>
@@ -2385,9 +2388,11 @@ function save(){
       const prevTrades=prev.trades?.length||0;
       const prevDaily=Object.keys(prev.daily||{}).length;
       const prevAccts=prev.accounts?.length||0;
-      // If we're about to lose significantly more than we have, block the save
+      // If we're about to lose significantly more than we have, block the save AND restore in-memory
       if(prevTrades>tradeCount+1 || prevDaily>dailyCount+2 || prevAccts>acctCount+1){
-        console.warn(`[LMR] BLOCKED regression save: was ${prevTrades}T/${prevDaily}D now ${tradeCount}T/${dailyCount}D`);
+        console.warn(`[LMR] BLOCKED regression save: was ${prevTrades}T/${prevDaily}D now ${tradeCount}T/${dailyCount}D — restoring from localStorage`);
+        // Restore in-memory state from the good localStorage copy so UI reflects real data
+        try{const restored=JSON.parse(prevRaw);state={...state,...restored};ensureState();}catch(ex){}
         return;
       }
     }catch(e){}
@@ -4020,7 +4025,7 @@ function flash(m){const s=document.getElementById('todayStatus');if(!s)return;co
 
 // ============= INIT =============
 async function init(){
-  await openDB();
+  try{ await openDB(); }catch(e){ console.warn('[LMR] IndexedDB unavailable — images will not persist:', e); }
   load();
   // ensure new state keys exist
   if(!state.terminologyPage)state.terminologyPage='';
@@ -4640,7 +4645,14 @@ async function _sbDoPull() {
     _sb.from('monthly').select('*'),
     _sb.from('weekly').select('*'),
   ]);
-  state.trades = (tr.data||[]).map(t => ({ ...t, id: Number(t.id)||t.id, pnl:parseFloat(t.pnl)||0, risk:parseFloat(t.risk)||0, lots:parseFloat(t.lots)||0, rr:parseFloat(t.rr)||0 }));
+  const pulledTrades = (tr.data||[]).map(t => ({ ...t, id: Number(t.id)||t.id, pnl:parseFloat(t.pnl)||0, risk:parseFloat(t.risk)||0, lots:parseFloat(t.lots)||0, rr:parseFloat(t.rr)||0 }));
+  // ── SAFETY: never overwrite more local trades with fewer cloud trades ──
+  // If cloud has significantly fewer trades, abort (Supabase might be empty/stale)
+  if(state.trades.length > 0 && pulledTrades.length < state.trades.length - 2){
+    console.warn('[LMR] Pull aborted — cloud has fewer trades ('+pulledTrades.length+') than local ('+state.trades.length+'). Use Force Push to send local data to cloud.');
+    throw new Error('Cloud has fewer trades ('+pulledTrades.length+') than local ('+state.trades.length+'). Aborting pull to protect your data. Use Force Push to backup your data first.');
+  }
+  state.trades = pulledTrades;
   state.accounts = (ac.data||[]).map(a => ({ ...a, id: Number(a.id)||a.id, deposit:parseFloat(a.deposit)||0 }));
   state.transactions = (tx.data||[]).map(x => ({ ...x, id: Number(x.id)||x.id, amount:parseFloat(x.amount)||0 }));
   state.notes = (no.data||[]).map(n => ({ ...n, id: Number(n.id)||n.id }));
@@ -4680,8 +4692,11 @@ async function sbPullNow() {
       flash('⚠ Cloud had no data — your local data was kept untouched');
     }
   } catch (e) {
-    setSbStatus('Pull failed', 'var(--bear)');
-    flash('Pull error: ' + e.message);
+    // Restore pre-pull backup if pull was aborted or failed
+    const bk=localStorage.getItem(STORE_KEY+'_pre_pull');
+    if(bk){try{const p=JSON.parse(bk);state={...state,...p};ensureState();}catch(ex){}}
+    setSbStatus('Pull blocked — your local data is safe', 'var(--warn)');
+    flash('⚠ '+e.message);
   }
 }
 
