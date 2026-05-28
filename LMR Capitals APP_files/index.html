@@ -3087,7 +3087,84 @@ function saveProfile(){
   state.profile.remindWeekly=document.getElementById('prof-remind-weekly')?.value||'';
   save();
   updateSidebarProfile();
+  // ── Sync profile to Supabase immediately ──
+  if(_sbSyncEnabled&&_sbUserId&&_sb){
+    syncProfileToCloud().catch(()=>{});
+  }
   flash('✓ Profile saved');
+}
+
+async function syncProfileToCloud(){
+  if(!_sb||!_sbUserId)return;
+  const p=state.profile||{};
+  try{
+    await _sb.from('profiles').upsert({
+      user_id:          _sbUserId,
+      name:             p.name||null,
+      email:            p.email||null,
+      role:             p.role||null,
+      business:         p.biz||null,
+      website:          p.web||null,
+      photo_b64:        p.photo||null,
+      daily_goal:       parseFloat(p.dailyGoal)||0,
+      monthly_goal:     parseFloat(p.monthlyGoal)||0,
+      max_loss:         parseFloat(p.maxLoss)||0,
+      max_dd:           parseFloat(p.maxDD)||0,
+      risk_default:     parseFloat(p.riskDefault)||0,
+      account_size:     parseFloat(p.accountSize)||0,
+      remind_chain:     p.remindChain||null,
+      remind_weekly:    p.remindWeekly||null,
+      theme:            p.theme||'navy-gold',
+      day_count_start:  state.dayCountStart||1,
+      day_count_start_date: state.dayCountStartDate||null,
+      balance_format:   p.balanceFormat||'total',
+      current_acc:      state.currentAcc?String(state.currentAcc):null,
+      cal_month:        state.calMonth||null,
+      settings:         {},
+      updated_at:       new Date().toISOString()
+    },{onConflict:'user_id'});
+  }catch(e){
+    // Table might not exist yet — silently fail until user creates it
+    console.warn('[LMR] Profile sync failed (table may not exist yet):',e.message);
+  }
+}
+
+async function loadProfileFromCloud(){
+  if(!_sb||!_sbUserId)return false;
+  try{
+    const{data,error}=await _sb.from('profiles').select('*').eq('user_id',_sbUserId).single();
+    if(error||!data)return false;
+    // Merge cloud profile into state
+    if(!state.profile)state.profile={};
+    if(data.name)       state.profile.name=data.name;
+    if(data.email)      state.profile.email=data.email;
+    if(data.role)       state.profile.role=data.role;
+    if(data.business)   state.profile.biz=data.business;
+    if(data.website)    state.profile.web=data.website;
+    if(data.photo_b64)  state.profile.photo=data.photo_b64;
+    if(data.daily_goal) state.profile.dailyGoal=data.daily_goal;
+    if(data.monthly_goal) state.profile.monthlyGoal=data.monthly_goal;
+    if(data.max_loss)   state.profile.maxLoss=data.max_loss;
+    if(data.max_dd)     state.profile.maxDD=data.max_dd;
+    if(data.risk_default) state.profile.riskDefault=data.risk_default;
+    if(data.account_size) state.profile.accountSize=data.account_size;
+    if(data.remind_chain) state.profile.remindChain=data.remind_chain;
+    if(data.remind_weekly) state.profile.remindWeekly=data.remind_weekly;
+    if(data.theme)      state.profile.theme=data.theme;
+    if(data.day_count_start)  state.dayCountStart=data.day_count_start;
+    if(data.day_count_start_date) state.dayCountStartDate=data.day_count_start_date;
+    if(data.balance_format) state.profile.balanceFormat=data.balance_format;
+    if(data.current_acc) state.currentAcc=data.current_acc;
+    if(data.cal_month)  state.calMonth=data.cal_month;
+    save();
+    updateSidebarProfile();
+    if(state.profile.theme) setTheme(state.profile.theme);
+    console.log('[LMR] Profile loaded from cloud ✓');
+    return true;
+  }catch(e){
+    console.warn('[LMR] Profile load failed (table may not exist yet):',e.message);
+    return false;
+  }
 }
 function updateRiskPct(){
   const risk=parseFloat(document.getElementById('prof-risk-default')?.value)||0;
@@ -5290,8 +5367,12 @@ function lgUnlock(user){
         setSbStatus('Cloud restore: '+e.message,'var(--warn)');
       }
     }
+    // ── Load profile from Supabase (always — overrides localStorage if cloud is newer) ──
+    await loadProfileFromCloud();
     // Apply saved theme
     if(state.profile?.theme)setTheme(state.profile.theme);
+    else setTheme('navy-gold');
+    updateSidebarProfile();
   });
 }
 
