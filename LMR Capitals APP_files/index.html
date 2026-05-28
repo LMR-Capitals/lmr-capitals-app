@@ -6,9 +6,15 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="LMR Capitals">
-<meta name="theme-color" content="#0a0a0a">
+<meta name="theme-color" content="#060B14">
 <title>LMR Capitals</title>
 <link rel="manifest" href="./manifest.json">
+<!-- Favicons — browser tab + desktop icon -->
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="./icons/favicon-16.png">
+<link rel="shortcut icon" href="./icons/favicon-32.png">
+<!-- iOS / Android home screen icon -->
+<link rel="apple-touch-icon" sizes="192x192" href="./icons/icon-192.png">
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
 <link href="./css2" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1647,12 +1653,15 @@ Midnight Open $______"></textarea>
     <div class="card-body">
       <div class="tw"><table class="tbl">
         <thead><tr>
-          <th style="position:sticky;left:0;z-index:2;background:var(--bg2);min-width:90px">Date</th>
-          <th style="min-width:50px">Day</th>
-          <th>Mkt</th>
+          <th style="position:sticky;left:0;z-index:2;background:var(--bg2);min-width:96px;white-space:nowrap">Date</th>
+          <th style="min-width:48px">Open</th>
+          <th style="min-width:48px">Close</th>
+          <th style="min-width:46px">Day</th>
+          <th>Market</th>
           <th>Pos</th>
           <th>Model</th>
           <th>Session</th>
+          <th>MMM</th>
           <th>Emotions</th>
           <th>HTF</th>
           <th>Risk</th>
@@ -1661,7 +1670,7 @@ Midnight Open $______"></textarea>
           <th>R:R</th>
           <th></th>
         </tr></thead>
-        <tbody id="tradeTable"><tr><td colspan="12" class="empty">No trades. Press T to log one.</td></tr></tbody>
+        <tbody id="tradeTable"><tr><td colspan="16" class="empty">No trades. Press T to log one.</td></tr></tbody>
       </table></div>
     </div>
   </div>
@@ -3594,7 +3603,7 @@ function showTradeImgPanel(tradeId){
 
 function renderTradeTable(){
   const w=document.getElementById('tradeTable');
-  if(!state.trades.length){w.innerHTML='<tr><td colspan="12" class="empty">No trades.</td></tr>';return}
+  if(!state.trades.length){w.innerHTML='<tr><td colspan="16" class="empty">No trades.</td></tr>';return}
   // Always sort newest → oldest
   const sorted=[...state.trades].sort((a,b)=>{
     const da=(a.date||'').slice(0,10); const db=(b.date||'').slice(0,10);
@@ -3603,30 +3612,31 @@ function renderTradeTable(){
     if(tb!==ta)return tb.localeCompare(ta);
     return (b.id||0)-(a.id||0);
   });
-  // Short day abbreviation
   const DAY_SHORT={Monday:'Mon',Tuesday:'Tue',Wednesday:'Wed',Thursday:'Thu',Friday:'Fri'};
   w.innerHTML=sorted.map(t=>{
     const modelTag=t.models?.[0]||'-';
     const isStupid=modelTag==='Stupidity';
     const rowCls=t.pnl>0?'edit-row trade-win':t.pnl<0?'edit-row trade-loss':'edit-row';
     const winLoss=t.pnl>0?'<span class="win-pill">WIN</span>':t.pnl<0?'<span class="loss-pill">LOSS</span>':'<span class="tag tg-gray">BE</span>';
-    const dateDisp=(t.date||'').slice(0,10); // always YYYY-MM-DD, never ISO timestamp
+    const dateDisp=(t.date||'').slice(0,10);
     const dayShort=DAY_SHORT[t.day]||t.day||'—';
-    const emotion=(t.emotions||[])[0]||'-';
     return `<tr class="${rowCls}" onclick="openTradeModal(${t.id})" oncontextmenu="event.preventDefault();showCtxMenu(event,[{label:'Open',icon:'👁',action:()=>openTradeModal(${t.id})},{label:'Edit',icon:'✏',action:()=>openTradeModal(${t.id})},{label:'Delete',icon:'🗑',danger:true,action:()=>deleteTrade(${t.id})}])" title="Click to edit · right-click for options">
-      <td class="mono" style="position:sticky;left:0;z-index:1;background:inherit;font-size:11px;font-weight:700;color:var(--text);min-width:90px;white-space:nowrap">${dateDisp}</td>
-      <td style="font-size:10px;color:var(--text3);min-width:36px">${dayShort}</td>
-      <td style="font-size:10px">${t.market||'-'}</td>
+      <td class="mono" style="position:sticky;left:0;z-index:1;background:var(--bg2);font-size:11px;font-weight:700;white-space:nowrap;border-right:1px solid rgba(245,166,35,.15)">${dateDisp}</td>
+      <td class="mono" style="color:var(--bull);font-size:10px">${t.openTime||'—'}</td>
+      <td class="mono" style="color:var(--bear);font-size:10px">${t.closeTime||'—'}</td>
+      <td style="font-size:10px;color:var(--text3)">${dayShort}</td>
+      <td style="font-size:11px">${t.market||'-'}</td>
       <td><span class="tag tg-${t.position==='Long'?'bull':'bear'}">${t.position||'-'}</span></td>
       <td><span class="tag ${isStupid?'tg-bear':'tg-pur'}">${modelTag}</span></td>
       <td style="font-size:10px;color:var(--text2)">${t.session||'-'}</td>
-      <td style="font-size:10px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${emotion}</td>
+      <td style="font-size:9px;color:var(--text3)">${(t.mmm||[]).join(', ')||'-'}</td>
+      <td style="font-size:10px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(t.emotions||[]).join(', ')||'-'}</td>
       <td><span class="tag tg-${t.htf==='Delivered'?'bull':t.htf==='Undelivered'?'bear':'gray'}" style="font-size:9px">${t.htf||'-'}</span></td>
       <td class="mono" style="font-size:10px;color:var(--text3)">$${t.risk||0}</td>
       <td>${winLoss}</td>
       <td class="mono ${t.pnl>=0?'txt-pos':'txt-neg'}" style="font-weight:800;font-size:12px">${t.pnl>=0?'+':''}$${t.pnl.toFixed(2)}</td>
-      <td class="mono ${parseFloat(t.rr)>=0?'txt-pos':'txt-neg'}" style="font-size:11px">${t.rr}R</td>
-      <td onclick="event.stopPropagation()"><button class="btn btn-sm btn-bear" style="padding:2px 6px" onclick="deleteTrade(${t.id})">✗</button></td>
+      <td class="mono ${parseFloat(t.rr)>=0?'txt-pos':'txt-neg'}">${t.rr}R</td>
+      <td onclick="event.stopPropagation()"><button class="btn btn-sm btn-bear" style="padding:2px 6px;font-size:10px" onclick="deleteTrade(${t.id})">✗</button></td>
     </tr>`;
   }).join('');
   // update stats tiles
