@@ -21,21 +21,23 @@
    DESIGN SYSTEM v3 — Professional Dark Trading UI
    ═══════════════════════════════════════════════════════ */
 :root{
-  /* Backgrounds — deep navy with subtle blue tint */
-  --bg:#060B14;--bg2:#0B1421;--bg3:#0F1A2C;--bg4:#152234;--bg5:#1A2A40;
+  /* Backgrounds — deep navy */
+  --bg:#05080F;--bg2:#080D18;--bg3:#0C1220;--bg4:#111826;--bg5:#162030;
   /* Borders */
   --border:rgba(255,255,255,.06);--border2:rgba(255,255,255,.10);--border3:rgba(255,255,255,.18);
   /* Typography */
   --text:#EDF2FF;--text2:#7A9AC0;--text3:#3A5270;
   /* Brand gold */
-  --gold:#F5A623;--gold2:#FFC857;--gold-glow:rgba(245,166,35,.3);--gold-bg:rgba(245,166,35,.08);
+  --gold:#F5A623;--gold2:#FFD166;--gold3:#E8901A;
+  --gold-glow:rgba(245,166,35,.25);--gold-border:rgba(245,166,35,.3);--gold-strip:rgba(245,166,35,.15);
+  --gold-bg:rgba(245,166,35,.08);
   /* Bull / Bear */
   --bull:#00D4A4;--bull-bg:rgba(0,212,164,.08);--bull-glow:rgba(0,212,164,.25);
   --bear:#FF4060;--bear-bg:rgba(255,64,96,.08);--bear-glow:rgba(255,64,96,.25);
   /* Accents */
   --warn:#FFB830;--warn-bg:rgba(255,184,48,.08);
   --pur:#A78BFA;--pur-bg:rgba(167,139,250,.08);
-  --blue:#5B8FFF;--blue-bg:rgba(91,143,255,.08);
+  --blue:#5BA8FF;--blue-bg:rgba(91,143,255,.08);
   /* Radii + Timing */
   --r:8px;--r2:12px;--r3:18px;--t:.16s cubic-bezier(.4,0,.2,1);
 }
@@ -55,7 +57,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 input,textarea,select{font-family:inherit;font-size:13px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:var(--r);width:100%;outline:none}
 input:focus,textarea:focus,select:focus{border-color:var(--gold)}
 textarea{resize:vertical;min-height:50px}
-.app{display:flex;height:100vh;width:100vw;background:linear-gradient(135deg,#060B14 0%,#0a1628 50%,#060B14 100%)}
+.app{display:flex;height:100vh;width:100vw;background:linear-gradient(160deg,#05080F 0%,#080D18 40%,#060B14 70%,#04070E 100%);position:relative}
+.app::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse 800px 600px at 15% 50%,rgba(245,166,35,.03) 0%,transparent 70%);pointer-events:none;z-index:0}
 
 .sidebar{width:210px;min-width:210px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
 .sb-head{padding:14px 12px;border-bottom:1px solid var(--border)}
@@ -290,16 +293,16 @@ input:focus,textarea:focus,select:focus{border-color:var(--gold);box-shadow:0 0 
 button{font-family:'Plus Jakarta Sans',sans-serif}
 
 /* ── SIDEBAR v3 ── */
-.sidebar{width:242px;min-width:242px;background:linear-gradient(180deg,#070d1a 0%,#060B14 100%);border-right:2px solid rgba(245,166,35,.3);box-shadow:6px 0 40px rgba(0,0,0,.5);display:flex;flex-direction:column}
+.sidebar{width:242px;min-width:242px;background:linear-gradient(180deg,#080D18 0%,#05080F 100%);border-right:2px solid transparent;background-clip:padding-box;box-shadow:2px 0 20px rgba(0,0,0,.5),inset -1px 0 0 rgba(245,166,35,.35);display:flex;flex-direction:column}
 .sb-head{padding:16px 14px;background:linear-gradient(135deg,rgba(245,166,35,.06),transparent);border-bottom:1px solid var(--border);transition:background var(--t)}
 .sb-head:hover{background:linear-gradient(135deg,rgba(245,166,35,.12),transparent)}
 .sb-logo{display:flex;align-items:center;gap:9px;font-weight:700;font-size:13px;letter-spacing:.01em}
-.sb-logo-icon{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#f5a623,#e8a020);display:flex;align-items:center;justify-content:center;color:#000;font-weight:900;font-size:16px;box-shadow:0 2px 12px rgba(245,166,35,.4),inset 0 1px 0 rgba(255,255,255,.25)}
+.sb-logo-icon{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#0B1421,#080D18);display:flex;align-items:center;justify-content:center;color:#000;font-weight:900;font-size:16px;border:1.5px solid rgba(245,166,35,.4);box-shadow:0 2px 16px rgba(245,166,35,.2)}
 .sb-status{font-size:9px;color:var(--text3);margin-top:4px;display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-weight:600}
-.sb-sec{font-size:10px;color:rgba(245,166,35,.7);text-transform:uppercase;letter-spacing:.14em;padding:14px 14px 4px;font-weight:700}
+.sb-sec{font-size:10px;color:rgba(245,166,35,.6);text-transform:uppercase;letter-spacing:.14em;padding:14px 14px 4px;font-weight:700}
 .sb-item{display:flex;align-items:center;gap:9px;padding:8px 14px;border-radius:var(--r);font-size:13px;color:var(--text2);cursor:pointer;border-left:2px solid transparent;font-weight:500;transition:all var(--t);letter-spacing:.01em}
 .sb-item:hover{background:rgba(255,255,255,.04);color:var(--text)}
-.sb-item.active{background:linear-gradient(90deg,rgba(245,166,35,.12),rgba(245,166,35,.02));color:var(--gold);border-left-color:var(--gold);font-weight:600}
+.sb-item.active{background:linear-gradient(90deg,rgba(245,166,35,.12) 0%,rgba(245,166,35,.03) 100%);color:var(--gold2);border-left:3px solid var(--gold);padding-left:11px;font-weight:600}
 .sb-icon{font-size:13px;width:18px;text-align:center;font-style:normal;opacity:.85}
 .sb-foot{padding:12px;border-top:1px solid var(--border);background:linear-gradient(0deg,rgba(0,0,0,.3),transparent);margin-top:auto}
 .sb-pnl-l{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;font-weight:700}
@@ -311,7 +314,7 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .sb-pnl-v.txt-neg{text-shadow:0 0 16px var(--bear-glow)}
 
 /* Topbar */
-.topbar{padding:12px 20px;background:rgba(12,23,36,.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(245,166,35,.2);background:linear-gradient(180deg,rgba(245,166,35,.04) 0%,transparent 100%)}
+.topbar{padding:12px 20px;background:linear-gradient(180deg,rgba(245,166,35,.03) 0%,transparent 100%);backdrop-filter:blur(20px);border-bottom:1px solid rgba(245,166,35,.2)}
 .tb-title{font-size:20px;font-weight:800;letter-spacing:-.02em;color:var(--text)}
 .tb-sub{font-size:10px;color:var(--text2);margin-top:2px;font-weight:500;letter-spacing:.02em}
 
@@ -327,8 +330,8 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .btn-sm{font-size:10px;padding:4px 10px;border-radius:6px}
 
 /* ── CARDS v3 ── */
-.card{background:linear-gradient(145deg,var(--bg2),rgba(8,14,25,.98));border:1px solid var(--border);border-radius:var(--r3);overflow:hidden;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.25),0 12px 40px rgba(0,0,0,.18);transition:border-color var(--t),box-shadow var(--t),transform var(--t)}
-.card:hover{border-color:var(--border2);box-shadow:0 4px 16px rgba(0,0,0,.3),0 20px 48px rgba(0,0,0,.22)}
+.card{background:linear-gradient(145deg,#080D18,#060B14);border:1px solid rgba(245,166,35,.12);border-radius:var(--r3);overflow:hidden;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.25),0 12px 40px rgba(0,0,0,.18);transition:border-color .2s,box-shadow .2s}
+.card:hover{border-color:rgba(245,166,35,.28);box-shadow:0 4px 24px rgba(245,166,35,.08)}
 .card-head{padding:12px 18px;background:linear-gradient(180deg,rgba(255,255,255,.035),transparent);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .card-title{font-size:14px;font-weight:700;letter-spacing:-.01em;color:#EDF2FF}
 .card-tag{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:3px 9px;border-radius:99px}
@@ -340,10 +343,10 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .card-body{padding:14px 18px}
 
 /* ── TILES v3 ── */
-.tile{background:linear-gradient(145deg,var(--bg2),rgba(8,14,25,.95));border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px;position:relative;overflow:hidden;transition:transform var(--t),box-shadow var(--t),border-color var(--t)}
+.tile{background:linear-gradient(145deg,#0B1220,#080D18);border:1px solid rgba(245,166,35,.15);border-radius:var(--r2);padding:16px 18px;position:relative;overflow:hidden;transition:transform var(--t),box-shadow var(--t),border-color var(--t)}
 .tile::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);pointer-events:none}
 .tile::after{content:'';position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,255,255,.025),transparent 60%);pointer-events:none}
-.tile:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(0,0,0,.35);border-color:var(--border2)}
+.tile:hover{transform:translateY(-3px);box-shadow:0 0 20px rgba(245,166,35,.1);border-color:rgba(245,166,35,.3)}
 .tile-l{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:8px}
 .tile-v{font-size:26px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1;letter-spacing:-.04em}
 .tile-v.txt-pos{text-shadow:0 0 28px var(--bull-glow)}
@@ -598,6 +601,16 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .ctx-item.danger{color:var(--bear)}
 .ctx-item.danger:hover{background:rgba(255,68,102,.1)}
 
+/* ── THEME SWITCHER ── */
+.theme-opt{padding:10px;border:1px solid var(--border2);border-radius:8px;cursor:pointer;transition:border-color .15s,background .15s;text-align:left}
+.theme-opt:hover,.theme-opt.active{border-color:var(--gold);background:rgba(245,166,35,.06)}
+
+/* ── SETTINGS SECTION TITLE ── */
+.sp-section-title{font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px;margin-top:4px}
+.sp-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.form-input{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:var(--r);width:100%;outline:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px}
+.form-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-glow)}
+
 /* ── ACC SELECTOR IN SIDEBAR ── */
 .acc-quick{margin:4px 8px;padding:8px 10px;background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.15);border-radius:var(--r2);cursor:pointer;transition:border-color var(--t)}
 .acc-quick:hover{border-color:rgba(245,166,35,.35)}
@@ -785,6 +798,7 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
   .lg-right{flex:1;padding:28px 24px;align-items:flex-start}
   .lg-brand-icon{width:52px;height:52px;font-size:26px;margin-bottom:20px}
 }
+.lg-brand-logo{width:120px;height:120px;margin-bottom:20px;filter:drop-shadow(0 4px 20px rgba(245,166,35,.4))}
 </style>
 </head>
 <body>
@@ -794,7 +808,7 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 
   <!-- Left branding panel -->
   <div class="lg-left">
-    <div class="lg-brand-icon">⚡</div>
+    <img src="./icons/lmr-logo.svg" class="lg-brand-logo" alt="LMR Capitals">
     <div class="lg-brand-lmr">LMR</div>
     <div class="lg-brand-capitals">Capitals</div>
     <div class="lg-brand-tagline">Professional Trading Journal</div>
@@ -864,8 +878,8 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
   <div class="sb-head" onclick="openSettingsPanel('profile')" style="cursor:pointer;transition:background var(--t)" title="Click to edit profile & settings">
     <div class="sb-logo">
       <div class="sb-logo-icon" id="sb-logo-icon-wrap" style="overflow:hidden;position:relative">
-        <img id="sb-logo-photo" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0">
-        <span id="sb-logo-initials">⚡</span>
+        <img src="./icons/lmr-logo.svg" id="sb-logo-img" alt="LMR" style="width:100%;height:100%;object-fit:contain;border-radius:10px">
+        <img id="sb-logo-photo" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:10px">
       </div>
       <div>
         <div style="font-weight:700;font-size:13px;line-height:1.2" id="sb-profile-name">LMR Capitals</div>
@@ -995,6 +1009,30 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
       <div class="tile-l">💼 Active Account</div>
       <div class="tile-v sm" id="t-acc">None</div>
       <div class="tile-sub" id="t-acc-bal">— click to set</div>
+    </div>
+  </div>
+
+  <!-- Goal progress bars -->
+  <div id="dash-goals" style="display:none;margin-bottom:16px;grid-template-columns:1fr 1fr;gap:10px">
+    <div style="padding:12px 14px;background:var(--bg2);border:1px solid rgba(245,166,35,.15);border-radius:10px">
+      <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:6px">Today's P&L Goal</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span id="dash-daily-pnl" style="font-size:15px;font-weight:800;color:var(--text)">$0</span>
+        <span id="dash-daily-goal-v" style="font-size:10px;color:var(--text3)">/ $0</span>
+      </div>
+      <div style="height:4px;background:var(--bg3);border-radius:2px;overflow:hidden">
+        <div id="dash-daily-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:2px;transition:width .5s"></div>
+      </div>
+    </div>
+    <div style="padding:12px 14px;background:var(--bg2);border:1px solid rgba(245,166,35,.15);border-radius:10px">
+      <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:6px">Monthly Goal</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span id="dash-monthly-pnl" style="font-size:15px;font-weight:800;color:var(--text)">$0</span>
+        <span id="dash-monthly-goal-v" style="font-size:10px;color:var(--text3)">/ $0</span>
+      </div>
+      <div style="height:4px;background:var(--bg3);border-radius:2px;overflow:hidden">
+        <div id="dash-monthly-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:2px;transition:width .5s"></div>
+      </div>
     </div>
   </div>
 
@@ -1887,7 +1925,7 @@ Midnight Open $______"></textarea>
 
   <!-- Settings Header with tabs -->
   <div style="padding:16px 18px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(245,166,35,.07),transparent);display:flex;align-items:center;gap:10px">
-    <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;color:#000;box-shadow:0 0 16px var(--gold-glow)">⚡</div>
+    <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#0B1421,#080D18);display:flex;align-items:center;justify-content:center;border:1.5px solid rgba(245,166,35,.4);box-shadow:0 0 16px var(--gold-glow);overflow:hidden"><img src="./icons/lmr-logo.svg" style="width:100%;height:100%;object-fit:contain" alt="LMR"></div>
     <div style="flex:1">
       <div style="font-size:14px;font-weight:700;color:var(--text)">Settings</div>
       <div style="font-size:10px;color:var(--text3)">LMR Capitals</div>
@@ -1914,24 +1952,79 @@ Midnight Open $______"></textarea>
       <div class="profile-change-btn" onclick="pickProfilePhoto()">Change Photo</div>
     </div>
 
-    <div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px">Identity</div>
-    <div class="form-row" style="margin-bottom:8px"><label class="form-label">Name</label><input type="text" id="prof-name" placeholder="Your trading name" oninput="saveProfile()"></div>
-    <div class="form-row" style="margin-bottom:8px"><label class="form-label">Email</label><input type="email" id="prof-email" placeholder="you@example.com" oninput="saveProfile()"></div>
+    <div class="sp-section-title">Identity</div>
+    <div class="form-row" style="margin-bottom:8px"><label class="form-label">Name</label><input type="text" id="prof-name" placeholder="Your trading name" oninput="saveProfile()" class="form-input"></div>
+    <div class="form-row" style="margin-bottom:8px"><label class="form-label">Email</label><input type="email" id="prof-email" placeholder="you@example.com" oninput="saveProfile()" class="form-input"></div>
 
     <hr class="div">
-    <div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px">Business</div>
-    <div class="form-row" style="margin-bottom:8px"><label class="form-label">Business Name</label><input type="text" id="prof-biz" placeholder="e.g. LMR Capitals LLC" oninput="saveProfile()"></div>
-    <div class="form-row" style="margin-bottom:8px"><label class="form-label">Website</label><input type="url" id="prof-web" placeholder="https://lmrcapitals.com" oninput="saveProfile()"></div>
-    <div class="form-row" style="margin-bottom:8px"><label class="form-label">Role/Title</label><input type="text" id="prof-role" placeholder="e.g. Prop Trader" oninput="saveProfile()"></div>
+    <div class="sp-section-title">Business</div>
+    <div class="form-row" style="margin-bottom:8px"><label class="form-label">Business Name</label><input type="text" id="prof-biz" placeholder="e.g. LMR Capitals LLC" oninput="saveProfile()" class="form-input"></div>
+    <div class="form-row" style="margin-bottom:8px"><label class="form-label">Website</label><input type="url" id="prof-web" placeholder="https://lmrcapitals.com" oninput="saveProfile()" class="form-input"></div>
+    <div class="form-row" style="margin-bottom:8px"><label class="form-label">Role/Title</label><input type="text" id="prof-role" placeholder="e.g. Prop Trader" oninput="saveProfile()" class="form-input"></div>
 
     <hr class="div">
-    <div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px">Trading Goals</div>
-    <div class="form-row" style="margin-bottom:8px"><label class="form-label">Daily Goal ($)</label><input type="number" id="prof-daily-goal" placeholder="e.g. 500" oninput="saveProfile()"></div>
-    <div class="form-row" style="margin-bottom:8px"><label class="form-label">Monthly Goal ($)</label><input type="number" id="prof-month-goal" placeholder="e.g. 10000" oninput="saveProfile()"></div>
+    <div class="sp-section-title">Trading Goals</div>
+    <div class="sp-row">
+      <div><label class="form-label">Daily P&L Goal ($)</label><input type="number" id="prof-daily-goal" placeholder="500" class="form-input" oninput="saveProfile()"></div>
+      <div><label class="form-label">Monthly P&L Goal ($)</label><input type="number" id="prof-monthly-goal" placeholder="10000" class="form-input" oninput="saveProfile()"></div>
+    </div>
+    <div class="sp-row">
+      <div><label class="form-label">Max Daily Loss ($)</label><input type="number" id="prof-max-loss" placeholder="200" class="form-input" oninput="saveProfile()"></div>
+      <div><label class="form-label">Max Drawdown (%)</label><input type="number" id="prof-max-dd" placeholder="5" class="form-input" oninput="saveProfile()"></div>
+    </div>
+
+    <hr class="div">
+    <div class="sp-section-title">Risk Settings</div>
+    <div class="sp-row">
+      <div><label class="form-label">Default Risk Per Trade ($)</label><input type="number" id="prof-risk-default" placeholder="100" class="form-input" oninput="saveProfile();updateRiskPct()"></div>
+      <div><label class="form-label">Account Size ($)</label><input type="number" id="prof-account-size" placeholder="50000" class="form-input" oninput="saveProfile();updateRiskPct()"></div>
+    </div>
+    <div style="margin-top:8px;padding:10px;background:rgba(245,166,35,.05);border:1px solid rgba(245,166,35,.15);border-radius:8px;font-size:11px;color:var(--text2)">
+      Risk per trade: <b id="prof-risk-pct" style="color:var(--gold)">—</b> of account
+    </div>
+
+    <hr class="div">
+    <div class="sp-section-title">Reminders</div>
+    <div class="sp-row">
+      <div><label class="form-label">Daily Chain Time</label><input type="time" id="prof-remind-chain" value="08:00" class="form-input" oninput="saveProfile()"></div>
+      <div><label class="form-label">Weekly Review Time</label><input type="time" id="prof-remind-weekly" value="17:00" class="form-input" oninput="saveProfile()"></div>
+    </div>
   </div>
 
   <!-- ── APP TAB ── -->
   <div id="set-tab-app" style="padding:16px 18px;display:none">
+
+    <div class="sp-section-title">Appearance</div>
+    <div style="margin-bottom:14px">
+      <label class="form-label">Colour Theme</label>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px" id="theme-grid">
+        <div class="theme-opt" data-theme="navy-gold" onclick="setTheme('navy-gold')">
+          <div style="display:flex;gap:4px;margin-bottom:4px">
+            <div style="width:14px;height:14px;border-radius:3px;background:#060B14"></div>
+            <div style="width:14px;height:14px;border-radius:3px;background:#F5A623"></div>
+            <div style="width:14px;height:14px;border-radius:3px;background:#0B1421"></div>
+          </div>
+          <div style="font-size:10px;font-weight:700">Navy + Gold</div>
+        </div>
+        <div class="theme-opt" data-theme="black-blue" onclick="setTheme('black-blue')">
+          <div style="display:flex;gap:4px;margin-bottom:4px">
+            <div style="width:14px;height:14px;border-radius:3px;background:#000"></div>
+            <div style="width:14px;height:14px;border-radius:3px;background:#00A3FF"></div>
+            <div style="width:14px;height:14px;border-radius:3px;background:#111"></div>
+          </div>
+          <div style="font-size:10px;font-weight:700">Black + Blue</div>
+        </div>
+        <div class="theme-opt" data-theme="slate-green" onclick="setTheme('slate-green')">
+          <div style="display:flex;gap:4px;margin-bottom:4px">
+            <div style="width:14px;height:14px;border-radius:3px;background:#0D1117"></div>
+            <div style="width:14px;height:14px;border-radius:3px;background:#00C896"></div>
+            <div style="width:14px;height:14px;border-radius:3px;background:#161B22"></div>
+          </div>
+          <div style="font-size:10px;font-weight:700">Slate + Green</div>
+        </div>
+      </div>
+    </div>
+
     <div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px">⏱ Time &amp; Region</div>
     <div class="form-row"><label class="form-label">Timezone</label>
       <select id="set-tz" onchange="saveSettings()">
@@ -1944,26 +2037,41 @@ Midnight Open $______"></textarea>
     </div>
 
     <hr class="div">
-    <div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px">📍 Day Count</div>
-    <div class="form-row"><label class="form-label">Starting Day</label><input type="number" id="set-day" placeholder="362" oninput="saveSettings()"></div>
-    <div class="form-row"><label class="form-label">Start Date</label><input type="date" id="set-day-date" onchange="saveSettings()"></div>
-
-    <hr class="div">
-    <div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px">🎨 Appearance</div>
-    <div class="form-row"><label class="form-label">Theme</label>
-      <select id="set-theme" onchange="applyTheme(this.value);saveSettings()">
-        <option value="dark">Dark (Default)</option>
-        <option value="light">Light</option>
-      </select>
+    <div class="sp-section-title">Trading</div>
+    <div class="sp-row">
+      <div><label class="form-label">Starting Day Count</label><input type="number" id="set-day" placeholder="1" class="form-input" min="1" oninput="saveSettings()"></div>
+      <div><label class="form-label">Day Count Start Date</label><input type="date" id="set-day-date" class="form-input" onchange="saveSettings()"></div>
     </div>
 
     <hr class="div">
-    <div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px">📔 Journal Ticker</div>
-    <div class="form-row"><label class="form-label">Show on Dashboard</label>
-      <select id="set-ticker" onchange="saveSettings()">
-        <option value="1">Enabled</option>
-        <option value="0">Disabled</option>
-      </select>
+    <div class="sp-section-title">Sidebar Display</div>
+    <div class="sp-row">
+      <div><label class="form-label">Balance Display</label>
+        <select id="app-balance-format" class="form-input" onchange="saveSettings()">
+          <option value="total">Total Balance</option>
+          <option value="pnl">P&L Only</option>
+          <option value="both">Balance + P&L</option>
+        </select>
+      </div>
+      <div><label class="form-label">Journal Ticker</label>
+        <select id="set-ticker" onchange="saveSettings()">
+          <option value="1">Enabled</option>
+          <option value="0">Disabled</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- keep hidden legacy theme select for compatibility -->
+    <select id="set-theme" style="display:none" onchange="applyTheme(this.value);saveSettings()">
+      <option value="dark">Dark (Default)</option>
+      <option value="light">Light</option>
+    </select>
+
+    <hr class="div">
+    <div class="sp-section-title">Export</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-primary" onclick="exportTradesCSV()">&#11015; Export Trades CSV</button>
+      <button class="btn btn-sm" onclick="exportData()">&#11015; Export Full Backup JSON</button>
     </div>
 
   </div><!-- end app tab -->
@@ -2943,10 +3051,23 @@ function saveProfile(){
   state.profile.web=document.getElementById('prof-web')?.value||'';
   state.profile.role=document.getElementById('prof-role')?.value||'';
   state.profile.dailyGoal=document.getElementById('prof-daily-goal')?.value||'';
-  state.profile.monthGoal=document.getElementById('prof-month-goal')?.value||'';
+  state.profile.monthGoal=document.getElementById('prof-month-goal')?.value||''; // legacy compat
+  state.profile.monthlyGoal=document.getElementById('prof-monthly-goal')?.value||'';
+  state.profile.maxLoss=document.getElementById('prof-max-loss')?.value||'';
+  state.profile.maxDD=document.getElementById('prof-max-dd')?.value||'';
+  state.profile.riskDefault=document.getElementById('prof-risk-default')?.value||'';
+  state.profile.accountSize=document.getElementById('prof-account-size')?.value||'';
+  state.profile.remindChain=document.getElementById('prof-remind-chain')?.value||'';
+  state.profile.remindWeekly=document.getElementById('prof-remind-weekly')?.value||'';
   save();
   updateSidebarProfile();
   flash('✓ Profile saved');
+}
+function updateRiskPct(){
+  const risk=parseFloat(document.getElementById('prof-risk-default')?.value)||0;
+  const size=parseFloat(document.getElementById('prof-account-size')?.value)||0;
+  const el=document.getElementById('prof-risk-pct');
+  if(el)el.textContent=size>0?((risk/size)*100).toFixed(2)+'%':'—';
 }
 async function loadProfile(){
   const p=state.profile||{};
@@ -2957,7 +3078,15 @@ async function loadProfile(){
   setV('prof-web',p.web);
   setV('prof-role',p.role);
   setV('prof-daily-goal',p.dailyGoal);
-  setV('prof-month-goal',p.monthGoal);
+  setV('prof-month-goal',p.monthGoal); // legacy
+  setV('prof-monthly-goal',p.monthlyGoal||p.monthGoal);
+  setV('prof-max-loss',p.maxLoss);
+  setV('prof-max-dd',p.maxDD);
+  setV('prof-risk-default',p.riskDefault);
+  setV('prof-account-size',p.accountSize);
+  setV('prof-remind-chain',p.remindChain||'08:00');
+  setV('prof-remind-weekly',p.remindWeekly||'17:00');
+  updateRiskPct();
   // Load photo
   const blob=await getImg('profile-photo');
   if(blob){
@@ -2975,20 +3104,21 @@ async function updateSidebarProfile(){
   // Update header name/role (consolidated profile in sb-head)
   const nameEl=document.getElementById('sb-profile-name');
   const roleEl=document.getElementById('sb-profile-role');
-  const logoInitials=document.getElementById('sb-logo-initials');
   const unEl=document.getElementById('tb-username');
   if(nameEl)nameEl.textContent=name;
   if(roleEl)roleEl.textContent=role;
-  if(logoInitials)logoInitials.textContent=name.charAt(0).toUpperCase();
   if(unEl)unEl.textContent=name;
-  // Photo in logo icon
+  // Photo in logo icon — show over the SVG logo if available
   const blob=await getImg('profile-photo');
   const logoPhoto=document.getElementById('sb-logo-photo');
-  const logoIni=document.getElementById('sb-logo-initials');
+  const logoImg=document.getElementById('sb-logo-img');
   if(blob&&logoPhoto){
     const url=URL.createObjectURL(blob);
     logoPhoto.src=url;logoPhoto.style.display='block';
-    if(logoIni)logoIni.style.display='none';
+    if(logoImg)logoImg.style.display='none';
+  } else {
+    if(logoPhoto)logoPhoto.style.display='none';
+    if(logoImg)logoImg.style.display='';
   }
   // Also update big avatar in settings profile tab
   const avatarImg=document.getElementById('profileAvatarImg');
@@ -3011,6 +3141,11 @@ document.getElementById('profilePhotoInput').addEventListener('change',async e=>
   const avatarInitials=document.getElementById('profileAvatarInitials');
   if(avatarImg){avatarImg.src=url;avatarImg.style.display='block';}
   if(avatarInitials)avatarInitials.style.display='none';
+  // Update sidebar logo
+  const logoPhoto=document.getElementById('sb-logo-photo');
+  const logoImg=document.getElementById('sb-logo-img');
+  if(logoPhoto){logoPhoto.src=url;logoPhoto.style.display='block';}
+  if(logoImg)logoImg.style.display='none';
   await updateSidebarProfile();
   flash('✓ Photo updated');
   e.target.value='';
@@ -4034,6 +4169,25 @@ function renderDashboard(){
     document.getElementById('pf-dd-sub').textContent=pct+'% from peak';
   }
 
+  // Goal progress bars
+  const prof=state.profile||{};
+  const todayPnl=state.trades.filter(t=>t.date===todayStr()).reduce((s,t)=>s+t.pnl,0);
+  const monthPnl=state.trades.filter(t=>t.date&&t.date.startsWith(todayStr().slice(0,7))).reduce((s,t)=>s+t.pnl,0);
+  const dailyGoal=parseFloat(prof.dailyGoal)||0;
+  const monthlyGoal=parseFloat(prof.monthlyGoal||prof.monthGoal)||0;
+  const goalsDiv=document.getElementById('dash-goals');
+  if(goalsDiv&&(dailyGoal||monthlyGoal)){
+    goalsDiv.style.display='grid';
+    const dp=document.getElementById('dash-daily-pnl');if(dp)dp.textContent=(todayPnl>=0?'+':'')+`$${Math.abs(todayPnl).toFixed(0)}`;
+    const dg=document.getElementById('dash-daily-goal-v');if(dg)dg.textContent=`/ $${dailyGoal}`;
+    const db=document.getElementById('dash-daily-bar');if(db)db.style.width=dailyGoal>0?Math.min(100,(todayPnl/dailyGoal*100))+'%':'0%';
+    const mp=document.getElementById('dash-monthly-pnl');if(mp)mp.textContent=(monthPnl>=0?'+':'')+`$${Math.abs(monthPnl).toFixed(0)}`;
+    const mg=document.getElementById('dash-monthly-goal-v');if(mg)mg.textContent=`/ $${monthlyGoal}`;
+    const mb=document.getElementById('dash-monthly-bar');if(mb)mb.style.width=monthlyGoal>0?Math.min(100,(monthPnl/monthlyGoal*100))+'%':'0%';
+  } else if(goalsDiv){
+    goalsDiv.style.display='none';
+  }
+
   renderTodayNewsForDash();
   setTimeout(renderDashCharts,50);
 }
@@ -4194,6 +4348,8 @@ function saveSettings(){
     const tb=document.getElementById('journalTicker');
     if(tb)tb.style.display=state.tickerEnabled!==false?'':'none';
   }
+  const balFmt=document.getElementById('app-balance-format');
+  if(balFmt){state.profile=state.profile||{};state.profile.balanceFormat=balFmt.value;}
   save();updateDayCount();flash('✓ Settings saved');
 }
 async function renderSettings(){
@@ -4205,6 +4361,13 @@ async function renderSettings(){
   if(ticker)ticker.value=state.tickerEnabled!==false?'1':'0';
   const theme=document.getElementById('set-theme');
   if(theme)theme.value=state.theme||'dark';
+  // Mark active theme option
+  const savedTheme=state.profile?.theme||'navy-gold';
+  document.querySelectorAll('.theme-opt').forEach(el=>{
+    el.classList.toggle('active',el.dataset.theme===savedTheme);
+  });
+  const balFmt=document.getElementById('app-balance-format');
+  if(balFmt)balFmt.value=state.profile?.balanceFormat||'total';
   const imgKeys=await allImgKeys();
   const lsSize=new Blob([JSON.stringify(state)]).size;
   let imgSize=0;
@@ -4964,6 +5127,58 @@ async function lgSignIn(){
   }
 }
 
+// ── THEME SWITCHER ──────────────────────────────────────────────────────────
+const THEMES = {
+  'navy-gold': {
+    '--bg':'#05080F','--bg2':'#080D18','--bg3':'#0C1220','--bg4':'#111826','--bg5':'#162030',
+    '--gold':'#F5A623','--gold2':'#FFD166','--gold3':'#E8901A','--blue':'#5BA8FF',
+    '--bull':'#2ECC71','--bear':'#FF4060','--text':'#EDF2FF','--text2':'#7A9AC0','--text3':'#3A5270',
+    '--border':'rgba(255,255,255,.06)','--border2':'rgba(255,255,255,.10)'
+  },
+  'black-blue': {
+    '--bg':'#000000','--bg2':'#0a0a0a','--bg3':'#111111','--bg4':'#181818','--bg5':'#202020',
+    '--gold':'#00A3FF','--gold2':'#40C8FF','--gold3':'#0088DD','--blue':'#00A3FF',
+    '--bull':'#00E676','--bear':'#FF5252','--text':'#FFFFFF','--text2':'#8899AA','--text3':'#445566',
+    '--border':'rgba(255,255,255,.08)','--border2':'rgba(255,255,255,.12)'
+  },
+  'slate-green': {
+    '--bg':'#0D1117','--bg2':'#161B22','--bg3':'#1C2430','--bg4':'#21293A','--bg5':'#263244',
+    '--gold':'#00C896','--gold2':'#40DFB2','--gold3':'#009E78','--blue':'#58A6FF',
+    '--bull':'#00C896','--bear':'#FF6B6B','--text':'#E6EDF3','--text2':'#8B949E','--text3':'#484F58',
+    '--border':'rgba(255,255,255,.07)','--border2':'rgba(255,255,255,.12)'
+  }
+};
+function setTheme(name){
+  const theme=THEMES[name];
+  if(!theme)return;
+  Object.entries(theme).forEach(([k,v])=>document.documentElement.style.setProperty(k,v));
+  state.profile=state.profile||{};
+  state.profile.theme=name;
+  save();
+  document.querySelectorAll('.theme-opt').forEach(el=>{
+    el.classList.toggle('active',el.dataset.theme===name);
+  });
+}
+
+// ── EXPORT TRADES CSV ────────────────────────────────────────────────────────
+function exportTradesCSV(){
+  const headers=['Date','Market','Position','Model','Session','P&L','Risk','RR','Result','Emotions','HTF','Feedback'];
+  const rows=(state.trades||[]).map(t=>[
+    t.date,t.market,t.position,
+    (t.models||[]).join(';'),t.session||'',
+    t.pnl,t.risk,t.rr,
+    t.pnl>0?'WIN':t.pnl<0?'LOSS':'BE',
+    (t.emotions||[]).join(';'),t.htf||'',(t.feedback||'').replace(/,/g,' ')
+  ]);
+  const csv=[headers,...rows].map(r=>r.join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='lmr-trades-'+todayStr()+'.csv';a.click();
+  URL.revokeObjectURL(url);
+  flash('✓ Trades exported as CSV');
+}
+
 function lgUnlock(user){
   // Hide gate, show app
   document.getElementById('loginGate').classList.add('hidden');
@@ -4981,6 +5196,8 @@ function lgUnlock(user){
   // Run app init
   sbRefreshUI();
   init();
+  // Apply saved theme
+  if(state.profile?.theme)setTheme(state.profile.theme);
 }
 
 // ── LOGIN GATE TAB SWITCHER ──────────────────────────────
