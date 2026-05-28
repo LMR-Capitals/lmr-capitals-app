@@ -799,7 +799,9 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
   .lg-right{flex:1;padding:28px 24px;align-items:flex-start}
   .lg-brand-icon{width:52px;height:52px;font-size:26px;margin-bottom:20px}
 }
-.lg-brand-logo{width:120px;height:120px;margin-bottom:20px;filter:drop-shadow(0 4px 20px rgba(245,166,35,.4))}
+.lg-brand-logo{width:130px;height:130px;margin-bottom:20px;filter:drop-shadow(0 4px 28px rgba(245,166,35,.55)) brightness(1.08)}
+/* Sidebar logo - white icon on dark bg, gold glow */
+#sb-logo-img{filter:brightness(1.1) drop-shadow(0 0 6px rgba(245,166,35,.3))}
 </style>
 </head>
 <body>
@@ -809,7 +811,7 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 
   <!-- Left branding panel -->
   <div class="lg-left">
-    <img src="./icons/lmr-logo.svg" class="lg-brand-logo" alt="LMR Capitals">
+    <img src="./icons/lmr-icon.png" class="lg-brand-logo" alt="LMR Capitals">
     <div class="lg-brand-lmr">LMR</div>
     <div class="lg-brand-capitals">Capitals</div>
     <div class="lg-brand-tagline">Professional Trading Journal</div>
@@ -879,7 +881,7 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
   <div class="sb-head" onclick="openSettingsPanel('profile')" style="cursor:pointer;transition:background var(--t)" title="Click to edit profile & settings">
     <div class="sb-logo">
       <div class="sb-logo-icon" id="sb-logo-icon-wrap" style="overflow:hidden;position:relative">
-        <img src="./icons/lmr-logo.svg" id="sb-logo-img" alt="LMR" style="width:100%;height:100%;object-fit:contain;border-radius:10px">
+        <img src="./icons/lmr-icon.png" id="sb-logo-img" alt="LMR" style="width:100%;height:100%;object-fit:contain;border-radius:10px">
         <img id="sb-logo-photo" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:10px">
       </div>
       <div>
@@ -1926,7 +1928,7 @@ Midnight Open $______"></textarea>
 
   <!-- Settings Header with tabs -->
   <div style="padding:16px 18px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(245,166,35,.07),transparent);display:flex;align-items:center;gap:10px">
-    <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#0B1421,#080D18);display:flex;align-items:center;justify-content:center;border:1.5px solid rgba(245,166,35,.4);box-shadow:0 0 16px var(--gold-glow);overflow:hidden"><img src="./icons/lmr-logo.svg" style="width:100%;height:100%;object-fit:contain" alt="LMR"></div>
+    <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#0B1421,#080D18);display:flex;align-items:center;justify-content:center;border:1.5px solid rgba(245,166,35,.4);box-shadow:0 0 16px var(--gold-glow);overflow:hidden"><img src="./icons/lmr-icon.png" style="width:100%;height:100%;object-fit:contain" alt="LMR"></div>
     <div style="flex:1">
       <div style="font-size:14px;font-weight:700;color:var(--text)">Settings</div>
       <div style="font-size:10px;color:var(--text3)">LMR Capitals</div>
