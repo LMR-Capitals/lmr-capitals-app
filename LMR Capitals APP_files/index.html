@@ -3581,7 +3581,16 @@ function showTradeImgPanel(tradeId){
 function renderTradeTable(){
   const w=document.getElementById('tradeTable');
   if(!state.trades.length){w.innerHTML='<tr><td colspan="14" class="empty">No trades.</td></tr>';return}
-  w.innerHTML=state.trades.map(t=>{
+  // Always sort newest → oldest
+  const sorted=[...state.trades].sort((a,b)=>{
+    const da=a.date||'';const db=b.date||'';
+    if(db!==da)return db.localeCompare(da);
+    // Same date: sort by open time descending, then by id descending
+    const ta=a.openTime||'';const tb=b.openTime||'';
+    if(tb!==ta)return tb.localeCompare(ta);
+    return (b.id||0)-(a.id||0);
+  });
+  w.innerHTML=sorted.map(t=>{
     const modelTag=t.models?.[0]||'-';
     const isStupid=modelTag==='Stupidity';
     const rowCls=t.pnl>0?'edit-row trade-win':t.pnl<0?'edit-row trade-loss':'edit-row';
@@ -4097,9 +4106,9 @@ function renderDashboard(){
     document.getElementById('dash-chain-status').textContent='No prev data';
   }
 
-  // recent trades — green=win / red=loss
+  // recent trades — newest first, green=win / red=loss
   const trBox=document.getElementById('dash-trades');
-  const recent=state.trades.slice(0,5);
+  const recent=[...state.trades].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0)).slice(0,5);
   if(!recent.length){trBox.innerHTML='<tr><td colspan="7" class="empty">No trades. Press T.</td></tr>'}
   else trBox.innerHTML=recent.map(t=>`
     <tr class="${t.pnl>0?'trade-win':t.pnl<0?'trade-loss':''}">
@@ -4287,6 +4296,10 @@ function importData(e){
         dayCountStart: importedState.dayCountStart||state.dayCountStart,
         dayCountStartDate: importedState.dayCountStartDate||state.dayCountStartDate,
       };
+      // Always sort trades newest → oldest after import
+      if(Array.isArray(state.trades)){
+        state.trades.sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
+      }
       // Restore images
       const imgEntries=Object.entries(importedImages);
       if(imgEntries.length){
@@ -5075,7 +5088,8 @@ async function _sbDoPull() {
     console.warn('[LMR] Pull aborted — cloud has fewer trades ('+pulledTrades.length+') than local ('+state.trades.length+'). Use Force Push to send local data to cloud.');
     throw new Error('Cloud has fewer trades ('+pulledTrades.length+') than local ('+state.trades.length+'). Aborting pull to protect your data. Use Force Push to backup your data first.');
   }
-  state.trades = pulledTrades;
+  // Sort newest → oldest after pull so array is always in correct order
+  state.trades = pulledTrades.sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
   state.accounts = (ac.data||[]).map(a => ({ ...a, id: Number(a.id)||a.id, deposit:parseFloat(a.deposit)||0 }));
   state.transactions = (tx.data||[]).map(x => ({ ...x, id: Number(x.id)||x.id, amount:parseFloat(x.amount)||0 }));
   state.notes = (no.data||[]).map(n => ({ ...n, id: Number(n.id)||n.id }));
