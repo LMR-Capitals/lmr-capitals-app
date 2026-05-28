@@ -5212,9 +5212,32 @@ function lgUnlock(user){
   _sbDirty=true;sbScheduleSync();
   // Run app init
   sbRefreshUI();
-  init();
-  // Apply saved theme
-  if(state.profile?.theme)setTheme(state.profile.theme);
+  init().then(async()=>{
+    // ── AUTO-RESTORE: if localStorage is empty after init, pull from Supabase automatically ──
+    const hasData=state.trades.length>0||state.accounts.length>0||Object.keys(state.daily).length>0;
+    if(!hasData&&_sb&&_sbUserId){
+      setSyncIndicator('syncing');
+      setSbStatus('⟳ First load — restoring your data from cloud…','var(--gold)');
+      try{
+        // Backup (empty) state first
+        try{localStorage.setItem(STORE_KEY+'_pre_pull',JSON.stringify(state));}catch(e){}
+        await _sbDoPull();
+        ensureState();
+        const gotData=state.trades.length>0||state.accounts.length>0||Object.keys(state.daily).length>0;
+        if(gotData){
+          save();
+          updateAllStats();renderDashboard();renderTradeTable();renderNotesList();loadDaily();
+          setSyncIndicator('synced');
+          setSbStatus('✓ Data restored — '+state.trades.length+' trades','var(--bull)');
+          flash('✓ Your data has been restored — '+state.trades.length+' trades loaded');
+        }
+      }catch(e){
+        setSbStatus('Cloud restore: '+e.message,'var(--warn)');
+      }
+    }
+    // Apply saved theme
+    if(state.profile?.theme)setTheme(state.profile.theme);
+  });
 }
 
 // ── LOGIN GATE TAB SWITCHER ──────────────────────────────
