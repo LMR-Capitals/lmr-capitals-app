@@ -2405,78 +2405,112 @@ function save(){
 // Strategy: localStorage is the source of truth.
 // Cloud sync uses UPSERT (never delete-all), debounced 30s.
 // This prevents data loss if network cuts mid-sync.
+// ── REAL-TIME SUPABASE SYNC ──────────────────────────────────────
+// Architecture: Supabase = primary DB, localStorage = fast cache
+// Every save → instant local cache + 5s debounced cloud sync
 let _sbSyncTimer=null;
 let _sbSyncEnabled=false;
 let _sbDirty=false;
 let _sbSyncing=false;
+let _sbUserId=null; // cached user ID — avoids repeated auth calls
 
+function setSyncIndicator(status){
+  const el=document.getElementById('sb-save-status');
+  if(!el)return;
+  if(status==='syncing'){el.textContent='⟳ Syncing…';el.style.color='var(--gold)';}
+  else if(status==='synced'){
+    const t=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    el.textContent='☁ Synced '+t;el.style.color='var(--bull)';
+    setTimeout(()=>{if(el.textContent.startsWith('☁ Synced'))el.textContent='☁ Cloud ON';el.style.color='var(--bull)';},5000);
+  }
+  else if(status==='error'){el.textContent='⚠ Sync error';el.style.color='var(--warn)';}
+  else{el.textContent='Auto-saved';el.style.color='';}
+}
+
+// Schedule full sync — debounced 5s
 function sbScheduleSync(){
-  if(!_sbSyncEnabled||_sbSyncing)return;
+  if(!_sbSyncEnabled||!_sbUserId)return;
   clearTimeout(_sbSyncTimer);
-  // Debounce: sync 30s after last save (safe window)
-  _sbSyncTimer=setTimeout(()=>sbDoSafeSync(),30000);
+  _sbSyncTimer=setTimeout(()=>sbDoSafeSync(),5000);
+}
+
+// Immediate single-record upsert (called by individual save functions)
+async function sbSyncRecord(table,record){
+  if(!_sbSyncEnabled||!_sbUserId||!_sb)return;
+  try{
+    const conflictKey=table==='daily'?'date,user_id':table==='monthly'?'key,user_id':table==='weekly'?'week_key,user_id':'id';
+    await _sb.from(table).upsert({...record,user_id:_sbUserId},{onConflict:conflictKey});
+  }catch(e){_sbDirty=true;sbScheduleSync();}
+}
+
+// Delete a single record from Supabase
+async function sbDeleteRecord(table,id,field='id'){
+  if(!_sbSyncEnabled||!_sbUserId||!_sb)return;
+  try{await _sb.from(table).delete().eq(field,String(id)).eq('user_id',_sbUserId);}catch(e){}
 }
 
 async function sbDoSafeSync(){
-  if(!_sb||!_sbSyncEnabled||!_sbDirty||_sbSyncing)return;
+  if(!_sb||!_sbSyncEnabled||!_sbDirty||_sbSyncing||!_sbUserId)return;
+  _sbSyncing=true;
+  setSyncIndicator('syncing');
   try{
-    const {data:{user}}=await _sb.auth.getUser();
-    if(!user){_sbSyncEnabled=false;return;}
-    _sbSyncing=true;
-    setSbStatus('⟳ Syncing…','var(--gold)');
-    await _sbUpsertAll(user);
-    _sbDirty=false;
-    _sbSyncing=false;
-    const t=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-    setSbStatus('✓ Synced '+t,'var(--bull)');
+    await _sbUpsertAll(_sbUserId);
+    _sbDirty=false;_sbSyncing=false;
+    setSyncIndicator('synced');
+    setSbStatus('✓ Synced '+new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}),'var(--bull)');
     localStorage.setItem('lmr_lastSync',new Date().toISOString());
   }catch(e){
-    _sbSyncing=false;
-    setSbStatus('Sync failed — data safe locally','var(--warn)');
-    // Retry in 60s
-    setTimeout(()=>sbDoSafeSync(),60000);
+    _sbSyncing=false;setSyncIndicator('error');
+    setTimeout(()=>sbDoSafeSync(),15000);
   }
 }
 
-// Upsert strategy — never deletes all rows, only inserts/updates
-async function _sbUpsertAll(user){
-  const uid=user.id;
-  // Upsert each collection — safe even if insert fails mid-way
-  if(state.trades.length){
-    await _sb.from('trades').upsert(
-      state.trades.map(t=>({...t,id:String(t.id),user_id:uid,
-        models:t.models||[],confirmations:t.confirmations||[],
-        emotions:t.emotions||[],phases:t.phases||[],
-        mmm:t.mmm||[],movement:t.movement||[],tframes:t.tframes||[]})),
-      {onConflict:'id'}
-    );
-  }
-  if(state.accounts.length){
+// Map local trade to Supabase schema
+function _mapTrade(t,uid){
+  return {id:String(t.id),user_id:uid,notion_id:t.notionId||t.notion_id||null,
+    account_id:t.accountId?String(t.accountId):null,
+    date:t.date,day_count:t.dayCount||null,market:t.market||null,position:t.position||null,
+    day:t.day||null,month:t.month||null,session:t.session||null,time_period:t.timePeriod||null,
+    models:Array.isArray(t.models)?t.models:[],confirmations:Array.isArray(t.confirmations)?t.confirmations:[],
+    emotions:Array.isArray(t.emotions)?t.emotions:[],phases:Array.isArray(t.phases)?t.phases:[],
+    mmm:Array.isArray(t.mmm)?t.mmm:[],movement:Array.isArray(t.movement)?t.movement:[],
+    tframes:Array.isArray(t.tframes)?t.tframes:[],
+    rth:t.rth||null,htf:t.htf||null,pnl:parseFloat(t.pnl)||0,
+    risk:parseFloat(t.risk)||0,lots:parseFloat(t.lots)||0,rr:parseFloat(t.rr)||0,
+    draws:t.draws||null,feedback:t.feedback||null,win:parseFloat(t.pnl||0)>0,
+    updated_at:new Date().toISOString()};
+}
+function _mapDaily(date,d,uid){
+  return {date,user_id:uid,notion_id:d.notionId||d.notion_id||null,
+    day_count:d.dayCount||null,name:d.name||null,bias:d.bias||null,
+    weekly:d.weekly||null,htf_poi:d.htfpoi||null,week_draws:d.weekdraws||null,
+    london:d.london||null,ny:d.ny||null,session:d.session||null,rth:d.rth||null,
+    plan:d.plan||null,pred:d.pred||null,monthly_bias:d.monthlyBias||null,
+    asian_range:Array.isArray(d.asianRange)?d.asianRange:[],
+    price:Array.isArray(d.price)?d.price:[],
+    saved_at:d.savedAt||new Date().toISOString()};
+}
+
+async function _sbUpsertAll(uid){
+  if(state.trades.length)
+    await _sb.from('trades').upsert(state.trades.map(t=>_mapTrade(t,uid)),{onConflict:'id'});
+  if(state.accounts.length)
     await _sb.from('accounts').upsert(
-      state.accounts.map(a=>({...a,id:String(a.id),user_id:uid})),
-      {onConflict:'id'}
-    );
-  }
-  if(state.transactions.length){
+      state.accounts.map(a=>({id:String(a.id),user_id:uid,notion_id:a.notionId||null,
+        name:a.name||null,type:a.type||null,status:a.status||null,
+        date:a.date||null,deposit:parseFloat(a.deposit)||0})),{onConflict:'id'});
+  if(state.transactions.length)
     await _sb.from('transactions').upsert(
-      state.transactions.map(x=>({...x,id:String(x.id),user_id:uid})),
-      {onConflict:'id'}
-    );
-  }
-  if(state.notes.length){
+      state.transactions.map(x=>({id:String(x.id),user_id:uid,notion_id:x.notionId||null,
+        account_id:x.accountId?String(x.accountId):null,date:x.date||null,type:x.type||null,
+        amount:parseFloat(x.amount)||0,note:x.note||null,status:x.status||null,
+        updated_at:new Date().toISOString()})),{onConflict:'id'});
+  if(state.notes.length)
     await _sb.from('notes').upsert(
-      state.notes.map(n=>({...n,id:String(n.id),user_id:uid})),
-      {onConflict:'id'}
-    );
-  }
-  if(state.journal.length){
-    await _sb.from('journal').upsert(
-      state.journal.map(j=>({...j,id:String(j.id),user_id:uid})),
-      {onConflict:'id'}
-    );
-  }
-  // Daily, Monthly, Weekly — upsert by primary key
-  const dailyRows=Object.entries(state.daily).map(([date,d])=>({...d,date,user_id:uid}));
+      state.notes.map(n=>({id:String(n.id),user_id:uid,notion_id:n.notionId||null,
+        title:n.title||null,text:n.text||'',date:n.date||null,
+        created_at:n.createdAt||new Date().toISOString()})),{onConflict:'id'});
+  const dailyRows=Object.entries(state.daily).map(([date,d])=>_mapDaily(date,d,uid));
   if(dailyRows.length)await _sb.from('daily').upsert(dailyRows,{onConflict:'date,user_id'});
   const monthlyRows=Object.entries(state.monthly).map(([key,data])=>({key,data,user_id:uid}));
   if(monthlyRows.length)await _sb.from('monthly').upsert(monthlyRows,{onConflict:'key,user_id'});
@@ -2484,12 +2518,8 @@ async function _sbUpsertAll(user){
   if(weeklyRows.length)await _sb.from('weekly').upsert(weeklyRows,{onConflict:'week_key,user_id'});
 }
 
-// Legacy function kept for manual "Force Push" button
-function sbAutoSync(){sbScheduleSync();}
-async function _sbDoPush(user){
-  // Safe push = upsert (never wipe-all)
-  await _sbUpsertAll(user);
-}
+function sbAutoSync(){_sbDirty=true;sbScheduleSync();}
+async function _sbDoPush(user){await _sbUpsertAll(user.id||user);}
 
 // ============= UTILS =============
 // NY-aware date string (always returns YYYY-MM-DD in America/New_York)
@@ -2928,6 +2958,7 @@ function saveDaily(){
     savedAt:new Date().toISOString()
   };
   save();
+  sbSyncRecord('daily',_mapDaily(ds,state.daily[ds],_sbUserId)); // instant cloud sync
   document.getElementById('todayStatus').textContent='Saved '+new Date().toLocaleTimeString();
   flash('✓ Saved');
 }
@@ -3120,11 +3151,19 @@ function saveTrade(){
   t.win=t.pnl>0;
   if(_tmEditId){state.trades=state.trades.map(x=>x.id===_tmEditId?t:x);flash('✓ Trade updated');}
   else{state.trades.unshift(t);flash('✓ Trade logged');}
-  save();closeModal('tradeModal');
+  save();
+  sbSyncRecord('trades',_mapTrade(t,_sbUserId)); // instant cloud sync
+  closeModal('tradeModal');
   renderTradeTable();updateAllStats();
   ['tm-pnl','tm-risk','tm-lots','tm-draws','tm-fb'].forEach(id=>document.getElementById(id).value='');
 }
-function deleteTrade(id){if(!confirm('Delete?'))return;state.trades=state.trades.filter(t=>t.id!==id);save();renderTradeTable();updateAllStats()}
+function deleteTrade(id){
+  if(!confirm('Delete?'))return;
+  state.trades=state.trades.filter(t=>t.id!==id);
+  save();
+  sbDeleteRecord('trades',id); // instant cloud delete
+  renderTradeTable();updateAllStats();
+}
 
 function saveTradeAndClose(){
   const pnl=document.getElementById('tm-pnl').value;
@@ -3228,10 +3267,18 @@ function saveAccount(){
   if(!a.name){alert('Name required');return}
   if(_amEditId){state.accounts=state.accounts.map(x=>x.id===_amEditId?a:x);flash('✓ Account updated');}
   else{state.accounts.push(a);if(!state.currentAcc)state.currentAcc=a.id;flash('✓ Account saved');}
-  save();closeModal('accModal');renderAccountTable();updateAllStats();
+  save();
+  sbSyncRecord('accounts',{id:String(a.id),user_id:_sbUserId,name:a.name,type:a.type,status:a.status,date:a.date||null,deposit:parseFloat(a.deposit)||0});
+  closeModal('accModal');renderAccountTable();updateAllStats();
 }
 function setActiveAccount(id){state.currentAcc=id;save();renderAccountTable();updateAllStats();flash('✓ Active account set')}
-function deleteAccount(id){if(!confirm('Delete account?'))return;state.accounts=state.accounts.filter(a=>a.id!==id);if(state.currentAcc===id)state.currentAcc=state.accounts[0]?.id||null;save();renderAccountTable();updateAllStats()}
+function deleteAccount(id){
+  if(!confirm('Delete account?'))return;
+  state.accounts=state.accounts.filter(a=>a.id!==id);
+  if(state.currentAcc===id)state.currentAcc=state.accounts[0]?.id||null;
+  save();sbDeleteRecord('accounts',id);
+  renderAccountTable();updateAllStats();
+}
 function renderAccountTable(){
   const w=document.getElementById('accTable');
   let accs=accFilter==='All'?[...state.accounts]:[...state.accounts].filter(a=>a.type===accFilter);
@@ -3304,7 +3351,9 @@ function saveTrans(){
   };
   if(_xmEditId){state.transactions=state.transactions.map(t=>t.id===_xmEditId?x:t);flash('✓ Transaction updated');}
   else{state.transactions.unshift(x);flash('✓ Transaction saved');}
-  save();closeModal('transModal');renderTransTable();
+  save();
+  sbSyncRecord('transactions',{id:String(x.id),user_id:_sbUserId,account_id:x.accountId?String(x.accountId):null,date:x.date||null,type:x.type||null,amount:parseFloat(x.amount)||0,note:x.note||null,updated_at:new Date().toISOString()});
+  closeModal('transModal');renderTransTable();
   ['xm-amt','xm-note'].forEach(id=>document.getElementById(id).value='');
 }
 let _txTab='in';
@@ -3391,13 +3440,18 @@ async function saveNote(){
   const imgZone=document.getElementById('nm-img-zone');
   if(imgZone){imgZone.dataset.imgkey=n.imgKey;}
   state.notes.unshift(n);save();
+  sbSyncRecord('notes',{id:String(n.id),user_id:_sbUserId,title:n.title||null,text:n.text||'',date:n.date||null,created_at:n.createdAt});
   ['nm-title','nm-text'].forEach(id=>document.getElementById(id).value='');
-  // Reset image zone
   if(imgZone){imgZone.dataset.imgkey='note-img-placeholder';imgZone.classList.remove('has-img');imgZone.innerHTML='<div class="img-zone-text">📋 Paste or click to attach image</div>';}
   renderNotesList();
   flash('✓ Journal entry saved');
 }
-function deleteNote(id){if(!confirm('Delete?'))return;state.notes=state.notes.filter(n=>n.id!==id);save();renderNotesList()}
+function deleteNote(id){
+  if(!confirm('Delete?'))return;
+  state.notes=state.notes.filter(n=>n.id!==id);
+  save();sbDeleteRecord('notes',id);
+  renderNotesList();
+}
 
 async function openNoteDetail(id){
   const n=state.notes.find(x=>x.id===id)||state.journal.find(x=>x.id===id);
@@ -3853,7 +3907,21 @@ function importData(e){
       renderDailyHeatmap();
       loadDaily();
       closeSettingsPanel();
-      flash('✓ Import complete — '+(state.trades?.length||0)+' trades, '+(state.accounts?.length||0)+' accounts, '+Object.keys(state.daily||{}).length+' daily entries');
+      const _importSummary=(state.trades?.length||0)+' trades, '+(state.accounts?.length||0)+' accounts, '+Object.keys(state.daily||{}).length+' daily entries';
+      flash('✓ Import complete — '+_importSummary);
+      // Auto-push to Supabase immediately if signed in
+      if(_sbSyncEnabled && _sbUserId){
+        setTimeout(async()=>{
+          setSyncIndicator('syncing');
+          setSbStatus('⟳ Uploading to Supabase…','var(--gold)');
+          try{
+            await _sbUpsertAll(_sbUserId);
+            _sbDirty=false;
+            setSyncIndicator('synced');
+            setSbStatus('✓ All data in Supabase — '+_importSummary,'var(--bull)');
+          }catch(e){setSyncIndicator('error');setSbStatus('Upload failed — data saved locally','var(--bear)');}
+        },800);
+      }
     }catch(err){
       alert('Import failed: '+err.message+'\n\nMake sure the file is a valid LMR Capitals JSON export.');
     }
@@ -4172,16 +4240,21 @@ function saveDayModal(){
     const k=z.dataset.imgkey;
     if(k&&!k.startsWith(ds))z.dataset.imgkey=`${ds}-${k}`;
   });
-  save();closeModal('dayModal');renderDailyHeatmap();flash('✓ Day saved');
+  save();
+  sbSyncRecord('daily',_mapDaily(ds,state.daily[ds],_sbUserId)); // instant cloud sync
+  closeModal('dayModal');renderDailyHeatmap();flash('✓ Day saved');
 }
 function deleteDayEntry(ds){
   if(!confirm(`Delete entry for ${ds}?`))return;
-  delete state.daily[ds];save();renderDailyHeatmap();flash('✓ Entry deleted');
+  delete state.daily[ds];save();
+  sbDeleteRecord('daily',ds,'date'); // instant cloud delete
+  renderDailyHeatmap();flash('✓ Entry deleted');
 }
 function deleteTradeInDay(id,ds){
   if(!confirm('Delete trade?'))return;
   state.trades=state.trades.filter(t=>t.id!=id);
-  save();openDayModal(ds);renderDailyHeatmap();flash('✓ Trade deleted');
+  save();sbDeleteRecord('trades',id);
+  openDayModal(ds);renderDailyHeatmap();flash('✓ Trade deleted');
 }
 function openTradeModalForDate(ds){
   closeModal('dayModal');
@@ -4209,7 +4282,8 @@ function editAccount(id){
 function deleteTransaction(id){
   if(!confirm('Delete transaction?'))return;
   state.transactions=state.transactions.filter(t=>t.id!=id);
-  save();renderTransTable();flash('✓ Deleted');
+  save();sbDeleteRecord('transactions',id);
+  renderTransTable();flash('✓ Deleted');
 }
 function editNote(id){
   const n=state.notes.find(n=>n.id==id);if(!n)return;
@@ -4453,17 +4527,18 @@ async function sbRefreshUI() {
   try {
     const { data: { user: u } } = await _sb.auth.getUser();
     if (u) {
-      _sbSyncEnabled = true; // enable auto-sync now that user is confirmed
+      _sbSyncEnabled = true;
+      _sbUserId = u.id; // cache user ID for instant sync without auth calls
       if(auth)auth.style.display = 'none';
       if(user)user.style.display = '';
       const emailEl=document.getElementById('cloud-user-email');
       if(emailEl)emailEl.textContent = u.email;
-      setSbStatus('✓ Auto-sync ON — ' + u.email, 'var(--bull)');
-      // Update sidebar save status
+      setSbStatus('✓ Real-time sync ON — ' + u.email.split('@')[0], 'var(--bull)');
       const ss=document.getElementById('sb-save-status');
-      if(ss){ss.textContent='Cloud sync ON';ss.style.color='var(--bull)';}
+      if(ss){ss.textContent='☁ Cloud ON';ss.style.color='var(--bull)';}
     } else {
       _sbSyncEnabled = false;
+      _sbUserId = null;
       if(auth)auth.style.display = '';
       if(user)user.style.display = 'none';
       setSbStatus('Not signed in — data is local only', 'var(--text3)');
@@ -4512,16 +4587,25 @@ async function sbDoSignOut() {
 
 async function sbPushNow() {
   if (!sbInit()) return;
-  const { data: { user } } = await _sb.auth.getUser();
-  if (!user) { flash('Sign in first'); return; }
-  setSbStatus('⟳ Pushing…', 'var(--gold)');
+  // Use cached userId if available, otherwise fetch
+  let uid = _sbUserId;
+  if(!uid){
+    const {data:{user}} = await _sb.auth.getUser();
+    if(!user){flash('Sign in first — Settings → Cloud tab');return;}
+    uid = user.id; _sbUserId = uid; _sbSyncEnabled = true;
+  }
+  setSyncIndicator('syncing');
+  setSbStatus('⟳ Pushing all data to Supabase…', 'var(--gold)');
   try {
-    await _sbDoPush(user);
-    setSbStatus('✓ Pushed to cloud', 'var(--bull)');
-    flash('✓ Pushed to cloud');
+    await _sbUpsertAll(uid);
+    _sbDirty=false;
+    setSyncIndicator('synced');
+    setSbStatus('✓ All data in Supabase', 'var(--bull)');
+    flash('✓ All '+state.trades.length+' trades + '+Object.keys(state.daily).length+' daily entries pushed to Supabase');
   } catch (e) {
-    setSbStatus('Push failed', 'var(--bear)');
-    flash('Push error: ' + e.message);
+    setSyncIndicator('error');
+    setSbStatus('Push failed: '+e.message, 'var(--bear)');
+    flash('Push failed: '+e.message);
   }
 }
 
@@ -4532,12 +4616,13 @@ async function sbAutoLoadOnStart() {
   try {
     const { data: { user } } = await _sb.auth.getUser();
     if (!user) { setSbStatus('Not signed in — data saved locally', 'var(--text3)'); return; }
-    setSbStatus('✓ Connected · ' + user.email.split('@')[0], 'var(--bull)');
-    const ss = document.getElementById('sb-save-status');
-    if(ss){ss.textContent='Cloud sync ON';ss.style.color='var(--bull)';}
     _sbSyncEnabled = true;
+    _sbUserId = user.id;
+    setSbStatus('✓ Real-time sync ON · ' + user.email.split('@')[0], 'var(--bull)');
+    const ss = document.getElementById('sb-save-status');
+    if(ss){ss.textContent='☁ Cloud ON';ss.style.color='var(--bull)';}
     _sbDirty = true;
-    // Schedule a push of current local data to cloud (no pull — never auto-pull)
+    // Push current local data to cloud on startup
     sbScheduleSync();
   } catch(e) {
     setSbStatus('Cloud check failed', 'var(--text3)');
