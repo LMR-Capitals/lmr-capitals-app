@@ -2345,40 +2345,56 @@ let state={
   calMonth:'2026-05'
 };
 
+// Ensure all state arrays/objects are valid (never null/undefined)
+function ensureState(){
+  if(!Array.isArray(state.trades))state.trades=[];
+  if(!Array.isArray(state.accounts))state.accounts=[];
+  if(!Array.isArray(state.transactions))state.transactions=[];
+  if(!Array.isArray(state.notes))state.notes=[];
+  if(!Array.isArray(state.journal))state.journal=[];
+  if(!state.daily||typeof state.daily!=='object'||Array.isArray(state.daily))state.daily={};
+  if(!state.monthly||typeof state.monthly!=='object'||Array.isArray(state.monthly))state.monthly={};
+  if(!state.weekly||typeof state.weekly!=='object'||Array.isArray(state.weekly))state.weekly={};
+  if(!state.profile||typeof state.profile!=='object')state.profile={};
+}
+
 function load(){
   try{
     const r=localStorage.getItem(STORE_KEY);
-    if(r){
-      const parsed=JSON.parse(r);
-      state={...state,...parsed};
-    }
-    // Always restore backup if primary is empty and backup exists
+    if(r){const parsed=JSON.parse(r);state={...state,...parsed};}
+    ensureState();
+    // If primary is empty, restore from backup
     const hasData=state.trades.length||state.accounts.length||Object.keys(state.daily).length;
     if(!hasData){
       const bk=localStorage.getItem(STORE_KEY+'_bk');
-      if(bk){const p=JSON.parse(bk);state={...state,...p};console.log('[LMR] Restored from backup');}
+      if(bk){const p=JSON.parse(bk);state={...state,...p};ensureState();console.log('[LMR] Restored from backup');}
     }
-  }catch(e){console.error('[LMR] load error',e);}
+  }catch(e){ensureState();console.error('[LMR] load error',e);}
 }
 
 function save(){
-  // Safety: never write completely empty state over existing data
-  const hasNewData=state.trades.length||state.accounts.length||Object.keys(state.daily).length||state.notes.length;
+  ensureState(); // Always validate before writing
+  const tradeCount=state.trades.length;
+  const dailyCount=Object.keys(state.daily).length;
+  const acctCount=state.accounts.length;
+  // Protection: never overwrite DATA with LESS data
   const prevRaw=localStorage.getItem(STORE_KEY);
-  if(!hasNewData && prevRaw){
+  if(prevRaw){
     try{
       const prev=JSON.parse(prevRaw);
-      const hadData=prev.trades?.length||prev.accounts?.length||Object.keys(prev.daily||{}).length;
-      if(hadData){
-        console.warn('[LMR] BLOCKED empty-state save — keeping existing data');
-        return; // Don't overwrite good data with empty state
+      const prevTrades=prev.trades?.length||0;
+      const prevDaily=Object.keys(prev.daily||{}).length;
+      const prevAccts=prev.accounts?.length||0;
+      // If we're about to lose significantly more than we have, block the save
+      if(prevTrades>tradeCount+1 || prevDaily>dailyCount+2 || prevAccts>acctCount+1){
+        console.warn(`[LMR] BLOCKED regression save: was ${prevTrades}T/${prevDaily}D now ${tradeCount}T/${dailyCount}D`);
+        return;
       }
     }catch(e){}
   }
-  // Write to primary key
-  try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){alert('Storage full: '+e.message); return;}
-  // Write backup key (different name so one can't corrupt the other)
-  if(hasNewData){
+  try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){alert('Storage full: '+e.message);return;}
+  // Always write backup when we have meaningful data
+  if(tradeCount||dailyCount||acctCount||state.notes.length){
     try{localStorage.setItem(STORE_KEY+'_bk',JSON.stringify(state));}catch(e){}
   }
   _sbDirty=true;
@@ -3828,18 +3844,35 @@ function importData(e){
         for(const[k,b] of imgEntries)await saveImg(k,b64ToBlob(b));
       }
       save();
-      flash('✓ Import complete — '+
-        (state.trades?.length||0)+' trades, '+
-        (state.accounts?.length||0)+' accounts, '+
-        Object.keys(state.daily||{}).length+' daily entries');
-      setTimeout(()=>location.reload(),1200);
+      // Re-render in-place — NO page reload (prevents data loss)
+      ensureState();
+      updateAllStats();
+      renderDashboard();
+      renderTradeTable();
+      renderNotesList();
+      renderDailyHeatmap();
+      loadDaily();
+      closeSettingsPanel();
+      flash('✓ Import complete — '+(state.trades?.length||0)+' trades, '+(state.accounts?.length||0)+' accounts, '+Object.keys(state.daily||{}).length+' daily entries');
     }catch(err){
       alert('Import failed: '+err.message+'\n\nMake sure the file is a valid LMR Capitals JSON export.');
     }
   };
   r.readAsText(f);
 }
-async function clearAllData(){if(!confirm('DELETE ALL?'))return;if(!confirm('Really?'))return;localStorage.removeItem(STORE_KEY);const keys=await allImgKeys();for(const k of keys)await delImg(k);location.reload()}
+async function clearAllData(){
+  if(!confirm('DELETE ALL DATA? This cannot be undone.'))return;
+  if(!confirm('Are you 100% sure? All trades, daily entries, images will be gone.'))return;
+  localStorage.removeItem(STORE_KEY);
+  localStorage.removeItem(STORE_KEY+'_bk');
+  const keys=await allImgKeys();
+  for(const k of keys)await delImg(k);
+  // Reset to default state without reload
+  state={daily:{},monthly:{},weekly:{},trades:[],journal:[],notes:[],accounts:[],transactions:[],
+    currentMonth:'2026-05',currentWeek:1,currentAcc:null,dayCountStart:1,dayCountStartDate:'2026-01-01',calMonth:'2026-05',profile:{}};
+  save();updateAllStats();renderDashboard();renderTradeTable();renderNotesList();
+  flash('✓ All data cleared');
+}
 
 function saveSettings(){
   const d=parseInt(document.getElementById('set-day').value);
@@ -4546,17 +4579,20 @@ async function sbPullNow() {
     // Before pull, backup current local state
     try{localStorage.setItem(STORE_KEY+'_pre_pull',JSON.stringify(state));}catch(e){}
     await _sbDoPull();
+    ensureState();
     const gotData = state.trades.length > 0 || state.accounts.length > 0 || Object.keys(state.daily).length > 0;
     if(gotData){
-      setSbStatus('✓ Restored from cloud', 'var(--bull)');
-      flash('✓ Cloud data restored — reloading…');
-      setTimeout(() => location.reload(), 800);
+      // Re-render in-place — NO reload (prevents losing new unsaved data)
+      save();
+      updateAllStats();renderDashboard();renderTradeTable();renderNotesList();loadDaily();
+      setSbStatus('✓ Restored from cloud — '+state.trades.length+' trades', 'var(--bull)');
+      flash('✓ Cloud data restored — '+state.trades.length+' trades, '+Object.keys(state.daily).length+' daily entries');
     } else {
       // Cloud was empty — restore the backup we just took
       const bk=localStorage.getItem(STORE_KEY+'_pre_pull');
-      if(bk){const p=JSON.parse(bk);state={...state,...p};save();}
-      setSbStatus('Cloud is empty — local data restored', 'var(--warn)');
-      flash('⚠ Cloud had no data — your local data was kept');
+      if(bk){const p=JSON.parse(bk);state={...state,...p};ensureState();save();}
+      setSbStatus('Cloud is empty — your local data is unchanged', 'var(--warn)');
+      flash('⚠ Cloud had no data — your local data was kept untouched');
     }
   } catch (e) {
     setSbStatus('Pull failed', 'var(--bear)');
