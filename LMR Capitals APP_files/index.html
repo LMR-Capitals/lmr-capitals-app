@@ -8,6 +8,13 @@
 <meta name="apple-mobile-web-app-title" content="LMR Capitals">
 <meta name="theme-color" content="#060B14">
 <title>LMR Capitals</title>
+<meta name="application-name" content="LMR Capitals">
+<meta name="description" content="LMR Capitals — Professional Day Trading Journal. Track trades, daily chains, performance analytics. LMR Capitals Pty. Ltd.">
+<meta property="og:title" content="LMR Capitals — Professional Trading Journal">
+<meta property="og:description" content="LMR Capitals — Day Trading Journal & Analytics for Serious Traders. LMR Capitals Pty. Ltd.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://lmrcapitals.com">
+<meta property="og:image" content="https://lmrcapitals.com/icons/icon-512.png">
 <link rel="manifest" href="./manifest.json">
 <!-- Favicons — browser tab + desktop icon -->
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
@@ -808,6 +815,66 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .lg-brand-logo{width:130px;height:130px;margin-bottom:20px;filter:drop-shadow(0 4px 28px rgba(245,166,35,.55)) brightness(1.08)}
 /* Sidebar logo - white icon on dark bg, gold glow */
 #sb-logo-img{filter:brightness(1.1) drop-shadow(0 0 6px rgba(245,166,35,.3))}
+
+/* ── RESPONSIVE ──────────────────────────────────── */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.main{margin-left:var(--sb-w,242px);transition:margin .28s}
+
+@media(max-width:768px){
+  /* Sidebar slides in/out as overlay */
+  .sidebar{
+    position:fixed;left:-260px;top:0;bottom:0;z-index:200;
+    transition:transform .28s cubic-bezier(.4,0,.2,1);
+    width:240px;
+  }
+  .sidebar.open{transform:translateX(260px)}
+  .overlay.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199}
+  .main{margin-left:0!important}
+
+  /* Stack dashboard tiles 2x2 */
+  .tiles-4{grid-template-columns:1fr 1fr!important}
+  .tiles-4 .tile{min-height:80px}
+  .tile-v{font-size:20px!important}
+
+  /* Full width cards */
+  .card{border-radius:12px}
+  .cols2{grid-template-columns:1fr!important}
+
+  /* Trade table horizontal scroll */
+  .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tbl{min-width:800px}
+
+  /* Login page — single column */
+  #loginGate .lg-card,.lg-wrap{flex-direction:column!important}
+  .lg-left{display:none!important}
+  .lg-right{width:100%!important;border-radius:16px!important;min-height:unset!important}
+
+  /* Daily grid — smaller cells */
+  .mc-grid{gap:3px!important}
+  .mc-day{min-height:90px!important;padding:6px 7px!important}
+  .mc-week-pnl{min-height:90px!important}
+
+  /* Topbar */
+  .topbar{padding:10px 14px!important}
+  .tb-title{font-size:16px!important}
+
+  /* Settings panel */
+  .settings-panel{width:100%!important;max-width:100%!important}
+
+  /* Mobile bar */
+  .mobile-bar{display:flex!important}
+}
+
+@media(max-width:480px){
+  .tiles-4{grid-template-columns:1fr!important}
+  .mc-day{min-height:70px!important;font-size:8px!important;padding:4px!important}
+  .lg-card{padding:24px 20px!important}
+}
+
+@media(min-width:769px){
+  .mobile-bar{display:none}
+}
 </style>
 </head>
 <body>
@@ -873,8 +940,22 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
         <button class="lg-btn-out" id="lg-signup-submit" onclick="lgSignUp()">Create Account →</button>
       </div>
 
+      <!-- Session expired message -->
+      <div id="lg-session-msg" style="display:none;margin-bottom:10px;padding:8px 12px;background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.25);border-radius:8px;font-size:11px;color:var(--gold);font-weight:600"></div>
+
       <div class="lg-err" id="lg-err"></div>
       <div class="lg-success" id="lg-success"></div>
+
+      <!-- 2FA challenge step -->
+      <div id="lg-2fa-area" style="display:none">
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">🔐 Two-Factor Authentication</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:16px">Enter the 6-digit code from your authenticator app</div>
+        <input type="text" id="lg-2fa-code" placeholder="000000" maxlength="6" autocomplete="one-time-code"
+          style="width:100%;padding:14px;font-size:24px;font-family:'JetBrains Mono',monospace;letter-spacing:0.3em;text-align:center;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;color:var(--text);margin-bottom:12px">
+        <button class="lg-btn" id="lg-2fa-submit" onclick="lgVerify2FA()">Verify →</button>
+        <div class="lg-err" id="lg-2fa-err"></div>
+      </div>
+
       <div class="lg-footer">Secured by <span>Supabase Auth</span> · LMR Capitals © 2026</div>
     </div>
   </div>
@@ -958,6 +1039,10 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
       <div class="tb-sub" id="tbSub">Welcome back, <span id="tb-username">LMR Capitals</span>. Day <span id="tbDay">363</span></div>
     </div>
     <div class="tb-actions">
+      <div id="rt-indicator" style="display:flex;align-items:center;gap:5px;font-size:9px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.08em">
+        <span id="rt-dot" style="width:6px;height:6px;border-radius:50%;background:var(--text3);display:inline-block"></span>
+        <span id="rt-label">Offline</span>
+      </div>
       <button class="btn btn-primary btn-sm" onclick="openTradeModal()">+ Trade</button>
     </div>
   </div>
@@ -2020,6 +2105,14 @@ Midnight Open $______"></textarea>
   <!-- ── APP TAB ── -->
   <div id="set-tab-app" style="padding:16px 18px;display:none">
 
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(255,64,96,0.06);border:1px solid rgba(255,64,96,0.2);border-radius:10px;margin-bottom:16px">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--text)">Signed in as <span id="app-signed-in-email" style="color:var(--gold)">—</span></div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">Session: <span id="app-session-time" style="color:var(--text2)">Active</span></div>
+      </div>
+      <button class="btn btn-sm btn-bear" onclick="sbDoSignOut()" style="min-width:80px">Sign Out</button>
+    </div>
+
     <div class="sp-section-title">Appearance</div>
     <div style="margin-bottom:14px">
       <label class="form-label">Colour Theme</label>
@@ -2162,6 +2255,30 @@ Midnight Open $______"></textarea>
         <b style="color:var(--text2)">App link:</b>
         <span style="color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:10px;word-break:break-all"> https://lmrcapitals.com</span>
       </div>
+
+      <!-- 2FA Section -->
+      <div id="mfa-section" style="margin-top:16px;padding:12px;background:var(--bg3);border-radius:10px;border:1px solid var(--border2)">
+        <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Two-Factor Authentication (2FA)</div>
+        <div id="mfa-status" style="font-size:11px;color:var(--text2);margin-bottom:8px">Loading...</div>
+        <div id="mfa-enroll-btn" style="display:none">
+          <button class="btn btn-sm btn-primary" onclick="mfaEnroll()">⚡ Enable 2FA (TOTP)</button>
+        </div>
+        <div id="mfa-enrolled" style="display:none">
+          <div style="font-size:10px;color:var(--bull);margin-bottom:6px">✓ 2FA Active — your account is protected</div>
+          <button class="btn btn-sm btn-bear" onclick="mfaUnenroll()">Remove 2FA</button>
+        </div>
+        <div id="mfa-qr-area" style="display:none;margin-top:10px">
+          <div style="font-size:11px;color:var(--text2);margin-bottom:8px">Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)</div>
+          <div id="mfa-qr-code" style="background:white;padding:12px;border-radius:8px;display:inline-block;margin-bottom:10px"></div>
+          <div style="font-size:10px;color:var(--text3);margin-bottom:8px">Or enter code manually: <span id="mfa-secret" style="font-family:monospace;color:var(--gold)"></span></div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="text" id="mfa-verify-code" placeholder="Enter 6-digit code" maxlength="6" style="width:140px;padding:8px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:14px;font-family:monospace;letter-spacing:0.2em">
+            <button class="btn btn-sm btn-primary" onclick="mfaVerifyEnroll()">Verify & Activate</button>
+          </div>
+          <div id="mfa-enroll-err" style="display:none;color:var(--bear);font-size:11px;margin-top:6px"></div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -2797,13 +2914,14 @@ let _sbUserId=null; // cached user ID — avoids repeated auth calls
 function setSyncIndicator(status){
   const el=document.getElementById('sb-save-status');
   if(!el)return;
-  if(status==='syncing'){el.textContent='⟳ Syncing…';el.style.color='var(--gold)';}
+  if(status==='syncing'){el.textContent='⟳ Syncing…';el.style.color='var(--gold)';updateRTIndicator('syncing');}
   else if(status==='synced'){
     const t=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
     el.textContent='☁ Synced '+t;el.style.color='var(--bull)';
+    updateRTIndicator('live');
     setTimeout(()=>{if(el.textContent.startsWith('☁ Synced'))el.textContent='☁ Cloud ON';el.style.color='var(--bull)';},5000);
   }
-  else if(status==='error'){el.textContent='⚠ Sync error';el.style.color='var(--warn)';}
+  else if(status==='error'){el.textContent='⚠ Sync error';el.style.color='var(--warn)';updateRTIndicator('offline');}
   else{el.textContent='Auto-saved';el.style.color='';}
 }
 
@@ -3062,6 +3180,15 @@ function switchSetTab(tab){
     b.style.borderBottom=active?'2px solid var(--gold)':'2px solid transparent';
     b.style.fontWeight=active?'700':'600';
   });
+  // Load MFA status when cloud tab is opened
+  if(tab==='cloud') mfaCheckStatus().catch(()=>{});
+  // Update signed-in email in app tab
+  if(tab==='app'&&_sb&&_sbUserId){
+    _sb.auth.getUser().then(({data:{user}})=>{
+      const el=document.getElementById('app-signed-in-email');
+      if(el&&user)el.textContent=user.email||'';
+    }).catch(()=>{});
+  }
 }
 function applyTheme(t){
   document.body.classList.toggle('light-mode',t==='light');
@@ -5134,6 +5261,8 @@ async function sbDoSignOut() {
   if(!confirm('Sign out of LMR Capitals?\n\nYour data is saved locally and in the cloud.'))return;
   await _sb.auth.signOut();
   _sbSyncEnabled=false;_sbUserId=null;
+  localStorage.removeItem(SESSION_KEY);
+  updateRTIndicator('offline');
   // Show login gate again
   document.getElementById('loginGate').classList.remove('hidden');
   document.getElementById('mainApp').style.display='none';
@@ -5142,6 +5271,9 @@ async function sbDoSignOut() {
   document.getElementById('lg-err').style.display='none';
   document.getElementById('lg-submit').disabled=false;
   document.getElementById('lg-submit').textContent='Sign In →';
+  // Hide 2FA area in case it was open
+  const tfa=document.getElementById('lg-2fa-area');if(tfa)tfa.style.display='none';
+  const sfm=document.getElementById('lg-signin-form');if(sfm)sfm.style.display='';
 }
 
 async function sbPushNow() {
@@ -5268,6 +5400,20 @@ async function lgSignIn(){
   try{
     const{data,error}=await _sb.auth.signInWithPassword({email,password:pass});
     if(error)throw error;
+    // Check if 2FA is required
+    const{data:mfaData}=await _sb.auth.mfa.listFactors();
+    const activeTOTP=(mfaData?.totp||[]).filter(f=>f.status==='verified');
+    if(activeTOTP.length > 0){
+      // 2FA required — show 2FA challenge
+      _mfaFactorId=activeTOTP[0].id;
+      document.getElementById('lg-signin-form').style.display='none';
+      document.getElementById('lg-2fa-area').style.display='';
+      document.getElementById('lg-2fa-code').value='';
+      document.getElementById('lg-2fa-code').focus();
+      const e2=document.getElementById('lg-2fa-err');if(e2)e2.style.display='none';
+      if(btn){btn.disabled=false;btn.textContent='Sign In →';}
+      return; // Don't call lgUnlock yet
+    }
     lgUnlock(data.user);
   }catch(e){
     err.textContent=e.message||'Sign-in failed. Check your credentials.';
@@ -5338,6 +5484,13 @@ function lgUnlock(user){
   // Wire Supabase sync
   _sbSyncEnabled=true;
   _sbUserId=user.id;
+  // Save session timestamp for timeout tracking
+  localStorage.setItem(SESSION_KEY, Date.now().toString());
+  // Update signed-in email display in Settings App tab
+  const appEmail=document.getElementById('app-signed-in-email');
+  if(appEmail)appEmail.textContent=user.email||'';
+  // Update RT indicator
+  updateRTIndicator('live');
   const ss=document.getElementById('sb-save-status');
   if(ss){ss.textContent='☁ Cloud ON';ss.style.color='var(--bull)';}
   setSbStatus('✓ Real-time sync ON · '+user.email.split('@')[0],'var(--bull)');
@@ -5459,10 +5612,146 @@ window.addEventListener('DOMContentLoaded', () => {
 // Sync when tab goes to background or page closes
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden'&&_sbDirty)sbDoSafeSync();
+  if(document.visibilityState==='visible')checkSessionTimeout();
 });
 window.addEventListener('pagehide',()=>{
   if(_sbDirty)sbDoSafeSync();
 });
+
+// ── SESSION TIMEOUT ──────────────────────────────────────────────
+const SESSION_TIMEOUT_MS = 60 * 60 * 1000; // 1 hour
+const SESSION_KEY = 'lmr_session_ts';
+
+function checkSessionTimeout(){
+  const ts = parseInt(localStorage.getItem(SESSION_KEY)||'0');
+  if(!ts) return; // not logged in
+  if(Date.now() - ts > SESSION_TIMEOUT_MS){
+    // Session expired — force re-login
+    localStorage.removeItem(SESSION_KEY);
+    if(_sb) _sb.auth.signOut().catch(()=>{});
+    _sbSyncEnabled=false; _sbUserId=null;
+    document.getElementById('loginGate').classList.remove('hidden');
+    document.getElementById('mainApp').style.display='none';
+    document.getElementById('lg-email').value='';
+    document.getElementById('lg-password').value='';
+    document.getElementById('lg-err').style.display='none';
+    document.getElementById('lg-submit').disabled=false;
+    document.getElementById('lg-submit').textContent='Sign In →';
+    const expMsg=document.getElementById('lg-session-msg');
+    if(expMsg){expMsg.style.display='';expMsg.textContent='⏱ Session expired after 1 hour. Please sign in again.';}
+    flash('Session expired — please sign in again');
+  }
+}
+
+// Check every 5 minutes while app is open
+setInterval(checkSessionTimeout, 5*60*1000);
+
+// ── RT STATUS INDICATOR ──────────────────────────────────────────
+function updateRTIndicator(status){
+  const dot=document.getElementById('rt-dot');
+  const lbl=document.getElementById('rt-label');
+  if(!dot||!lbl)return;
+  const map={
+    live:   {color:'var(--bull)', label:'Live', anim:'pulse 2s infinite'},
+    syncing:{color:'var(--gold)', label:'Syncing', anim:'none'},
+    offline:{color:'var(--bear)', label:'Offline', anim:'none'}
+  };
+  const s=map[status]||map.offline;
+  dot.style.background=s.color;
+  dot.style.animation=s.anim;
+  lbl.style.color=s.color;
+  lbl.textContent=s.label;
+}
+
+// ── 2FA FUNCTIONS ────────────────────────────────────────────────
+let _mfaFactorId = null;
+let _mfaChallengeId = null;
+
+async function mfaCheckStatus(){
+  if(!_sb||!_sbUserId) return;
+  try{
+    const{data}=await _sb.auth.mfa.listFactors();
+    const totpFactors=(data?.totp||[]).filter(f=>f.status==='verified');
+    const mfaStatus=document.getElementById('mfa-status');
+    const mfaEnrollBtn=document.getElementById('mfa-enroll-btn');
+    const mfaEnrolled=document.getElementById('mfa-enrolled');
+    if(totpFactors.length>0){
+      _mfaFactorId=totpFactors[0].id;
+      if(mfaStatus)mfaStatus.textContent='✓ 2FA is enabled on your account';
+      if(mfaEnrollBtn)mfaEnrollBtn.style.display='none';
+      if(mfaEnrolled)mfaEnrolled.style.display='';
+    } else {
+      _mfaFactorId=null;
+      if(mfaStatus)mfaStatus.textContent='2FA is not enabled. Enable it for extra security.';
+      if(mfaEnrollBtn)mfaEnrollBtn.style.display='';
+      if(mfaEnrolled)mfaEnrolled.style.display='none';
+    }
+  }catch(e){ console.warn('MFA check failed',e); }
+}
+
+async function mfaEnroll(){
+  if(!_sb) return;
+  try{
+    const{data,error}=await _sb.auth.mfa.enroll({factorType:'totp',friendlyName:'LMR Capitals'});
+    if(error)throw error;
+    _mfaFactorId=data.id;
+    const qrArea=document.getElementById('mfa-qr-area');
+    const qrDiv=document.getElementById('mfa-qr-code');
+    const secretEl=document.getElementById('mfa-secret');
+    if(qrDiv) qrDiv.innerHTML=`<img src="${data.totp.qr_code}" style="width:180px;height:180px">`;
+    if(secretEl) secretEl.textContent=data.totp.secret;
+    if(qrArea) qrArea.style.display='';
+    document.getElementById('mfa-enroll-btn').style.display='none';
+    window._mfaEnrollId=data.id;
+  }catch(e){ flash('2FA setup error: '+e.message); }
+}
+
+async function mfaVerifyEnroll(){
+  const code=document.getElementById('mfa-verify-code')?.value?.replace(/\s/g,'');
+  const err=document.getElementById('mfa-enroll-err');
+  if(!code||code.length!==6){if(err){err.textContent='Enter 6-digit code';err.style.display='';}return;}
+  try{
+    const{data,error}=await _sb.auth.mfa.challengeAndVerify({factorId:window._mfaEnrollId,code});
+    if(error)throw error;
+    document.getElementById('mfa-qr-area').style.display='none';
+    document.getElementById('mfa-enrolled').style.display='';
+    document.getElementById('mfa-status').textContent='✓ 2FA is enabled on your account';
+    _mfaFactorId=window._mfaEnrollId;
+    flash('✓ 2FA activated — your account is now protected');
+  }catch(e){if(err){err.textContent='Invalid code — try again';err.style.display='';}}
+}
+
+async function mfaUnenroll(){
+  if(!_mfaFactorId||!confirm('Remove 2FA from your account?'))return;
+  try{
+    await _sb.auth.mfa.unenroll({factorId:_mfaFactorId});
+    _mfaFactorId=null;
+    await mfaCheckStatus();
+    flash('2FA removed');
+  }catch(e){flash('Error removing 2FA: '+e.message);}
+}
+
+async function lgVerify2FA(){
+  const code=document.getElementById('lg-2fa-code')?.value?.replace(/\s/g,'');
+  const err=document.getElementById('lg-2fa-err');
+  const btn=document.getElementById('lg-2fa-submit');
+  if(!code||code.length!==6){if(err){err.textContent='Enter your 6-digit authenticator code';err.style.display='';}return;}
+  if(btn){btn.disabled=true;btn.textContent='Verifying…';}
+  try{
+    const{data:ch,error:chErr}=await _sb.auth.mfa.challenge({factorId:_mfaFactorId});
+    if(chErr)throw chErr;
+    const{data,error}=await _sb.auth.mfa.verify({factorId:_mfaFactorId,challengeId:ch.id,code});
+    if(error)throw error;
+    // 2FA passed — complete login
+    document.getElementById('lg-2fa-area').style.display='none';
+    document.getElementById('lg-signin-form').style.display='';
+    const{data:{user}}=await _sb.auth.getUser();
+    if(user) lgUnlock(user);
+  }catch(e){
+    if(err){err.textContent='Invalid code — try again';err.style.display='';}
+    if(btn){btn.disabled=false;btn.textContent='Verify →';}
+  }
+}
 </script>
 
 <script>
