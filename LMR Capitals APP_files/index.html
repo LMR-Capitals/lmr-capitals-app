@@ -688,45 +688,45 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
   content:'';position:absolute;right:0;top:10%;bottom:10%;width:1px;
   background:linear-gradient(180deg,transparent,rgba(245,166,35,.3),transparent);
 }
+/* No animation delays — content always visible immediately */
 .lg-brand-icon{
-  width:72px;height:72px;border-radius:18px;
+  width:80px;height:80px;border-radius:20px;
   background:linear-gradient(135deg,#f5a623,#e8a020);
   display:flex;align-items:center;justify-content:center;
-  font-size:36px;margin-bottom:32px;
-  box-shadow:0 0 48px rgba(245,166,35,.35),0 8px 32px rgba(0,0,0,.5);
-  animation:lgFadeIn .5s .1s ease both;
+  font-size:40px;margin-bottom:28px;
+  box-shadow:0 0 48px rgba(245,166,35,.4),0 8px 32px rgba(0,0,0,.5);
 }
 .lg-brand-lmr{
   font-size:72px;font-weight:900;
-  background:linear-gradient(135deg,#f5a623,#ffc857,#f5a623);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  color:#F5A623; /* solid gold — no gradient text clip (unreliable cross-browser) */
   line-height:1;letter-spacing:-.04em;
-  text-shadow:none;
-  animation:lgFadeIn .5s .15s ease both;
+  text-shadow:0 0 40px rgba(245,166,35,.4);
 }
 .lg-brand-capitals{
   font-size:28px;font-weight:700;color:#EDF2FF;margin-top:4px;
   letter-spacing:.04em;
-  animation:lgFadeIn .5s .2s ease both;
 }
 .lg-brand-tagline{
-  font-size:13px;color:rgba(245,166,35,.7);font-weight:600;
-  text-transform:uppercase;letter-spacing:.18em;margin-top:8px;margin-bottom:40px;
-  animation:lgFadeIn .5s .25s ease both;
+  font-size:12px;color:rgba(245,166,35,.75);font-weight:600;
+  text-transform:uppercase;letter-spacing:.18em;margin-top:8px;margin-bottom:36px;
 }
-.lg-features{display:flex;flex-direction:column;gap:14px;animation:lgFadeIn .5s .3s ease both;}
+.lg-features{display:flex;flex-direction:column;gap:16px;}
 .lg-feature{
   display:flex;align-items:center;gap:14px;
-  font-size:14px;color:rgba(237,242,255,.75);font-weight:500;
+  font-size:14px;color:rgba(237,242,255,.8);font-weight:500;
 }
 .lg-feature-dot{
-  width:8px;height:8px;border-radius:50%;
-  background:linear-gradient(135deg,#f5a623,#ffc857);
-  box-shadow:0 0 12px rgba(245,166,35,.5);flex-shrink:0;
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;
+  background:#F5A623;
+  box-shadow:0 0 10px rgba(245,166,35,.6);
 }
 .lg-version{
-  position:absolute;bottom:28px;left:64px;
-  font-size:10px;color:rgba(255,255,255,.2);font-family:'JetBrains Mono',monospace;
+  position:absolute;bottom:24px;left:64px;
+  font-size:10px;color:rgba(255,255,255,.25);font-family:'JetBrains Mono',monospace;
+}
+.lg-brand-logo{
+  width:110px;height:110px;margin-bottom:24px;
+  filter:brightness(1.1) drop-shadow(0 0 20px rgba(245,166,35,.5));
 }
 
 /* RIGHT FORM SIDE */
@@ -812,7 +812,7 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
   .lg-right{flex:1;padding:28px 24px;align-items:flex-start}
   .lg-brand-icon{width:52px;height:52px;font-size:26px;margin-bottom:20px}
 }
-.lg-brand-logo{width:130px;height:130px;margin-bottom:20px;filter:drop-shadow(0 4px 28px rgba(245,166,35,.55)) brightness(1.08)}
+/* lg-brand-logo defined above */
 /* Sidebar logo - white icon on dark bg, gold glow */
 #sb-logo-img{filter:brightness(1.1) drop-shadow(0 0 6px rgba(245,166,35,.3))}
 
@@ -912,11 +912,11 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
         <div class="lg-sub">Sign in to access your trading dashboard</div>
         <div class="lg-field">
           <label>Email</label>
-          <input type="email" id="lg-email" placeholder="admin@lmrcapitals.com" autocomplete="email">
+          <input type="email" id="lg-email" placeholder="Enter your email" autocomplete="off" spellcheck="false">
         </div>
         <div class="lg-field">
           <label>Password</label>
-          <input type="password" id="lg-password" placeholder="••••••••" autocomplete="current-password">
+          <input type="password" id="lg-password" placeholder="Enter your password" autocomplete="new-password">
         </div>
         <button class="lg-btn" id="lg-submit" onclick="lgSignIn()">Sign In →</button>
       </div>
@@ -5580,11 +5580,27 @@ async function lgSignUp(){
   }
 }
 
-// Allow Enter key on login form
+// Allow Enter key on login form + clear any browser-autofilled values on load
 document.addEventListener('DOMContentLoaded',()=>{
+  // Clear fields immediately so browser autofill doesn't persist
+  ['lg-email','lg-password','lg-signup-email','lg-signup-password','lg-signup-confirm'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){ el.value=''; }
+  });
+  // Small delay clear (some browsers autofill after DOMContentLoaded)
+  setTimeout(()=>{
+    ['lg-email','lg-password'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el&&!el.dataset.userTyped) el.value='';
+    });
+  },300);
+  // Wire Enter key
   ['lg-email','lg-password'].forEach(id=>{
     const el=document.getElementById(id);
-    if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter')lgSignIn();});
+    if(el){
+      el.addEventListener('keydown',e=>{if(e.key==='Enter')lgSignIn();});
+      el.addEventListener('input',()=>{el.dataset.userTyped='1';}); // mark as user-typed
+    }
   });
   ['lg-signup-email','lg-signup-password','lg-signup-confirm'].forEach(id=>{
     const el=document.getElementById(id);
