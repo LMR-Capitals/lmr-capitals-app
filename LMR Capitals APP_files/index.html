@@ -816,64 +816,24 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 /* Sidebar logo - white icon on dark bg, gold glow */
 #sb-logo-img{filter:brightness(1.1) drop-shadow(0 0 6px rgba(245,166,35,.3))}
 
-/* ── RESPONSIVE ──────────────────────────────────── */
+/* ── RESPONSIVE (extends existing @media 900px rule above) ── */
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-.main{margin-left:var(--sb-w,242px);transition:margin .28s}
+/* Trade table always horizontally scrollable */
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tbl{min-width:860px}
 
-@media(max-width:768px){
-  /* Sidebar slides in/out as overlay */
-  .sidebar{
-    position:fixed;left:-260px;top:0;bottom:0;z-index:200;
-    transition:transform .28s cubic-bezier(.4,0,.2,1);
-    width:240px;
-  }
-  .sidebar.open{transform:translateX(260px)}
-  .overlay.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199}
-  .main{margin-left:0!important}
-
-  /* Stack dashboard tiles 2x2 */
-  .tiles-4{grid-template-columns:1fr 1fr!important}
-  .tiles-4 .tile{min-height:80px}
-  .tile-v{font-size:20px!important}
-
-  /* Full width cards */
-  .card{border-radius:12px}
-  .cols2{grid-template-columns:1fr!important}
-
-  /* Trade table horizontal scroll */
-  .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .tbl{min-width:800px}
-
-  /* Login page — single column */
-  #loginGate .lg-card,.lg-wrap{flex-direction:column!important}
+/* Login page — hide left branding on small screens */
+@media(max-width:900px){
   .lg-left{display:none!important}
-  .lg-right{width:100%!important;border-radius:16px!important;min-height:unset!important}
-
-  /* Daily grid — smaller cells */
-  .mc-grid{gap:3px!important}
-  .mc-day{min-height:90px!important;padding:6px 7px!important}
-  .mc-week-pnl{min-height:90px!important}
-
-  /* Topbar */
-  .topbar{padding:10px 14px!important}
-  .tb-title{font-size:16px!important}
-
-  /* Settings panel */
-  .settings-panel{width:100%!important;max-width:100%!important}
-
-  /* Mobile bar */
-  .mobile-bar{display:flex!important}
+  .lg-right{width:100%!important;min-height:100vh}
+  #loginGate{justify-content:center;align-items:center}
 }
 
+/* Extra small phones */
 @media(max-width:480px){
-  .tiles-4{grid-template-columns:1fr!important}
-  .mc-day{min-height:70px!important;font-size:8px!important;padding:4px!important}
   .lg-card{padding:24px 20px!important}
-}
-
-@media(min-width:769px){
-  .mobile-bar{display:none}
+  .mc-day{min-height:70px!important;font-size:8px!important;padding:4px!important}
 }
 </style>
 </head>
