@@ -853,6 +853,26 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
   .lg-card{padding:24px 20px!important}
   .mc-day{min-height:70px!important;font-size:8px!important;padding:4px!important}
 }
+
+/* ── AI COACH CHAT ── */
+.ai-msg{display:flex;gap:10px;align-items:flex-start}
+.ai-msg-assistant .ai-msg-avatar{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,rgba(245,166,35,.2),rgba(245,166,35,.1));border:1px solid rgba(245,166,35,.3);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;color:var(--gold)}
+.ai-msg-user .ai-msg-avatar{width:28px;height:28px;border-radius:8px;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;color:var(--text3)}
+.ai-msg-user{flex-direction:row-reverse}
+.ai-msg-bubble{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-size:13px;line-height:1.6;color:var(--text2);max-width:85%}
+.ai-msg-user .ai-msg-bubble{background:rgba(245,166,35,.06);border-color:rgba(245,166,35,.15)}
+.ai-msg-bubble p{margin-bottom:6px}
+.ai-msg-bubble p:last-child{margin-bottom:0}
+.ai-msg-bubble strong,.ai-msg-bubble b{color:var(--text);font-weight:700}
+.ai-msg-bubble ul,.ai-msg-bubble ol{padding-left:16px;margin:6px 0}
+.ai-msg-bubble li{margin-bottom:3px}
+.ai-quick-btn{padding:4px 10px;background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.2);border-radius:16px;color:var(--text2);font-size:11px;cursor:pointer;transition:all .15s}
+.ai-quick-btn:hover{background:rgba(245,166,35,.15);color:var(--text)}
+.ai-thinking{display:flex;gap:4px;align-items:center;padding:8px 12px}
+.ai-thinking span{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:aiPulse 1.2s ease infinite}
+.ai-thinking span:nth-child(2){animation-delay:.2s}
+.ai-thinking span:nth-child(3){animation-delay:.4s}
+@keyframes aiPulse{0%,80%,100%{transform:scale(.8);opacity:.4}40%{transform:scale(1);opacity:1}}
 </style>
 </head>
 <body>
@@ -993,6 +1013,7 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
     <button class="sb-item" data-panel="notes"><span class="sb-icon">✦</span> Journal</button>
     <button class="sb-item" data-panel="terminology"><span class="sb-icon">◧</span> LMR Terminology</button>
     <button class="sb-item" data-panel="psychology"><span class="sb-icon">◈</span> LMR Psychology</button>
+    <button class="sb-item" data-panel="ai-coach" style="background:linear-gradient(90deg,rgba(245,166,35,.08),transparent)"><span class="sb-icon" style="color:var(--gold)">✦</span> <span style="color:var(--gold);font-weight:700">AI Coach</span></button>
   </nav>
   
   <div class="sb-foot">
@@ -1174,6 +1195,7 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
       <div class="card-title" id="todayDate">Today · Day —</div>
       <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
         <div class="card-meta" id="todayStatus">Not started</div>
+        <button class="btn btn-sm" onclick="aiReviewChain()" id="ai-chain-btn" style="background:rgba(245,166,35,.08);border-color:rgba(245,166,35,.25);color:var(--gold)">✦ AI Review</button>
         <button class="btn btn-primary btn-sm" onclick="saveDaily()">💾 Save</button>
         <button class="btn btn-sm" onclick="loadDaily()">↻</button>
         <button class="btn btn-bear btn-sm" onclick="clearDaily()">Clear</button>
@@ -2004,6 +2026,51 @@ Midnight Open $______"></textarea>
 </div>
 </div>
 
+<!-- AI COACH PANEL -->
+<div class="panel" id="p-ai-coach">
+<div class="panel-inner">
+  <div class="card" style="display:flex;flex-direction:column;height:calc(100vh - 140px)">
+    <div class="card-head" style="border-bottom:1px solid rgba(245,166,35,.15)">
+      <span class="card-tag" style="background:rgba(245,166,35,.15);color:var(--gold)">✦ AI</span>
+      <div class="card-title">LMR Trading Coach</div>
+      <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+        <span id="ai-coach-model" style="font-size:9px;color:var(--text3)">claude-haiku</span>
+        <button class="btn btn-sm" onclick="clearAIChat()" style="font-size:10px">Clear</button>
+      </div>
+    </div>
+
+    <!-- Messages area -->
+    <div id="ai-chat-messages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px">
+      <!-- Welcome message -->
+      <div class="ai-msg ai-msg-assistant">
+        <div class="ai-msg-avatar">✦</div>
+        <div class="ai-msg-bubble">
+          <p>Hello! I'm your LMR AI Trading Coach. I have full access to your trading data, journal, and performance metrics.</p>
+          <p style="margin-top:8px">Try asking:</p>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+            <button class="ai-quick-btn" onclick="sendQuickMessage('What is my biggest trading mistake?')">Biggest mistake?</button>
+            <button class="ai-quick-btn" onclick="sendQuickMessage('Analyze my win rate and patterns')">Analyze patterns</button>
+            <button class="ai-quick-btn" onclick="sendQuickMessage('What should I focus on improving this week?')">Improvement focus</button>
+            <button class="ai-quick-btn" onclick="sendQuickMessage('Review my last 5 trades')">Last 5 trades</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input area -->
+    <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:flex-end">
+      <textarea id="ai-chat-input" placeholder="Ask your trading coach anything…" rows="2"
+        style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 14px;color:var(--text);font-size:13px;resize:none;font-family:'Plus Jakarta Sans',sans-serif;line-height:1.4"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAIMessage();}"></textarea>
+      <button onclick="sendAIMessage()" id="ai-send-btn"
+        style="padding:10px 18px;background:linear-gradient(135deg,var(--gold),var(--gold3));border:none;border-radius:10px;color:#000;font-weight:800;cursor:pointer;font-size:13px;white-space:nowrap">
+        Send
+      </button>
+    </div>
+  </div>
+</div>
+</div>
+
 <!-- Settings moved to side panel -->
 </main>
 </div>
@@ -2028,6 +2095,7 @@ Midnight Open $______"></textarea>
     <button class="set-tab" data-stab="app" onclick="switchSetTab('app')" style="flex:1;padding:9px 4px;font-size:11px;font-weight:600;color:var(--text2);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s">App</button>
     <button class="set-tab" data-stab="data" onclick="switchSetTab('data')" style="flex:1;padding:9px 4px;font-size:11px;font-weight:600;color:var(--text2);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s">Data</button>
     <button class="set-tab" data-stab="cloud" onclick="switchSetTab('cloud')" style="flex:1;padding:9px 4px;font-size:11px;font-weight:600;color:var(--text2);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s">Cloud</button>
+    <button class="set-tab" data-stab="ai" onclick="switchSetTab('ai')" style="flex:1;padding:9px 4px;font-size:11px;font-weight:600;color:var(--gold);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s">✦ AI</button>
   </div>
 
   <!-- ── PROFILE TAB ── -->
@@ -2257,6 +2325,55 @@ Midnight Open $______"></textarea>
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- ── AI TAB ── -->
+  <div id="set-tab-ai" style="padding:16px 18px;display:none">
+    <!-- API Key -->
+    <div style="margin-bottom:20px">
+      <div class="sp-section-title">Claude API Key</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Get your key at <a href="https://console.anthropic.com" target="_blank" style="color:var(--gold)">console.anthropic.com</a> → API Keys</div>
+      <input type="password" id="ai-api-key" placeholder="sk-ant-api03-..." class="form-input" style="font-family:'JetBrains Mono',monospace;font-size:12px">
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="saveAISettings()">Save Key</button>
+        <button class="btn btn-sm" onclick="testAIConnection()">Test Connection</button>
+        <span id="ai-test-result" style="font-size:11px;color:var(--text3);align-self:center"></span>
+      </div>
+    </div>
+
+    <!-- Model selector -->
+    <div style="margin-bottom:20px">
+      <div class="sp-section-title">Model</div>
+      <select id="ai-model" class="form-input" style="max-width:300px">
+        <option value="claude-haiku-4-5">Claude Haiku 4.5 — Fast &amp; affordable</option>
+        <option value="claude-sonnet-4-5">Claude Sonnet 4.5 — Balanced (Recommended)</option>
+      </select>
+      <div style="font-size:10px;color:var(--text3);margin-top:4px">Haiku: ~$0.001/message · Sonnet: ~$0.01/message</div>
+    </div>
+
+    <!-- Features -->
+    <div style="margin-bottom:20px">
+      <div class="sp-section-title">Features</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+        <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer">
+          <input type="checkbox" id="ai-auto-trade" style="width:16px;height:16px;accent-color:var(--gold)">
+          <span>Auto-analyze trades after saving</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;font-size:12px;cursor:pointer">
+          <input type="checkbox" id="ai-chain-review" style="width:16px;height:16px;accent-color:var(--gold)">
+          <span>Show AI Review button in Today's Chain</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div>
+      <div class="sp-section-title">Quick Actions</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button class="btn btn-primary btn-sm" onclick="closeSettingsPanel();navTo('ai-coach')">Open AI Coach →</button>
+        <button class="btn btn-sm" onclick="generateWeeklyReport()">Weekly Report</button>
+      </div>
     </div>
   </div>
 
@@ -3111,7 +3228,7 @@ function dayCountFor(dateStr){
 }
 
 // ============= NAVIGATION =============
-const panels=['dash','today','cal','perf','monthly','weekly','daily','trades','accounts','trans','notes','terminology','psychology'];
+const panels=['dash','today','cal','perf','monthly','weekly','daily','trades','accounts','trans','notes','terminology','psychology','ai-coach'];
 const titles={
   dash:['Dashboard','Welcome back · Day '],
   today:['Today','Fill the chain · Day '],
@@ -3126,6 +3243,7 @@ const titles={
   notes:['Journal','Trade psychology · lessons · notes'],
   terminology:['LMR Terminology','Free-form knowledge base'],
   psychology:['LMR Psychology','Mindset · Discipline · Trade psychology'],
+  'ai-coach':['AI Trading Coach','Your personal LMR AI coaching assistant'],
 };
 
 // ── SETTINGS SIDE PANEL ──────────────────────────────────────────
@@ -3148,7 +3266,7 @@ function closeSettingsPanel(){
   setTimeout(()=>{overlay.style.display='none';},280);
 }
 function switchSetTab(tab){
-  ['profile','app','data','cloud'].forEach(t=>{
+  ['profile','app','data','cloud','ai'].forEach(t=>{
     const el=document.getElementById('set-tab-'+t);
     if(el)el.style.display=t===tab?'':'none';
   });
@@ -3160,6 +3278,8 @@ function switchSetTab(tab){
   });
   // Load MFA status when cloud tab is opened
   if(tab==='cloud') mfaCheckStatus().catch(()=>{});
+  // Load AI settings when AI tab is opened
+  if(tab==='ai') loadAISettings();
   // Update signed-in email in app tab
   if(tab==='app'&&_sb&&_sbUserId){
     _sb.auth.getUser().then(({data:{user}})=>{
@@ -3755,7 +3875,13 @@ function saveTradeAndClose(){
   const pnl=document.getElementById('tm-pnl').value;
   const date=document.getElementById('tm-date').value;
   if(!date&&!pnl&&!_tmEditId){closeModal('tradeModal');return;}
+  const editId=_tmEditId;
   saveTrade();
+  // Auto AI analysis if enabled
+  if(state.profile?.aiAutoTrade && getAIKey()){
+    const t = editId ? state.trades.find(x=>x.id===editId) : state.trades[0];
+    if(t) setTimeout(()=>aiAnalyzeTrade(t), 500);
+  }
 }
 function discardTrade(){
   _tmEditId=null;_tmCurrentImgId=null;
@@ -5820,6 +5946,274 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   });
+}
+</script>
+
+<script>
+// ── CLAUDE AI ENGINE ─────────────────────────────────────────────────────────
+const AI_MODEL = 'claude-haiku-4-5';
+
+function getAIKey(){ return state.profile?.anthropicKey||''; }
+
+function buildTradingContext(){
+  const trades = [...state.trades].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,50);
+  const wins = trades.filter(t=>t.pnl>0).length;
+  const losses = trades.filter(t=>t.pnl<0).length;
+  const totalPnl = trades.reduce((s,t)=>s+t.pnl,0);
+  const wr = trades.length ? Math.round(wins/trades.length*100) : 0;
+  const avgRR = trades.filter(t=>t.risk>0).map(t=>parseFloat(t.rr)||0);
+  const avgRRVal = avgRR.length ? (avgRR.reduce((a,b)=>a+b,0)/avgRR.length).toFixed(2) : '0';
+  const modelCounts = {};
+  trades.forEach(t=>(t.models||[]).forEach(m=>modelCounts[m]=(modelCounts[m]||0)+1));
+  const topModels = Object.entries(modelCounts).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([m,c])=>`${m}(${c}x)`);
+  const emotionCounts = {};
+  trades.forEach(t=>(t.emotions||[]).forEach(e=>emotionCounts[e]=(emotionCounts[e]||0)+1));
+  const topEmotions = Object.entries(emotionCounts).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([e,c])=>`${e}(${c}x)`);
+  const recentNotes = [...(state.notes||[]),...(state.journal||[])]
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0))
+    .slice(0,10)
+    .map(n=>`- [D${n.dayCount||'?'}] ${(n.text||n.title||'').slice(0,120)}`).join('\n');
+  const recentTrades = trades.slice(0,10).map(t=>
+    `- ${t.date} ${t.market} ${t.position} [${(t.models||[]).join('+')}] P&L:${t.pnl>=0?'+':''}$${t.pnl} RR:${t.rr} HTF:${t.htf||'?'} Emotion:${(t.emotions||[]).join(',')}`
+  ).join('\n');
+  return `TRADER PROFILE:
+Total Trades: ${trades.length} | Win Rate: ${wr}% (${wins}W/${losses}L) | Net P&L: $${totalPnl.toFixed(0)} | Avg RR: ${avgRRVal}
+Top Models: ${topModels.join(', ')}
+Top Emotions: ${topEmotions.join(', ')}
+
+LAST 10 TRADES:
+${recentTrades}
+
+RECENT JOURNAL NOTES:
+${recentNotes}`;
+}
+
+function getAISystemPrompt(mode='coach'){
+  const ctx = buildTradingContext();
+  const basePersonality = `You are an expert ICT/LMR trading coach integrated into the LMR Capitals trading journal. You analyze the trader's data and provide specific, actionable feedback. Be direct, honest, and constructive. Reference specific trades and patterns from their data. Keep responses concise but impactful (max 300 words unless asked for detail). Use trading terminology (HTF, LTF, POI, SMT, MMBM, MMSM, etc.).`;
+  const modes = {
+    coach: `${basePersonality}\n\nYou have access to this trader's full performance data:\n\n${ctx}`,
+    trade: `${basePersonality}\n\nReview a single trade execution. Be brief (3-4 bullet points max). Focus on: 1) Was the model valid? 2) Emotional state impact 3) HTF alignment 4) One specific improvement.\n\nTrader context:\n${ctx}`,
+    chain: `${basePersonality}\n\nReview the trader's daily chain/plan before market open. Give: 1) Plan validity check 2) Key risks 3) What to watch for 4) Go/No-Go recommendation. Be concise.\n\nTrader context:\n${ctx}`,
+    report: `${basePersonality}\n\nGenerate a comprehensive weekly performance report. Include: Win rate analysis, best/worst patterns, emotional patterns, specific improvements needed, and 3 actionable goals for next week. Use headers and bullet points.\n\nTrader context:\n${ctx}`
+  };
+  return modes[mode] || modes.coach;
+}
+
+async function callClaude(messages, mode='coach'){
+  const apiKey = getAIKey();
+  if(!apiKey){ flash('Add your Claude API key in Settings → AI'); return null; }
+  try{
+    const resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body: JSON.stringify({
+        model: state.profile?.aiModel || AI_MODEL,
+        max_tokens: 1024,
+        system: getAISystemPrompt(mode),
+        messages: messages
+      })
+    });
+    if(!resp.ok){
+      const err = await resp.json().catch(()=>({error:{message:resp.statusText}}));
+      const msg = err.error?.message || resp.statusText;
+      flash('AI Error: '+msg);
+      return null;
+    }
+    const data = await resp.json();
+    return data.content?.[0]?.text || '';
+  }catch(e){
+    flash('AI request failed: '+e.message);
+    return null;
+  }
+}
+
+// ── AI SETTINGS ────────────────────────────────────────────────────────────
+function saveAISettings(){
+  if(!state.profile) state.profile={};
+  state.profile.anthropicKey = document.getElementById('ai-api-key')?.value||'';
+  state.profile.aiModel = document.getElementById('ai-model')?.value||'claude-haiku-4-5';
+  state.profile.aiAutoTrade = document.getElementById('ai-auto-trade')?.checked||false;
+  state.profile.aiChainReview = document.getElementById('ai-chain-review')?.checked||false;
+  save();
+  syncProfileToCloud().catch(()=>{});
+  flash('AI settings saved');
+}
+
+async function testAIConnection(){
+  const el = document.getElementById('ai-test-result');
+  if(el) el.textContent = 'Testing...';
+  const result = await callClaude([{role:'user',content:'Say "Connected" only.'}],'coach');
+  if(el) el.textContent = result ? 'Connected!' : 'Failed — check API key';
+}
+
+function loadAISettings(){
+  const p = state.profile||{};
+  const setV=(id,v)=>{const el=document.getElementById(id);if(el){if(el.type==='checkbox')el.checked=!!v;else el.value=v||'';}};
+  setV('ai-api-key', p.anthropicKey);
+  setV('ai-model', p.aiModel||'claude-haiku-4-5');
+  setV('ai-auto-trade', p.aiAutoTrade);
+  setV('ai-chain-review', p.aiChainReview);
+}
+
+// ── AI COACH CHAT ──────────────────────────────────────────────────────────
+let _aiMessages = [];
+
+function clearAIChat(){
+  _aiMessages = [];
+  const el = document.getElementById('ai-chat-messages');
+  if(el) el.innerHTML = `<div class="ai-msg ai-msg-assistant">
+    <div class="ai-msg-avatar">✦</div>
+    <div class="ai-msg-bubble"><p>Chat cleared. Ask me anything about your trading.</p></div>
+  </div>`;
+}
+
+function formatAIResponse(text){
+  return text
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g,'<em>$1</em>')
+    .replace(/^### (.*)/gm,'<h4 style="color:var(--gold);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin:10px 0 4px">$1</h4>')
+    .replace(/^## (.*)/gm,'<h3 style="color:var(--text);font-size:14px;font-weight:800;margin:12px 0 6px">$1</h3>')
+    .replace(/^- (.*)/gm,'<li>$1</li>')
+    .replace(/(<li>.*<\/li>(\n|$))+/g, m=>`<ul>${m}</ul>`)
+    .replace(/\n\n/g,'</p><p>')
+    .replace(/\n/g,'<br>');
+}
+
+function appendAIMessage(role, content, isThinking=false){
+  const el = document.getElementById('ai-chat-messages');
+  if(!el) return;
+  const div = document.createElement('div');
+  div.className = `ai-msg ai-msg-${role}`;
+  if(isThinking) div.id = 'ai-thinking-indicator';
+  div.innerHTML = `
+    <div class="ai-msg-avatar">${role==='user'?'You':'✦'}</div>
+    <div class="ai-msg-bubble">${isThinking
+      ? '<div class="ai-thinking"><span></span><span></span><span></span></div>'
+      : (role==='assistant' ? `<p>${formatAIResponse(content)}</p>` : `<p>${content}</p>`)
+    }</div>`;
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+  return div;
+}
+
+async function sendAIMessage(){
+  const input = document.getElementById('ai-chat-input');
+  const btn = document.getElementById('ai-send-btn');
+  const text = input?.value?.trim();
+  if(!text) return;
+  if(!getAIKey()){flash('Add your Claude API key in Settings → AI');return;}
+  input.value = '';
+  btn.disabled = true;
+  btn.textContent = '…';
+  appendAIMessage('user', text);
+  _aiMessages.push({role:'user', content:text});
+  appendAIMessage('assistant','',true);
+  const response = await callClaude(_aiMessages,'coach');
+  document.getElementById('ai-thinking-indicator')?.remove();
+  if(response){
+    appendAIMessage('assistant', response);
+    _aiMessages.push({role:'assistant', content:response});
+    if(_aiMessages.length > 20) _aiMessages = _aiMessages.slice(-20);
+  }
+  btn.disabled = false;
+  btn.textContent = 'Send';
+}
+
+function sendQuickMessage(text){
+  const input = document.getElementById('ai-chat-input');
+  if(input) input.value = text;
+  sendAIMessage();
+}
+
+// ── TRADE AUTO-ANALYSIS ────────────────────────────────────────────────────
+async function aiAnalyzeTrade(t){
+  const tradeDesc = `Trade: ${t.date} ${t.market} ${t.position} | Model: ${(t.models||[]).join('+')} | P&L: ${t.pnl>=0?'+':''}$${t.pnl} | RR: ${t.rr} | HTF: ${t.htf||'?'} | Emotions: ${(t.emotions||[]).join(',')} | Session: ${t.session||'?'}`;
+  const result = await callClaude([{role:'user',content:`Analyze this trade:\n${tradeDesc}`}],'trade');
+  if(result){
+    const flashEl = document.createElement('div');
+    flashEl.style.cssText='position:fixed;bottom:80px;right:20px;z-index:8000;background:var(--bg2);border:1px solid rgba(245,166,35,.3);border-radius:12px;padding:16px 20px;max-width:360px;font-size:12px;color:var(--text2);line-height:1.5;box-shadow:0 8px 32px rgba(0,0,0,.4)';
+    flashEl.innerHTML=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="color:var(--gold);font-weight:800;font-size:13px">✦ AI Trade Analysis</span><button onclick="this.parentElement.parentElement.remove()" style="margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px">×</button></div><div>${formatAIResponse(result)}</div>`;
+    document.body.appendChild(flashEl);
+    setTimeout(()=>flashEl.remove(), 20000);
+  }
+}
+
+// ── DAILY CHAIN AI REVIEW ──────────────────────────────────────────────────
+async function aiReviewChain(){
+  if(!getAIKey()){flash('Add Claude API key in Settings → AI');return;}
+  const ds = todayStr();
+  const entry = state.daily[ds]||{};
+  const chainDesc = `Date: ${ds}
+Bias: ${entry.bias||'Not set'}
+HTF POI: ${entry.htfpoi||'Not set'}
+Weekly: ${entry.weekly||'Not set'}
+London: ${entry.london||'Not set'}
+NY Session: ${entry.ny||'Not set'}
+Plan: ${entry.plan||'Not set'}
+Prediction: ${entry.pred||'Not set'}
+Week Draws: ${entry.weekdraws||'Not set'}`;
+  const btn = document.getElementById('ai-chain-btn');
+  if(btn){btn.textContent='✦ Analyzing…';btn.disabled=true;}
+  const result = await callClaude([{role:'user',content:`Review my daily chain/plan for today:\n${chainDesc}`}],'chain');
+  if(btn){btn.textContent='✦ AI Review';btn.disabled=false;}
+  if(result){
+    const modal = document.createElement('div');
+    modal.style.cssText='position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:20px';
+    modal.onclick=e=>{if(e.target===modal)modal.remove()};
+    modal.innerHTML=`<div style="background:var(--bg2);border:1px solid rgba(245,166,35,.25);border-radius:16px;max-width:500px;width:100%;padding:24px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+        <span style="color:var(--gold);font-size:18px">✦</span>
+        <span style="font-weight:800;font-size:15px;color:var(--text)">AI Chain Review</span>
+        <button onclick="this.closest('div[style]').parentElement.remove()" style="margin-left:auto;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text2);padding:3px 10px;cursor:pointer">✕</button>
+      </div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.7">${formatAIResponse(result)}</div>
+    </div>`;
+    document.body.appendChild(modal);
+  }
+}
+
+// ── WEEKLY INSIGHT REPORT ──────────────────────────────────────────────────
+async function generateWeeklyReport(){
+  if(!getAIKey()){flash('Add Claude API key in Settings → AI');return;}
+  flash('Generating weekly report…');
+  const today = new Date(todayStr()+'T12:00');
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - today.getDay() - 6);
+  const weekStartStr = weekStart.toISOString().split('T')[0];
+  const weekTrades = state.trades.filter(t=>t.date>=weekStartStr);
+  const weekNotes = [...(state.notes||[]),...(state.journal||[])].filter(n=>n.date>=weekStartStr);
+  const weekSummary = `WEEK SUMMARY (${weekStartStr} to ${todayStr()}):
+Trades: ${weekTrades.length} | P&L: $${weekTrades.reduce((s,t)=>s+t.pnl,0).toFixed(0)} | Wins: ${weekTrades.filter(t=>t.pnl>0).length} | Losses: ${weekTrades.filter(t=>t.pnl<0).length}
+
+TRADES THIS WEEK:
+${weekTrades.map(t=>`- ${t.date} ${t.position} [${(t.models||[]).join('+')}] P&L:$${t.pnl} Emotion:${(t.emotions||[]).join(',')}`).join('\n')||'No trades this week'}
+
+JOURNAL NOTES THIS WEEK:
+${weekNotes.map(n=>`- ${n.date}: ${(n.text||n.title||'').slice(0,100)}`).join('\n')||'None'}`;
+  const result = await callClaude([{role:'user',content:`Generate a comprehensive weekly performance report:\n${weekSummary}`}],'report');
+  if(result){
+    const modal = document.createElement('div');
+    modal.style.cssText='position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.8);display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto';
+    modal.onclick=e=>{if(e.target===modal)modal.remove()};
+    modal.innerHTML=`<div style="background:var(--bg2);border:1px solid rgba(245,166,35,.2);border-radius:16px;max-width:640px;width:100%;padding:28px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+        <span style="font-size:22px;color:var(--gold)">✦</span>
+        <div>
+          <div style="font-weight:800;font-size:17px;color:var(--text)">Weekly Performance Report</div>
+          <div style="font-size:11px;color:var(--text3)">${weekStartStr} → ${todayStr()}</div>
+        </div>
+        <button onclick="this.closest('div[style]').parentElement.remove()" style="margin-left:auto;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text2);padding:4px 12px;cursor:pointer">✕</button>
+      </div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8">${formatAIResponse(result)}</div>
+    </div>`;
+    document.body.appendChild(modal);
+  }
 }
 </script>
 
