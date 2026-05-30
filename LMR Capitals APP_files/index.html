@@ -4022,10 +4022,11 @@ function openTradeModal(editId){
   _tmEditId=editId||null;
   const ex=editId?state.trades.find(t=>t.id===editId):null;
   document.getElementById('tm-date').value=ex?ex.date:todayStr();
-  // Default open time to current NY time
-  const nyT=new Intl.DateTimeFormat('en-US',{timeZone:NY_TZ,hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());
-  document.getElementById('tm-open-time').value=ex?ex.openTime||nyT:nyT;
-  document.getElementById('tm-close-time').value=ex?ex.closeTime||'':'';
+  // Open/close time: MANUAL only — never auto-fill with current time
+  // For new trades: empty (user fills manually)
+  // For edits: show saved value only (not current time)
+  document.getElementById('tm-open-time').value=ex&&ex.openTime?ex.openTime:'';
+  document.getElementById('tm-close-time').value=ex&&ex.closeTime?ex.closeTime:'';
   // build chips
   buildChips('modelChips',MODELS,true,'modelChips');
   buildChips('confChips',CONFIRMATIONS,true,'confChips');
@@ -4060,11 +4061,12 @@ function openTradeModal(editId){
     document.getElementById('tm-pnl').value=ex.pnl||'';
     document.getElementById('tm-risk').value=ex.risk||'';
     document.getElementById('tm-lots').value=ex.lots||'';
-    document.getElementById('tm-acc').value=ex.accountId||'';
+    document.getElementById('tm-acc').value=String(ex.accountId||'');
     document.getElementById('tm-draws').value=ex.draws||'';
     document.getElementById('tm-fb').value=ex.feedback||'';
   } else {
-    if(state.currentAcc)document.getElementById('tm-acc').value=state.currentAcc;
+    // New trade: auto-select active account
+    if(state.currentAcc) document.getElementById('tm-acc').value=String(state.currentAcc);
     ['tm-pnl','tm-risk','tm-lots','tm-draws','tm-fb'].forEach(id=>document.getElementById(id).value='');
   }
   // Set image keys — use existing trade ID for edits, pre-generate for new
@@ -4246,11 +4248,17 @@ function saveAccount(){
   sbSyncRecord('accounts',{id:String(a.id),user_id:_sbUserId,name:a.name,type:a.type,status:a.status,date:a.date||null,deposit:parseFloat(a.deposit)||0});
   closeModal('accModal');renderAccountTable();updateAllStats();
 }
-function setActiveAccount(id){state.currentAcc=id;save();renderAccountTable();updateAllStats();flash('✓ Active account set')}
+function setActiveAccount(id){
+  state.currentAcc=String(id); // always store as String for consistent comparison
+  save();
+  syncProfileToCloud().catch(()=>{}); // persist to Supabase immediately — survives login
+  renderAccountTable();updateAllStats();
+  flash('✓ Active account set — will remain on next login');
+}
 function deleteAccount(id){
   if(!confirm('Delete account?'))return;
   state.accounts=state.accounts.filter(a=>a.id!==id);
-  if(state.currentAcc===id)state.currentAcc=state.accounts[0]?.id||null;
+  if(String(state.currentAcc)===String(id))state.currentAcc=state.accounts[0]?.id||null;
   save();sbDeleteRecord('accounts',id);
   renderAccountTable();updateAllStats();
 }
@@ -4261,7 +4269,7 @@ function renderAccountTable(){
   accs.sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
   if(!accs.length){w.innerHTML='<tr><td colspan="12" class="empty">No accounts. Press A to add.</td></tr>';return}
   w.innerHTML=accs.map(a=>{
-    const ts=state.trades.filter(t=>t.accountId==a.id);
+    const ts=state.trades.filter(t=>String(t.accountId)===String(a.id));
     const pnl=ts.reduce((s,t)=>s+t.pnl,0);
     const balance=a.deposit+pnl;
     const wins=ts.filter(t=>t.win).length;
@@ -4279,20 +4287,100 @@ function renderAccountTable(){
       <td class="mono" style="font-weight:700">${balance>=0?'$':'-$'}${Math.abs(balance).toFixed(2)}</td>
       <td class="mono">${wr}%</td>
       <td class="mono" style="font-size:10px">${wins}:${breakeven}:${losses}</td>
-      <td class="mono">${ts.length}</td>
-      <td onclick="event.stopPropagation()">${state.currentAcc==a.id?'<span class="tag tg-bull">✓ ACTIVE</span>':`<button class="btn btn-sm" onclick="setActiveAccount(${a.id})">Set Active</button>`}</td>
+      <td class="mono" onclick="event.stopPropagation()">
+        <button class="btn btn-sm" onclick="viewAccountTrades(${a.id},'${a.name}')" title="View all trades for this account" style="font-size:9px;padding:2px 6px">${ts.length} trades</button>
+      </td>
+      <td onclick="event.stopPropagation()">${String(state.currentAcc)===String(a.id)?'<span class="tag tg-bull">✓ ACTIVE</span>':`<button class="btn btn-sm" onclick="setActiveAccount(${a.id})">Set Active</button>`}</td>
       <td onclick="event.stopPropagation()"><button class="btn btn-sm btn-bear" onclick="deleteAccount(${a.id})">✗</button></td>
     </tr>`;
   }).join('');
+}
+
+// View all trades for a specific account in a modal
+function viewAccountTrades(accountId, accountName){
+  const accTrades = [...state.trades]
+    .filter(t=>String(t.accountId)===String(accountId))
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
+  const accTransactions = [...state.transactions]
+    .filter(x=>String(x.accountId)===String(accountId))
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+
+  const pnl = accTrades.reduce((s,t)=>s+t.pnl,0);
+  const wins = accTrades.filter(t=>t.pnl>0).length;
+  const wr = accTrades.length ? Math.round(wins/accTrades.length*100) : 0;
+  const acc = state.accounts.find(a=>String(a.id)===String(accountId));
+  const balance = (acc?.deposit||0) + pnl;
+
+  const modal = document.createElement('div');
+  modal.style.cssText='position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.8);display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto';
+  modal.onclick=e=>{if(e.target===modal)modal.remove()};
+  modal.innerHTML=`<div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;max-width:900px;width:100%;padding:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div style="font-size:17px;font-weight:800;color:var(--text)">${accountName}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${acc?.type||''} · ${acc?.status||''} · Deposit: $${acc?.deposit?.toFixed(2)||0}</div>
+      </div>
+      <button onclick="this.closest('[style]').parentElement.remove()" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text2);padding:4px 12px;cursor:pointer">✕</button>
+    </div>
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
+      <div style="text-align:center;padding:12px;background:var(--bg3);border-radius:10px">
+        <div style="font-size:20px;font-weight:800;color:${pnl>=0?'var(--bull)':'var(--bear)'}">${pnl>=0?'+':''}$${Math.abs(pnl).toFixed(2)}</div>
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase">Net P&L</div>
+      </div>
+      <div style="text-align:center;padding:12px;background:var(--bg3);border-radius:10px">
+        <div style="font-size:20px;font-weight:800;color:var(--text)">$${balance.toFixed(2)}</div>
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase">Balance</div>
+      </div>
+      <div style="text-align:center;padding:12px;background:var(--bg3);border-radius:10px">
+        <div style="font-size:20px;font-weight:800;color:var(--text)">${accTrades.length}</div>
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase">Trades</div>
+      </div>
+      <div style="text-align:center;padding:12px;background:var(--bg3);border-radius:10px">
+        <div style="font-size:20px;font-weight:800;color:${wr>=50?'var(--bull)':'var(--bear)'}">${wr}%</div>
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase">Win Rate</div>
+      </div>
+    </div>
+    <!-- Transactions -->
+    ${accTransactions.length?`<div style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Transactions (${accTransactions.length})</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${accTransactions.map(x=>`<div style="padding:6px 10px;background:${x.type==='Deposit'||x.type==='Payout'?'rgba(0,212,164,.08)':'rgba(255,68,102,.08)'};border:1px solid ${x.type==='Deposit'||x.type==='Payout'?'rgba(0,212,164,.2)':'rgba(255,68,102,.2)'};border-radius:8px;font-size:11px">
+          <span style="color:var(--text3)">${x.date||''}</span> <span style="color:var(--text2);font-weight:600">${x.type}</span> <span style="font-weight:700;color:${x.type==='Withdrawal'||x.type==='Fee'?'var(--bear)':'var(--bull)'}">${x.type==='Withdrawal'||x.type==='Fee'?'-':'+'}$${Math.abs(x.amount).toFixed(2)}</span>
+        </div>`).join('')}
+      </div>
+    </div>`:''}
+    <!-- Trades table -->
+    <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Trades (${accTrades.length}) — newest first</div>
+    <div style="overflow-x:auto">
+      <table class="tbl" style="min-width:600px"><thead><tr><th>Date</th><th>Open</th><th>Market</th><th>Pos</th><th>Model</th><th>Emotion</th><th>HTF</th><th>Risk</th><th>Result</th><th>P&L</th><th>R:R</th></tr></thead>
+      <tbody>${accTrades.length?accTrades.map(t=>`
+        <tr class="${t.pnl>0?'trade-win':t.pnl<0?'trade-loss':''}" onclick="openTradeModal(${t.id})" style="cursor:pointer">
+          <td class="mono" style="font-size:11px">${(t.date||'').slice(0,10)}</td>
+          <td class="mono" style="font-size:10px;color:var(--bull)">${t.openTime||'—'}</td>
+          <td>${t.market}</td>
+          <td><span class="tag tg-${t.position==='Long'?'bull':'bear'}">${t.position}</span></td>
+          <td><span class="tag tg-pur">${(t.models||[])[0]||'-'}</span></td>
+          <td style="font-size:10px">${(t.emotions||[])[0]||'-'}</td>
+          <td><span class="tag tg-${t.htf==='Delivered'?'bull':'bear'}" style="font-size:9px">${t.htf||'-'}</span></td>
+          <td class="mono" style="font-size:10px">$${t.risk||0}</td>
+          <td>${t.pnl>0?'<span class="win-pill">WIN</span>':t.pnl<0?'<span class="loss-pill">LOSS</span>':'<span class="tag tg-gray">BE</span>'}</td>
+          <td class="mono ${t.pnl>=0?'txt-pos':'txt-neg'}" style="font-weight:700">${t.pnl>=0?'+':''}$${t.pnl.toFixed(2)}</td>
+          <td class="mono">${t.rr}R</td>
+        </tr>`).join(''):'<tr><td colspan="11" class="empty">No trades for this account</td></tr>'}</tbody>
+      </table>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
 }
 
 function renderAccSummary(){
   const accs=state.accounts;
   const totalDep=accs.reduce((s,a)=>s+a.deposit,0);
   const allPnl=state.trades.reduce((s,t)=>s+t.pnl,0);
-  const activeAcc=state.accounts.find(a=>a.id==state.currentAcc);
+  const activeAcc=state.accounts.find(a=>String(a.id)===String(state.currentAcc));
   let activeBal=0;
-  if(activeAcc){const ts=state.trades.filter(t=>t.accountId==activeAcc.id);activeBal=activeAcc.deposit+ts.reduce((s,t)=>s+t.pnl,0);}
+  if(activeAcc){const ts=state.trades.filter(t=>String(t.accountId)===String(activeAcc.id));activeBal=activeAcc.deposit+ts.reduce((s,t)=>s+t.pnl,0);}
   const cnt=document.getElementById('acc-count');if(cnt)cnt.textContent=accs.length;
   const dep=document.getElementById('acc-dep');if(dep)dep.textContent='$'+totalDep.toFixed(0);
   const pnlEl=document.getElementById('acc-pnl');if(pnlEl){pnlEl.textContent=(allPnl>=0?'+':'')+' $'+Math.abs(allPnl).toFixed(0);pnlEl.className='sum-tile-v '+(allPnl>=0?'txt-pos':'txt-neg');}
@@ -4707,10 +4795,10 @@ function renderDashboard(){
   document.getElementById('t-date').textContent=fmtDate(todayStr());
   
   // active account
-  const acc=state.accounts.find(a=>a.id==state.currentAcc);
+  const acc=state.accounts.find(a=>String(a.id)===String(state.currentAcc));
   document.getElementById('t-acc').textContent=acc?acc.name:'None';
   if(acc){
-    const ts=state.trades.filter(t=>t.accountId==acc.id);
+    const ts=state.trades.filter(t=>String(t.accountId)===String(acc.id));
     const pnl=ts.reduce((s,t)=>s+t.pnl,0);
     document.getElementById('t-acc-bal').textContent=`$${(acc.deposit+pnl).toFixed(2)} · ${ts.length}T`;
   }
@@ -5055,9 +5143,9 @@ function updateAllStats(){
   const dc=dayCountFor(todayStr())||'—';
   document.getElementById('dayCount').textContent=dc;
   document.getElementById('mDayCount').textContent=dc;
-  const acc=state.accounts.find(a=>a.id==state.currentAcc);
+  const acc=state.accounts.find(a=>String(a.id)===String(state.currentAcc));
   if(acc){
-    const ts=state.trades.filter(t=>t.accountId==acc.id);
+    const ts=state.trades.filter(t=>String(t.accountId)===String(acc.id));
     const pnl=ts.reduce((s,t)=>s+t.pnl,0);
     const bal=acc.deposit+pnl;
     document.getElementById('sbBalance').textContent='$'+bal.toFixed(0);
