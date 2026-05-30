@@ -3125,6 +3125,7 @@ function _mapTrade(t,uid){
     tframes:Array.isArray(t.tframes)?t.tframes:[],
     rth:t.rth||null,htf:t.htf||null,pnl:parseFloat(t.pnl)||0,
     risk:parseFloat(t.risk)||0,lots:parseFloat(t.lots)||0,rr:parseFloat(t.rr)||0,
+    open_time:t.openTime||null,close_time:t.closeTime||null,
     draws:t.draws||null,feedback:t.feedback||null,win:parseFloat(t.pnl||0)>0,
     updated_at:new Date().toISOString()};
 }
@@ -5839,7 +5840,17 @@ async function _sbDoPull() {
     _sb.from('monthly').select('*'),
     _sb.from('weekly').select('*'),
   ]);
-  const pulledTrades = (tr.data||[]).map(t => ({ ...t, id: Number(t.id)||t.id, pnl:parseFloat(t.pnl)||0, risk:parseFloat(t.risk)||0, lots:parseFloat(t.lots)||0, rr:parseFloat(t.rr)||0 }));
+  const pulledTrades = (tr.data||[]).map(t => ({
+    ...t,
+    id:       Number(t.id)||t.id,
+    pnl:      parseFloat(t.pnl)||0,
+    risk:     parseFloat(t.risk)||0,
+    lots:     parseFloat(t.lots)||0,
+    rr:       parseFloat(t.rr)||0,
+    openTime: t.open_time||t.openTime||'',   // recover from Supabase open_time column
+    closeTime:t.close_time||t.closeTime||'', // recover from Supabase close_time column
+    accountId:t.account_id||t.accountId||''  // ensure accountId is always set
+  }));
   // ── SAFETY: never overwrite more local trades with fewer cloud trades ──
   // If cloud has significantly fewer trades, abort (Supabase might be empty/stale)
   if(state.trades.length > 0 && pulledTrades.length < state.trades.length - 2){
