@@ -1577,19 +1577,26 @@ SD Target $______"></textarea></div>
 <!-- WEEKLY -->
 <div class="panel" id="p-weekly">
 <div class="panel-inner">
-  <div class="card">
-    <div class="card-head">
-      <span class="card-tag t-w" id="wk-tag">MAY Week 1</span>
-      <div class="card-title">Weekly Analysis</div>
-    </div>
+
+  <!-- ── Month navigator (same style as Daily Pages) ── -->
+  <div class="mc-topbar">
+    <button class="mc-nav-btn" onclick="prevWeeklyMonth()">◀</button>
+    <div class="mc-month-title" id="wk-month-title">MAY 2026</div>
+    <button class="mc-nav-btn" onclick="todayWeeklyMonth()">Today</button>
+    <button class="mc-nav-btn" onclick="nextWeeklyMonth()">▶</button>
   </div>
 
-  <div class="wk-tabs" id="wkTabs">
-    <button class="wk-tab active" onclick="selectWeek(1)">Week 1</button>
-    <button class="wk-tab" onclick="selectWeek(2)">Week 2</button>
-    <button class="wk-tab" onclick="selectWeek(3)">Week 3</button>
-    <button class="wk-tab" onclick="selectWeek(4)">Week 4</button>
+  <!-- ── Monthly context bar (pulled from Monthly analysis) ── -->
+  <div id="wk-monthly-ctx" style="margin-bottom:12px;padding:12px 16px;background:var(--bg2);border:1px solid rgba(245,166,35,.15);border-radius:12px;display:none">
+    <div style="font-size:9px;font-weight:700;color:rgba(245,166,35,.7);text-transform:uppercase;letter-spacing:.14em;margin-bottom:8px">📅 Monthly Context</div>
+    <div id="wk-monthly-props" style="display:flex;flex-wrap:wrap;gap:10px;font-size:11px"></div>
   </div>
+
+  <!-- ── Dynamic week tabs with real date ranges ── -->
+  <div class="wk-tabs" id="wkTabs" style="margin-bottom:12px"></div>
+
+  <!-- ── Week date range label ── -->
+  <div id="wk-daterange" style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-bottom:12px;padding:0 2px"></div>
 
   <div class="card"><div class="card-body">
     <div class="form-row"><label class="form-label">Weekly Model</label>
@@ -3598,10 +3605,10 @@ async function uploadImage(zone,file){
 }
 function getImgKey(z){
   const base=z.dataset.imgkey;
-  if(z.dataset.week) return `${state.currentMonth}-W${state.currentWeek}-${base}`;
+  // FIX: use 'week' in z.dataset (not z.dataset.week) because data-week="" is falsy
+  if('week' in z.dataset) return `${state.currentMonth}-W${state.currentWeek}-${base}`;
   if(base.startsWith('m-')) return `${state.currentMonth}-${base}`;
   if(base.startsWith('today-')) return `${todayStr()}-${base}`;
-  // Today panel dm-* keys (shared with Day Modal for same date)
   if(z.dataset.today!==undefined && base.startsWith('dm-')) return `${todayStr()}-${base}`;
   return base;
 }
@@ -3781,22 +3788,138 @@ function updateMonthlyDisplay(){
 }
 
 // ============= WEEKLY =============
-function selectWeek(w){state.currentWeek=w;save();loadWeekly()}
+
+// Get all Mon-Fri week ranges for a given YYYY-MM month
+function getWeeksOfMonth(ym){
+  const[y,m]=ym.split('-').map(Number);
+  const daysInMonth=new Date(y,m,0).getDate();
+  const weeks=[];
+  let weekNum=0;
+  for(let d=1;d<=daysInMonth;d++){
+    const date=new Date(`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}T12:00`);
+    const dow=date.getDay(); // 0=Sun..6=Sat
+    if(dow===1){ // Monday starts a week
+      weekNum++;
+      const mon=new Date(date);
+      const fri=new Date(date);fri.setDate(d+4);
+      // Clamp fri to end of month
+      const friClamped=fri.getMonth()+1>m?new Date(y,m-1,daysInMonth):fri;
+      const MSHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const fmt=dt=>`${dt.getDate()} ${MSHORT[dt.getMonth()]}`;
+      weeks.push({
+        num:weekNum,
+        monDate:`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`,
+        label:`W${weekNum}: ${fmt(mon)} – ${fmt(friClamped)}`,
+        shortLabel:`Week ${weekNum}`,
+      });
+    }
+  }
+  // Edge case: if no Monday found (month starts Thu/Fri), add week starting from day 1
+  if(!weeks.length){
+    const MSHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    weeks.push({num:1,monDate:`${y}-${String(m).padStart(2,'0')}-01`,label:`W1: ${m} ${y}`,shortLabel:'Week 1'});
+  }
+  return weeks;
+}
+
+function prevWeeklyMonth(){
+  const[y,m]=state.currentMonth.split('-').map(Number);
+  let nm=m-1,ny=y;if(nm<1){nm=12;ny--;}
+  state.currentMonth=`${ny}-${String(nm).padStart(2,'0')}`;
+  state.currentWeek=1;save();loadWeekly();
+}
+function nextWeeklyMonth(){
+  const[y,m]=state.currentMonth.split('-').map(Number);
+  let nm=m+1,ny=y;if(nm>12){nm=1;ny++;}
+  state.currentMonth=`${ny}-${String(nm).padStart(2,'0')}`;
+  state.currentWeek=1;save();loadWeekly();
+}
+function todayWeeklyMonth(){
+  state.currentMonth=todayStr().slice(0,7);
+  // Set current week based on today's actual week number in the month
+  const weeks=getWeeksOfMonth(state.currentMonth);
+  const today=todayStr();
+  const wk=weeks.find(w=>w.monDate<=today)||weeks[0];
+  // Find which week today falls in
+  let currentWk=1;
+  for(let i=0;i<weeks.length;i++){
+    if(today>=weeks[i].monDate) currentWk=weeks[i].num;
+  }
+  state.currentWeek=currentWk;
+  save();loadWeekly();
+}
+
+function selectWeek(w){state.currentWeek=w;save();loadWeekly();}
+
 function loadWeekly(){
-  document.getElementById('wk-tag').textContent=`${monthLabel(state.currentMonth)} Week ${state.currentWeek}`;
-  document.querySelectorAll('.wk-tab').forEach((t,i)=>t.classList.toggle('active',i+1===state.currentWeek));
+  const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const[y,m]=state.currentMonth.split('-').map(Number);
+
+  // Update month title
+  const titleEl=document.getElementById('wk-month-title');
+  if(titleEl) titleEl.textContent=`${MONTHS[m-1].toUpperCase()} ${y}`;
+
+  // Build dynamic week tabs from real calendar
+  const weeks=getWeeksOfMonth(state.currentMonth);
+  // Clamp currentWeek
+  if(state.currentWeek>weeks.length) state.currentWeek=1;
+
+  const tabsEl=document.getElementById('wkTabs');
+  if(tabsEl){
+    tabsEl.innerHTML=weeks.map(w=>`
+      <button class="wk-tab${w.num===state.currentWeek?' active':''}" onclick="selectWeek(${w.num})">
+        ${w.shortLabel}
+      </button>`).join('');
+  }
+
+  // Show date range for selected week
+  const selWeek=weeks.find(w=>w.num===state.currentWeek)||weeks[0];
+  const drEl=document.getElementById('wk-daterange');
+  if(drEl&&selWeek) drEl.textContent=`📅 ${selWeek.label}`;
+
+  // Load week data
   const key=`${state.currentMonth}-W${state.currentWeek}`;
   const data=state.weekly[key]||{};
   document.querySelectorAll('#p-weekly [data-week]').forEach(el=>{el.value=data[el.dataset.key]||''});
   setChipsValues('smtChips',data['smt']||[]);
   document.querySelectorAll('#p-weekly .img-zone').forEach(z=>renderImgZone(z));
+
+  // ── Monthly context bar ──
+  const mData=state.monthly[state.currentMonth]||{};
+  const ctxEl=document.getElementById('wk-monthly-ctx');
+  const propsEl=document.getElementById('wk-monthly-props');
+  if(ctxEl&&propsEl){
+    const props=[
+      {label:'Q-Shift',val:mData['m-qshift']},
+      {label:'Profile',val:mData['m-profile']},
+      {label:'Key Level',val:mData['m-keylevels']?mData['m-keylevels'].split('\n')[0]:''},
+      {label:'Prediction',val:mData['m-pred']},
+      {label:'HTF Delivered',val:mData['m-htf']},
+    ].filter(p=>p.val);
+    if(props.length){
+      ctxEl.style.display='block';
+      propsEl.innerHTML=props.map(p=>`
+        <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:4px 10px">
+          <span style="color:var(--text3);font-size:9px;text-transform:uppercase;letter-spacing:.08em">${p.label}: </span>
+          <span style="color:var(--text);font-weight:600">${p.val}</span>
+        </div>`).join('');
+    } else {
+      ctxEl.style.display='none';
+    }
+  }
 }
+
 function saveWeekly(){
   const key=`${state.currentMonth}-W${state.currentWeek}`;
   state.weekly[key]=state.weekly[key]||{};
   document.querySelectorAll('#p-weekly [data-week]').forEach(el=>{state.weekly[key][el.dataset.key]=el.value});
   state.weekly[key]['smt']=getChipsValues('smtChips',true);
-  save();flash(`✓ Week ${state.currentWeek} saved`);
+  save();
+  // Sync to Supabase
+  if(_sbSyncEnabled&&_sbUserId&&_sb){
+    _sb.from('weekly').upsert({week_key:key,data:state.weekly[key],user_id:_sbUserId},{onConflict:'week_key,user_id'}).catch(()=>{});
+  }
+  flash(`✓ ${state.currentMonth} Week ${state.currentWeek} saved`);
 }
 
 // ============= TRADES (Full LMR Trade Data) =============
