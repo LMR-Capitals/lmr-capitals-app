@@ -4554,7 +4554,7 @@ function renderDashboard(){
   if(!recent.length){trBox.innerHTML='<tr><td colspan="7" class="empty">No trades. Press T.</td></tr>'}
   else trBox.innerHTML=recent.map(t=>`
     <tr class="${t.pnl>0?'trade-win':t.pnl<0?'trade-loss':''}">
-      <td class="mono">D${t.dayCount||dayCountFor(t.date)}</td>
+      <td class="mono" style="color:var(--text3)">${(t.dayCount||dayCountFor(t.date))?`D${t.dayCount||dayCountFor(t.date)}`:'—'}</td>
       <td class="mono">${t.date}</td>
       <td><span class="tag tg-pur">${t.models?.[0]||'-'}</span></td>
       <td style="font-size:10px;max-width:80px;overflow:hidden;text-overflow:ellipsis">${(t.emotions||[])[0]||'-'}</td>
@@ -5716,13 +5716,13 @@ function lgUnlock(user){
   // Run app init
   sbRefreshUI();
   init().then(async()=>{
-    // ── AUTO-RESTORE: if localStorage is empty after init, pull from Supabase automatically ──
-    const hasData=state.trades.length>0||state.accounts.length>0||Object.keys(state.daily).length>0;
-    if(!hasData&&_sb&&_sbUserId){
+    // ── ALWAYS pull from Supabase on login — cloud is the single source of truth ──
+    // This ensures every device (browser, desktop app, phone) always has identical data
+    if(_sb&&_sbUserId){
       setSyncIndicator('syncing');
-      setSbStatus('⟳ First load — restoring your data from cloud…','var(--gold)');
+      setSbStatus('⟳ Loading your data from cloud…','var(--gold)');
       try{
-        // Backup (empty) state first
+        // Backup current local state before pull
         try{localStorage.setItem(STORE_KEY+'_pre_pull',JSON.stringify(state));}catch(e){}
         await _sbDoPull();
         ensureState();
@@ -5731,11 +5731,18 @@ function lgUnlock(user){
           save();
           updateAllStats();renderDashboard();renderTradeTable();renderNotesList();loadDaily();
           setSyncIndicator('synced');
-          setSbStatus('✓ Data restored — '+state.trades.length+' trades','var(--bull)');
-          flash('✓ Your data has been restored — '+state.trades.length+' trades loaded');
+          setSbStatus('✓ Cloud sync — '+state.trades.length+' trades','var(--bull)');
+        }else{
+          // Cloud empty — restore backup
+          const bk=localStorage.getItem(STORE_KEY+'_pre_pull');
+          if(bk){try{const p=JSON.parse(bk);state={...state,...p};ensureState();save();}catch(ex){}}
+          setSyncIndicator('synced');
+          setSbStatus('✓ Cloud connected','var(--bull)');
         }
       }catch(e){
-        setSbStatus('Cloud restore: '+e.message,'var(--warn)');
+        // Pull failed — keep local data, don't wipe anything
+        setSbStatus('⚠ Using local data (cloud sync failed)','var(--warn)');
+        setSyncIndicator('error');
       }
     }
     // ── Load profile from Supabase (always — overrides localStorage if cloud is newer) ──
