@@ -1013,7 +1013,9 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
     <button class="sb-item" data-panel="notes"><span class="sb-icon">✦</span> Journal</button>
     <button class="sb-item" data-panel="terminology"><span class="sb-icon">◧</span> LMR Terminology</button>
     <button class="sb-item" data-panel="psychology"><span class="sb-icon">◈</span> LMR Psychology</button>
+    <div class="sb-sec">AI</div>
     <button class="sb-item" data-panel="ai-coach" style="background:linear-gradient(90deg,rgba(245,166,35,.08),transparent)"><span class="sb-icon" style="color:var(--gold)">✦</span> <span style="color:var(--gold);font-weight:700">AI Coach</span></button>
+    <button class="sb-item" data-panel="reports"><span class="sb-icon">📊</span> Reports</button>
   </nav>
   
   <div class="sb-foot">
@@ -2039,33 +2041,75 @@ Midnight Open $______"></textarea>
       </div>
     </div>
 
-    <!-- Messages area -->
-    <div id="ai-chat-messages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px">
-      <!-- Welcome message -->
-      <div class="ai-msg ai-msg-assistant">
-        <div class="ai-msg-avatar">✦</div>
-        <div class="ai-msg-bubble">
-          <p>Hello! I'm your LMR AI Trading Coach. I have full access to your trading data, journal, and performance metrics.</p>
-          <p style="margin-top:8px">Try asking:</p>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
-            <button class="ai-quick-btn" onclick="sendQuickMessage('What is my biggest trading mistake?')">Biggest mistake?</button>
-            <button class="ai-quick-btn" onclick="sendQuickMessage('Analyze my win rate and patterns')">Analyze patterns</button>
-            <button class="ai-quick-btn" onclick="sendQuickMessage('What should I focus on improving this week?')">Improvement focus</button>
-            <button class="ai-quick-btn" onclick="sendQuickMessage('Review my last 5 trades')">Last 5 trades</button>
-          </div>
+    <!-- Chat body: history sidebar + messages + input -->
+    <div style="display:flex;flex:1;overflow:hidden">
+
+      <!-- Chat history sidebar (collapsible) -->
+      <div id="ai-history-panel" style="width:200px;min-width:200px;border-right:1px solid var(--border);overflow-y:auto;padding:10px 8px;background:var(--bg3)">
+        <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;padding:0 4px">Chat History</div>
+        <button onclick="startNewAIChat()" style="width:100%;padding:6px 8px;background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.2);border-radius:8px;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;margin-bottom:8px">+ New Chat</button>
+        <div id="ai-history-list" style="display:flex;flex-direction:column;gap:4px">
+          <div style="font-size:10px;color:var(--text3);text-align:center;padding:8px">Loading history…</div>
         </div>
       </div>
-    </div>
 
-    <!-- Input area -->
-    <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:flex-end">
-      <textarea id="ai-chat-input" placeholder="Ask your trading coach anything…" rows="2"
-        style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 14px;color:var(--text);font-size:13px;resize:none;font-family:'Plus Jakarta Sans',sans-serif;line-height:1.4"
-        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAIMessage();}"></textarea>
-      <button onclick="sendAIMessage()" id="ai-send-btn"
-        style="padding:10px 18px;background:linear-gradient(135deg,var(--gold),var(--gold3));border:none;border-radius:10px;color:#000;font-weight:800;cursor:pointer;font-size:13px;white-space:nowrap">
-        Send
-      </button>
+      <!-- Messages + input column -->
+      <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+
+        <!-- Messages area -->
+        <div id="ai-chat-messages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px">
+          <!-- Welcome message -->
+          <div class="ai-msg ai-msg-assistant">
+            <div class="ai-msg-avatar">✦</div>
+            <div class="ai-msg-bubble">
+              <p>Hello! I'm your LMR AI Trading Coach. I have full access to your trading data, journal, and performance metrics.</p>
+              <p style="margin-top:8px">Try asking:</p>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+                <button class="ai-quick-btn" onclick="sendQuickMessage('What is my biggest trading mistake?')">Biggest mistake?</button>
+                <button class="ai-quick-btn" onclick="sendQuickMessage('Analyze my win rate and patterns')">Analyze patterns</button>
+                <button class="ai-quick-btn" onclick="sendQuickMessage('What should I focus on improving this week?')">Improvement focus</button>
+                <button class="ai-quick-btn" onclick="sendQuickMessage('Review my last 5 trades')">Last 5 trades</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input area -->
+        <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:flex-end">
+          <textarea id="ai-chat-input" placeholder="Ask your trading coach anything…" rows="2"
+            style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 14px;color:var(--text);font-size:13px;resize:none;font-family:'Plus Jakarta Sans',sans-serif;line-height:1.4"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAIMessage();}"></textarea>
+          <button onclick="sendAIMessage()" id="ai-send-btn"
+            style="padding:10px 18px;background:linear-gradient(135deg,var(--gold),var(--gold3));border:none;border-radius:10px;color:#000;font-weight:800;cursor:pointer;font-size:13px;white-space:nowrap">
+            Send
+          </button>
+        </div>
+
+      </div><!-- end messages+input column -->
+    </div><!-- end chat body flex -->
+  </div>
+</div>
+</div>
+
+<!-- REPORTS PANEL -->
+<div class="panel" id="p-reports">
+<div class="panel-inner">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div>
+      <div style="font-size:20px;font-weight:800;color:var(--text)">Weekly Reports</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:2px">AI-generated performance analysis — newest first</div>
+    </div>
+    <button class="btn btn-primary" onclick="generateWeeklyReport()" style="display:flex;align-items:center;gap:6px">
+      <span style="color:#000">✦</span> Generate This Week
+    </button>
+  </div>
+
+  <!-- Reports list -->
+  <div id="reports-list">
+    <div class="empty" style="padding:48px;text-align:center">
+      <div style="font-size:40px;margin-bottom:12px">📊</div>
+      <div style="font-size:14px;color:var(--text2)">No reports yet</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">Click "Generate This Week" to create your first AI performance report</div>
     </div>
   </div>
 </div>
@@ -3228,7 +3272,7 @@ function dayCountFor(dateStr){
 }
 
 // ============= NAVIGATION =============
-const panels=['dash','today','cal','perf','monthly','weekly','daily','trades','accounts','trans','notes','terminology','psychology','ai-coach'];
+const panels=['dash','today','cal','perf','monthly','weekly','daily','trades','accounts','trans','notes','terminology','psychology','ai-coach','reports'];
 const titles={
   dash:['Dashboard','Welcome back · Day '],
   today:['Today','Fill the chain · Day '],
@@ -3244,6 +3288,7 @@ const titles={
   terminology:['LMR Terminology','Free-form knowledge base'],
   psychology:['LMR Psychology','Mindset · Discipline · Trade psychology'],
   'ai-coach':['AI Trading Coach','Your personal LMR AI coaching assistant'],
+  reports:['Reports','AI-generated weekly performance reports'],
 };
 
 // ── SETTINGS SIDE PANEL ──────────────────────────────────────────
@@ -3510,6 +3555,8 @@ function navTo(p){
   if(p==='settings') renderSettings();
   if(p==='terminology') loadLmrPage('terminology');
   if(p==='psychology') loadLmrPage('psychology');
+  if(p==='ai-coach') { setTimeout(loadAndRenderAIHistory, 300); }
+  if(p==='reports') loadAndRenderReports();
 }
 
 document.querySelectorAll('.sb-item').forEach(b=>{
@@ -5693,6 +5740,8 @@ function lgUnlock(user){
     }
     // ── Load profile from Supabase (always — overrides localStorage if cloud is newer) ──
     await loadProfileFromCloud();
+    // Load AI settings from saved profile (API key, model, etc.)
+    loadAISettings();
     // Apply saved theme
     if(state.profile?.theme)setTheme(state.profile.theme);
     else setTheme('navy-gold');
@@ -6064,6 +6113,44 @@ function loadAISettings(){
 // ── AI COACH CHAT ──────────────────────────────────────────────────────────
 let _aiMessages = [];
 
+// Current chat session ID
+let _aiSessionId = null;
+
+function getOrCreateSessionId(){
+  if(!_aiSessionId) _aiSessionId = 'chat_' + Date.now();
+  return _aiSessionId;
+}
+
+async function saveAIChatToCloud(){
+  if(!_sb || !_sbUserId || !_aiMessages.length) return;
+  const sessionId = getOrCreateSessionId();
+  // Auto-title from first user message
+  const firstMsg = _aiMessages.find(m=>m.role==='user');
+  const title = firstMsg ? (firstMsg.content.slice(0,60)+(firstMsg.content.length>60?'…':'')) : 'AI Session';
+  try{
+    await _sb.from('ai_chats').upsert({
+      id: sessionId,
+      user_id: _sbUserId,
+      title: title,
+      messages: _aiMessages,
+      session_date: todayStr(),
+      updated_at: new Date().toISOString()
+    },{onConflict:'id'});
+  }catch(e){ console.warn('[LMR AI] Chat save failed:',e.message); }
+}
+
+async function loadAIChatHistory(){
+  if(!_sb || !_sbUserId) return [];
+  try{
+    const{data,error} = await _sb.from('ai_chats')
+      .select('*')
+      .eq('user_id',_sbUserId)
+      .order('created_at',{ascending:false})
+      .limit(50);
+    return error ? [] : (data||[]);
+  }catch(e){ return []; }
+}
+
 function clearAIChat(){
   _aiMessages = [];
   const el = document.getElementById('ai-chat-messages');
@@ -6120,6 +6207,7 @@ async function sendAIMessage(){
     appendAIMessage('assistant', response);
     _aiMessages.push({role:'assistant', content:response});
     if(_aiMessages.length > 20) _aiMessages = _aiMessages.slice(-20);
+    saveAIChatToCloud(); // persist to Supabase
   }
   btn.disabled = false;
   btn.textContent = 'Send';
@@ -6129,6 +6217,133 @@ function sendQuickMessage(text){
   const input = document.getElementById('ai-chat-input');
   if(input) input.value = text;
   sendAIMessage();
+}
+
+async function loadAndRenderAIHistory(){
+  const list = document.getElementById('ai-history-list');
+  if(!list) return;
+  const sessions = await loadAIChatHistory();
+  if(!sessions.length){
+    list.innerHTML='<div style="font-size:10px;color:var(--text3);text-align:center;padding:8px">No history yet</div>';
+    return;
+  }
+  list.innerHTML = sessions.map(s=>`
+    <div onclick="loadAIChatSession(${JSON.stringify(JSON.stringify(s))})"
+      style="padding:6px 8px;border-radius:6px;cursor:pointer;font-size:10px;color:var(--text2);line-height:1.4;border:1px solid transparent;transition:all .15s"
+      onmouseover="this.style.background='rgba(245,166,35,.06)';this.style.borderColor='rgba(245,166,35,.15)'"
+      onmouseout="this.style.background='';this.style.borderColor='transparent'">
+      <div style="font-weight:600;color:var(--text);margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.title||'Chat'}</div>
+      <div style="color:var(--text3);font-size:9px">${s.session_date||''} · ${(s.messages||[]).length} msgs</div>
+    </div>`).join('');
+}
+
+function loadAIChatSession(sessionJson){
+  const session = typeof sessionJson === 'string' ? JSON.parse(sessionJson) : sessionJson;
+  _aiMessages = session.messages || [];
+  _aiSessionId = session.id;
+  const el = document.getElementById('ai-chat-messages');
+  if(!el) return;
+  // Rebuild messages UI from history
+  el.innerHTML = '';
+  _aiMessages.forEach(m => appendAIMessage(m.role, m.content));
+  el.scrollTop = el.scrollHeight;
+}
+
+function startNewAIChat(){
+  _aiMessages = [];
+  _aiSessionId = 'chat_' + Date.now();
+  clearAIChat();
+}
+
+// ── REPORTS (Weekly) ──────────────────────────────────────────────────────
+
+async function loadAndRenderReports(){
+  const el = document.getElementById('reports-list');
+  if(!el) return;
+  el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3)">Loading reports…</div>';
+
+  if(!_sb || !_sbUserId){
+    el.innerHTML = '<div class="empty" style="padding:24px">Sign in to view reports</div>';
+    return;
+  }
+
+  try{
+    const{data,error} = await _sb.from('weekly_reports')
+      .select('*')
+      .eq('user_id',_sbUserId)
+      .order('created_at',{ascending:false});
+
+    if(error||!data?.length){
+      el.innerHTML = `<div style="text-align:center;padding:48px">
+        <div style="font-size:40px;margin-bottom:12px">📊</div>
+        <div style="font-size:14px;color:var(--text2)">No reports yet</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">Click "Generate This Week" to create your first report</div>
+      </div>`;
+      return;
+    }
+
+    el.innerHTML = data.map((r,i)=>{
+      const m = r.metrics||{};
+      const pnlColor = (m.pnl||0)>=0?'var(--bull)':'var(--bear)';
+      const isLatest = i===0;
+      return `<div style="background:var(--bg2);border:1px solid ${isLatest?'rgba(245,166,35,.25)':'var(--border2)'};border-radius:14px;padding:20px 24px;margin-bottom:14px;${isLatest?'box-shadow:0 0 20px rgba(245,166,35,.06)':''}">
+        <!-- Report header -->
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
+          <div>
+            ${isLatest?`<div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">LATEST REPORT</div>`:''}
+            <div style="font-size:15px;font-weight:800;color:var(--text)">${r.title||'Weekly Report'}</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:2px">${r.week_start||''} → ${r.week_end||''} · Generated ${(r.created_at||'').slice(0,10)}</div>
+          </div>
+          <button onclick="deleteReport('${r.id}')" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);padding:3px 8px;cursor:pointer;font-size:11px">✕</button>
+        </div>
+
+        <!-- Metrics strip -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;padding:12px;background:var(--bg3);border-radius:10px">
+          <div style="text-align:center">
+            <div style="font-size:18px;font-weight:800;color:${pnlColor}">${(m.pnl||0)>=0?'+':''}$${Math.abs(m.pnl||0).toFixed(0)}</div>
+            <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Net P&amp;L</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:18px;font-weight:800;color:var(--text)">${m.trades||0}</div>
+            <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Trades</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:18px;font-weight:800;color:${(m.win_rate||0)>=50?'var(--bull)':'var(--bear)'}">${m.win_rate||0}%</div>
+            <div style="font-size:9px;color:var(--text3);font-weight:400;text-transform:uppercase;letter-spacing:.06em">Win Rate</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:18px;font-weight:800;color:var(--bull)">${m.wins||0}W</div>
+            <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">${m.losses||0} Losses</div>
+          </div>
+        </div>
+
+        <!-- Report content (collapsed by default) -->
+        <div id="report-body-${r.id}" style="display:none;font-size:13px;color:var(--text2);line-height:1.7;padding-top:12px;border-top:1px solid var(--border)">${typeof formatAIResponse === 'function' ? formatAIResponse(r.content||'') : (r.content||'')}</div>
+        <button onclick="toggleReportBody('${r.id}',this)" style="background:none;border:none;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;padding:4px 0;margin-top:8px">
+          ▼ Read Full Report
+        </button>
+      </div>`;
+    }).join('');
+  }catch(e){
+    el.innerHTML = `<div class="empty">Error loading reports: ${e.message}</div>`;
+  }
+}
+
+function toggleReportBody(id, btn){
+  const el = document.getElementById('report-body-'+id);
+  if(!el) return;
+  const isHidden = el.style.display==='none';
+  el.style.display = isHidden?'block':'none';
+  btn.textContent = isHidden ? '▲ Collapse' : '▼ Read Full Report';
+}
+
+async function deleteReport(id){
+  if(!confirm('Delete this report?')) return;
+  try{
+    await _sb.from('weekly_reports').delete().eq('id',id).eq('user_id',_sbUserId);
+    loadAndRenderReports();
+    flash('Report deleted');
+  }catch(e){ flash('Delete error: '+e.message); }
 }
 
 // ── TRADE AUTO-ANALYSIS ────────────────────────────────────────────────────
@@ -6197,6 +6412,31 @@ ${weekTrades.map(t=>`- ${t.date} ${t.position} [${(t.models||[]).join('+')}] P&L
 JOURNAL NOTES THIS WEEK:
 ${weekNotes.map(n=>`- ${n.date}: ${(n.text||n.title||'').slice(0,100)}`).join('\n')||'None'}`;
   const result = await callClaude([{role:'user',content:`Generate a comprehensive weekly performance report:\n${weekSummary}`}],'report');
+  // Save report to Supabase
+  if(result && _sb && _sbUserId){
+    const reportId = 'report_' + Date.now();
+    const weekTradesCount = weekTrades.length;
+    const weekPnl = weekTrades.reduce((s,t)=>s+t.pnl,0);
+    const weekWins = weekTrades.filter(t=>t.pnl>0).length;
+    try{
+      await _sb.from('weekly_reports').insert({
+        id: reportId,
+        user_id: _sbUserId,
+        week_start: weekStartStr,
+        week_end: todayStr(),
+        title: `Week of ${weekStartStr} — ${weekTradesCount} trades`,
+        content: result,
+        metrics: {
+          trades: weekTradesCount,
+          pnl: weekPnl,
+          wins: weekWins,
+          losses: weekTradesCount - weekWins,
+          win_rate: weekTradesCount ? Math.round(weekWins/weekTradesCount*100) : 0
+        }
+      });
+      flash('✓ Report saved to Reports section');
+    }catch(e){ console.warn('Report save failed:',e.message); }
+  }
   if(result){
     const modal = document.createElement('div');
     modal.style.cssText='position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.8);display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto';
