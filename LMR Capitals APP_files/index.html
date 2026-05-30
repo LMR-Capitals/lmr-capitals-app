@@ -1665,7 +1665,11 @@ Midnight Open $______"></textarea>
     </div>
   </div></div>
 
-  <div style="text-align:center;margin-top:14px"><button class="btn btn-primary" onclick="saveWeekly()">💾 Save Week</button></div>
+  <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+    <button class="btn btn-primary" onclick="saveWeekly()">💾 Save Week</button>
+    <button class="btn btn-sm" onclick="recoverWeeklyImages()" title="Migrate old weekly images to this week" style="border-color:rgba(245,166,35,.3);color:var(--gold)">🔄 Recover Images</button>
+    <button class="btn btn-sm" onclick="showWeeklyStorageSummary()" title="Show what's stored for each week" style="font-size:10px">📦 Storage Info</button>
+  </div>
 </div>
 </div>
 
@@ -3920,6 +3924,85 @@ function saveWeekly(){
     _sb.from('weekly').upsert({week_key:key,data:state.weekly[key],user_id:_sbUserId},{onConflict:'week_key,user_id'}).catch(()=>{});
   }
   flash(`✓ ${state.currentMonth} Week ${state.currentWeek} saved`);
+}
+
+// ── RECOVER OLD WEEKLY IMAGES ─────────────────────────────────────────────
+// Before the bug fix, all weekly images were stored under base keys like
+// "w-smt", "w-mon", "w-tue" etc. with no month/week prefix.
+// This function finds those orphaned images and copies them to the current week.
+const WEEKLY_IMG_KEYS=['w-smt','w-wprof','w-dprof','w-4h','w-1h','w-mon','w-tue','w-wed','w-thu','w-fri'];
+
+async function recoverWeeklyImages(){
+  const allKeys = await allImgKeys();
+  const weekKey = `${state.currentMonth}-W${state.currentWeek}`;
+
+  // Find old-format keys (base key only, no month-week prefix)
+  const oldKeys = allKeys.filter(k => WEEKLY_IMG_KEYS.includes(k));
+
+  if(!oldKeys.length){
+    flash('No old weekly images found to recover');
+    return;
+  }
+
+  let recovered = 0;
+  for(const baseKey of oldKeys){
+    const newKey = `${weekKey}-${baseKey}`;
+    // Only migrate if new key doesn't already have an image
+    const existing = await getImg(newKey);
+    if(!existing){
+      const img = await getImg(baseKey);
+      if(img){
+        await saveImg(newKey, img);
+        recovered++;
+      }
+    }
+  }
+
+  // Refresh image zones to show recovered images
+  document.querySelectorAll('#p-weekly .img-zone').forEach(z=>renderImgZone(z));
+
+  if(recovered > 0){
+    flash(`✅ Recovered ${recovered} image${recovered>1?'s':''} → ${state.currentMonth} Week ${state.currentWeek}`);
+  } else {
+    flash(`Images already recovered or up to date for Week ${state.currentWeek}`);
+  }
+}
+
+async function showWeeklyStorageSummary(){
+  const allKeys = await allImgKeys();
+  // Find all weekly image keys
+  const weeklyImgKeys = allKeys.filter(k => {
+    // New format: "2026-05-W1-w-smt"
+    if(/^\d{4}-\d{2}-W\d-w-/.test(k)) return true;
+    // Old format: "w-smt"
+    if(WEEKLY_IMG_KEYS.includes(k)) return true;
+    return false;
+  });
+
+  // Count images per week
+  const byWeek = {};
+  weeklyImgKeys.forEach(k=>{
+    const match = k.match(/^(\d{4}-\d{2}-W\d)/);
+    const weekKey = match ? match[1] : 'legacy';
+    byWeek[weekKey] = (byWeek[weekKey]||0)+1;
+  });
+
+  // Check Supabase weekly data
+  const weeklyDataKeys = Object.keys(state.weekly);
+
+  const summary = [
+    `📊 Weekly Storage Summary`,
+    `━━━━━━━━━━━━━━━━━━`,
+    `Text data in DB: ${weeklyDataKeys.length} week${weeklyDataKeys.length!==1?'s':''} saved`,
+    weeklyDataKeys.length ? weeklyDataKeys.sort().map(k=>`  • ${k}`).join('\n') : '  (none)',
+    ``,
+    `Images in IndexedDB: ${weeklyImgKeys.length} total`,
+    Object.keys(byWeek).length ? Object.entries(byWeek).sort().map(([k,c])=>`  • ${k}: ${c} image${c!==1?'s':''}`).join('\n') : '  (none)',
+    ``,
+    Object.keys(byWeek).find(k=>k==='legacy') ? `⚠ Legacy images found → use "Recover Images" button` : `✅ All images are week-specific`
+  ].join('\n');
+
+  alert(summary);
 }
 
 // ============= TRADES (Full LMR Trade Data) =============
