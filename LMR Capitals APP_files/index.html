@@ -1337,7 +1337,7 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
             <div class="prop-type">Select · Profile</div>
           </div>
           <div class="prop-right">
-            <select id="ch-rth" style="font-size:12px"><option value="">Select RTH Profile…</option></select>
+            <select id="ch-rth" style="font-size:12px" onchange="saveDaily()"><option value="">Select RTH Profile…</option></select>
           </div>
         </div>
 
@@ -1570,7 +1570,7 @@ SD Target $______"></textarea></div>
     </div>
   </div></div>
 
-  <div style="text-align:center;margin-top:14px"><button class="btn btn-primary" onclick="saveMonthly()">💾 Save Monthly</button></div>
+  <div style="text-align:center;margin-top:14px"><button class="btn btn-primary" onclick="saveMonthly()">💾 Save Now</button><div style="font-size:9px;color:var(--text3);text-align:center;margin-top:4px">Changes save automatically</div></div>
 </div>
 </div>
 
@@ -1666,10 +1666,11 @@ Midnight Open $______"></textarea>
   </div></div>
 
   <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
-    <button class="btn btn-primary" onclick="saveWeekly()">💾 Save Week</button>
+    <button class="btn btn-primary" onclick="saveWeekly()">💾 Save Now</button>
     <button class="btn btn-sm" onclick="recoverWeeklyImages()" title="Migrate old weekly images to this week" style="border-color:rgba(245,166,35,.3);color:var(--gold)">🔄 Recover Images</button>
     <button class="btn btn-sm" onclick="showWeeklyStorageSummary()" title="Show what's stored for each week" style="font-size:10px">📦 Storage Info</button>
   </div>
+  <div style="font-size:9px;color:var(--text3);text-align:center;margin-top:4px">Changes save automatically</div>
 </div>
 </div>
 
@@ -3203,7 +3204,8 @@ async function sbSyncRecord(table,record){
   try{
     const conflictKey=table==='daily'?'date,user_id':table==='monthly'?'key,user_id':table==='weekly'?'week_key,user_id':'id';
     await _sb.from(table).upsert({...record,user_id:_sbUserId},{onConflict:conflictKey});
-  }catch(e){_sbDirty=true;sbScheduleSync();}
+    setSbStatus('✓ Auto-saved','var(--bull)');
+  }catch(e){_sbDirty=true;sbScheduleSync();setSbStatus('⚠ Save failed — retrying','var(--bear)');}
 }
 
 // Delete a single record from Supabase
@@ -3309,6 +3311,11 @@ function autoSave(key,fn,ms=800){
     const el=document.getElementById('sb-save-status');
     if(el){el.textContent='Saved ✓';el.style.color='var(--bull)';setTimeout(()=>{el.textContent='Auto-saved';el.style.color='';},1800);}
   },ms);
+}
+// Alias for explicit debounce with configurable delay
+function debounceSave(key,fn,delay=600){
+  clearTimeout(_autoSaveTimers[key]);
+  _autoSaveTimers[key]=setTimeout(()=>fn(),delay);
 }
 function autoSaveDaily(){autoSave('daily',saveDaily)}
 function autoSaveMonthly(){autoSave('monthly',saveMonthly)}
@@ -4768,7 +4775,9 @@ function openImageFull(url){
 function saveJournal(){
   const j={id:Date.now(),type:document.getElementById('j-type').value,date:document.getElementById('j-date').value||todayStr(),text:document.getElementById('j-text').value};
   if(!j.text.trim()){alert('Add text');return}
-  state.journal.unshift(j);save();document.getElementById('j-text').value='';renderJournalList();
+  state.journal.unshift(j);save();
+  sbSyncRecord('journal',{id:String(j.id),user_id:_sbUserId,date:j.date||null,title:j.type||null,content:j.text||'',created_at:new Date().toISOString()});
+  document.getElementById('j-text').value='';renderJournalList();
   flash('✓ Added');
 }
 function deleteJournal(id){if(!confirm('Delete?'))return;state.journal=state.journal.filter(j=>j.id!==id);save();renderJournalList()}
@@ -5715,6 +5724,15 @@ function saveLmrPage(pageId){
   clone.querySelectorAll('img.lmr-inline-img').forEach(img=>{img.src='';});
   state[pageId+'Page']=clone.innerHTML;
   save();
+  // Immediate Supabase sync — store in monthly table with special key
+  if(_sbSyncEnabled&&_sbUserId&&_sb){
+    if(pageId==='terminology')
+      _sb.from('monthly').upsert({key:'lmr-terminology',data:{content:state.terminologyPage},user_id:_sbUserId},{onConflict:'key,user_id'})
+        .then(()=>setSbStatus('✓ Terminology saved to cloud','var(--bull)')).catch(()=>{});
+    if(pageId==='psychology')
+      _sb.from('monthly').upsert({key:'lmr-psychology',data:{content:state.psychologyPage},user_id:_sbUserId},{onConflict:'key,user_id'})
+        .then(()=>setSbStatus('✓ Psychology saved to cloud','var(--bull)')).catch(()=>{});
+  }
   const lbl=document.getElementById(pageId+'-saved');
   if(lbl)lbl.textContent='Saved '+new Date().toLocaleTimeString();
 }
