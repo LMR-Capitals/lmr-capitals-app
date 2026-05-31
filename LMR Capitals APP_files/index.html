@@ -4010,18 +4010,21 @@ async function showWeeklyStorageSummary(){
 let _tmEditId=null;
 let _tmCurrentImgId=null; // image key prefix for current modal session
 function _setTradeImgKeys(id){
-  _tmCurrentImgId=id;
+  // Always use String ID so keys are consistent regardless of Number/String type
+  const sid=String(id);
+  _tmCurrentImgId=sid;
   ['tm-img-htf','tm-img-15m','tm-img-entry','tm-img-result'].forEach(zid=>{
     const z=document.getElementById(zid);
     if(!z)return;
     const suffix=zid.replace('tm-img-','');
-    z.dataset.imgkey=`trade-${id}-${suffix}`;
+    z.dataset.imgkey=`trade-${sid}-${suffix}`;
     renderImgZone(z);
   });
 }
 function openTradeModal(editId){
   _tmEditId=editId||null;
-  const ex=editId?state.trades.find(t=>t.id===editId):null;
+  // Normalise to same type used when images were saved
+  const ex=editId?state.trades.find(t=>String(t.id)===String(editId)):null;
   document.getElementById('tm-date').value=ex?ex.date:todayStr();
   // Open/close time: MANUAL only — never auto-fill with current time
   // For new trades: empty (user fills manually)
@@ -4119,12 +4122,11 @@ function saveTrade(){
   renderTradeTable();updateAllStats();
   ['tm-pnl','tm-risk','tm-lots','tm-draws','tm-fb'].forEach(id=>document.getElementById(id).value='');
 }
-function deleteTrade(id){
-  if(!confirm('Delete?'))return;
-  state.trades=state.trades.filter(t=>t.id!==id);
-  save();
-  sbDeleteRecord('trades',id); // instant cloud delete
-  renderTradeTable();updateAllStats();
+async function deleteTrade(id){
+  if(!confirm('Delete this trade?'))return;
+  await sbDeleteRecord('trades',String(id)); // cloud first
+  state.trades=state.trades.filter(t=>String(t.id)!==String(id));
+  save();renderTradeTable();updateAllStats();
 }
 
 function saveTradeAndClose(){
@@ -4146,14 +4148,14 @@ function discardTrade(){
 function showTradeImgPanel(tradeId){
   const panel=document.getElementById('trade-img-panel');
   if(!panel)return;
-  const t=state.trades.find(x=>x.id==tradeId);
+  const sid=String(tradeId); // always String for consistent image key
+  const t=state.trades.find(x=>String(x.id)===sid);
   if(!t)return;
-  // Set image keys for the 4 inline zones
   const zones={
-    'tl-img-htf':   `trade-${tradeId}-htf`,
-    'tl-img-15m':   `trade-${tradeId}-15m`,
-    'tl-img-entry': `trade-${tradeId}-entry`,
-    'tl-img-result':`trade-${tradeId}-result`
+    'tl-img-htf':   `trade-${sid}-htf`,
+    'tl-img-15m':   `trade-${sid}-15m`,
+    'tl-img-entry': `trade-${sid}-entry`,
+    'tl-img-result':`trade-${sid}-result`
   };
   Object.entries(zones).forEach(([zid,key])=>{
     const z=document.getElementById(zid);
@@ -4256,12 +4258,12 @@ function setActiveAccount(id){
   renderAccountTable();updateAllStats();
   flash('✓ Active account set — will remain on next login');
 }
-function deleteAccount(id){
+async function deleteAccount(id){
   if(!confirm('Delete account?'))return;
-  state.accounts=state.accounts.filter(a=>a.id!==id);
+  await sbDeleteRecord('accounts',String(id)); // cloud first
+  state.accounts=state.accounts.filter(a=>String(a.id)!==String(id));
   if(String(state.currentAcc)===String(id))state.currentAcc=state.accounts[0]?.id||null;
-  save();sbDeleteRecord('accounts',id);
-  renderAccountTable();updateAllStats();
+  save();renderAccountTable();updateAllStats();
 }
 function renderAccountTable(){
   const w=document.getElementById('accTable');
@@ -4442,7 +4444,7 @@ function _txRow(x){
     <td>${acc?acc.name:'-'}</td>
     <td class="mono ${isPos?'txt-pos':'txt-neg'}" style="font-weight:700">${isPos?'+':'-'}$${Math.abs(x.amount).toFixed(2)}</td>
     <td>${x.note||'-'}</td>
-    <td onclick="event.stopPropagation()"><button class="btn btn-sm btn-bear" onclick="if(confirm('Delete?')){state.transactions=state.transactions.filter(t=>t.id!==${x.id});save();renderTransTable();renderTransSummary()}">✗</button></td>
+    <td onclick="event.stopPropagation()"><button class="btn btn-sm btn-bear" onclick="deleteTransaction(${x.id})">✗</button></td>
   </tr>`;
 }
 function renderTransTable(){
@@ -4843,21 +4845,29 @@ function renderDashboard(){
     document.getElementById('dash-chain-status').textContent='No prev data';
   }
 
-  // recent trades — newest first, green=win / red=loss
+  // recent trades — active account trades first, then all, newest first
   const trBox=document.getElementById('dash-trades');
-  const recent=[...state.trades].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0)).slice(0,5);
+  const accId=String(state.currentAcc||'');
+  // Show active account trades first, fill remaining with all trades
+  const accTrades=[...state.trades].filter(t=>accId&&String(t.accountId)===accId)
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
+  const otherTrades=[...state.trades].filter(t=>!accId||String(t.accountId)!==accId)
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
+  const recent=[...accTrades,...otherTrades].slice(0,5);
   if(!recent.length){trBox.innerHTML='<tr><td colspan="7" class="empty">No trades. Press T.</td></tr>'}
-  else trBox.innerHTML=recent.map(t=>`
-    <tr class="${t.pnl>0?'trade-win':t.pnl<0?'trade-loss':''}">
+  else trBox.innerHTML=recent.map(t=>{
+    const isActiveAcc=accId&&String(t.accountId)===accId;
+    const accName=state.accounts.find(a=>String(a.id)===String(t.accountId))?.name||'';
+    return `<tr class="${t.pnl>0?'trade-win':t.pnl<0?'trade-loss':''}" style="${isActiveAcc?'border-left:2px solid var(--gold)':''}">
       <td class="mono" style="color:var(--text3)">${(t.dayCount||dayCountFor(t.date))?`D${t.dayCount||dayCountFor(t.date)}`:'—'}</td>
-      <td class="mono">${t.date}</td>
+      <td class="mono">${(t.date||'').slice(0,10)}</td>
       <td><span class="tag tg-pur">${t.models?.[0]||'-'}</span></td>
       <td style="font-size:10px;max-width:80px;overflow:hidden;text-overflow:ellipsis">${(t.emotions||[])[0]||'-'}</td>
       <td>${t.pnl>0?`<span class="win-pill">WIN</span>`:t.pnl<0?`<span class="loss-pill">LOSS</span>`:`<span class="tag tg-gray">BE</span>`}</td>
       <td class="mono ${t.pnl>=0?'txt-pos':'txt-neg'}" style="font-weight:700">${t.pnl>=0?'+':''}$${t.pnl.toFixed(2)}</td>
       <td class="mono ${parseFloat(t.rr)>=0?'txt-pos':'txt-neg'}">${t.rr}R</td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
   
   // stats
   const ts=state.trades;
@@ -5449,11 +5459,7 @@ function openTradeModalForDate(ds){
 }
 
 // ── EDIT/DELETE UPGRADES ─────────────────────────────────────────────────────
-function deleteTrade(id){
-  if(!confirm('Delete trade?'))return;
-  state.trades=state.trades.filter(t=>t.id!=id);
-  save();renderTradeTable();if(typeof renderDailyHeatmap==='function')renderDailyHeatmap();updateAllStats();flash('✓ Trade deleted');
-}
+// deleteTrade is defined above (cloud-first version)
 function editAccount(id){
   const a=state.accounts.find(a=>a.id==id);if(!a)return;
   document.getElementById('am-name').value=a.name||'';
@@ -5465,11 +5471,15 @@ function editAccount(id){
   modal.querySelector('.modal-title').textContent='Edit Account';
   modal.dataset.editId=id;modal.classList.add('show');
 }
-function deleteTransaction(id){
-  if(!confirm('Delete transaction?'))return;
-  state.transactions=state.transactions.filter(t=>t.id!=id);
-  save();sbDeleteRecord('transactions',id);
-  renderTransTable();flash('✓ Deleted');
+async function deleteTransaction(id){
+  if(!confirm('Delete this transaction?'))return;
+  // 1. Remove from Supabase FIRST (before local save, before next pull can restore it)
+  await sbDeleteRecord('transactions',String(id));
+  // 2. Remove from local state
+  state.transactions=state.transactions.filter(t=>String(t.id)!==String(id));
+  save();
+  renderTransTable();renderTransSummary();
+  flash('✓ Transaction deleted from cloud');
 }
 function editNote(id){
   const n=state.notes.find(n=>n.id==id);if(!n)return;
