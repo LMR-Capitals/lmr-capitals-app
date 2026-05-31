@@ -2298,7 +2298,16 @@ Midnight Open $______"></textarea>
 
   <!-- ── DATA TAB ── -->
   <div id="set-tab-data" style="padding:16px 18px;display:none">
-    <div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px">☁ Data Management</div>
+    <!-- IMAGE CLOUD SYNC — most important section -->
+    <div style="margin-bottom:16px;padding:14px 16px;background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.25);border-radius:12px">
+      <div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px">📸 Image Cloud Backup</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Images are now saved to Supabase Storage so they never disappear. Use these buttons to sync existing images.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="syncAllImagesToCloud()" style="flex:1">⬆ Upload All Images to Cloud</button>
+        <button class="btn btn-sm" onclick="restoreAllImagesFromCloud()" style="flex:1;border-color:rgba(91,168,255,.3);color:var(--blue)">⬇ Restore All Images from Cloud</button>
+      </div>
+    </div>
+    <div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px">💾 JSON Backup</div>
     <div class="flex-row" style="margin-bottom:10px;gap:6px;flex-wrap:wrap">
       <button class="btn btn-primary btn-sm" onclick="exportData()">Export JSON</button>
       <button class="btn btn-sm" onclick="document.getElementById('importFile').click()">Import JSON</button>
@@ -2972,14 +2981,120 @@ function getEventsForRange(from,to,minImpact=1){
   return USA_ECON_EVENTS.filter(e=>e.date>=from&&e.date<=to&&e.impact>=minImpact);
 }
 
-// ============= INDEXEDDB =============
+// ============= INDEXEDDB + SUPABASE CLOUD IMAGE SYNC =============
+// Images saved to BOTH local IndexedDB AND Supabase Storage (app-images bucket).
+// On load: try IndexedDB first → fall back to cloud URL.
+// This way images survive browser clears, device switches, and cache wipes.
+
 const DB_NAME='lmr_v3',STORE='images';
+const SB_IMG_BUCKET='app-images';
+const SB_IMG_URL='https://agrvylclhvxyevsmmexf.supabase.co/storage/v1/object/public/'+SB_IMG_BUCKET+'/';
 let db;
+
 function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,1);r.onerror=()=>rej(r.error);r.onsuccess=()=>{db=r.result;res(db)};r.onupgradeneeded=e=>{if(!e.target.result.objectStoreNames.contains(STORE))e.target.result.createObjectStore(STORE)}});}
-async function saveImg(k,b){await openDB();return new Promise((res,rej)=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(b,k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})}
-async function getImg(k){await openDB();return new Promise((res)=>{const t=db.transaction(STORE,'readonly');const r=t.objectStore(STORE).get(k);r.onsuccess=()=>res(r.result)})}
-async function delImg(k){await openDB();return new Promise((res)=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).delete(k);t.oncomplete=()=>res()})}
+
+// Save to IndexedDB AND upload to Supabase Storage
+async function saveImg(k,b){
+  // 1. Save locally always
+  await openDB();
+  await new Promise((res,rej)=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(b,k);t.oncomplete=res;t.onerror=()=>rej(t.error)});
+  // 2. Upload to Supabase Storage in background (don't block UI)
+  if(_sb&&_sbUserId){
+    sbUploadImage(k,b).catch(()=>{});
+  }
+}
+
+// Upload a blob to Supabase Storage
+async function sbUploadImage(key,blob){
+  if(!_sb||!_sbUserId) return null;
+  try{
+    const fileName=`${_sbUserId}/${encodeURIComponent(key)}`;
+    const mime=blob.type||'image/jpeg';
+    const {data,error}=await _sb.storage.from(SB_IMG_BUCKET).upload(fileName,blob,{
+      contentType:mime, upsert:true
+    });
+    if(error) return null;
+    return SB_IMG_URL+fileName;
+  }catch(e){ return null; }
+}
+
+// Get image: IndexedDB first, then Supabase Storage
+async function getImg(k){
+  await openDB();
+  const local=await new Promise(res=>{const t=db.transaction(STORE,'readonly');const r=t.objectStore(STORE).get(k);r.onsuccess=()=>res(r.result)});
+  if(local) return local;
+  // Fallback: try Supabase Storage
+  if(_sb&&_sbUserId){
+    try{
+      const fileName=`${_sbUserId}/${encodeURIComponent(k)}`;
+      const {data}=await _sb.storage.from(SB_IMG_BUCKET).download(fileName);
+      if(data){
+        // Save locally for next time
+        await new Promise((res,rej)=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(data,k);t.oncomplete=res;t.onerror=res});
+        return data;
+      }
+    }catch(e){}
+  }
+  return null;
+}
+
+async function delImg(k){
+  await openDB();
+  await new Promise(res=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).delete(k);t.oncomplete=res});
+  // Also delete from Supabase Storage
+  if(_sb&&_sbUserId){
+    const fileName=`${_sbUserId}/${encodeURIComponent(k)}`;
+    _sb.storage.from(SB_IMG_BUCKET).remove([fileName]).catch(()=>{});
+  }
+}
+
 async function allImgKeys(){await openDB();return new Promise(res=>{const t=db.transaction(STORE,'readonly');const r=t.objectStore(STORE).getAllKeys();r.onsuccess=()=>res(r.result||[])})}
+
+// ── SYNC ALL LOCAL IMAGES TO CLOUD ─────────────────────────────
+// Run once to back up all existing IndexedDB images to Supabase Storage
+async function syncAllImagesToCloud(){
+  if(!_sb||!_sbUserId){flash('⚠ Sign in first');return;}
+  const keys=await allImgKeys();
+  if(!keys.length){flash('No images to sync');return;}
+  flash(`⟳ Syncing ${keys.length} images to cloud…`);
+  let done=0,failed=0;
+  for(const k of keys){
+    try{
+      const blob=await getImg(k); // get from local
+      if(blob){
+        const url=await sbUploadImage(k,blob);
+        if(url) done++; else failed++;
+      }
+    }catch(e){failed++;}
+  }
+  flash(`✅ ${done} images synced to cloud${failed?' ('+failed+' failed)':''}`);
+}
+
+// ── RESTORE ALL IMAGES FROM CLOUD ──────────────────────────────
+// Downloads all images from Supabase Storage back to IndexedDB
+async function restoreAllImagesFromCloud(){
+  if(!_sb||!_sbUserId){flash('⚠ Sign in first');return;}
+  flash('⟳ Restoring images from cloud…');
+  try{
+    const{data:files,error}=await _sb.storage.from(SB_IMG_BUCKET).list(`${_sbUserId}/`,{limit:1000});
+    if(error||!files){flash('No images found in cloud');return;}
+    let done=0;
+    for(const file of files){
+      const key=decodeURIComponent(file.name);
+      const existing=await new Promise(res=>{openDB().then(()=>{const t=db.transaction(STORE,'readonly');const r=t.objectStore(STORE).get(key);r.onsuccess=()=>res(r.result)})});
+      if(!existing){
+        const{data}=await _sb.storage.from(SB_IMG_BUCKET).download(`${_sbUserId}/${file.name}`);
+        if(data){
+          await new Promise((res,rej)=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(data,key);t.oncomplete=res;t.onerror=res});
+          done++;
+        }
+      }
+    }
+    // Re-render all image zones
+    document.querySelectorAll('.img-zone').forEach(z=>renderImgZone(z));
+    flash(`✅ ${done} images restored from cloud`);
+  }catch(e){flash('Restore error: '+e.message);}
+}
 
 // ============= STATE =============
 const STORE_KEY='lmr_v3_state';

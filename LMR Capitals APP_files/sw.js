@@ -1,7 +1,7 @@
-// LMR Capitals — Service Worker v6
+// LMR Capitals — Service Worker v8
 // Network-first for HTML (always get latest), cache-first for static assets
 
-const CACHE = 'lmr-v7';
+const CACHE = 'lmr-v8';
 const STATIC = [
   './chart.umd.min.js',
   './icons/icon-192.png',
