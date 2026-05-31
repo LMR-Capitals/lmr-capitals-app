@@ -3568,7 +3568,11 @@ async function loadProfileFromCloud(){
     if(data.day_count_start)  state.dayCountStart=data.day_count_start;
     if(data.day_count_start_date) state.dayCountStartDate=data.day_count_start_date;
     if(data.balance_format) state.profile.balanceFormat=data.balance_format;
-    if(data.current_acc) state.currentAcc=data.current_acc;
+    // Only update currentAcc from cloud if:
+    // 1. Local has no active account set, OR
+    // 2. The local currentAcc no longer exists in state.accounts (account was deleted elsewhere)
+    const localAccExists = state.currentAcc && state.accounts.some(a=>String(a.id)===String(state.currentAcc));
+    if(data.current_acc && !localAccExists) state.currentAcc=data.current_acc;
     if(data.cal_month)  state.calMonth=data.cal_month;
     save();
     updateSidebarProfile();
@@ -4184,7 +4188,9 @@ function openTradeModal(editId){
   // build selects
   const tp=document.getElementById('tm-tp');tp.innerHTML='<option value="">Select...</option>'+TIME_PERIODS.map(t=>`<option>${t}</option>`).join('');
   const rth=document.getElementById('tm-rth');rth.innerHTML='<option value="">Select...</option>'+RTH_PROFILES.map(t=>`<option>${t}</option>`).join('');
-  const acc=document.getElementById('tm-acc');acc.innerHTML='<option value="">No account</option>'+state.accounts.map(a=>`<option value="${a.id}">${a.name} (${a.type})</option>`).join('');
+  // Sort accounts newest→oldest then populate dropdown
+  const sortedAccs=[...state.accounts].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
+  const acc=document.getElementById('tm-acc');acc.innerHTML='<option value="">No account</option>'+sortedAccs.map(a=>`<option value="${String(a.id)}">${a.name} (${a.type})</option>`).join('');
   // Title reflects mode
   const titleEl=document.querySelector('#tradeModal .modal-title');
   if(titleEl)titleEl.textContent=ex?'Edit Trade':'+ Log Trade';
@@ -4393,12 +4399,17 @@ function saveAccount(){
   sbSyncRecord('accounts',{id:String(a.id),user_id:_sbUserId,name:a.name,type:a.type,status:a.status,date:a.date||null,deposit:parseFloat(a.deposit)||0});
   closeModal('accModal');renderAccountTable();updateAllStats();
 }
-function setActiveAccount(id){
-  state.currentAcc=String(id); // always store as String for consistent comparison
+async function setActiveAccount(id){
+  state.currentAcc=String(id);
   save();
-  syncProfileToCloud().catch(()=>{}); // persist to Supabase immediately — survives login
+  // Push profile to Supabase immediately — await so we KNOW it saved before user closes tab
+  try{
+    await syncProfileToCloud();
+    flash('✓ Active account set & saved to cloud');
+  }catch(e){
+    flash('✓ Active account set (cloud sync pending)');
+  }
   renderAccountTable();updateAllStats();
-  flash('✓ Active account set — will remain on next login');
 }
 async function deleteAccount(id){
   if(!confirm('Delete account?'))return;
@@ -4542,8 +4553,10 @@ function openTransModal(editId){
   document.getElementById('xm-date').value=ex?ex.date:todayStr();
   document.getElementById('xm-type').value=ex?ex.type:'Deposit';
   const acc=document.getElementById('xm-acc');
-  acc.innerHTML='<option value="">No account</option>'+state.accounts.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
-  if(ex)acc.value=ex.accountId||'';
+  const sortedAccsTx=[...state.accounts].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
+  acc.innerHTML='<option value="">No account</option>'+sortedAccsTx.map(a=>`<option value="${String(a.id)}">${a.name} (${a.type})</option>`).join('');
+  if(ex) acc.value=String(ex.accountId||'');
+  else if(state.currentAcc) acc.value=String(state.currentAcc); // auto-select active account
   document.getElementById('xm-amt').value=ex?ex.amount:'';
   document.getElementById('xm-note').value=ex?ex.note||'':'';
   document.getElementById('transModal').classList.add('show');
