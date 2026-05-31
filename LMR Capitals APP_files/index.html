@@ -3896,9 +3896,17 @@ function loadMonthly(){
   document.querySelectorAll('#p-monthly .img-zone').forEach(z=>renderImgZone(z));
 }
 function saveMonthly(){
-  state.monthly[state.currentMonth]=state.monthly[state.currentMonth]||{};
-  document.querySelectorAll('#p-monthly [data-monthly]').forEach(el=>{state.monthly[state.currentMonth][el.dataset.key]=el.value});
-  save();flash('✓ Monthly saved');updateMonthlyDisplay()
+  const mk=state.currentMonth;
+  state.monthly[mk]=state.monthly[mk]||{};
+  document.querySelectorAll('#p-monthly [data-monthly]').forEach(el=>{state.monthly[mk][el.dataset.key]=el.value});
+  save();
+  // IMMEDIATE Supabase sync — no debounce, no delay
+  if(_sbSyncEnabled&&_sbUserId&&_sb){
+    _sb.from('monthly').upsert({key:mk,data:state.monthly[mk],user_id:_sbUserId},{onConflict:'key,user_id'})
+      .then(()=>setSbStatus('✓ Monthly saved to cloud','var(--bull)'))
+      .catch(e=>console.warn('Monthly sync:',e));
+  }
+  flash('✓ Monthly saved');updateMonthlyDisplay();
 }
 function monthLabel(s){const [y,m]=s.split('-');return ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][parseInt(m)-1]+' '+y}
 function updateMonthlyDisplay(){
@@ -4035,9 +4043,11 @@ function saveWeekly(){
   document.querySelectorAll('#p-weekly [data-week]').forEach(el=>{state.weekly[key][el.dataset.key]=el.value});
   state.weekly[key]['smt']=getChipsValues('smtChips',true);
   save();
-  // Sync to Supabase
+  // IMMEDIATE Supabase sync — no debounce
   if(_sbSyncEnabled&&_sbUserId&&_sb){
-    _sb.from('weekly').upsert({week_key:key,data:state.weekly[key],user_id:_sbUserId},{onConflict:'week_key,user_id'}).catch(()=>{});
+    _sb.from('weekly').upsert({week_key:key,data:state.weekly[key],user_id:_sbUserId},{onConflict:'week_key,user_id'})
+      .then(()=>setSbStatus('✓ Weekly saved to cloud','var(--bull)'))
+      .catch(e=>console.warn('Weekly sync:',e));
   }
   flash(`✓ ${state.currentMonth} Week ${state.currentWeek} saved`);
 }
@@ -6146,33 +6156,42 @@ function lgUnlock(user){
   // Run app init
   sbRefreshUI();
   init().then(async()=>{
-    // ── ALWAYS pull from Supabase on login — cloud is the single source of truth ──
-    // This ensures every device (browser, desktop app, phone) always has identical data
+    // ── Smart sync on login ──
+    // Pull from cloud ONLY when local is empty (new device/browser)
+    // When local HAS data: trust local, push to cloud (local is always most recent)
     if(_sb&&_sbUserId){
-      setSyncIndicator('syncing');
-      setSbStatus('⟳ Loading your data from cloud…','var(--gold)');
-      try{
-        // Backup current local state before pull
-        try{localStorage.setItem(STORE_KEY+'_pre_pull',JSON.stringify(state));}catch(e){}
-        await _sbDoPull();
-        ensureState();
-        const gotData=state.trades.length>0||state.accounts.length>0||Object.keys(state.daily).length>0;
-        if(gotData){
-          save();
-          updateAllStats();renderDashboard();renderTradeTable();renderNotesList();loadDaily();
-          setSyncIndicator('synced');
-          setSbStatus('✓ Cloud sync — '+state.trades.length+' trades','var(--bull)');
-        }else{
-          // Cloud empty — restore backup
-          const bk=localStorage.getItem(STORE_KEY+'_pre_pull');
-          if(bk){try{const p=JSON.parse(bk);state={...state,...p};ensureState();save();}catch(ex){}}
-          setSyncIndicator('synced');
-          setSbStatus('✓ Cloud connected','var(--bull)');
+      const hasLocal=state.trades.length>0||state.accounts.length>0||Object.keys(state.daily).length>0;
+      if(!hasLocal){
+        // New device / empty browser — pull from cloud
+        setSyncIndicator('syncing');
+        setSbStatus('⟳ New device — restoring data from cloud…','var(--gold)');
+        try{
+          await _sbDoPull();
+          ensureState();
+          const gotData=state.trades.length>0||state.accounts.length>0||Object.keys(state.daily).length>0;
+          if(gotData){
+            save();
+            updateAllStats();renderDashboard();renderTradeTable();renderNotesList();loadDaily();
+            setSyncIndicator('synced');
+            setSbStatus('✓ Data restored — '+state.trades.length+' trades','var(--bull)');
+            flash('✓ Data restored from cloud — '+state.trades.length+' trades loaded');
+          }
+        }catch(e){
+          setSbStatus('⚠ Cloud restore failed — check connection','var(--warn)');
+          setSyncIndicator('error');
         }
-      }catch(e){
-        // Pull failed — keep local data, don't wipe anything
-        setSbStatus('⚠ Using local data (cloud sync failed)','var(--warn)');
-        setSyncIndicator('error');
+      } else {
+        // Has local data — push to cloud immediately to keep in sync
+        setSyncIndicator('syncing');
+        setSbStatus('⟳ Syncing to cloud…','var(--gold)');
+        try{
+          await _sbUpsertAll(_sbUserId);
+          setSyncIndicator('synced');
+          setSbStatus('✓ Cloud synced — '+state.trades.length+' trades','var(--bull)');
+        }catch(e){
+          setSyncIndicator('error');
+          setSbStatus('⚠ Sync failed — data saved locally','var(--warn)');
+        }
       }
     }
     // ── Load profile from Supabase (always — overrides localStorage if cloud is newer) ──
