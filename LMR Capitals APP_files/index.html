@@ -3146,12 +3146,18 @@ function save(){
       const prevTrades=prev.trades?.length||0;
       const prevDaily=Object.keys(prev.daily||{}).length;
       const prevAccts=prev.accounts?.length||0;
-      // If we're about to lose significantly more than we have, block the save AND restore in-memory
-      if(prevTrades>tradeCount+1 || prevDaily>dailyCount+2 || prevAccts>acctCount+1){
-        console.warn(`[LMR] BLOCKED regression save: was ${prevTrades}T/${prevDaily}D now ${tradeCount}T/${dailyCount}D — restoring from localStorage`);
-        // Restore in-memory state from the good localStorage copy so UI reflects real data
-        try{const restored=JSON.parse(prevRaw);state={...state,...restored};ensureState();}catch(ex){}
-        return;
+      // If trades/accounts would drop significantly, restore them from localStorage
+      // BUT keep monthly/weekly/notes/journal (user may have just edited those)
+      if(prevTrades>tradeCount+1 || prevAccts>acctCount+1){
+        console.warn(`[LMR] Regression: restoring trades/accounts from localStorage (${prevTrades}→${tradeCount})`);
+        try{
+          const restored=JSON.parse(prevRaw);
+          // Only restore the arrays that regressed — keep monthly/weekly/daily changes
+          if(prevTrades>tradeCount+1) state.trades=restored.trades||state.trades;
+          if(prevAccts>acctCount+1)   state.accounts=restored.accounts||state.accounts;
+          ensureState();
+        }catch(ex){}
+        // Don't return — still save (with restored trades) so monthly/weekly edits persist
       }
     }catch(e){}
   }
@@ -3195,7 +3201,7 @@ function setSyncIndicator(status){
 function sbScheduleSync(){
   if(!_sbSyncEnabled||!_sbUserId)return;
   clearTimeout(_sbSyncTimer);
-  _sbSyncTimer=setTimeout(()=>sbDoSafeSync(),5000);
+  _sbSyncTimer=setTimeout(()=>sbDoSafeSync(),800); // was 5000 — reduced to 800ms
 }
 
 // Immediate single-record upsert (called by individual save functions)
@@ -6321,11 +6327,22 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // Sync when tab goes to background or page closes
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='hidden'&&_sbDirty)sbDoSafeSync();
-  if(document.visibilityState==='visible')checkSessionTimeout();
+  if(document.visibilityState==='hidden'){
+    // Tab hidden/closed — force immediate sync
+    if(_sbDirty) sbDoSafeSync();
+    // Also save current state to localStorage as final backup
+    try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){}
+  }
+  if(document.visibilityState==='visible') checkSessionTimeout();
 });
 window.addEventListener('pagehide',()=>{
-  if(_sbDirty)sbDoSafeSync();
+  // Final save before page unloads
+  try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){}
+  if(_sbDirty) sbDoSafeSync();
+});
+window.addEventListener('beforeunload',()=>{
+  // Triple-safe: write to localStorage on every possible exit
+  try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){}
 });
 
 // ── SESSION TIMEOUT ──────────────────────────────────────────────
