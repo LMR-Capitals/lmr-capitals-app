@@ -3082,7 +3082,8 @@ async function restoreAllImagesFromCloud(){
     let done=0;
     for(const file of files){
       const key=decodeURIComponent(file.name);
-      const existing=await new Promise(res=>{openDB().then(()=>{const t=db.transaction(STORE,'readonly');const r=t.objectStore(STORE).get(key);r.onsuccess=()=>res(r.result)})});
+      await openDB(); // ensure db is open before transaction
+      const existing=await new Promise((res,rej)=>{try{const t=db.transaction(STORE,'readonly');const r=t.objectStore(STORE).get(key);r.onsuccess=()=>res(r.result);r.onerror=()=>res(null);}catch(e){res(null);}});
       if(!existing){
         const{data}=await _sb.storage.from(SB_IMG_BUCKET).download(`${_sbUserId}/${file.name}`);
         if(data){
@@ -3146,18 +3147,21 @@ function save(){
       const prevTrades=prev.trades?.length||0;
       const prevDaily=Object.keys(prev.daily||{}).length;
       const prevAccts=prev.accounts?.length||0;
-      // If trades/accounts would drop significantly, restore them from localStorage
+      // If trades/accounts/daily would drop significantly, restore those arrays from localStorage
       // BUT keep monthly/weekly/notes/journal (user may have just edited those)
-      if(prevTrades>tradeCount+1 || prevAccts>acctCount+1){
-        console.warn(`[LMR] Regression: restoring trades/accounts from localStorage (${prevTrades}→${tradeCount})`);
+      const tradesReg = prevTrades>tradeCount+1;
+      const acctsReg  = prevAccts>acctCount+1;
+      const dailyReg  = prevDaily>dailyCount+2;
+      if(tradesReg || acctsReg || dailyReg){
+        console.warn(`[LMR] Regression detected — restoring arrays: trades=${tradesReg} accounts=${acctsReg} daily=${dailyReg}`);
         try{
           const restored=JSON.parse(prevRaw);
-          // Only restore the arrays that regressed — keep monthly/weekly/daily changes
-          if(prevTrades>tradeCount+1) state.trades=restored.trades||state.trades;
-          if(prevAccts>acctCount+1)   state.accounts=restored.accounts||state.accounts;
+          if(tradesReg) state.trades   = restored.trades   || state.trades;
+          if(acctsReg)  state.accounts = restored.accounts || state.accounts;
+          if(dailyReg)  state.daily    = restored.daily    || state.daily;
           ensureState();
         }catch(ex){}
-        // Don't return — still save (with restored trades) so monthly/weekly edits persist
+        // Don't return — still save (with restored data) so monthly/weekly edits persist
       }
     }catch(e){}
   }
@@ -4786,7 +4790,7 @@ function saveJournal(){
   document.getElementById('j-text').value='';renderJournalList();
   flash('✓ Added');
 }
-function deleteJournal(id){if(!confirm('Delete?'))return;state.journal=state.journal.filter(j=>j.id!==id);save();renderJournalList()}
+async function deleteJournal(id){if(!confirm('Delete?'))return;await sbDeleteRecord('journal',String(id));state.journal=state.journal.filter(j=>String(j.id)!==String(id));save();renderJournalList()}
 function renderJournalList(){
   const w=document.getElementById('journalList');
   if(!state.journal.length){w.innerHTML='<div class="empty">No entries.</div>';return}
@@ -5586,11 +5590,11 @@ function deleteDayEntry(ds){
   sbDeleteRecord('daily',ds,'date'); // instant cloud delete
   renderDailyHeatmap();flash('✓ Entry deleted');
 }
-function deleteTradeInDay(id,ds){
+async function deleteTradeInDay(id,ds){
   if(!confirm('Delete trade?'))return;
-  state.trades=state.trades.filter(t=>t.id!=id);
-  save();sbDeleteRecord('trades',id);
-  openDayModal(ds);renderDailyHeatmap();flash('✓ Trade deleted');
+  await sbDeleteRecord('trades',String(id));
+  state.trades=state.trades.filter(t=>String(t.id)!==String(id));
+  save();openDayModal(ds);renderDailyHeatmap();flash('✓ Trade deleted');
 }
 function openTradeModalForDate(ds){
   closeModal('dayModal');
