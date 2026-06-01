@@ -6359,9 +6359,20 @@ async function _sbDoPull() {
     images: Array.isArray(n.images) ? n.images : (n.images ? JSON.parse(n.images) : [])
   })).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
   state.journal = (ju.data||[]).map(j => ({ ...j, id: Number(j.id)||j.id }));
-  // Daily: replace entirely (keyed by date, safe to replace)
+  // Daily: replace entirely — map Supabase snake_case columns to app camelCase
   state.daily = {};
-  (da.data||[]).forEach(d => { state.daily[d.date] = d; });
+  (da.data||[]).forEach(d => {
+    if(!d.date) return;
+    state.daily[d.date] = {
+      ...d,                                    // keep all raw fields
+      dayCount:   d.day_count   || d.dayCount  || null,  // snake→camel
+      htfpoi:     d.htf_poi     || d.htfpoi    || '',
+      weekdraws:  d.week_draws  || d.weekdraws || '',
+      monthlyBias:d.monthly_bias|| d.monthlyBias||'',
+      asianRange: d.asian_range || d.asianRange || [],
+      savedAt:    d.saved_at    || d.savedAt   || ''
+    };
+  });
 
   // Monthly: MERGE cloud into local — never wipe months that exist locally
   // Cloud wins for months it has, local wins for months cloud doesn't have
