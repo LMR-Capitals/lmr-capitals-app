@@ -3318,8 +3318,12 @@ function _mapTrade(t,uid){
     updated_at:new Date().toISOString()};
 }
 function _mapDaily(date,d,uid){
+  // day_count: never send null if we already have a value in state for this date
+  // The Supabase value is authoritative — only update if local has a real number
+  const existingCount = d.dayCount || d.day_count || null;
   return {date,user_id:uid,notion_id:d.notionId||d.notion_id||null,
-    day_count:d.dayCount||null,name:d.name||null,bias:d.bias||null,
+    day_count:existingCount||undefined,  // undefined = don't send = Supabase keeps existing value
+    name:d.name||null,bias:d.bias||null,
     weekly:d.weekly||null,htf_poi:d.htfpoi||null,week_draws:d.weekdraws||null,
     london:d.london||null,ny:d.ny||null,session:d.session||null,rth:d.rth||null,
     plan:d.plan||null,pred:d.pred||null,monthly_bias:d.monthlyBias||null,
