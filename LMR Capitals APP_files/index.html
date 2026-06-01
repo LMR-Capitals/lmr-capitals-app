@@ -1571,6 +1571,14 @@ SD Target $______"></textarea></div>
   </div></div>
 
   <div style="text-align:center;margin-top:14px"><button class="btn btn-primary" onclick="saveMonthly()">💾 Save Now</button><div style="font-size:9px;color:var(--text3);text-align:center;margin-top:4px">Changes save automatically</div></div>
+
+  <!-- Linked Weeks -->
+  <div class="sec" id="monthly-linked-weeks">
+    <div class="sec-head">📅 Weeks This Month <span id="monthly-week-pnl" style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:12px"></span></div>
+    <div class="sec-body" id="monthly-weeks-list">
+      <div style="color:var(--text3);font-size:11px">Loading...</div>
+    </div>
+  </div>
 </div>
 </div>
 
@@ -1671,6 +1679,14 @@ Midnight Open $______"></textarea>
     <button class="btn btn-sm" onclick="showWeeklyStorageSummary()" title="Show what's stored for each week" style="font-size:10px">📦 Storage Info</button>
   </div>
   <div style="font-size:9px;color:var(--text3);text-align:center;margin-top:4px">Changes save automatically</div>
+
+  <!-- Linked Days this week -->
+  <div class="sec" id="weekly-linked-days">
+    <div class="sec-head">📅 Days This Week <span id="weekly-day-pnl" style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:12px"></span></div>
+    <div class="sec-body" id="weekly-days-list">
+      <div style="color:var(--text3);font-size:11px">Loading...</div>
+    </div>
+  </div>
 </div>
 </div>
 
@@ -3311,6 +3327,104 @@ async function _sbUpsertAll(uid){
 function sbAutoSync(){_sbDirty=true;sbScheduleSync();}
 async function _sbDoPush(user){await _sbUpsertAll(user.id||user);}
 
+// ── RELATIONAL HELPERS ────────────────────────────────────────────────
+// These compute relationships using existing state data (no DB queries needed)
+
+function getWeeksForMonth(monthKey){
+  // Returns weekly data entries that belong to this month
+  return Object.entries(state.weekly)
+    .filter(([k])=>k.startsWith(monthKey+'-W'))
+    .map(([k,data])=>({week_key:k, monthly_key:monthKey, data:data||{}}))
+    .sort((a,b)=>a.week_key.localeCompare(b.week_key));
+}
+
+function getDaysForWeek(weekKey){
+  // Returns daily entries that belong to this week
+  const [ym, wPart] = weekKey.split('-W');
+  const wNum = parseInt(wPart);
+  const [y,m] = ym.split('-').map(Number);
+  const daysInMonth = new Date(y,m,0).getDate();
+  const results = [];
+  for(let d=1;d<=daysInMonth;d++){
+    const ds = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow = new Date(ds+'T12:00').getDay();
+    if(dow===0||dow===6) continue;
+    const firstOfMonth = new Date(`${y}-${String(m).padStart(2,'0')}-01T12:00`);
+    const firstDow = firstOfMonth.getDay();
+    const date = new Date(ds+'T12:00');
+    const dayOfMonth = date.getDate();
+    let weekNum = 1;
+    const firstMon = firstDow===1 ? 1 : firstDow===0 ? 2 : 1+(7-firstDow+1)%7;
+    if(dayOfMonth >= firstMon){
+      weekNum = Math.floor((dayOfMonth - firstMon)/7) + 2;
+      if(firstDow===1) weekNum = Math.floor((dayOfMonth-1)/7)+1;
+    }
+    if(weekNum===wNum && state.daily[ds]){
+      results.push({date:ds, ...state.daily[ds]});
+    }
+  }
+  return results;
+}
+
+function getTradesForDate(dateStr){
+  return [...state.trades]
+    .filter(t=>(t.date||'').slice(0,10)===dateStr)
+    .sort((a,b)=>(a.openTime||'').localeCompare(b.openTime||''));
+}
+
+function getTradesForAccount(accountId){
+  return [...state.trades]
+    .filter(t=>String(t.accountId)===String(accountId))
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+}
+
+function getTransactionsForAccount(accountId){
+  return [...state.transactions]
+    .filter(x=>String(x.accountId)===String(accountId))
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+}
+
+function computeWeekPnl(weekKey){
+  const parts = weekKey.split('-W');
+  if(parts.length<2) return 0;
+  const ym = parts[0];
+  const wNum = parseInt(parts[1]);
+  const [y,m] = ym.split('-').map(Number);
+  let total = 0;
+  state.trades.forEach(t=>{
+    const d = (t.date||'').slice(0,10);
+    if(!d.startsWith(ym)) return;
+    const dow = new Date(d+'T12:00').getDay();
+    if(dow===0||dow===6) return;
+    const fd = new Date(`${ym}-01T12:00`).getDay();
+    const dayNum = parseInt(d.split('-')[2]);
+    const fm = fd===1?1:fd===0?2:1+(7-fd+1)%7;
+    let wn = 1;
+    if(dayNum>=fm){ wn=Math.floor((dayNum-fm)/7)+2; if(fd===1) wn=Math.floor((dayNum-1)/7)+1; }
+    if(wn===wNum) total+=t.pnl||0;
+  });
+  return total;
+}
+
+function computeMonthPnl(monthKey){
+  return state.trades
+    .filter(t=>(t.date||'').startsWith(monthKey))
+    .reduce((s,t)=>s+(t.pnl||0),0);
+}
+
+function getWeeklyKeyForDate(dateStr){
+  const d = new Date(dateStr+'T12:00');
+  const ym = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  const firstOfMonth = new Date(`${ym}-01T12:00`);
+  const fd = firstOfMonth.getDay();
+  const dayNum = d.getDate();
+  const dow = d.getDay();
+  if(dow===0||dow===6) return null;
+  const firstMon = fd===1?1:fd===0?2:1+(7-fd+1)%7;
+  const wn = fd===1?Math.floor((dayNum-1)/7)+1:dayNum<firstMon?1:Math.floor((dayNum-firstMon)/7)+2;
+  return `${ym}-W${wn}`;
+}
+
 // ============= UTILS =============
 // NY-aware date string (always returns YYYY-MM-DD in America/New_York)
 const NY_TZ='America/New_York';
@@ -3855,6 +3969,7 @@ function saveDaily(){
   // Assign new sequential day count if this is the first save for this date
   const existingCount=state.daily[ds]?.dayCount;
   const dayCount=existingCount||getNextDayCount();
+  const weeklyKey=getWeeklyKeyForDate(ds)||`${ds.slice(0,7)}-W1`;
   state.daily[ds]={
     weekly:document.getElementById('ch-weekly').value,
     bias:getChipsValues('dbias',false),
@@ -3869,6 +3984,7 @@ function saveDaily(){
     htfpoi:document.getElementById('ch-poi').value,
     weekdraws:document.getElementById('ch-draws').value,
     rth:document.getElementById('ch-rth').value,
+    weekly_key:weeklyKey,
     dayCount,
     savedAt:new Date().toISOString()
   };
@@ -3929,6 +4045,7 @@ function loadMonthly(){
   const data=state.monthly[state.currentMonth]||{};
   document.querySelectorAll('#p-monthly [data-monthly]').forEach(el=>{el.value=data[el.dataset.key]||''});
   document.querySelectorAll('#p-monthly .img-zone').forEach(z=>renderImgZone(z));
+  renderLinkedWeeks();
 }
 function saveMonthly(){
   const mk=state.currentMonth;
@@ -3944,6 +4061,53 @@ function saveMonthly(){
   flash('✓ Monthly saved');updateMonthlyDisplay();
 }
 function monthLabel(s){const [y,m]=s.split('-');return ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][parseInt(m)-1]+' '+y}
+
+function renderLinkedWeeks(){
+  const el = document.getElementById('monthly-weeks-list');
+  const pnlEl = document.getElementById('monthly-week-pnl');
+  if(!el) return;
+  const monthPnl = computeMonthPnl(state.currentMonth);
+  const [y,m] = state.currentMonth.split('-').map(Number);
+  if(pnlEl){ pnlEl.textContent=(monthPnl>=0?'+':'')+'$'+monthPnl.toFixed(0); pnlEl.style.color=monthPnl>=0?'var(--bull)':'var(--bear)'; }
+  const daysInMonth = new Date(y,m,0).getDate();
+  // Generate week numbers by finding Mondays
+  const weekNums = new Set();
+  const firstDow = new Date(`${state.currentMonth}-01T12:00`).getDay();
+  if(firstDow!==0&&firstDow!==6) weekNums.add(1); // partial first week if not weekend
+  for(let d=1;d<=daysInMonth;d++){
+    const dow = new Date(`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}T12:00`).getDay();
+    if(dow===1){
+      const fm = firstDow===1?1:firstDow===0?2:1+(7-firstDow+1)%7;
+      const wn = firstDow===1?Math.floor((d-1)/7)+1:Math.floor((d-fm)/7)+2;
+      weekNums.add(wn);
+    }
+  }
+  const sortedWeekNums = [...weekNums].sort((a,b)=>a-b);
+  if(!sortedWeekNums.length){ el.innerHTML='<div style="color:var(--text3);font-size:11px">No weeks found</div>'; return; }
+  el.innerHTML = sortedWeekNums.map(wn=>{
+    const wk = `${state.currentMonth}-W${wn}`;
+    const hasData = !!state.weekly[wk];
+    const wPnl = computeWeekPnl(wk);
+    const tradeCnt = state.trades.filter(t=>{
+      const d=(t.date||'').slice(0,10);
+      if(!d.startsWith(state.currentMonth)) return false;
+      const fd=new Date(`${state.currentMonth}-01T12:00`).getDay();
+      const dn=parseInt(d.split('-')[2]);
+      const dow=new Date(d+'T12:00').getDay();
+      if(dow===0||dow===6) return false;
+      const fm=fd===1?1:fd===0?2:1+(7-fd+1)%7;
+      const w=fd===1?Math.floor((dn-1)/7)+1:dn<fm?1:Math.floor((dn-fm)/7)+2;
+      return w===wn;
+    }).length;
+    const baseClr = hasData?'rgba(245,166,35,.15)':'var(--border)';
+    return `<div onclick="navTo('weekly');selectWeek(${wn})" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg3);border-radius:8px;margin-bottom:6px;cursor:pointer;border:1px solid ${baseClr};transition:border-color .15s" onmouseover="this.style.borderColor='rgba(245,166,35,.3)'" onmouseout="this.style.borderColor='${baseClr}'">
+      <span style="font-size:11px;font-weight:700;color:${hasData?'var(--gold)':'var(--text3)'};min-width:60px">Week ${wn}</span>
+      <span style="font-size:10px;color:var(--text3);flex:1">${tradeCnt} trade${tradeCnt!==1?'s':''}</span>
+      <span style="font-size:12px;font-weight:800;font-family:'JetBrains Mono',monospace;color:${wPnl>0?'var(--bull)':wPnl<0?'var(--bear)':'var(--text3)'}">${wPnl!==0?(wPnl>0?'+':'')+'$'+wPnl.toFixed(0):'—'}</span>
+      <span style="font-size:10px;color:var(--text3)">→</span>
+    </div>`;
+  }).join('');
+}
 function updateMonthlyDisplay(){
   const m=state.monthly[state.currentMonth]||{};
   const parts=[m['m-qshift']||'LTS Bullish',m['m-profile']||'Trending',m['m-pred']||'',m['m-keylevels']?m['m-keylevels'].split('\n')[0]:''].filter(Boolean);
@@ -4070,6 +4234,7 @@ function loadWeekly(){
       ctxEl.style.display='none';
     }
   }
+  renderLinkedDays();
 }
 
 function saveWeekly(){
@@ -4080,11 +4245,58 @@ function saveWeekly(){
   save();
   // IMMEDIATE Supabase sync — no debounce
   if(_sbSyncEnabled&&_sbUserId&&_sb){
-    _sb.from('weekly').upsert({week_key:key,data:state.weekly[key],user_id:_sbUserId},{onConflict:'week_key,user_id'})
+    _sb.from('weekly').upsert({week_key:key,data:state.weekly[key],user_id:_sbUserId,monthly_key:state.currentMonth},{onConflict:'week_key,user_id'})
       .then(()=>setSbStatus('✓ Weekly saved to cloud','var(--bull)'))
       .catch(e=>console.warn('Weekly sync:',e));
   }
   flash(`✓ ${state.currentMonth} Week ${state.currentWeek} saved`);
+}
+
+function renderLinkedDays(){
+  const el = document.getElementById('weekly-days-list');
+  const pnlEl = document.getElementById('weekly-day-pnl');
+  if(!el) return;
+  const weekKey = `${state.currentMonth}-W${state.currentWeek}`;
+  const weekPnl = computeWeekPnl(weekKey);
+  if(pnlEl){ pnlEl.textContent=(weekPnl>=0?'+':'')+'$'+weekPnl.toFixed(0); pnlEl.style.color=weekPnl>=0?'var(--bull)':'var(--bear)'; }
+  const parts = weekKey.split('-W');
+  const ym = parts[0];
+  const wNum = parseInt(parts[1]);
+  const [y,m] = ym.split('-').map(Number);
+  const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MSHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const daysInMonth = new Date(y,m,0).getDate();
+  const fd = new Date(`${ym}-01T12:00`).getDay();
+  const fm = fd===1?1:fd===0?2:1+(7-fd+1)%7;
+  const weekDates = [];
+  for(let d=1;d<=daysInMonth;d++){
+    const ds = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow = new Date(ds+'T12:00').getDay();
+    if(dow===0||dow===6) continue;
+    const wn = fd===1?Math.floor((d-1)/7)+1:d<fm?1:Math.floor((d-fm)/7)+2;
+    if(wn===wNum) weekDates.push({ds, dow});
+  }
+  if(!weekDates.length){ el.innerHTML='<div style="color:var(--text3);font-size:11px">No trading days in this week</div>'; return; }
+  el.innerHTML = weekDates.map(({ds,dow})=>{
+    const entry = state.daily[ds];
+    const dayTrades = getTradesForDate(ds);
+    const dayPnl = dayTrades.reduce((s,t)=>s+(t.pnl||0),0);
+    const dayName = ['Mon','Tue','Wed','Thu','Fri'][dow-1]||DAYS[dow];
+    const dayNum = parseInt(ds.split('-')[2]);
+    const hasEntry = !!entry;
+    const bias = entry&&entry.bias||'';
+    const status = entry&&entry.daystatus||'';
+    const statusClr = status==='Passed'?'var(--bull)':status==='Blown'?'var(--bear)':status==='In Process'?'var(--gold)':'var(--text3)';
+    const baseClr = hasEntry?'rgba(245,166,35,.15)':'var(--border)';
+    const bgClr = dayPnl>0?'rgba(0,212,164,.06)':dayPnl<0?'rgba(255,68,102,.06)':'var(--bg3)';
+    return `<div onclick="openDayModal('${ds}')" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:${bgClr};border-radius:8px;margin-bottom:6px;cursor:pointer;border:1px solid ${baseClr};transition:all .15s" onmouseover="this.style.borderColor='rgba(245,166,35,.3)'" onmouseout="this.style.borderColor='${baseClr}'">
+      <span style="font-size:10px;font-weight:700;color:var(--text3);min-width:36px">${dayName}</span>
+      <span style="font-size:11px;color:var(--text2);flex:1">${dayNum} ${MSHORT[m-1]}${bias?' · <span style="color:'+(bias==='Bullish'?'var(--bull)':'var(--bear)')+'">'+bias+'</span>':''}${status?' · <span style="color:'+statusClr+'">●'+status+'</span>':''}</span>
+      <span style="font-size:10px;color:var(--text3)">${dayTrades.length}T</span>
+      <span style="font-size:12px;font-weight:800;font-family:'JetBrains Mono',monospace;color:${dayPnl>0?'var(--bull)':dayPnl<0?'var(--bear)':'var(--text3)'}">${dayPnl!==0?(dayPnl>0?'+':'')+'$'+dayPnl.toFixed(0):'—'}</span>
+      <span style="font-size:10px;color:var(--text3)">→</span>
+    </div>`;
+  }).join('');
 }
 
 // ── RECOVER OLD WEEKLY IMAGES ─────────────────────────────────────────────
@@ -4467,6 +4679,48 @@ function renderAccountTable(){
 }
 
 // View all trades for a specific account in a modal
+function renderAccountDetail(accountId){
+  const acc = state.accounts.find(a=>String(a.id)===String(accountId));
+  if(!acc) return '';
+  const trades = getTradesForAccount(accountId);
+  const txns = getTransactionsForAccount(accountId);
+  const tradePnl = trades.reduce((s,t)=>s+(t.pnl||0),0);
+  const deposits = txns.filter(x=>x.type==='Deposit').reduce((s,x)=>s+(x.amount||0),0);
+  const withdrawals = txns.filter(x=>x.type==='Withdrawal'||x.type==='Payout').reduce((s,x)=>s+(x.amount||0),0);
+  const balance = (acc.deposit||0) + tradePnl;
+  return `
+    <div style="margin-top:16px">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;padding:12px;background:var(--bg3);border-radius:10px">
+        <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:${tradePnl>=0?'var(--bull)':'var(--bear)'}">${tradePnl>=0?'+':''}$${Math.abs(tradePnl).toFixed(0)}</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase">Trade P&amp;L</div></div>
+        <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:var(--bull)">+$${deposits.toFixed(0)}</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase">Deposits</div></div>
+        <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:var(--bear)">-$${withdrawals.toFixed(0)}</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase">Withdrawn</div></div>
+        <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:var(--text)">$${balance.toFixed(0)}</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase">Balance</div></div>
+      </div>
+      ${trades.length?`
+      <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Trades (${trades.length})</div>
+      <div style="max-height:200px;overflow-y:auto">
+        ${trades.slice(0,20).map(t=>`
+          <div onclick="openTradeModal(${t.id})" style="display:flex;gap:8px;padding:6px 10px;background:var(--bg3);border-radius:6px;margin-bottom:4px;cursor:pointer;align-items:center">
+            <span style="font-size:10px;color:var(--text3);min-width:80px;font-family:'JetBrains Mono',monospace">${(t.date||'').slice(0,10)}</span>
+            <span class="tag tg-${t.position==='Long'?'bull':'bear'}" style="font-size:9px;padding:1px 5px">${t.position||'?'}</span>
+            <span class="tag tg-pur" style="font-size:9px;padding:1px 5px">${(t.models||[])[0]||'?'}</span>
+            <span style="flex:1;font-size:10px;color:var(--text3)">${(t.emotions||[])[0]||''}</span>
+            <span style="font-size:11px;font-weight:700;color:${(t.pnl||0)>=0?'var(--bull)':'var(--bear)'};font-family:'JetBrains Mono',monospace">${(t.pnl||0)>=0?'+':''}$${(t.pnl||0).toFixed(0)}</span>
+          </div>`).join('')}
+        ${trades.length>20?`<div style="font-size:10px;color:var(--text3);text-align:center;padding:4px">+${trades.length-20} more trades</div>`:''}
+      </div>`:'<div style="color:var(--text3);font-size:11px;margin-bottom:12px">No trades for this account yet</div>'}
+      ${txns.length?`
+      <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin:12px 0 8px">Transactions (${txns.length})</div>
+      ${txns.map(x=>`
+        <div style="display:flex;gap:8px;padding:6px 10px;background:var(--bg3);border-radius:6px;margin-bottom:4px;align-items:center">
+          <span style="font-size:10px;color:var(--text3);min-width:80px;font-family:'JetBrains Mono',monospace">${x.date||''}</span>
+          <span class="tag ${x.type==='Deposit'?'tg-bull':'tg-bear'}" style="font-size:9px;padding:1px 5px">${x.type}</span>
+          <span style="flex:1;font-size:10px;color:var(--text2)">${x.note||''}</span>
+          <span style="font-size:11px;font-weight:700;color:${x.type==='Deposit'||x.type==='Payout'?'var(--bull)':'var(--bear)'};font-family:'JetBrains Mono',monospace">${x.type==='Deposit'||x.type==='Payout'?'+':'-'}$${Math.abs(x.amount||0).toFixed(0)}</span>
+        </div>`).join('')}`:''}
+    </div>`;
+}
+
 function viewAccountTrades(accountId, accountName){
   const accTrades = [...state.trades]
     .filter(t=>String(t.accountId)===String(accountId))
@@ -4511,15 +4765,8 @@ function viewAccountTrades(accountId, accountName){
         <div style="font-size:9px;color:var(--text3);text-transform:uppercase">Win Rate</div>
       </div>
     </div>
-    <!-- Transactions -->
-    ${accTransactions.length?`<div style="margin-bottom:16px">
-      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Transactions (${accTransactions.length})</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px">
-        ${accTransactions.map(x=>`<div style="padding:6px 10px;background:${x.type==='Deposit'||x.type==='Payout'?'rgba(0,212,164,.08)':'rgba(255,68,102,.08)'};border:1px solid ${x.type==='Deposit'||x.type==='Payout'?'rgba(0,212,164,.2)':'rgba(255,68,102,.2)'};border-radius:8px;font-size:11px">
-          <span style="color:var(--text3)">${x.date||''}</span> <span style="color:var(--text2);font-weight:600">${x.type}</span> <span style="font-weight:700;color:${x.type==='Withdrawal'||x.type==='Fee'?'var(--bear)':'var(--bull)'}">${x.type==='Withdrawal'||x.type==='Fee'?'-':'+'}$${Math.abs(x.amount).toFixed(2)}</span>
-        </div>`).join('')}
-      </div>
-    </div>`:''}
+    <!-- Relational detail: linked trades + transactions rollup -->
+    ${renderAccountDetail(accountId)}
     <!-- Trades table -->
     <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Trades (${accTrades.length}) — newest first</div>
     <div style="overflow-x:auto">
@@ -5586,6 +5833,7 @@ function openDayModal(ds){
 function saveDayModal(){
   const ds=document.getElementById('dm-ds').value;
   const existingDayCount=state.daily[ds]?.dayCount;
+  const weeklyKey=getWeeklyKeyForDate(ds)||`${ds.slice(0,7)}-W1`;
   state.daily[ds]={...(state.daily[ds]||{}),
     dayCount:existingDayCount||getNextDayCount(),
     bias:document.getElementById('dm-bias').value,
@@ -5602,6 +5850,7 @@ function saveDayModal(){
     asianRange:document.getElementById('dm-asian').value.split(',').map(s=>s.trim()).filter(Boolean),
     price:document.getElementById('dm-price').value.split(',').map(s=>s.trim()).filter(Boolean),
     monthlyBias:document.getElementById('dm-monthly-bias').value,
+    weekly_key:weeklyKey,
     savedAt:new Date().toISOString()
   };
   // fix imgkeys to be date-prefixed
