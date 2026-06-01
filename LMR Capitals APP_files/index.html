@@ -3857,7 +3857,12 @@ function navTo(p){
   if(p==='journal') renderJournalList();
   if(p==='monthly') loadMonthly();
   if(p==='weekly') loadWeekly();
-  if(p==='daily') renderDailyHeatmap();
+  if(p==='daily'){
+    // Always navigate to current month so today's entry is visible
+    const todayMonth=todayStr().slice(0,7);
+    if(state.calMonth!==todayMonth){ state.calMonth=todayMonth; }
+    renderDailyHeatmap();
+  }
   if(p==='cal') renderCal();
   if(p==='accounts'){renderAccountTable();renderAccSummary();}
   if(p==='trans'){renderTransTable();renderTransSummary();}
@@ -3993,7 +3998,7 @@ function loadDaily(){
   setChipsValues('london',d.london||'');
   setChipsValues('ny',d.ny||'');
   setChipsValues('asianRange',d.asianRange||[]);
-  setChipsValues('priceRefs',d.priceRefs||[]);
+  setChipsValues('priceRefs',d.priceRefs||d.price||[]); // read from either key
   setChipsValues('session',d.session||'');
   setChipsValues('plan',d.plan||'');
   setChipsValues('pred',d.pred||'');
@@ -4021,6 +4026,7 @@ function saveDaily(){
     ny:getChipsValues('ny',false),
     asianRange:getChipsValues('asianRange',true),
     priceRefs:getChipsValues('priceRefs',true),
+    price:getChipsValues('priceRefs',true),   // save as BOTH keys so Daily modal can read it
     session:getChipsValues('session',false),
     plan:getChipsValues('plan',false),
     pred:getChipsValues('pred',false),
@@ -5851,7 +5857,9 @@ function openDayModal(ds){
   document.getElementById('dm-ny').value=entry.ny||'';
   document.getElementById('dm-rth').value=entry.rth||'';
   document.getElementById('dm-asian').value=Array.isArray(entry.asianRange)?entry.asianRange.join(', '):(entry.asianRange||'');
-  document.getElementById('dm-price').value=Array.isArray(entry.price)?entry.price.join(', '):(entry.price||'');
+  // Load price refs — check both 'price' and 'priceRefs' keys (Today saves as priceRefs)
+  const priceData=entry.price||entry.priceRefs||[];
+  document.getElementById('dm-price').value=Array.isArray(priceData)?priceData.join(', '):(priceData||'');
   document.getElementById('dm-monthly-bias').value=entry.monthlyBias||'';
   document.getElementById('dm-daystatus').value=entry.daystatus||'';
   document.getElementById('dm-pnl').textContent=dayPnL!==0?`${dayPnL>=0?'+':''}$${dayPnL.toFixed(2)}`:'$0';
@@ -5899,6 +5907,7 @@ function saveDayModal(){
     rth:document.getElementById('dm-rth').value,
     asianRange:document.getElementById('dm-asian').value.split(',').map(s=>s.trim()).filter(Boolean),
     price:document.getElementById('dm-price').value.split(',').map(s=>s.trim()).filter(Boolean),
+    priceRefs:document.getElementById('dm-price').value.split(',').map(s=>s.trim()).filter(Boolean), // sync both keys
     monthlyBias:document.getElementById('dm-monthly-bias').value,
     weekly_key:weeklyKey,
     savedAt:new Date().toISOString()
