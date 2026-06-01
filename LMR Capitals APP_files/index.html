@@ -2999,9 +2999,15 @@ async function saveImg(k,b){
   // 1. Save locally always
   await openDB();
   await new Promise((res,rej)=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(b,k);t.oncomplete=res;t.onerror=()=>rej(t.error)});
-  // 2. Upload to Supabase Storage in background (don't block UI)
+  // 2. Upload to Supabase Storage — retry up to 3 times if it fails
   if(_sb&&_sbUserId){
-    sbUploadImage(k,b).catch(()=>{});
+    (async()=>{
+      for(let attempt=1;attempt<=3;attempt++){
+        const url=await sbUploadImage(k,b);
+        if(url) break; // success
+        if(attempt<3) await new Promise(r=>setTimeout(r,1000*attempt)); // wait 1s, 2s
+      }
+    })();
   }
 }
 
@@ -3144,24 +3150,32 @@ function save(){
   if(prevRaw){
     try{
       const prev=JSON.parse(prevRaw);
-      const prevTrades=prev.trades?.length||0;
-      const prevDaily=Object.keys(prev.daily||{}).length;
-      const prevAccts=prev.accounts?.length||0;
-      // If trades/accounts/daily would drop significantly, restore those arrays from localStorage
-      // BUT keep monthly/weekly/notes/journal (user may have just edited those)
-      const tradesReg = prevTrades>tradeCount+1;
-      const acctsReg  = prevAccts>acctCount+1;
-      const dailyReg  = prevDaily>dailyCount+2;
-      if(tradesReg || acctsReg || dailyReg){
-        console.warn(`[LMR] Regression detected — restoring arrays: trades=${tradesReg} accounts=${acctsReg} daily=${dailyReg}`);
+      const prevTrades   = prev.trades?.length||0;
+      const prevDaily    = Object.keys(prev.daily||{}).length;
+      const prevAccts    = prev.accounts?.length||0;
+      const prevMonthly  = Object.keys(prev.monthly||{}).length;
+      const prevWeekly   = Object.keys(prev.weekly||{}).length;
+      const curMonthly   = Object.keys(state.monthly||{}).length;
+      const curWeekly    = Object.keys(state.weekly||{}).length;
+
+      const tradesReg  = prevTrades>tradeCount+1;
+      const acctsReg   = prevAccts>acctCount+1;
+      const dailyReg   = prevDaily>dailyCount+2;
+      const monthlyReg = prevMonthly>0 && curMonthly<prevMonthly; // any monthly loss
+      const weeklyReg  = prevWeekly>0  && curWeekly<prevWeekly;   // any weekly loss
+
+      if(tradesReg || acctsReg || dailyReg || monthlyReg || weeklyReg){
+        console.warn(`[LMR] Regression — restoring: trades=${tradesReg} accounts=${acctsReg} daily=${dailyReg} monthly=${monthlyReg} weekly=${weeklyReg}`);
         try{
           const restored=JSON.parse(prevRaw);
-          if(tradesReg) state.trades   = restored.trades   || state.trades;
-          if(acctsReg)  state.accounts = restored.accounts || state.accounts;
-          if(dailyReg)  state.daily    = restored.daily    || state.daily;
+          if(tradesReg)  state.trades   = restored.trades   || state.trades;
+          if(acctsReg)   state.accounts = restored.accounts || state.accounts;
+          if(dailyReg)   state.daily    = restored.daily    || state.daily;
+          // For monthly/weekly: MERGE — keep more keys, never lose data
+          if(monthlyReg) state.monthly  = {...(state.monthly||{}), ...(restored.monthly||{})};
+          if(weeklyReg)  state.weekly   = {...(state.weekly||{}),  ...(restored.weekly||{})};
           ensureState();
         }catch(ex){}
-        // Don't return — still save (with restored data) so monthly/weekly edits persist
       }
     }catch(e){}
   }
@@ -4562,14 +4576,16 @@ function openTransModal(editId){
   document.getElementById('transModal').classList.add('show');
 }
 function saveTrans(){
+  const accVal=document.getElementById('xm-acc').value;
   const x={
     id:_xmEditId||Date.now(),
     date:document.getElementById('xm-date').value||todayStr(),
     type:document.getElementById('xm-type').value,
-    accountId:document.getElementById('xm-acc').value,
+    accountId:String(accVal||''), // always String, never loses account link
     amount:parseFloat(document.getElementById('xm-amt').value)||0,
     note:document.getElementById('xm-note').value
   };
+  if(!x.accountId) return void flash('⚠ Please select an account for this transaction');
   if(_xmEditId){state.transactions=state.transactions.map(t=>t.id===_xmEditId?x:t);flash('✓ Transaction updated');}
   else{state.transactions.unshift(x);flash('✓ Transaction saved');}
   save();
@@ -6036,19 +6052,33 @@ async function _sbDoPull() {
   // Sort newest → oldest after pull so array is always in correct order
   state.trades = pulledTrades.sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
   state.accounts = (ac.data||[]).map(a => ({ ...a, id: Number(a.id)||a.id, deposit:parseFloat(a.deposit)||0 }));
-  state.transactions = (tx.data||[]).map(x => ({ ...x, id: Number(x.id)||x.id, amount:parseFloat(x.amount)||0 }));
+  state.transactions = (tx.data||[]).map(x => ({
+    ...x,
+    id: Number(x.id)||x.id,
+    amount: parseFloat(x.amount)||0,
+    accountId: String(x.account_id||x.accountId||'') // always preserve account link
+  })).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   state.notes = (no.data||[]).map(n => ({
     ...n,
     id: Number(n.id)||n.id,
     images: Array.isArray(n.images) ? n.images : (n.images ? JSON.parse(n.images) : [])
   })).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
   state.journal = (ju.data||[]).map(j => ({ ...j, id: Number(j.id)||j.id }));
+  // Daily: replace entirely (keyed by date, safe to replace)
   state.daily = {};
   (da.data||[]).forEach(d => { state.daily[d.date] = d; });
-  state.monthly = {};
-  (mo.data||[]).forEach(m => { state.monthly[m.key] = m.data || {}; });
-  state.weekly = {};
-  (we.data||[]).forEach(w => { state.weekly[w.week_key] = w.data || {}; });
+
+  // Monthly: MERGE cloud into local — never wipe months that exist locally
+  // Cloud wins for months it has, local wins for months cloud doesn't have
+  const cloudMonthly = {};
+  (mo.data||[]).forEach(m => { if(m.key&&m.data) cloudMonthly[m.key] = m.data; });
+  state.monthly = { ...state.monthly, ...cloudMonthly }; // local base + cloud overrides
+
+  // Weekly: same MERGE approach
+  const cloudWeekly = {};
+  (we.data||[]).forEach(w => { if(w.week_key&&w.data) cloudWeekly[w.week_key] = w.data; });
+  state.weekly = { ...state.weekly, ...cloudWeekly };
+
   try{localStorage.setItem(STORE_KEY, JSON.stringify(state));}catch(e){}
 }
 
