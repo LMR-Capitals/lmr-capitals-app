@@ -396,6 +396,15 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .chip.bull.on{background:var(--bull);color:#000;border-color:var(--bull);box-shadow:0 0 14px var(--bull-glow)}
 .chip.bear.on{background:var(--bear);color:#fff;border-color:var(--bear);box-shadow:0 0 14px var(--bear-glow)}
 .chip.pur.on{background:var(--pur);color:#fff;border-color:var(--pur)}
+/* Notion-matched chip color classes */
+.chip.blue-chip{color:#5BA8FF;border-color:rgba(91,168,255,.3)}
+.chip.blue-chip.on{background:#5BA8FF;color:#000;border-color:#5BA8FF}
+.chip.orange-chip{color:#FF9A3C;border-color:rgba(255,154,60,.3)}
+.chip.orange-chip.on{background:#FF9A3C;color:#000;border-color:#FF9A3C}
+.chip.brown-chip{color:#C68642;border-color:rgba(198,134,66,.3)}
+.chip.brown-chip.on{background:#C68642;color:#fff;border-color:#C68642}
+.chip.gray-chip{color:var(--text3);border-color:rgba(255,255,255,.1)}
+.chip.gray-chip.on{background:rgba(255,255,255,.15);color:var(--text);border-color:rgba(255,255,255,.3)}
 
 /* Modals */
 .modal-bg{background:rgba(0,5,12,.88);backdrop-filter:blur(16px) saturate(1.5)}
@@ -1244,8 +1253,8 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
           <div class="prop-right">
             <div class="chips" style="padding:2px 0">
               <button class="chip bull" data-grp="dbias" data-val="Bullish">Bullish</button>
-              <button class="chip bear" data-grp="dbias" data-val="Bearish">Bearish</button>
-              <button class="chip" data-grp="dbias" data-val="Neutral">Neutral</button>
+              <button class="chip" data-grp="dbias" data-val="Bearish" style="color:var(--text2)">Bearish</button>
+              <button class="chip" data-grp="dbias" data-val="Neutral" style="color:var(--text3)">Neutral</button>
             </div>
           </div>
         </div>
@@ -1277,9 +1286,9 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
           </div>
           <div class="prop-right">
             <div class="chips" style="padding:2px 0">
-              <button class="chip pur" data-grp="london" data-val="Accumulation">Accumulation</button>
+              <button class="chip bull" data-grp="london" data-val="Accumulation">Accumulation</button>
               <button class="chip bear" data-grp="london" data-val="Manipulation">Manipulation</button>
-              <button class="chip" data-grp="london" data-val="Distribution">Distribution</button>
+              <button class="chip" data-grp="london" data-val="Distribution" style="color:var(--blue);border-color:rgba(91,168,255,.35)">Distribution</button>
             </div>
           </div>
         </div>
@@ -1292,8 +1301,8 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
           <div class="prop-right">
             <div class="chips" style="padding:2px 0">
               <button class="chip bear" data-grp="ny" data-val="Rebalance / Reversal">Rebalance / Reversal</button>
-              <button class="chip" data-grp="ny" data-val="Manipulation/ Distibution">Manip / Distrib</button>
-              <button class="chip bull" data-grp="ny" data-val="Retracement / Continuations">Retracement / Continuation</button>
+              <button class="chip bull" data-grp="ny" data-val="Manipulation/ Distibution">Manip / Distrib</button>
+              <button class="chip" data-grp="ny" data-val="Retracement / Continuations" style="color:var(--blue);border-color:rgba(91,168,255,.35)">Retracement / Continuation</button>
             </div>
           </div>
         </div>
@@ -1326,7 +1335,7 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
           <div class="prop-right">
             <div class="chips" style="padding:2px 0">
               <button class="chip bull" data-grp="session" data-val="AM">NY AM</button>
-              <button class="chip pur" data-grp="session" data-val="PM">NY PM</button>
+              <button class="chip" data-grp="session" data-val="PM" style="color:var(--blue);border-color:rgba(91,168,255,.35)">NY PM</button>
             </div>
           </div>
         </div>
@@ -2761,7 +2770,29 @@ const MOVEMENT = ["ERL-IRL","IRL-ERL","IRL-IRL","ERL - ERL"];
 const T_FRAMES = ["1m-15m-4hr-1W","1m-5m-1hr-1D"];
 const RTH_PROFILES = ["Premium Bullish Above RTH","Discout Bullish RTH-HQ","Discount Bullish RTH-CME","Discount Bullish RTH-LQ","Discount  Bullish Purged RTH","Premium Bearish Purged  RTH","Premium Bearish  RTH-HQ","Premium Bearish  RTH-CME","Premium Bearish RTH-LQ","Discount Bearish Below RTH"];
 const ASIAN_RANGE = ["Reversal","Retracement","Accumulation","Distribution","Expansion"];
+// Color classes per Notion spec: Reversal=red, Retracement=green, Accumulation=blue, Distribution=green, Expansion=red
+const ASIAN_RANGE_COLORS = {"Reversal":"bear","Retracement":"bull","Accumulation":"blue-chip","Distribution":"bull","Expansion":"bear"};
+
 const PRICE_REFS = ["Premium","Above Swing HIgh","Above Weekly Open","Above Monthly Open","PMH","PWH","PDH","Daily -OB","Daily SIBI","Higher Qudrant","HTF EQ","HTF DRT","HTF OTE","NWOG","Daily Wick","Daily IFVG","Suspension Block","Daily Imbalance","NDOG","Lower Qudrant","Daily BISI","Daily +OB","PDL","PWL","PML","Below Swing Low","Below Weekly Open","Below Monthly Open","Discount","All time High"];
+// Color groups per Notion spec
+const PRICE_REFS_COLORS = {
+  // Red = Premium/Above/Highs
+  "Premium":"bear","Above Swing HIgh":"bear","Above Weekly Open":"bear","Above Monthly Open":"bear",
+  "PMH":"bear","PWH":"bear","PDH":"bear","Daily -OB":"bear","Daily SIBI":"bear","Higher Qudrant":"bear",
+  // Green = Discount/Below/Lows
+  "Lower Qudrant":"bull","Daily BISI":"bull","Daily +OB":"bull","PDL":"bull","PWL":"bull","PML":"bull",
+  "Below Swing Low":"bull","Below Weekly Open":"bull","Below Monthly Open":"bull","Discount":"bull",
+  // Orange = IFVG
+  "Daily IFVG":"orange-chip",
+  // Brown = Wick
+  "Daily Wick":"brown-chip",
+  // Purple = ATH
+  "All time High":"pur",
+  // Gray = structural refs
+  "NWOG":"gray-chip","Suspension Block":"gray-chip","Daily Imbalance":"gray-chip","NDOG":"gray-chip",
+  // Default = HTF levels
+  "HTF EQ":"","HTF DRT":"","HTF OTE":""
+};
 const SMT_OPTS = ["Bearish SMT","Bullish SMT","NQ / YM","ES / YM","ES / NQ"];
 
 // USA Bank holidays 2026 (NYSE)
@@ -3914,10 +3945,19 @@ function openLightbox(u){document.getElementById('lightboxImg').src=u;document.g
 function closeLightbox(){document.getElementById('lightbox').classList.remove('show')}
 
 // ============= CHIPS =============
+// Color maps for chip groups
+const CHIP_COLOR_MAPS = {
+  asianRange: typeof ASIAN_RANGE_COLORS !== 'undefined' ? ASIAN_RANGE_COLORS : {},
+  priceRefs:  typeof PRICE_REFS_COLORS  !== 'undefined' ? PRICE_REFS_COLORS  : {}
+};
 function buildChips(containerId, options, multi=true, grp){
   const c=document.getElementById(containerId);
   if(!c) return;
-  c.innerHTML=options.map(o=>`<button class="chip" data-val="${o}" data-grp="${grp||containerId}" data-multi="${multi}">${o}</button>`).join('');
+  const colorMap = CHIP_COLOR_MAPS[containerId] || CHIP_COLOR_MAPS[grp] || {};
+  c.innerHTML=options.map(o=>{
+    const cls = colorMap[o] || '';
+    return `<button class="chip ${cls}" data-val="${o}" data-grp="${grp||containerId}" data-multi="${multi}">${o}</button>`;
+  }).join('');
 }
 document.addEventListener('click',e=>{
   if(!e.target.classList.contains('chip')) return;
@@ -5616,7 +5656,13 @@ async function init(){
   buildChips('smtChips',SMT_OPTS,true,'smtChips');
   // populate RTH select on today panel
   const chRth=document.getElementById('ch-rth');
-  RTH_PROFILES.forEach(r=>{const o=document.createElement('option');o.textContent=r;chRth.appendChild(o)});
+  chRth.innerHTML='<option value="">Select RTH Profile…</option>'
+    + '<optgroup label="🟢 Bullish Delivery">'
+    + RTH_PROFILES.slice(0,5).map(r=>`<option value="${r}" style="color:#00D4A4">${r}</option>`).join('')
+    + '</optgroup>'
+    + '<optgroup label="⚪ Bearish Delivery">'
+    + RTH_PROFILES.slice(5).map(r=>`<option value="${r}">${r}</option>`).join('')
+    + '</optgroup>';
   // Init journal date (may not exist if journal panel is hidden)
   const jDateEl=document.getElementById('j-date');if(jDateEl)jDateEl.value=todayStr();
   // Wire auto-save to Monthly and Weekly fields
