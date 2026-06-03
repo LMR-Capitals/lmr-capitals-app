@@ -645,6 +645,32 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .lmr-toggle.open .lmr-toggle-body{display:block}
 .lmr-page-save-row{padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg3)}
 
+/* ── LMR COLUMNS ── */
+.lmr-cols{display:grid;gap:12px;margin:10px 0;min-height:60px}
+.lmr-cols-2{grid-template-columns:1fr 1fr}
+.lmr-cols-3{grid-template-columns:repeat(3,1fr)}
+.lmr-cols-4{grid-template-columns:repeat(4,1fr)}
+.lmr-cols-5{grid-template-columns:repeat(5,1fr)}
+.lmr-col{border:1px dashed rgba(255,255,255,.12);border-radius:8px;padding:10px 12px;min-height:60px;outline:none;font-size:13px;color:var(--text2);line-height:1.65;cursor:text;transition:border-color .15s}
+.lmr-col:focus,.lmr-col:hover{border-color:rgba(245,166,35,.3)}
+.lmr-col::before{content:attr(data-col);font-size:9px;color:var(--text3);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.08em;pointer-events:none}
+
+/* ── LMR CHECKLIST ── */
+.lmr-check{display:flex;align-items:flex-start;gap:8px;padding:4px 0;margin:2px 0}
+.lmr-check input[type="checkbox"]{width:16px;height:16px;margin-top:2px;accent-color:var(--gold);cursor:pointer;flex-shrink:0}
+.lmr-check .lmr-check-text{flex:1;outline:none;min-width:0;font-size:13px;color:var(--text2);line-height:1.6}
+.lmr-check.checked .lmr-check-text{text-decoration:line-through;color:var(--text3);opacity:.7}
+
+/* ── LMR FILE ATTACHMENT ── */
+.lmr-file-attach{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;font-size:12px;color:var(--blue);margin:4px 0;cursor:pointer;text-decoration:none;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lmr-file-attach:hover{border-color:rgba(91,168,255,.4);background:rgba(91,168,255,.08)}
+
+/* ── SLASH COMMAND MENU ── */
+#lmrSlashMenu{position:fixed;z-index:9000;background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:6px;min-width:200px;box-shadow:0 12px 40px rgba(0,0,0,.5);display:none}
+.lmr-slash-item{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:12px;color:var(--text2);transition:background .1s}
+.lmr-slash-item:hover,.lmr-slash-item.active{background:rgba(245,166,35,.1);color:var(--text)}
+.lmr-slash-icon{width:24px;height:24px;border-radius:5px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+
 /* ── SCROLL MIRROR (top + bottom scroll on tables) ── */
 .scroll-top-mirror{overflow-x:auto;overflow-y:hidden;border-bottom:1px solid var(--border)}
 .scroll-top-mirror>div{height:1px}
@@ -2020,10 +2046,16 @@ Midnight Open $______"></textarea>
           <button class="btn btn-sm" onclick="lmrFmt('i')" title="Italic"><i>I</i></button>
           <button class="btn btn-sm" onclick="lmrFmt('ul')" title="Bullet list">• List</button>
           <button class="btn btn-sm" onclick="lmrFmt('ol')" title="Numbered list">1. List</button>
+          <button class="btn btn-sm" onclick="lmrFmt('check','terminology')" title="Checklist item" style="color:var(--gold)">☑ Check</button>
           <span style="width:1px;background:var(--border);margin:0 2px;align-self:stretch"></span>
           <button class="btn btn-sm" onclick="lmrFmt('quote')">❝</button>
           <button class="btn btn-sm" onclick="lmrFmt('hr')">— HR</button>
           <button class="btn btn-sm" onclick="lmrFmt('toggle')" title="Toggle/Collapsible section">▸ Toggle</button>
+          <span style="width:1px;background:var(--border);margin:0 2px;align-self:stretch"></span>
+          <button class="btn btn-sm" onclick="lmrFmt('cols2','terminology')" title="2 Columns" style="color:var(--blue)">⊞ 2</button>
+          <button class="btn btn-sm" onclick="lmrFmt('cols3','terminology')" title="3 Columns" style="color:var(--blue)">⊞ 3</button>
+          <button class="btn btn-sm" onclick="lmrFmt('cols4','terminology')" title="4 Columns" style="color:var(--blue)">⊞ 4</button>
+          <button class="btn btn-sm" onclick="lmrFmt('cols5','terminology')" title="5 Columns" style="color:var(--blue)">⊞ 5</button>
           <span style="width:1px;background:var(--border);margin:0 2px;align-self:stretch"></span>
           <select onchange="lmrSetFontSize(this.value,'terminology');this.value=''" style="font-size:10px;padding:3px 5px;width:auto;border-radius:var(--r);background:var(--bg4);color:var(--text2);border:1px solid var(--border)">
             <option value="">Size</option>
@@ -2033,6 +2065,8 @@ Midnight Open $______"></textarea>
           </select>
           <input type="color" title="Text color" onchange="lmrSetColor(this.value,'terminology')" style="width:28px;height:28px;padding:2px;border-radius:4px;border:1px solid var(--border);background:var(--bg4);cursor:pointer">
           <button class="btn btn-sm" onclick="lmrInsertImg('terminology')" style="color:var(--gold)">🖼 Image</button>
+          <button class="btn btn-sm" onclick="lmrInsertFile('terminology')" style="color:var(--blue)">📎 File</button>
+          <span style="font-size:9px;color:var(--text3);margin-left:4px">/ for slash menu</span>
         </div>
         <div class="lmr-page-content" id="terminology-content" contenteditable="true" spellcheck="false" data-page="terminology"
           placeholder="Start writing LMR terminology, concepts, PD arrays, key levels, model explanations…">
@@ -2074,10 +2108,16 @@ Midnight Open $______"></textarea>
           <button class="btn btn-sm" onclick="lmrFmtPsych('i')"><i>I</i></button>
           <button class="btn btn-sm" onclick="lmrFmtPsych('ul')">• List</button>
           <button class="btn btn-sm" onclick="lmrFmtPsych('ol')">1. List</button>
+          <button class="btn btn-sm" onclick="lmrFmt('check','psychology')" style="color:var(--gold)">☑ Check</button>
           <span style="width:1px;background:var(--border);margin:0 2px;align-self:stretch"></span>
           <button class="btn btn-sm" onclick="lmrFmtPsych('quote')">❝</button>
           <button class="btn btn-sm" onclick="lmrFmtPsych('hr')">— HR</button>
           <button class="btn btn-sm" onclick="lmrFmtPsych('toggle')">▸ Toggle</button>
+          <span style="width:1px;background:var(--border);margin:0 2px;align-self:stretch"></span>
+          <button class="btn btn-sm" onclick="lmrFmt('cols2','psychology')" style="color:var(--blue)">⊞ 2</button>
+          <button class="btn btn-sm" onclick="lmrFmt('cols3','psychology')" style="color:var(--blue)">⊞ 3</button>
+          <button class="btn btn-sm" onclick="lmrFmt('cols4','psychology')" style="color:var(--blue)">⊞ 4</button>
+          <button class="btn btn-sm" onclick="lmrFmt('cols5','psychology')" style="color:var(--blue)">⊞ 5</button>
           <span style="width:1px;background:var(--border);margin:0 2px;align-self:stretch"></span>
           <select onchange="lmrSetFontSize(this.value,'psychology');this.value=''" style="font-size:10px;padding:3px 5px;width:auto;border-radius:var(--r);background:var(--bg4);color:var(--text2);border:1px solid var(--border)">
             <option value="">Size</option>
@@ -2087,6 +2127,8 @@ Midnight Open $______"></textarea>
           </select>
           <input type="color" title="Text color" onchange="lmrSetColor(this.value,'psychology')" style="width:28px;height:28px;padding:2px;border-radius:4px;border:1px solid var(--border);background:var(--bg4);cursor:pointer">
           <button class="btn btn-sm" onclick="lmrInsertImg('psychology')" style="color:var(--gold)">🖼 Image</button>
+          <button class="btn btn-sm" onclick="lmrInsertFile('psychology')" style="color:var(--blue)">📎 File</button>
+          <span style="font-size:9px;color:var(--text3);margin-left:4px">/ for slash menu</span>
         </div>
         <div class="lmr-page-content" id="psychology-content" contenteditable="true" spellcheck="false" data-page="psychology"
           placeholder="Mindset rules, trading psychology notes, emotional triggers, discipline checklist…">
@@ -2759,6 +2801,24 @@ Midnight Open $______"></textarea>
 <input type="file" id="fileInput" accept="image/*" style="display:none">
 <input type="file" id="profilePhotoInput" accept="image/*" style="display:none">
 <input type="file" id="lmrInlineImgInput" accept="image/*" style="display:none">
+<input type="file" id="lmrFileInput" style="display:none">
+<!-- Slash command menu -->
+<div id="lmrSlashMenu">
+  <div class="lmr-slash-item" data-cmd="h1"><div class="lmr-slash-icon">H1</div><div><div style="font-weight:600">Heading 1</div><div style="font-size:10px;color:var(--text3)">Large section heading</div></div></div>
+  <div class="lmr-slash-item" data-cmd="h2"><div class="lmr-slash-icon">H2</div><div><div style="font-weight:600">Heading 2</div><div style="font-size:10px;color:var(--text3)">Medium section heading</div></div></div>
+  <div class="lmr-slash-item" data-cmd="h3"><div class="lmr-slash-icon">H3</div><div><div style="font-weight:600">Heading 3</div><div style="font-size:10px;color:var(--text3)">Small heading</div></div></div>
+  <div class="lmr-slash-item" data-cmd="check"><div class="lmr-slash-icon">☑</div><div><div style="font-weight:600">To-do</div><div style="font-size:10px;color:var(--text3)">Check/uncheck list item</div></div></div>
+  <div class="lmr-slash-item" data-cmd="ul"><div class="lmr-slash-icon">•</div><div><div style="font-weight:600">Bullet list</div><div style="font-size:10px;color:var(--text3)">Unordered list</div></div></div>
+  <div class="lmr-slash-item" data-cmd="ol"><div class="lmr-slash-icon">1.</div><div><div style="font-weight:600">Numbered list</div><div style="font-size:10px;color:var(--text3)">Ordered list</div></div></div>
+  <div class="lmr-slash-item" data-cmd="toggle"><div class="lmr-slash-icon">▸</div><div><div style="font-weight:600">Toggle</div><div style="font-size:10px;color:var(--text3)">Collapsible section</div></div></div>
+  <div class="lmr-slash-item" data-cmd="cols2"><div class="lmr-slash-icon" style="font-size:9px">⊞2</div><div><div style="font-weight:600">2 Columns</div><div style="font-size:10px;color:var(--text3)">Side-by-side layout</div></div></div>
+  <div class="lmr-slash-item" data-cmd="cols3"><div class="lmr-slash-icon" style="font-size:9px">⊞3</div><div><div style="font-weight:600">3 Columns</div><div style="font-size:10px;color:var(--text3)">Three column layout</div></div></div>
+  <div class="lmr-slash-item" data-cmd="cols4"><div class="lmr-slash-icon" style="font-size:9px">⊞4</div><div><div style="font-weight:600">4 Columns</div><div style="font-size:10px;color:var(--text3)">Four column layout</div></div></div>
+  <div class="lmr-slash-item" data-cmd="image"><div class="lmr-slash-icon">🖼</div><div><div style="font-weight:600">Image</div><div style="font-size:10px;color:var(--text3)">Upload or paste image</div></div></div>
+  <div class="lmr-slash-item" data-cmd="file"><div class="lmr-slash-icon">📎</div><div><div style="font-weight:600">File</div><div style="font-size:10px;color:var(--text3)">Attach a file</div></div></div>
+  <div class="lmr-slash-item" data-cmd="quote"><div class="lmr-slash-icon">❝</div><div><div style="font-weight:600">Quote</div><div style="font-size:10px;color:var(--text3)">Block quote</div></div></div>
+  <div class="lmr-slash-item" data-cmd="hr"><div class="lmr-slash-icon">—</div><div><div style="font-weight:600">Divider</div><div style="font-size:10px;color:var(--text3)">Horizontal rule</div></div></div>
+</div>
 <input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="importData(event)">
 
 <!-- PWA Install Bar -->
@@ -6559,15 +6619,206 @@ function lmrFmt(tag,pageId='terminology'){
   else if(tag==='hr')document.execCommand('insertHorizontalRule');
   else if(tag==='quote')document.execCommand('formatBlock',false,'blockquote');
   else if(tag==='toggle'){
-    // Insert a collapsible toggle section
     const toggle=document.createElement('div');
     toggle.className='lmr-toggle open';
-    toggle.innerHTML=`<div class="lmr-toggle-head" contenteditable="false" onclick="this.parentElement.classList.toggle('open')">Section Title (click to toggle)</div><div class="lmr-toggle-body" contenteditable="true"><br></div>`;
+    toggle.innerHTML=`<div class="lmr-toggle-head" contenteditable="false" onclick="this.parentElement.classList.toggle('open')">▸ Section Title (click to toggle)</div><div class="lmr-toggle-body" contenteditable="true"><br></div>`;
     const sel=window.getSelection();
     if(sel&&sel.rangeCount){const r=sel.getRangeAt(0);r.deleteContents();r.insertNode(toggle);}
     else el.appendChild(toggle);
   }
+  // ── CHECKLIST ──
+  else if(tag==='check'){
+    const wrap=document.createElement('div');
+    wrap.className='lmr-check';
+    wrap.innerHTML=`<input type="checkbox" onchange="this.closest('.lmr-check').classList.toggle('checked',this.checked);autoSave('${pageId}',()=>saveLmrPage('${pageId}'),800)"><span class="lmr-check-text" contenteditable="true">To-do item</span>`;
+    lmrInsertBlock(el,wrap);
+  }
+  // ── COLUMNS ──
+  else if(tag.startsWith('cols')){
+    const n=parseInt(tag.replace('cols',''))||2;
+    const cols=document.createElement('div');
+    cols.className=`lmr-cols lmr-cols-${n}`;
+    for(let i=1;i<=n;i++){
+      const col=document.createElement('div');
+      col.className='lmr-col';
+      col.contentEditable='true';
+      col.dataset.col=`Column ${i}`;
+      col.innerHTML='<br>';
+      col.addEventListener('input',()=>autoSave(pageId,()=>saveLmrPage(pageId),1000));
+      cols.appendChild(col);
+    }
+    lmrInsertBlock(el,cols);
+  }
+  // ── IMAGE (from slash menu) ──
+  else if(tag==='image'){ lmrInsertImg(pageId); }
+  // ── FILE (from slash menu) ──
+  else if(tag==='file'){ lmrInsertFile(pageId); }
   autoSave(pageId,()=>saveLmrPage(pageId),1200);
+}
+
+// Helper: insert a block node at cursor or end of editor
+function lmrInsertBlock(el,node){
+  const sel=window.getSelection();
+  if(sel&&sel.rangeCount){
+    const r=sel.getRangeAt(0);
+    // Find top-level parent inside editor
+    let container=r.commonAncestorContainer;
+    while(container&&container.parentNode!==el) container=container.parentNode;
+    if(container&&container.parentNode===el){
+      el.insertBefore(node,container.nextSibling);
+    } else {
+      r.deleteContents();r.insertNode(node);
+    }
+  } else { el.appendChild(node); }
+  // Place cursor inside the new block
+  const first=node.querySelector('[contenteditable="true"]')||node;
+  if(first){const r2=document.createRange();r2.setStart(first,0);r2.collapse(true);sel.removeAllRanges();sel.addRange(r2);first.focus();}
+}
+
+// ── FILE ATTACHMENT ──
+let _lmrFilePageId='terminology';
+function lmrInsertFile(pageId){
+  _lmrFilePageId=pageId;
+  const el=document.getElementById(pageId+'-content');
+  if(el){el.focus();const sel=window.getSelection();if(sel&&sel.rangeCount)_lmrSavedRange=sel.getRangeAt(0).cloneRange();}
+  document.getElementById('lmrFileInput').click();
+}
+document.getElementById('lmrFileInput').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f)return;
+  const pageId=_lmrFilePageId;
+  const el=document.getElementById(pageId+'-content');
+  if(!el){e.target.value='';return;}
+  // Upload file to Supabase Storage
+  const fileName=`file-${Date.now()}-${f.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+  let fileUrl='';
+  try{
+    if(_sb&&_sbUserId){
+      const{data}=await _sb.storage.from('app-images').upload(`${_sbUserId}/${fileName}`,f,{upsert:true});
+      if(data) fileUrl=`https://agrvylclhvxyevsmmexf.supabase.co/storage/v1/object/public/app-images/${_sbUserId}/${fileName}`;
+    }
+  }catch(err){}
+  // Insert file link
+  const link=document.createElement('a');
+  link.className='lmr-file-attach';
+  link.textContent=`📎 ${f.name} (${(f.size/1024).toFixed(1)}KB)`;
+  link.href=fileUrl||'#';
+  link.target='_blank';
+  link.rel='noopener';
+  el.focus();
+  if(_lmrSavedRange){
+    _lmrSavedRange.collapse(false);
+    const sel=window.getSelection();sel.removeAllRanges();sel.addRange(_lmrSavedRange);
+    _lmrSavedRange.insertNode(link);
+  } else { el.appendChild(link); }
+  autoSave(pageId,()=>saveLmrPage(pageId),600);
+  flash(`✓ File "${f.name}" attached`);
+  e.target.value='';
+});
+
+// ── IMAGE PASTE DIRECTLY INTO EDITOR ──
+// Wire paste event on all lmr-page-content elements to handle image paste
+document.addEventListener('paste',async e=>{
+  const activeEl=document.activeElement;
+  if(!activeEl||!activeEl.classList.contains('lmr-page-content')&&!activeEl.classList.contains('lmr-col')&&!activeEl.classList.contains('lmr-check-text')) return;
+  const items=e.clipboardData?.items||[];
+  for(const item of items){
+    if(item.type.startsWith('image/')){
+      e.preventDefault();
+      const blob=item.getAsFile();if(!blob)continue;
+      const pageId=activeEl.dataset.page||(activeEl.closest('[data-page]')?.dataset.page)||_lmrImgPageId||'terminology';
+      const key='lmr-img-paste-'+Date.now();
+      const compressed=await compress(blob,1600,0.88);
+      await saveImg(key,compressed);
+      const url=URL.createObjectURL(compressed);
+      const img=document.createElement('img');
+      img.src=url;img.className='lmr-inline-img';img.dataset.imgkey=key;
+      img.style.cssText='max-width:100%;border-radius:10px;margin:10px 0;display:block;cursor:zoom-in;border:1px solid var(--border2)';
+      img.onclick=()=>openLightbox(img.src);
+      const sel=window.getSelection();
+      if(sel&&sel.rangeCount){const r=sel.getRangeAt(0);r.deleteContents();r.insertNode(img);}
+      else activeEl.appendChild(img);
+      autoSave(pageId,()=>saveLmrPage(pageId),600);
+      flash('✓ Image pasted');
+      return;
+    }
+  }
+});
+
+// ── SLASH COMMAND MENU ──
+let _slashPageId='terminology';
+let _slashRange=null;
+let _slashActiveIdx=0;
+
+document.addEventListener('keydown',e=>{
+  const menu=document.getElementById('lmrSlashMenu');
+  if(menu.style.display!=='none'){
+    const items=menu.querySelectorAll('.lmr-slash-item');
+    if(e.key==='ArrowDown'){e.preventDefault();_slashActiveIdx=(_slashActiveIdx+1)%items.length;items.forEach((i,n)=>i.classList.toggle('active',n===_slashActiveIdx));return;}
+    if(e.key==='ArrowUp'){e.preventDefault();_slashActiveIdx=(_slashActiveIdx-1+items.length)%items.length;items.forEach((i,n)=>i.classList.toggle('active',n===_slashActiveIdx));return;}
+    if(e.key==='Enter'){e.preventDefault();const active=items[_slashActiveIdx];if(active)lmrSlashExec(active.dataset.cmd);return;}
+    if(e.key==='Escape'){lmrSlashClose();return;}
+  }
+});
+
+function lmrSlashClose(){const m=document.getElementById('lmrSlashMenu');if(m)m.style.display='none';}
+
+document.addEventListener('input',e=>{
+  const el=e.target;
+  if(!el.classList.contains('lmr-page-content')&&!el.classList.contains('lmr-col')&&!el.classList.contains('lmr-check-text')) return;
+  const sel=window.getSelection();if(!sel||!sel.rangeCount)return;
+  const range=sel.getRangeAt(0).cloneRange();
+  range.setStart(range.startContainer,0);
+  const text=range.toString();
+  const slashIdx=text.lastIndexOf('/');
+  if(slashIdx>=0){
+    const after=text.slice(slashIdx+1);
+    _slashPageId=el.dataset.page||(el.closest('[data-page]')?.dataset.page)||'terminology';
+    _slashRange=sel.getRangeAt(0).cloneRange();
+    // Position menu near cursor
+    const rect=sel.getRangeAt(0).getBoundingClientRect();
+    const menu=document.getElementById('lmrSlashMenu');
+    menu.style.left=Math.min(rect.left,window.innerWidth-220)+'px';
+    menu.style.top=(rect.bottom+4)+'px';
+    // Filter items by search text
+    const items=menu.querySelectorAll('.lmr-slash-item');
+    const q=after.toLowerCase();
+    let visible=0;
+    items.forEach(item=>{
+      const text=(item.querySelector('div div')?.textContent||'').toLowerCase();
+      const show=!q||text.includes(q);
+      item.style.display=show?'':'none';
+      if(show){item.classList.toggle('active',visible===_slashActiveIdx);visible++;}
+    });
+    menu.style.display=visible?'block':'none';
+  } else {
+    lmrSlashClose();
+  }
+});
+
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#lmrSlashMenu'))lmrSlashClose();
+  const item=e.target.closest('.lmr-slash-item');
+  if(item)lmrSlashExec(item.dataset.cmd);
+});
+
+function lmrSlashExec(cmd){
+  lmrSlashClose();
+  const el=document.getElementById(_slashPageId+'-content');
+  if(!el)return;
+  // Remove the "/" character that triggered the menu
+  if(_slashRange){
+    const r=_slashRange.cloneRange();
+    const text=r.startContainer.textContent||'';
+    const slashIdx=text.lastIndexOf('/');
+    if(slashIdx>=0){
+      r.setStart(r.startContainer,slashIdx);
+      r.setEnd(r.startContainer,text.length);
+      r.deleteContents();
+    }
+  }
+  if(cmd==='image')lmrInsertImg(_slashPageId);
+  else if(cmd==='file')lmrInsertFile(_slashPageId);
+  else lmrFmt(cmd,_slashPageId);
 }
 function lmrFmtPsych(tag){lmrFmt(tag,'psychology');}
 function lmrSetFontSize(size,pageId){
