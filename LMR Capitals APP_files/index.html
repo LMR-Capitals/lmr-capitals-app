@@ -882,6 +882,23 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .ai-thinking span:nth-child(2){animation-delay:.2s}
 .ai-thinking span:nth-child(3){animation-delay:.4s}
 @keyframes aiPulse{0%,80%,100%{transform:scale(.8);opacity:.4}40%{transform:scale(1);opacity:1}}
+
+/* ── DAILY MODAL SELECT OPTION COLORS ── */
+select option[value="Bullish"] { color: #00D4A4; }
+select option[value="Bearish"] { color: #FF4060; }
+select option[value="Neutral"] { color: #888; }
+select option[value="Accumulation"] { color: #00D4A4; }
+select option[value="Manipulation"] { color: #FF4060; }
+select option[value="Distribution"] { color: #5BA8FF; }
+select option[value="Rebalance / Reversal"] { color: #FF4060; }
+select option[value="Manipulation/ Distibution"] { color: #00D4A4; }
+select option[value="Retracement / Continuations"] { color: #5BA8FF; }
+select option[value="Followed"] { color: #00D4A4; }
+select option[value="Unfollowed"] { color: #FF4060; }
+select option[value="Correct"] { color: #00D4A4; }
+select option[value="Incorrect"] { color: #FF4060; }
+select option[value="AM"] { color: #00D4A4; }
+select option[value="PM"] { color: #5BA8FF; }
 </style>
 </head>
 <body>
@@ -1232,15 +1249,15 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
           </div>
         </div>
 
-        <div class="prop-block p-weekly" style="padding:8px 16px">
-          <div class="prop-left">
-            <div class="prop-label">Weekly →</div>
-            <div class="prop-type">Text · MMBM/MMSM</div>
-          </div>
-          <div class="prop-right">
-            <input id="ch-weekly" placeholder="MMBM/MMSM · NQ ___ ES ___ YM ___ · Draw $______" style="font-size:12px" oninput="autoSaveDaily()">
-          </div>
-        </div>
+        <div class="prop-block" style="padding:8px 16px">
+  <div class="prop-left">
+    <div class="prop-label" style="color:var(--pur)">Weekly →</div>
+    <div class="prop-type">AUTO · FROM WEEKLY</div>
+  </div>
+  <div class="prop-right">
+    <div id="ch-weekly-display" onclick="navTo('weekly')" style="cursor:pointer;font-size:12px;color:var(--text2);padding:6px 0;line-height:1.5">—</div>
+  </div>
+</div>
 
         <!-- DAILY CHAIN PROPERTIES -->
         <div class="chain-sec-header" style="padding:8px 16px 4px;font-size:8px;opacity:.5">▼ DAILY CHAIN — FILL BEFORE 9:30</div>
@@ -1390,6 +1407,23 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
               <button class="chip" data-grp="daystatus" data-val="In Process">⏳ In Process</button>
               <button class="chip bear" data-grp="daystatus" data-val="Blown">💥 Blown</button>
             </div>
+          </div>
+        </div>
+
+        <div class="chain-sec-header" style="padding:8px 16px 4px;font-size:8px;opacity:.5">▼ JOURNAL</div>
+
+        <div class="prop-block" style="padding:8px 16px">
+          <div class="prop-left">
+            <div class="prop-label" style="color:var(--gold)">Journal →</div>
+            <div class="prop-type">Daily reflection</div>
+          </div>
+          <div class="prop-right" style="flex:1">
+            <div id="today-journal-preview" style="font-size:11px;color:var(--text3);margin-bottom:6px;line-height:1.4;cursor:pointer" onclick="openTodayJournal()">
+              No entry yet — click to add
+            </div>
+            <button class="btn btn-sm" onclick="openTodayJournal()" style="background:rgba(245,166,35,.08);border-color:rgba(245,166,35,.25);color:var(--gold);font-size:10px">
+              ✦ Open / Add Journal
+            </button>
           </div>
         </div>
 
@@ -1618,22 +1652,34 @@ SD Target $______"></textarea></div>
   <div class="card"><div class="card-body">
     <div class="form-row"><label class="form-label">Weekly Model</label>
       <select data-key="w-model" data-week="">
-        <option value="">Select...</option><option>MMBM</option><option>MMSM</option>
+        <option value="">Select...</option>
+        <option value="MMBM" style="color:#00D4A4">MMBM</option>
+        <option value="MMSM" style="color:#FF4060">MMSM</option>
       </select>
     </div>
     <div class="form-row"><label class="form-label">Week Profile</label>
       <select data-key="w-profile" data-week="">
-        <option value="">Select...</option><option>Retracement</option>
+        <option value="">Select...</option>
+        <option value="Retracement" style="color:#FFB830">Retracement</option>
+        <option value="Accumulation" style="color:#00D4A4">Accumulation</option>
+        <option value="Distribution" style="color:#5BA8FF">Distribution</option>
+        <option value="Reversal" style="color:#FF4060">Reversal</option>
       </select>
     </div>
-    <div class="form-row"><label class="form-label">Range Behaviour</label>
+    <div class="form-row"><label class="form-label">Range Behaviours</label>
       <select data-key="w-range" data-week="">
-        <option value="">Select...</option><option>Discounted Target</option><option>Premium Target</option>
+        <option value="">Select...</option>
+        <option value="Discounted Target" style="color:#5BA8FF">Discounted Target</option>
+        <option value="Premium Target" style="color:#FF9A3C">Premium Target</option>
       </select>
     </div>
     <div class="form-row"><label class="form-label">Market Phase</label>
       <select data-key="w-phase" data-week="">
-        <option value="">Select...</option><option>Accumulation</option><option>Reversal</option><option>Retracement</option><option>Continuations</option>
+        <option value="">Select...</option>
+        <option value="Accumulation" style="color:#00D4A4">Accumulation</option>
+        <option value="Reversal" style="color:#FF4060">Reversal</option>
+        <option value="Retracement" style="color:#5BA8FF">Retracement</option>
+        <option value="Continuations" style="color:#00D4A4">Continuations</option>
       </select>
     </div>
     <div class="form-row"><label class="form-label">SMT</label>
@@ -2667,21 +2713,21 @@ Midnight Open $______"></textarea>
       <div class="cols2">
         <div>
           <div class="form-row"><label class="form-label">Daily Bias</label>
-            <select id="dm-bias"><option value="">—</option><option>Bullish</option><option>Bearish</option><option>Neutral</option></select></div>
+            <select id="dm-bias" onchange="colorDailySelect(this)"><option value="">—</option><option>Bullish</option><option>Bearish</option><option>Neutral</option></select></div>
           <div class="form-row"><label class="form-label">Session</label>
-            <select id="dm-session"><option value="">—</option><option>AM</option><option>PM</option></select></div>
+            <select id="dm-session" onchange="colorDailySelect(this)"><option value="">—</option><option>AM</option><option>PM</option></select></div>
           <div class="form-row"><label class="form-label">Plan</label>
-            <select id="dm-plan"><option value="">—</option><option>Followed</option><option>Unfollowed</option></select></div>
+            <select id="dm-plan" onchange="colorDailySelect(this)"><option value="">—</option><option>Followed</option><option>Unfollowed</option></select></div>
           <div class="form-row"><label class="form-label">Prediction</label>
-            <select id="dm-pred"><option value="">—</option><option>Correct</option><option>Incorrect</option></select></div>
+            <select id="dm-pred" onchange="colorDailySelect(this)"><option value="">—</option><option>Correct</option><option>Incorrect</option></select></div>
           <div class="form-row"><label class="form-label">London</label>
-            <select id="dm-london"><option value="">—</option><option>Accumulation</option><option>Manipulation</option><option>Distribution</option></select></div>
+            <select id="dm-london" onchange="colorDailySelect(this)"><option value="">—</option><option>Accumulation</option><option>Manipulation</option><option>Distribution</option></select></div>
           <div class="form-row"><label class="form-label">New York</label>
-            <select id="dm-ny"><option value="">—</option><option>Rebalance / Reversal</option><option>Manipulation / Distribution</option><option>Retracement / Continuations</option></select></div>
+            <select id="dm-ny" onchange="colorDailySelect(this)"><option value="">—</option><option>Rebalance / Reversal</option><option>Manipulation / Distribution</option><option>Retracement / Continuations</option></select></div>
           <div class="form-row"><label class="form-label">Asian Range</label>
             <input id="dm-asian" placeholder="Retracement, Accumulation…"></div>
           <div class="form-row"><label class="form-label" style="color:var(--bull)">Status</label>
-            <select id="dm-daystatus">
+            <select id="dm-daystatus" onchange="colorDailySelect(this)">
               <option value="">— Not set</option>
               <option value="Passed">✅ Passed</option>
               <option value="In Process">⏳ In Process</option>
@@ -2794,6 +2840,7 @@ const PRICE_REFS_COLORS = {
   "HTF EQ":"","HTF DRT":"","HTF OTE":""
 };
 const SMT_OPTS = ["Bearish SMT","Bullish SMT","NQ / YM","ES / YM","ES / NQ"];
+const SMT_COLORS = {"Bearish SMT":"bear","Bullish SMT":"bull","NQ / YM":"blue-chip","ES / YM":"blue-chip","ES / NQ":"blue-chip"};
 
 // USA Bank holidays 2026 (NYSE)
 const US_HOLIDAYS_2026 = {
@@ -3957,7 +4004,8 @@ function closeLightbox(){document.getElementById('lightbox').classList.remove('s
 // Color maps for chip groups
 const CHIP_COLOR_MAPS = {
   asianRange: typeof ASIAN_RANGE_COLORS !== 'undefined' ? ASIAN_RANGE_COLORS : {},
-  priceRefs:  typeof PRICE_REFS_COLORS  !== 'undefined' ? PRICE_REFS_COLORS  : {}
+  priceRefs:  typeof PRICE_REFS_COLORS  !== 'undefined' ? PRICE_REFS_COLORS  : {},
+  smtChips:   typeof SMT_COLORS         !== 'undefined' ? SMT_COLORS         : {}
 };
 function buildChips(containerId, options, multi=true, grp){
   const c=document.getElementById(containerId);
@@ -3991,7 +4039,6 @@ function setChipsValues(grp,vals){
 function loadDaily(){
   const ds=todayStr();
   const d=state.daily[ds]||{};
-  document.getElementById('ch-weekly').value=d.weekly||'';
   document.getElementById('ch-poi').value=d.htfpoi||'';
   document.getElementById('ch-draws').value=d.weekdraws||'';
   setChipsValues('dbias',d.bias||'');
@@ -4012,6 +4059,8 @@ function loadDaily(){
   document.getElementById('todayDate').textContent=`Today · Day ${dayCountFor(ds)||'—'} · ${fmtDate(ds)}`;
   // update monthly display from state
   updateMonthlyDisplay();
+  updateWeeklyDisplay();
+  updateTodayJournalPreview(ds);
 }
 function saveDaily(){
   const ds=todayStr();
@@ -4020,7 +4069,11 @@ function saveDaily(){
   const dayCount=existingCount||getNextDayCount();
   const weeklyKey=getWeeklyKeyForDate(ds)||`${ds.slice(0,7)}-W1`;
   state.daily[ds]={
-    weekly:document.getElementById('ch-weekly').value,
+    weekly:(() => {
+      const wk = `${state.currentMonth}-W${state.currentWeek}`;
+      const w = state.weekly[wk] || {};
+      return [w['w-model'], w['w-profile'], w['w-phase']].filter(Boolean).join(' · ');
+    })(),
     bias:getChipsValues('dbias',false),
     london:getChipsValues('london',false),
     ny:getChipsValues('ny',false),
@@ -4164,6 +4217,136 @@ function updateMonthlyDisplay(){
   document.getElementById('ch-monthly-d').textContent=parts.join(' · ');
 }
 
+function updateWeeklyDisplay(){
+  const el = document.getElementById('ch-weekly-display');
+  if(!el) return;
+  const wk = `${state.currentMonth}-W${state.currentWeek}`;
+  const w = state.weekly[wk] || {};
+  const parts = [
+    w['w-model'] ? `<span style="font-weight:700;color:var(--gold)">${w['w-model']}</span>` : '',
+    w['w-profile'] ? w['w-profile'] : '',
+    w['w-phase'] ? w['w-phase'] : '',
+    w['w-keylevels'] ? w['w-keylevels'].split('\n')[0] : ''
+  ].filter(Boolean);
+  el.innerHTML = parts.length ? parts.join(' · ') : '<span style="color:var(--text3)">Set weekly data →</span>';
+}
+
+function updateTodayJournalPreview(ds){
+  const el = document.getElementById('today-journal-preview');
+  if(!el) return;
+  const entry = state.notes.find(n=>n.date===ds);
+  if(entry){
+    el.innerHTML=`<span style="color:var(--text2);cursor:pointer" onclick="openTodayJournal()">📓 ${entry.text.slice(0,100)}${entry.text.length>100?'…':''}</span>`;
+  } else {
+    el.textContent='No entry yet — click to add';
+  }
+}
+
+function openTodayJournal(){
+  const ds = todayStr();
+  const dc = dayCountFor(ds) || getNextDayCount();
+  // Find existing journal entry for today
+  const existing = [...state.notes, ...(state.journal||[])].find(n=>n.date===ds);
+
+  // Open journal modal pre-filled with today's date and day count
+  const modal = document.createElement('div');
+  modal.id = 'todayJournalModal';
+  modal.style.cssText='position:fixed;inset:0;z-index:7000;background:rgba(0,0,0,.8);display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto';
+  modal.onclick=e=>{if(e.target===modal)closeTodayJournal()};
+
+  modal.innerHTML=`<div style="background:var(--bg2);border:1px solid rgba(245,166,35,.2);border-radius:16px;max-width:680px;width:100%;padding:28px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+      <span style="font-size:18px">📓</span>
+      <div>
+        <div style="font-size:16px;font-weight:800;color:var(--text)">D${dc} · ${fmtDate(ds)}</div>
+        <div style="font-size:11px;color:var(--text3)">Daily Journal Entry</div>
+      </div>
+      <button onclick="closeTodayJournal()" style="margin-left:auto;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text2);padding:4px 12px;cursor:pointer">✕</button>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px">Type</label>
+      <select id="tj-type" style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;width:160px">
+        <option value="lesson">Lesson</option>
+        <option value="mindset">Mindset</option>
+        <option value="mistake">Mistake</option>
+        <option value="bull">Win Recap</option>
+        <option value="bear">Loss Recap</option>
+        <option value="neutral">Note</option>
+      </select>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px">Journal Entry</label>
+      <textarea id="tj-text" placeholder="What happened today? What did you learn? What would you do differently?" rows="6"
+        style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 14px;color:var(--text);font-size:13px;resize:vertical;font-family:'Plus Jakarta Sans',sans-serif;line-height:1.6">${existing?.text||''}</textarea>
+    </div>
+
+    <!-- Image zones for journal -->
+    <div style="margin-bottom:16px">
+      <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:8px">Charts / Images</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div class="img-zone" data-imgkey="journal-${ds}-1" onclick="pickImage(this)" style="height:100px"><div class="img-zone-text">📋 Chart 1</div></div>
+        <div class="img-zone" data-imgkey="journal-${ds}-2" onclick="pickImage(this)" style="height:100px"><div class="img-zone-text">📋 Chart 2</div></div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px">
+      <button onclick="saveTodayJournal('${ds}',${dc})" style="flex:1;padding:11px;background:linear-gradient(135deg,var(--gold),var(--gold3));border:none;border-radius:10px;font-size:14px;font-weight:800;color:#000;cursor:pointer">
+        💾 Save Journal Entry
+      </button>
+      ${existing?`<button onclick="deleteTodayJournalEntry('${existing.id}','${ds}')" style="padding:11px 16px;background:rgba(255,64,96,.08);border:1px solid rgba(255,64,96,.2);border-radius:10px;color:var(--bear);cursor:pointer;font-size:12px">Delete</button>`:''}
+    </div>
+  </div>`;
+
+  document.body.appendChild(modal);
+  // Load existing images
+  modal.querySelectorAll('.img-zone').forEach(z=>renderImgZone(z));
+  // Pre-fill type if existing
+  if(existing) document.getElementById('tj-type').value = existing.type||'lesson';
+}
+
+function closeTodayJournal(){
+  document.getElementById('todayJournalModal')?.remove();
+}
+
+function saveTodayJournal(ds, dc){
+  const text = document.getElementById('tj-text')?.value?.trim();
+  const type = document.getElementById('tj-type')?.value||'lesson';
+  if(!text){ flash('⚠ Add some text first'); return; }
+
+  const id = Date.now();
+  const note = { id, type, date:ds, dayCount:dc, title:`D${dc} · ${fmtDate(ds)}`, text, createdAt:new Date().toISOString() };
+
+  // Remove existing entry for this date if any
+  state.notes = state.notes.filter(n=>n.date!==ds);
+  state.notes.unshift(note);
+  save();
+
+  // Sync to Supabase
+  if(_sbSyncEnabled&&_sbUserId&&_sb){
+    _sb.from('notes').upsert({
+      id:String(id), user_id:_sbUserId, title:note.title,
+      text:note.text, date:ds, created_at:note.createdAt
+    },{onConflict:'id'}).catch(()=>{});
+  }
+
+  // Update preview in Today chain
+  updateTodayJournalPreview(ds);
+  closeTodayJournal();
+  flash('✓ Journal entry saved for D'+dc);
+}
+
+function deleteTodayJournalEntry(id, ds){
+  if(!confirm('Delete this journal entry?'))return;
+  state.notes = state.notes.filter(n=>String(n.id)!==String(id));
+  save();
+  if(_sbSyncEnabled&&_sbUserId) sbDeleteRecord('notes',String(id));
+  updateTodayJournalPreview(ds);
+  closeTodayJournal();
+  flash('✓ Journal entry deleted');
+}
+
 // ============= WEEKLY =============
 
 // Get all Mon-Fri week ranges for a given YYYY-MM month
@@ -4299,6 +4482,7 @@ function saveWeekly(){
       .then(()=>setSbStatus('✓ Weekly saved to cloud','var(--bull)'))
       .catch(e=>console.warn('Weekly sync:',e));
   }
+  updateWeeklyDisplay();
   flash(`✓ ${state.currentMonth} Week ${state.currentWeek} saved`);
 }
 
@@ -5886,7 +6070,21 @@ function openDayModal(ds){
     <td class="mono" style="font-size:10px;color:var(--text3)">${t.rr||0}R</td>
     <td><button class="btn btn-sm btn-bear" style="padding:2px 5px;font-size:9px" onclick="deleteTradeInDay(${t.id},'${ds}')">✗</button></td>
   </tr>`).join(''):'<tr><td colspan="7" class="empty" style="padding:10px">No trades this day</td></tr>';
+  document.querySelectorAll('#dayModal select').forEach(s=>colorDailySelect(s));
   document.getElementById('dayModal').classList.add('show');
+}
+function colorDailySelect(sel){
+  const colorMap={
+    'Bullish':'rgba(0,212,164,.15)','Bearish':'rgba(255,64,96,.12)','Neutral':'rgba(255,255,255,.06)',
+    'Accumulation':'rgba(0,212,164,.15)','Manipulation':'rgba(255,64,96,.12)','Distribution':'rgba(91,168,255,.12)',
+    'Rebalance / Reversal':'rgba(255,64,96,.12)','Manipulation/ Distibution':'rgba(0,212,164,.15)','Retracement / Continuations':'rgba(91,168,255,.12)',
+    'Followed':'rgba(0,212,164,.15)','Unfollowed':'rgba(255,64,96,.12)',
+    'Correct':'rgba(0,212,164,.15)','Incorrect':'rgba(255,64,96,.12)',
+    'AM':'rgba(0,212,164,.1)','PM':'rgba(91,168,255,.1)',
+    'Passed':'rgba(0,212,164,.15)','Blown':'rgba(255,64,96,.12)','In Process':'rgba(245,166,35,.12)'
+  };
+  const bg = colorMap[sel.value]||'';
+  sel.style.background = bg || 'var(--bg3)';
 }
 function saveDayModal(){
   const ds=document.getElementById('dm-ds').value;
