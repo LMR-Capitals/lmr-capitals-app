@@ -6184,23 +6184,33 @@ async function lmrBlockLoad(section){
   const el = document.getElementById(holderId);
   if(!el) return;
 
-  setStatus(section+'-status','Loading…','saving');
+  setStatus(section+'-status','Loading from cloud…','saving');
 
-  // 1. Load saved data: local state → Supabase
+  // 1. ALWAYS load from Supabase first (authoritative source)
+  //    Local state is only used as fallback when offline/no auth
   let savedData = null;
-  const localKey = section+'Page';
-  if(state[localKey]){
-    try{
-      const p=JSON.parse(state[localKey]);
-      if(p&&p.blocks) savedData=p;
-    }catch(e){}
-  }
-  if(!savedData && _sb && _sbUserId){
+
+  if(_sb && _sbUserId){
     try{
       const{data:row}=await _sb.from('monthly').select('data')
         .eq('key',LMR_SECTION_KEYS[section]).eq('user_id',_sbUserId).single();
-      if(row?.data?.blocks) savedData=row.data;
-    }catch(e){}
+      if(row?.data?.blocks && row.data.blocks.length > 0){
+        savedData = row.data;
+        // Update local cache with fresh Supabase data
+        state[section+'Page'] = JSON.stringify(savedData);
+      }
+    }catch(e){ console.warn('[LMR] Supabase load error:',e.message); }
+  }
+
+  // 2. Fallback to local state only if Supabase failed
+  if(!savedData){
+    const localKey = section+'Page';
+    if(state[localKey]){
+      try{
+        const p=JSON.parse(state[localKey]);
+        if(p&&p.blocks&&p.blocks.length>0) savedData=p;
+      }catch(e){}
+    }
   }
 
   // 2. Init with new spec-compliant function
