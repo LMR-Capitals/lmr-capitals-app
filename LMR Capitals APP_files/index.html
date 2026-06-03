@@ -27,6 +27,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="./chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!-- Editor.js — Notion-like block editor -->
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.2/dist/editorjs.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@2.8.7/dist/header.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/list@1.9.0/dist/list.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/checklist@1.6.0/dist/checklist.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@2.7.0/dist/quote.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/code@2.9.0/dist/code.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@1.4.2/dist/delimiter.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/image@2.9.3/dist/image.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/embed@2.7.4/dist/embed.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/table@2.3.0/dist/table.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/warning@1.4.0/dist/warning.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/marker@1.4.0/dist/marker.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/inline-code@1.5.0/dist/inline-code.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 
@@ -645,6 +659,37 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .lmr-toggle.open .lmr-toggle-body{display:block}
 .lmr-page-save-row{padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg3)}
 
+/* ── CANVAS MODE (Editor.js dark theme) ── */
+.canvas-wrap{background:var(--bg);min-height:100vh;padding:0}
+.canvas-topbar{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:50}
+.canvas-title{flex:1;font-size:22px;font-weight:800;color:var(--text);background:none;border:none;outline:none;padding:4px 0}
+.canvas-title::placeholder{color:var(--text3);font-weight:400}
+#canvas-editor .codex-editor{color:var(--text)!important}
+#canvas-editor .ce-block__content,#obs-editor .ce-block__content{max-width:900px;margin:0 auto}
+#canvas-editor .cdx-block,#obs-editor .cdx-block{color:var(--text2)!important;font-size:14px!important;line-height:1.75!important}
+#canvas-editor .ce-header,#obs-editor .ce-header{color:var(--text)!important;font-weight:700!important}
+#canvas-editor .ce-paragraph[data-placeholder]:empty::before,
+#obs-editor .ce-paragraph[data-placeholder]:empty::before{color:var(--text3)!important}
+#canvas-editor .codex-editor__redactor,#obs-editor .codex-editor__redactor{padding:20px 0 80px!important}
+#canvas-editor .ce-toolbar__plus,#obs-editor .ce-toolbar__plus,
+#canvas-editor .ce-toolbar__settings-btn,#obs-editor .ce-toolbar__settings-btn{color:var(--text3)!important;background:var(--bg3)!important;border:1px solid var(--border)!important;border-radius:6px!important}
+#canvas-editor .ce-popover,#obs-editor .ce-popover{background:var(--bg2)!important;border:1px solid var(--border2)!important;border-radius:12px!important;box-shadow:0 12px 40px rgba(0,0,0,.5)!important}
+#canvas-editor .ce-popover-item,#obs-editor .ce-popover-item{color:var(--text2)!important}
+#canvas-editor .ce-popover-item:hover,#obs-editor .ce-popover-item:hover,
+#canvas-editor .ce-popover-item--active,#obs-editor .ce-popover-item--active{background:rgba(245,166,35,.1)!important;color:var(--text)!important}
+#canvas-editor .ce-popover-item__icon,#obs-editor .ce-popover-item__icon{background:var(--bg3)!important;border-radius:6px!important}
+#canvas-editor .ce-inline-toolbar,#obs-editor .ce-inline-toolbar{background:var(--bg2)!important;border:1px solid var(--border2)!important;border-radius:8px!important;box-shadow:0 8px 24px rgba(0,0,0,.4)!important}
+#canvas-editor .ce-inline-tool,#obs-editor .ce-inline-tool{color:var(--text2)!important}
+#canvas-editor .ce-inline-tool--active,#obs-editor .ce-inline-tool--active{color:var(--gold)!important}
+#canvas-editor blockquote,#obs-editor blockquote{border-left:3px solid var(--gold)!important;background:rgba(245,166,35,.04)!important;padding:8px 16px!important;border-radius:0 8px 8px 0!important}
+#canvas-editor .cdx-checklist__item-checkbox,#obs-editor .cdx-checklist__item-checkbox{border:2px solid var(--border2)!important;border-radius:4px!important}
+#canvas-editor .cdx-checklist__item--checked .cdx-checklist__item-checkbox,
+#obs-editor .cdx-checklist__item--checked .cdx-checklist__item-checkbox{background:var(--gold)!important;border-color:var(--gold)!important}
+#canvas-editor .cdx-warning,#obs-editor .cdx-warning{background:rgba(255,64,96,.06)!important;border:1px solid rgba(255,64,96,.2)!important;border-radius:8px!important}
+.canvas-status{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.canvas-status.saving{color:var(--gold)}
+.canvas-status.saved{color:var(--bull)}
+
 /* ── LMR COLUMNS ── */
 .lmr-cols{display:grid;gap:12px;margin:10px 0;min-height:60px}
 .lmr-cols-2{grid-template-columns:1fr 1fr}
@@ -1080,6 +1125,8 @@ select option[value="PM"] { color: #5BA8FF; }
     <div class="sb-sec">Knowledge</div>
     <button class="sb-item" data-panel="notes"><span class="sb-icon">✦</span> Journal</button>
     <button class="sb-item" data-panel="terminology"><span class="sb-icon">◧</span> LMR Terminology</button>
+    <button class="sb-item" data-panel="canvas"><span class="sb-icon" style="color:var(--gold)">✎</span> <span style="color:var(--gold)">Canvas</span></button>
+    <button class="sb-item" data-panel="observation"><span class="sb-icon">👁</span> Observation</button>
     <button class="sb-item" data-panel="psychology"><span class="sb-icon">◈</span> LMR Psychology</button>
     <div class="sb-sec">AI</div>
     <button class="sb-item" data-panel="ai-coach" style="background:linear-gradient(90deg,rgba(245,166,35,.08),transparent)"><span class="sb-icon" style="color:var(--gold)">✦</span> <span style="color:var(--gold);font-weight:700">AI Coach</span></button>
@@ -2317,6 +2364,59 @@ Midnight Open $______"></textarea>
 </div>
 
 <!-- Settings moved to side panel -->
+<!-- ── CANVAS (Notion-like free writing space) ── -->
+<div class="panel" id="p-canvas">
+  <div class="canvas-wrap">
+    <div class="canvas-topbar">
+      <input class="canvas-title" id="canvas-title" placeholder="Untitled canvas…" oninput="canvasAutoSave()">
+      <span class="canvas-status" id="canvas-status">Type / for commands</span>
+      <button class="btn btn-primary btn-sm" onclick="canvasSave()">💾 Save</button>
+      <button class="btn btn-sm" onclick="canvasNew()" title="New page">+ New</button>
+    </div>
+    <!-- Page list sidebar + editor area -->
+    <div style="display:flex;height:calc(100vh - 57px)">
+      <!-- Page list -->
+      <div style="width:220px;min-width:220px;border-right:1px solid var(--border);background:var(--bg2);overflow-y:auto;padding:10px 8px">
+        <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;padding:0 4px">Canvas Pages</div>
+        <button onclick="canvasNew()" style="width:100%;padding:6px 8px;background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.2);border-radius:8px;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;margin-bottom:8px">+ New Page</button>
+        <div id="canvas-page-list" style="display:flex;flex-direction:column;gap:3px"></div>
+      </div>
+      <!-- Editor -->
+      <div style="flex:1;overflow-y:auto;padding:0 20px">
+        <div id="canvas-editor" style="max-width:900px;margin:0 auto;padding:20px 0 100px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── OBSERVATION ── -->
+<div class="panel" id="p-observation">
+  <div class="canvas-wrap">
+    <div class="canvas-topbar">
+      <div>
+        <div style="font-size:18px;font-weight:800;color:var(--text)">👁 Market Observations</div>
+        <div style="font-size:11px;color:var(--text3)">Daily market notes, setups, confluences — free writing canvas</div>
+      </div>
+      <span class="canvas-status" id="obs-status">Auto-saves</span>
+      <button class="btn btn-primary btn-sm" onclick="obsSave()">💾 Save</button>
+      <button class="btn btn-sm" onclick="obsNew()">+ New Entry</button>
+    </div>
+    <div style="display:flex;height:calc(100vh - 57px)">
+      <!-- Entry list -->
+      <div style="width:220px;min-width:220px;border-right:1px solid var(--border);background:var(--bg2);overflow-y:auto;padding:10px 8px">
+        <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;padding:0 4px">Observations</div>
+        <button onclick="obsNew()" style="width:100%;padding:6px 8px;background:rgba(91,168,255,.08);border:1px solid rgba(91,168,255,.2);border-radius:8px;color:var(--blue);font-size:11px;font-weight:700;cursor:pointer;margin-bottom:8px">+ New Observation</button>
+        <div id="obs-entry-list" style="display:flex;flex-direction:column;gap:3px"></div>
+      </div>
+      <!-- Editor -->
+      <div style="flex:1;overflow-y:auto;padding:0 20px">
+        <input id="obs-title" placeholder="Observation title (e.g. NQ Setup - Distribution)" style="width:100%;background:none;border:none;outline:none;font-size:20px;font-weight:700;color:var(--text);padding:20px 0 8px;max-width:900px;margin:0 auto;display:block" oninput="obsAutoSave()">
+        <div id="obs-editor" style="max-width:900px;margin:0 auto;padding:0 0 100px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </main>
 </div>
 
@@ -3821,7 +3921,7 @@ function dayCountFor(dateStr){
 }
 
 // ============= NAVIGATION =============
-const panels=['dash','today','cal','perf','monthly','weekly','daily','trades','accounts','trans','notes','terminology','psychology','ai-coach','reports'];
+const panels=['dash','today','cal','perf','monthly','weekly','daily','trades','accounts','trans','notes','terminology','canvas','observation','psychology','ai-coach','reports'];
 const titles={
   dash:['Dashboard','Welcome back · Day '],
   today:['Today','Fill the chain · Day '],
@@ -3835,6 +3935,8 @@ const titles={
   trans:['Transactions','Deposits · Withdrawals · Payouts · Fees'],
   notes:['Journal','Trade psychology · lessons · notes'],
   terminology:['LMR Terminology','Free-form knowledge base'],
+  canvas:['Canvas','Notion-like free writing space'],
+  observation:['Observation','Market notes, setups & confluences'],
   psychology:['LMR Psychology','Mindset · Discipline · Trade psychology'],
   'ai-coach':['AI Trading Coach','Your personal LMR AI coaching assistant'],
   reports:['Reports','AI-generated weekly performance reports'],
@@ -4113,6 +4215,8 @@ function navTo(p){
   if(p==='settings') renderSettings();
   if(p==='terminology') loadLmrPage('terminology');
   if(p==='psychology') loadLmrPage('psychology');
+  if(p==='canvas') setTimeout(loadCanvas, 100);
+  if(p==='observation') setTimeout(loadObservation, 100);
   if(p==='ai-coach') { setTimeout(loadAndRenderAIHistory, 300); }
   if(p==='reports') loadAndRenderReports();
 }
@@ -6082,6 +6186,274 @@ function drawBar(id,labels,data,isPercent=false,suffix=''){
 }
 function drawDonut(id,labels,data){if(perfCharts[id])perfCharts[id].destroy();const ctx=document.getElementById(id);if(!ctx)return;if(!data.length){data=[1];labels=['No data']}perfCharts[id]=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:['#5dba80','#c8a84b','#9b8aff','#d45c5c','#5d9ee8','#c49b4a','#888'],borderColor:'#141414',borderWidth:2}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#9a9690',font:{size:9},boxWidth:8}}}}})}
 function drawLine(id,labels,data){if(perfCharts[id])perfCharts[id].destroy();if(dashCharts[id])dashCharts[id].destroy();const ctx=document.getElementById(id);if(!ctx)return;if(!data.length){data=[0];labels=['0']}const last=data[data.length-1]||0;const chart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data,borderColor:last>=0?'#5dba80':'#d45c5c',backgroundColor:last>=0?'rgba(93,186,128,0.1)':'rgba(212,92,92,0.1)',fill:true,tension:0.3,pointRadius:0}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#9a9690',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#9a9690',font:{size:9},callback:v=>'$'+v},grid:{color:'#262626'}}}}});if(id.startsWith('dash'))dashCharts[id]=chart;else perfCharts[id]=chart}
+
+// ============= CANVAS (Notion-like free writing) =============
+let _canvasEditor = null;
+let _canvasPageId = null;
+let _canvasSaveTimer = null;
+
+function getEditorJSTools(){
+  const tools = {};
+  if(window.Header)   tools.header   = { class: window.Header,   inlineToolbar: true, config:{levels:[1,2,3,4,5,6],defaultLevel:2} };
+  if(window.List)     tools.list     = { class: window.List,     inlineToolbar: true, config:{defaultStyle:'unordered'} };
+  if(window.Checklist)tools.checklist= { class: window.Checklist,inlineToolbar: true };
+  if(window.Quote)    tools.quote    = { class: window.Quote,    inlineToolbar: true, config:{quotePlaceholder:'Quote…',captionPlaceholder:'Author'} };
+  if(window.CodeTool) tools.code     = { class: window.CodeTool };
+  if(window.Delimiter)tools.delimiter= { class: window.Delimiter };
+  if(window.Warning)  tools.warning  = { class: window.Warning,  inlineToolbar: true, config:{titlePlaceholder:'Warning',messagePlaceholder:'Message'} };
+  if(window.Embed)    tools.embed    = { class: window.Embed,    config:{services:{youtube:true,twitter:true,codepen:true}} };
+  if(window.Table)    tools.table    = { class: window.Table,    inlineToolbar: true };
+  if(window.Marker)   tools.marker   = { class: window.Marker };
+  if(window.InlineCode)tools.inlineCode={ class: window.InlineCode };
+  if(window.ImageTool) tools.image   = { class: window.ImageTool, config:{
+    uploader:{ uploadByFile: canvasUploadImage, uploadByUrl: canvasUploadUrl }
+  }};
+  return tools;
+}
+
+async function canvasUploadImage(file){
+  try{
+    const key=`canvas-img-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+    // Upload to Supabase Storage
+    if(_sb&&_sbUserId){
+      const{data}=await _sb.storage.from('app-images').upload(`${_sbUserId}/${key}`,file,{upsert:true});
+      if(data){
+        const url=`https://agrvylclhvxyevsmmexf.supabase.co/storage/v1/object/public/app-images/${_sbUserId}/${key}`;
+        return{success:1,file:{url}};
+      }
+    }
+    // Fallback: use local object URL
+    const url=URL.createObjectURL(file);
+    return{success:1,file:{url}};
+  }catch(e){ return{success:0,message:e.message}; }
+}
+async function canvasUploadUrl(url){ return{success:1,file:{url}}; }
+
+async function initCanvasEditor(holderId, savedData){
+  if(window[holderId+'_editor']){
+    try{ await window[holderId+'_editor'].destroy(); }catch(e){}
+    window[holderId+'_editor']=null;
+  }
+  const el=document.getElementById(holderId);
+  if(!el) return null;
+  el.innerHTML='';
+  const editor = new EditorJS({
+    holder: holderId,
+    data: savedData||{},
+    placeholder: 'Start writing… type / for commands',
+    tools: getEditorJSTools(),
+    onChange: ()=>{
+      const saveId = holderId==='canvas-editor'?'canvas':'obs';
+      if(saveId==='canvas') canvasAutoSave();
+      else obsAutoSave();
+    }
+  });
+  window[holderId+'_editor'] = editor;
+  return editor;
+}
+
+// Canvas pages storage
+function getCanvasPages(){ return JSON.parse(localStorage.getItem('lmr_canvas_pages')||'[]'); }
+function saveCanvasPages(pages){ localStorage.setItem('lmr_canvas_pages',JSON.stringify(pages)); }
+
+async function loadCanvas(){
+  const pages = getCanvasPages();
+  renderCanvasPageList(pages);
+  // Load last open page or first
+  const lastId = localStorage.getItem('lmr_canvas_last');
+  const page = pages.find(p=>p.id===lastId) || pages[0];
+  if(page){ await loadCanvasPage(page.id); }
+  else { await canvasNew(); }
+}
+
+function renderCanvasPageList(pages){
+  const el=document.getElementById('canvas-page-list');
+  if(!el) return;
+  if(!pages.length){ el.innerHTML='<div style="font-size:11px;color:var(--text3);padding:8px 4px">No pages yet</div>'; return; }
+  el.innerHTML=pages.map(p=>`
+    <div onclick="loadCanvasPage('${p.id}')" id="cpli-${p.id}" style="padding:7px 10px;border-radius:7px;cursor:pointer;font-size:12px;color:var(--text2);transition:background .1s;border:1px solid transparent;display:flex;align-items:center;gap:6px"
+      onmouseover="this.style.background='rgba(245,166,35,.08)'" onmouseout="this.style.background=''">
+      <span style="font-size:14px">✎</span>
+      <div style="flex:1;overflow:hidden">
+        <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.title||'Untitled'}</div>
+        <div style="font-size:9px;color:var(--text3)">${p.updatedAt?new Date(p.updatedAt).toLocaleDateString():'—'}</div>
+      </div>
+      <button onclick="event.stopPropagation();deleteCanvasPage('${p.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:2px 4px">✕</button>
+    </div>`).join('');
+}
+
+async function canvasNew(){
+  const id='cp-'+Date.now();
+  const page={id,title:'',data:{},createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+  const pages=getCanvasPages();
+  pages.unshift(page);
+  saveCanvasPages(pages);
+  renderCanvasPageList(pages);
+  await loadCanvasPage(id);
+}
+
+async function loadCanvasPage(pageId){
+  _canvasPageId=pageId;
+  localStorage.setItem('lmr_canvas_last',pageId);
+  // Highlight in list
+  document.querySelectorAll('[id^="cpli-"]').forEach(el=>el.style.border='1px solid transparent');
+  const li=document.getElementById('cpli-'+pageId);
+  if(li) li.style.border='1px solid rgba(245,166,35,.3)';
+
+  const pages=getCanvasPages();
+  const page=pages.find(p=>p.id===pageId)||{};
+
+  // Set title
+  const titleEl=document.getElementById('canvas-title');
+  if(titleEl) titleEl.value=page.title||'';
+
+  // Also try loading from Supabase
+  let data=page.data||{};
+  if(_sb&&_sbUserId){
+    try{
+      const{data:row}=await _sb.from('monthly').select('data').eq('key','canvas-'+pageId).eq('user_id',_sbUserId).single();
+      if(row?.data?.blocks) data=row.data;
+    }catch(e){}
+  }
+
+  _canvasEditor=await initCanvasEditor('canvas-editor',data);
+  setStatus('canvas-status','✦ Ready','');
+}
+
+async function canvasSave(){
+  if(!_canvasEditor||!_canvasPageId) return;
+  setStatus('canvas-status','Saving…','saving');
+  try{
+    const data=await _canvasEditor.save();
+    const title=document.getElementById('canvas-title')?.value||'Untitled';
+
+    // Update local storage
+    const pages=getCanvasPages();
+    const idx=pages.findIndex(p=>p.id===_canvasPageId);
+    if(idx>=0){ pages[idx].data=data; pages[idx].title=title; pages[idx].updatedAt=new Date().toISOString(); }
+    saveCanvasPages(pages);
+    renderCanvasPageList(pages);
+
+    // Save to Supabase
+    if(_sb&&_sbUserId){
+      await _sb.from('monthly').upsert({key:'canvas-'+_canvasPageId,data:{...data,title},user_id:_sbUserId},{onConflict:'key,user_id'});
+    }
+    setStatus('canvas-status','✓ Saved','saved');
+    setTimeout(()=>setStatus('canvas-status','✦ Ready','')  ,2000);
+  }catch(e){ setStatus('canvas-status','Save failed',''); }
+}
+
+function canvasAutoSave(){
+  clearTimeout(_canvasSaveTimer);
+  setStatus('canvas-status','Saving…','saving');
+  _canvasSaveTimer=setTimeout(canvasSave,1500);
+}
+
+function deleteCanvasPage(id){
+  if(!confirm('Delete this page?')) return;
+  const pages=getCanvasPages().filter(p=>p.id!==id);
+  saveCanvasPages(pages);
+  renderCanvasPageList(pages);
+  if(_canvasPageId===id){ if(pages.length)loadCanvasPage(pages[0].id); else canvasNew(); }
+}
+
+// ── OBSERVATION ──────────────────────────────────────────────────
+let _obsEditor = null;
+let _obsEntryId = null;
+let _obsSaveTimer = null;
+
+function getObsEntries(){ return JSON.parse(localStorage.getItem('lmr_obs_entries')||'[]'); }
+function saveObsEntries(entries){ localStorage.setItem('lmr_obs_entries',JSON.stringify(entries)); }
+
+async function loadObservation(){
+  const entries=getObsEntries();
+  renderObsEntryList(entries);
+  const lastId=localStorage.getItem('lmr_obs_last');
+  const entry=entries.find(e=>e.id===lastId)||entries[0];
+  if(entry) await loadObsEntry(entry.id);
+  else await obsNew();
+}
+
+function renderObsEntryList(entries){
+  const el=document.getElementById('obs-entry-list');
+  if(!el) return;
+  if(!entries.length){ el.innerHTML='<div style="font-size:11px;color:var(--text3);padding:8px 4px">No observations yet</div>'; return; }
+  el.innerHTML=entries.map(e=>`
+    <div onclick="loadObsEntry('${e.id}')" id="oeli-${e.id}" style="padding:7px 10px;border-radius:7px;cursor:pointer;font-size:12px;color:var(--text2);transition:background .1s;border:1px solid transparent"
+      onmouseover="this.style.background='rgba(91,168,255,.08)'" onmouseout="this.style.background=''">
+      <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.title||'Untitled Observation'}</div>
+      <div style="font-size:9px;color:var(--text3);margin-top:2px">${e.date||''}</div>
+    </div>`).join('');
+}
+
+async function obsNew(){
+  const id='obs-'+Date.now();
+  const entry={id,title:'',date:todayStr(),data:{},createdAt:new Date().toISOString()};
+  const entries=getObsEntries();
+  entries.unshift(entry);
+  saveObsEntries(entries);
+  renderObsEntryList(entries);
+  await loadObsEntry(id);
+}
+
+async function loadObsEntry(entryId){
+  _obsEntryId=entryId;
+  localStorage.setItem('lmr_obs_last',entryId);
+  document.querySelectorAll('[id^="oeli-"]').forEach(el=>el.style.border='1px solid transparent');
+  const li=document.getElementById('oeli-'+entryId);
+  if(li) li.style.border='1px solid rgba(91,168,255,.3)';
+
+  const entries=getObsEntries();
+  const entry=entries.find(e=>e.id===entryId)||{};
+
+  const titleEl=document.getElementById('obs-title');
+  if(titleEl) titleEl.value=entry.title||'';
+
+  let data=entry.data||{};
+  if(_sb&&_sbUserId){
+    try{
+      const{data:row}=await _sb.from('monthly').select('data').eq('key','obs-'+entryId).eq('user_id',_sbUserId).single();
+      if(row?.data?.blocks) data=row.data;
+    }catch(e){}
+  }
+
+  _obsEditor=await initCanvasEditor('obs-editor',data);
+  setStatus('obs-status','✦ Ready','');
+}
+
+async function obsSave(){
+  if(!_obsEditor||!_obsEntryId) return;
+  setStatus('obs-status','Saving…','saving');
+  try{
+    const data=await _obsEditor.save();
+    const title=document.getElementById('obs-title')?.value||'Untitled';
+
+    const entries=getObsEntries();
+    const idx=entries.findIndex(e=>e.id===_obsEntryId);
+    if(idx>=0){ entries[idx].data=data; entries[idx].title=title; entries[idx].updatedAt=new Date().toISOString(); }
+    saveObsEntries(entries);
+    renderObsEntryList(entries);
+
+    if(_sb&&_sbUserId){
+      await _sb.from('monthly').upsert({key:'obs-'+_obsEntryId,data:{...data,title,date:entries[idx]?.date},user_id:_sbUserId},{onConflict:'key,user_id'});
+    }
+    setStatus('obs-status','✓ Saved','saved');
+    setTimeout(()=>setStatus('obs-status','✦ Ready',''),2000);
+  }catch(e){ setStatus('obs-status','Save failed',''); }
+}
+
+function obsAutoSave(){
+  clearTimeout(_obsSaveTimer);
+  setStatus('obs-status','Saving…','saving');
+  _obsSaveTimer=setTimeout(obsSave,1500);
+}
+
+function setStatus(id,text,cls){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.textContent=text;
+  el.className='canvas-status'+(cls?' '+cls:'');
+}
 
 // ============= EXPORT/IMPORT =============
 async function exportData(){
