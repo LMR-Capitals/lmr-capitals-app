@@ -6902,13 +6902,15 @@ async function loadLmrPage(pageId){
   if(!el)return;
   let content=state[pageId+'Page']||'';
 
-  // If local is empty, try pulling from Supabase (for ICT content import)
-  if(!content && _sb && _sbUserId){
+  // Always check if Supabase has richer content (e.g. ICT import > default toggle)
+  if(_sb && _sbUserId){
     try{
       const sbKey=pageId==='terminology'?'lmr-terminology':'lmr-psychology';
       const{data}=await _sb.from('monthly').select('data').eq('key',sbKey).eq('user_id',_sbUserId).single();
-      if(data?.data?.content){
-        content=data.data.content;
+      const cloudContent=data?.data?.content||'';
+      // Use cloud content if: local is empty OR cloud is significantly richer
+      if(cloudContent && cloudContent.length > content.length + 500){
+        content=cloudContent;
         state[pageId+'Page']=content;
         save();
       }
@@ -7222,6 +7224,15 @@ async function _sbDoPull() {
   const cloudMonthly = {};
   (mo.data||[]).forEach(m => { if(m.key&&m.data) cloudMonthly[m.key] = m.data; });
   state.monthly = { ...state.monthly, ...cloudMonthly }; // local base + cloud overrides
+
+  // Extract LMR knowledge pages from monthly — cloud version always wins
+  // This ensures ICT content loaded from Notion always shows correctly
+  if(cloudMonthly['lmr-terminology']?.content){
+    state.terminologyPage = cloudMonthly['lmr-terminology'].content;
+  }
+  if(cloudMonthly['lmr-psychology']?.content){
+    state.psychologyPage = cloudMonthly['lmr-psychology'].content;
+  }
 
   // Weekly: same MERGE approach
   const cloudWeekly = {};
