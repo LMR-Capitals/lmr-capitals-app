@@ -278,10 +278,24 @@ textarea{resize:vertical;min-height:50px}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:90;display:none}
 .overlay.show{display:block}
 @media (max-width:900px){
-  .sidebar{position:fixed;top:0;left:0;bottom:0;z-index:100;transform:translateX(-100%);transition:transform .25s;width:230px}
-  .sidebar.open{transform:translateX(0)}
-  .mobile-bar{display:flex}
-  .panel{padding:12px}
+  /* Sidebar: hidden off-screen, slides in when .open */
+  .sidebar{position:fixed;top:0;left:0;bottom:0;z-index:100;transform:translateX(-100%);transition:transform .28s ease;width:250px;max-width:80vw}
+  .sidebar.open{transform:translateX(0);box-shadow:4px 0 32px rgba(0,0,0,.6)}
+  /* Main: full width — sidebar doesn't take layout space */
+  .main{width:100%;margin-left:0!important}
+  .mobile-bar{display:flex!important}
+  .panel{padding:10px}
+  /* Tiles: 2 columns on tablet, 1 on phone */
+  .dash-grid{grid-template-columns:repeat(2,1fr)!important}
+  .dash-grid-2{grid-template-columns:1fr!important}
+  /* Topbar smaller */
+  .topbar{padding:8px 12px!important}
+  .tb-title{font-size:16px!important}
+}
+@media (max-width:480px){
+  /* Single column on small phones */
+  .dash-grid{grid-template-columns:1fr!important}
+  .tile-v{font-size:20px!important}
 }
 ::-webkit-scrollbar{width:8px;height:8px}
 ::-webkit-scrollbar-track{background:var(--bg)}
