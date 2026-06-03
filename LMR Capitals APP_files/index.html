@@ -6900,22 +6900,38 @@ function saveLmrPage(pageId){
 async function loadLmrPage(pageId){
   const el=document.getElementById(pageId+'-content');
   if(!el)return;
-  const content=state[pageId+'Page']||'';
+  let content=state[pageId+'Page']||'';
+
+  // If local is empty, try pulling from Supabase (for ICT content import)
+  if(!content && _sb && _sbUserId){
+    try{
+      const sbKey=pageId==='terminology'?'lmr-terminology':'lmr-psychology';
+      const{data}=await _sb.from('monthly').select('data').eq('key',sbKey).eq('user_id',_sbUserId).single();
+      if(data?.data?.content){
+        content=data.data.content;
+        state[pageId+'Page']=content;
+        save();
+      }
+    }catch(e){}
+  }
+
   el.innerHTML=content;
-  if(!content){el.setAttribute('placeholder','Start writing…');}
+  if(!content) el.setAttribute('placeholder','Start writing…');
   const lbl=document.getElementById(pageId+'-saved');
-  if(lbl)lbl.textContent=content?'Auto-loaded':'Not saved';
-  // Restore object URLs for inline images
+  if(lbl) lbl.textContent=content?'Loaded':'Not saved';
+
+  // Restore object URLs for inline images that have data-imgkey
   const imgs=el.querySelectorAll('img.lmr-inline-img[data-imgkey]');
   for(const img of imgs){
     const key=img.dataset.imgkey;
-    if(!key)continue;
+    if(!key||key.startsWith('ict-notion-'))continue; // ICT images use direct Notion URLs
     const blob=await getImg(key);
-    if(blob){
-      img.src=URL.createObjectURL(blob);
-      img.onclick=()=>openLightbox(img.src);
-    }
+    if(blob){ img.src=URL.createObjectURL(blob); img.onclick=()=>openLightbox(img.src); }
   }
+  // Make all images clickable for lightbox
+  el.querySelectorAll('img').forEach(img=>{
+    if(!img.onclick) img.onclick=()=>openLightbox(img.src);
+  });
   // Auto-save on any edit
   el.oninput=()=>autoSave(pageId,()=>saveLmrPage(pageId),1200);
 }
