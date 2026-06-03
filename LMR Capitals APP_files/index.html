@@ -27,20 +27,26 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="./chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<!-- Editor.js — Notion-like block editor -->
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.2/dist/editorjs.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@2.8.7/dist/header.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/list@1.9.0/dist/list.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/checklist@1.6.0/dist/checklist.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@2.7.0/dist/quote.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/code@2.9.0/dist/code.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@1.4.2/dist/delimiter.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/image@2.9.3/dist/image.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/embed@2.7.4/dist/embed.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/table@2.3.0/dist/table.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/warning@1.4.0/dist/warning.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/marker@1.4.0/dist/marker.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/inline-code@1.5.0/dist/inline-code.umd.min.js"></script>
+<!-- Editor.js — Full Notion-like block editor spec implementation -->
+<!-- Core -->
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest/dist/editorjs.umd.min.js"></script>
+<!-- Block tools (structural primitives from spec) -->
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest/dist/header.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/nested-list@latest/dist/nested-list.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/checklist@latest/dist/checklist.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest/dist/quote.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/code@latest/dist/code.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@latest/dist/delimiter.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest/dist/image.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/attaches@latest/dist/attaches.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/embed@latest/dist/embed.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/table@latest/dist/table.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/warning@latest/dist/warning.umd.min.js"></script>
+<!-- Inline tools -->
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/marker@latest/dist/marker.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/inline-code@latest/dist/inline-code.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/underline@latest/dist/underline.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/link@latest/dist/link.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 
@@ -6164,57 +6170,38 @@ async function lmrBlockLoad(section){
 
   setStatus(section+'-status','Loading…','saving');
 
-  // Destroy existing editor if re-opening
-  if(_lmrEditors[section]){
-    try{ await _lmrEditors[section].destroy(); }catch(e){}
-    _lmrEditors[section] = null;
-  }
-  el.innerHTML = '';
-
-  // 1. Try local state first
+  // 1. Load saved data: local state → Supabase
   let savedData = null;
   const localKey = section+'Page';
   if(state[localKey]){
-    // Try to parse as JSON blocks (new format)
     try{
-      const parsed = JSON.parse(state[localKey]);
-      if(parsed && parsed.blocks) savedData = parsed;
-    }catch(e){
-      // Old HTML format — wrap in a single paragraph block
-      savedData = null; // will fall through to Supabase
-    }
+      const p=JSON.parse(state[localKey]);
+      if(p&&p.blocks) savedData=p;
+    }catch(e){}
   }
-
-  // 2. Load from Supabase monthly table (source of truth for block data)
   if(!savedData && _sb && _sbUserId){
     try{
-      const sbKey = LMR_SECTION_KEYS[section];
-      const{data:row} = await _sb.from('monthly').select('data')
-        .eq('key',sbKey).eq('user_id',_sbUserId).single();
-      if(row?.data?.blocks) savedData = row.data;
+      const{data:row}=await _sb.from('monthly').select('data')
+        .eq('key',LMR_SECTION_KEYS[section]).eq('user_id',_sbUserId).single();
+      if(row?.data?.blocks) savedData=row.data;
     }catch(e){}
   }
 
-  // 3. Init Editor.js
-  const editor = new EditorJS({
-    holder: holderId,
-    data: savedData || {blocks:[]},
-    placeholder: 'Start writing… type / for commands',
-    tools: getEditorJSTools(),
-    onChange: async()=>{
-      setStatus(section+'-status','Saving…','saving');
-      clearTimeout(_lmrSaveTimers[section]);
-      _lmrSaveTimers[section] = setTimeout(()=>lmrBlockSave(section), 1500);
-    }
+  // 2. Init with new spec-compliant function
+  const editor = await initBlockEditor(holderId, savedData, ()=>{
+    setStatus(section+'-status','Saving…','saving');
+    clearTimeout(_lmrSaveTimers[section]);
+    _lmrSaveTimers[section]=setTimeout(()=>lmrBlockSave(section),1500);
   });
 
-  await editor.isReady;
   _lmrEditors[section] = editor;
-  setStatus(section+'-status','✦ Ready — type / for blocks','');
+  if(editor) setStatus(section+'-status','✦ Ready  ·  type / to insert blocks','');
+  else setStatus(section+'-status','Failed to load editor','');
 }
 
 async function lmrBlockSave(section){
-  const editor = _lmrEditors[section];
+  const holderId=section+'-block-editor';
+  const editor=_lmrEditors[section]||window['__ej_'+holderId];
   if(!editor) return;
   try{
     const data = await editor.save();
@@ -6245,64 +6232,174 @@ let _canvasEditor = null;
 let _canvasPageId = null;
 let _canvasSaveTimer = null;
 
-function getEditorJSTools(){
-  const tools = {};
-  if(window.Header)   tools.header   = { class: window.Header,   inlineToolbar: true, config:{levels:[1,2,3,4,5,6],defaultLevel:2} };
-  if(window.List)     tools.list     = { class: window.List,     inlineToolbar: true, config:{defaultStyle:'unordered'} };
-  if(window.Checklist)tools.checklist= { class: window.Checklist,inlineToolbar: true };
-  if(window.Quote)    tools.quote    = { class: window.Quote,    inlineToolbar: true, config:{quotePlaceholder:'Quote…',captionPlaceholder:'Author'} };
-  if(window.CodeTool) tools.code     = { class: window.CodeTool };
-  if(window.Delimiter)tools.delimiter= { class: window.Delimiter };
-  if(window.Warning)  tools.warning  = { class: window.Warning,  inlineToolbar: true, config:{titlePlaceholder:'Warning',messagePlaceholder:'Message'} };
-  if(window.Embed)    tools.embed    = { class: window.Embed,    config:{services:{youtube:true,twitter:true,codepen:true}} };
-  if(window.Table)    tools.table    = { class: window.Table,    inlineToolbar: true };
-  if(window.Marker)   tools.marker   = { class: window.Marker };
-  if(window.InlineCode)tools.inlineCode={ class: window.InlineCode };
-  if(window.ImageTool) tools.image   = { class: window.ImageTool, config:{
-    uploader:{ uploadByFile: canvasUploadImage, uploadByUrl: canvasUploadUrl }
-  }};
-  return tools;
-}
+// ── SPEC-COMPLIANT EDITOR.JS CONFIGURATION ────────────────────────────────
+// Implements the full developer spec block type list
 
-async function canvasUploadImage(file){
+async function lmrUploadFile(file){
   try{
-    const key=`canvas-img-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
-    // Upload to Supabase Storage
+    const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const key=`block-${Date.now()}-${safeName}`;
     if(_sb&&_sbUserId){
-      const{data}=await _sb.storage.from('app-images').upload(`${_sbUserId}/${key}`,file,{upsert:true});
-      if(data){
-        const url=`https://agrvylclhvxyevsmmexf.supabase.co/storage/v1/object/public/app-images/${_sbUserId}/${key}`;
-        return{success:1,file:{url}};
+      const{data,error}=await _sb.storage.from('app-images').upload(
+        `${_sbUserId}/blocks/${key}`,file,{upsert:true,contentType:file.type}
+      );
+      if(!error){
+        return{
+          success:1,
+          file:{
+            url:`https://agrvylclhvxyevsmmexf.supabase.co/storage/v1/object/public/app-images/${_sbUserId}/blocks/${key}`,
+            name:file.name, size:file.size, extension:file.name.split('.').pop()
+          }
+        };
       }
     }
-    // Fallback: use local object URL
-    const url=URL.createObjectURL(file);
-    return{success:1,file:{url}};
+    // Fallback to object URL
+    return{success:1,file:{url:URL.createObjectURL(file),name:file.name}};
   }catch(e){ return{success:0,message:e.message}; }
 }
-async function canvasUploadUrl(url){ return{success:1,file:{url}}; }
 
-async function initCanvasEditor(holderId, savedData){
-  if(window[holderId+'_editor']){
-    try{ await window[holderId+'_editor'].destroy(); }catch(e){}
-    window[holderId+'_editor']=null;
+function buildEditorTools(){
+  const t={};
+
+  // ── Structural block types (spec section 2.2A) ──
+  if(window.Header){
+    t.header={
+      class:Header,
+      inlineToolbar:['link','marker','inlineCode'],
+      config:{levels:[1,2,3],defaultLevel:2,
+        placeholder:{1:'Heading 1',2:'Heading 2',3:'Heading 3'}}
+    };
   }
+
+  if(window.NestedList){
+    t.list={
+      class:NestedList, inlineToolbar:true,
+      config:{defaultStyle:'unordered',enableLineBreaks:false}
+    };
+  }else if(window.List){
+    t.list={class:List,inlineToolbar:true,config:{defaultStyle:'unordered'}};
+  }
+
+  if(window.Checklist){
+    t.checklist={class:Checklist,inlineToolbar:true};
+  }
+
+  if(window.Quote){
+    t.quote={
+      class:Quote, inlineToolbar:true,
+      config:{quotePlaceholder:'Write a quote…',captionPlaceholder:'Attribution'}
+    };
+  }
+
+  if(window.Warning){
+    t.callout={
+      class:Warning, inlineToolbar:true,
+      config:{titlePlaceholder:'Callout title',messagePlaceholder:'Callout text…'}
+    };
+  }
+
+  if(window.CodeTool){
+    t.code={class:CodeTool,config:{placeholder:'// Write code…'}};
+  }
+
+  if(window.Delimiter){
+    t.divider={class:Delimiter};
+  }
+
+  if(window.Table){
+    t.table={class:Table,inlineToolbar:true,config:{rows:2,cols:3,withHeadings:true}};
+  }
+
+  // ── Media blocks (spec section 3.13) ──
+  if(window.ImageTool){
+    t.image={
+      class:ImageTool,
+      config:{
+        uploader:{
+          uploadByFile: lmrUploadFile,
+          uploadByUrl:  async(url)=>({success:1,file:{url}})
+        },
+        captionPlaceholder:'Caption…',
+        buttonContent:'Select image or paste URL'
+      }
+    };
+  }
+
+  if(window.AttachesTool){
+    t.attaches={
+      class:AttachesTool,
+      config:{
+        uploader:{ uploadByFile: lmrUploadFile }
+      }
+    };
+  }
+
+  // ── Provider embeds (spec section 2.2B — generic embed) ──
+  if(window.Embed){
+    t.embed={
+      class:Embed,
+      config:{
+        services:{
+          youtube:true, twitter:true, codepen:true,
+          instagram:true, twitch:true, vimeo:true
+        }
+      }
+    };
+  }
+
+  // ── Inline tools (spec section 1.3 marks) ──
+  if(window.Marker)      t.marker     ={class:Marker};
+  if(window.InlineCode)  t.inlineCode ={class:InlineCode};
+  if(window.Underline)   t.underline  ={class:Underline};
+  if(window.LinkTool)    t.linkTool   ={class:LinkTool};
+
+  return t;
+}
+
+async function initBlockEditor(holderId, savedData, onChange){
+  // Destroy any existing instance
+  if(window['__ej_'+holderId]){
+    try{ await window['__ej_'+holderId].destroy(); }catch(e){}
+    window['__ej_'+holderId]=null;
+  }
+
   const el=document.getElementById(holderId);
-  if(!el) return null;
+  if(!el){ console.error('Editor holder not found:',holderId); return null; }
   el.innerHTML='';
-  const editor = new EditorJS({
-    holder: holderId,
-    data: savedData||{},
-    placeholder: 'Start writing… type / for commands',
-    tools: getEditorJSTools(),
-    onChange: ()=>{
-      const saveId = holderId==='canvas-editor'?'canvas':'obs';
-      if(saveId==='canvas') canvasAutoSave();
-      else obsAutoSave();
-    }
+
+  // Ensure EditorJS is loaded
+  if(typeof EditorJS==='undefined'){
+    console.error('EditorJS not loaded');
+    el.innerHTML='<div style="padding:20px;color:var(--bear)">Editor loading failed. Check your connection.</div>';
+    return null;
+  }
+
+  const editor=new EditorJS({
+    holder:holderId,
+    data:savedData&&savedData.blocks?savedData:{blocks:[]},
+    placeholder:'Type / to insert a block, or start writing…',
+    tools:buildEditorTools(),
+    logLevel:'ERROR',
+    onChange:async()=>{ if(typeof onChange==='function') onChange(); }
   });
-  window[holderId+'_editor'] = editor;
-  return editor;
+
+  try{
+    await editor.isReady;
+    window['__ej_'+holderId]=editor;
+    return editor;
+  }catch(e){
+    console.error('EditorJS init error:',e);
+    el.innerHTML=`<div style="padding:20px;color:var(--bear)">Editor failed to load: ${e.message}</div>`;
+    return null;
+  }
+}
+
+async function canvasUploadImage(file){ return lmrUploadFile(file); }
+async function canvasUploadUrl(url){ return{success:1,file:{url}}; }
+// Legacy alias
+function getEditorJSTools(){ return buildEditorTools(); }
+async function initCanvasEditor(holderId,savedData){
+  return initBlockEditor(holderId,savedData,()=>{});
 }
 
 // Canvas pages storage
