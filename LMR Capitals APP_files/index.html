@@ -671,7 +671,23 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .canvas-title{flex:1;font-size:22px;font-weight:800;color:var(--text);background:none;border:none;outline:none;padding:4px 0}
 .canvas-title::placeholder{color:var(--text3);font-weight:400}
 #canvas-editor .codex-editor{color:var(--text)!important}
-#canvas-editor .ce-block__content,#obs-editor .ce-block__content{max-width:900px;margin:0 auto}
+/* Full-width block editors — no max-width centering */
+#terminology-block-editor .ce-block__content,
+#psychology-block-editor .ce-block__content,
+#observation-block-editor .ce-block__content,
+#canvas-editor .ce-block__content,
+#obs-editor .ce-block__content{max-width:100%!important;margin:0!important}
+#terminology-block-editor .codex-editor__redactor,
+#psychology-block-editor .codex-editor__redactor,
+#observation-block-editor .codex-editor__redactor{padding-bottom:200px!important}
+/* Toggle block styles */
+.toggle-block{border:1px solid var(--border);border-radius:8px;margin:6px 0;overflow:hidden}
+.toggle-block-header{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;background:var(--bg3);user-select:none}
+.toggle-block-arrow{font-size:10px;transition:transform .15s;flex-shrink:0;color:var(--text3)}
+.toggle-block-arrow.open{transform:rotate(90deg)}
+.toggle-block-title{flex:1;outline:none;color:var(--text);font-size:14px;font-weight:600;background:none;border:none;cursor:text}
+.toggle-block-body{padding:8px 12px 10px 28px;display:none;color:var(--text2);font-size:13px;line-height:1.65;outline:none;min-height:32px}
+.toggle-block-body.open{display:block}
 #canvas-editor .cdx-block,#obs-editor .cdx-block{color:var(--text2)!important;font-size:14px!important;line-height:1.75!important}
 #canvas-editor .ce-header,#obs-editor .ce-header{color:var(--text)!important;font-weight:700!important}
 #canvas-editor .ce-paragraph[data-placeholder]:empty::before,
@@ -2092,8 +2108,8 @@ Midnight Open $______"></textarea>
     <button class="btn btn-primary btn-sm" onclick="lmrBlockSave('terminology')">💾 Save</button>
   </div>
   <!-- Block editor -->
-  <div style="flex:1;overflow-y:auto;padding:0 40px">
-    <div id="terminology-block-editor" style="max-width:900px;margin:0 auto;padding:20px 0 100px;min-height:600px"></div>
+  <div style="flex:1;overflow-y:auto;padding:0 20px">
+    <div id="terminology-block-editor" style="width:100%;padding:20px 0 100px;min-height:600px"></div>
   </div>
 </div>
 <!-- KEEP old contenteditable hidden for backwards compat -->
@@ -2148,8 +2164,8 @@ Midnight Open $______"></textarea>
     <span class="canvas-status" id="psychology-status" style="margin-left:auto">type / for commands</span>
     <button class="btn btn-primary btn-sm" onclick="lmrBlockSave('psychology')">💾 Save</button>
   </div>
-  <div style="flex:1;overflow-y:auto;padding:0 40px">
-    <div id="psychology-block-editor" style="max-width:900px;margin:0 auto;padding:20px 0 100px;min-height:600px"></div>
+  <div style="flex:1;overflow-y:auto;padding:0 20px">
+    <div id="psychology-block-editor" style="width:100%;padding:20px 0 100px;min-height:600px"></div>
   </div>
 </div>
 <!-- hidden legacy -->
@@ -2378,8 +2394,8 @@ Midnight Open $______"></textarea>
     <span class="canvas-status" id="observation-status" style="margin-left:auto">type / for commands</span>
     <button class="btn btn-primary btn-sm" onclick="lmrBlockSave('observation')">💾 Save</button>
   </div>
-  <div style="flex:1;overflow-y:auto;padding:0 40px">
-    <div id="observation-block-editor" style="max-width:900px;margin:0 auto;padding:20px 0 100px;min-height:600px"></div>
+  <div style="flex:1;overflow-y:auto;padding:0 20px">
+    <div id="observation-block-editor" style="width:100%;padding:20px 0 100px;min-height:600px"></div>
   </div>
 </div>
 </div>
@@ -6353,7 +6369,46 @@ function buildEditorTools(){
   if(window.Underline)   t.underline  ={class:Underline};
   if(window.LinkTool)    t.linkTool   ={class:LinkTool};
 
+  // ── Custom Toggle block (spec section 3.4) ──
+  t.toggle = {class: LMRToggleTool, inlineToolbar: true};
+
   return t;
+}
+
+// ── CUSTOM TOGGLE BLOCK TOOL (Notion-spec section 3.4) ──────────────────────
+class LMRToggleTool {
+  static get toolbox(){ return {title:'Toggle',icon:'<svg width="17" height="13" viewBox="0 0 17 13"><path d="M5.625 0L11.25 6.5 5.625 13" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'}; }
+  static get isReadOnlySupported(){ return true; }
+  constructor({data,api,readOnly}){
+    this.data={title:data.title||'',body:data.body||'',isOpen:data.isOpen!==false};
+    this.api=api; this.readOnly=readOnly; this.wrapper=null;
+  }
+  render(){
+    this.wrapper=document.createElement('div');
+    this.wrapper.className='toggle-block';
+    this._rebuild();
+    return this.wrapper;
+  }
+  _rebuild(){
+    const isOpen=this.data.isOpen;
+    this.wrapper.innerHTML=`
+      <div class="toggle-block-header" onclick="this.parentElement.querySelector('.toggle-block-arrow').classList.toggle('open');this.parentElement.querySelector('.toggle-block-body').classList.toggle('open');this.parentElement.__isOpen=!this.parentElement.__isOpen">
+        <span class="toggle-block-arrow${isOpen?' open':''}">▶</span>
+        <div class="toggle-block-title" contenteditable="${!this.readOnly}" placeholder="Toggle title…" data-field="title">${this.data.title}</div>
+      </div>
+      <div class="toggle-block-body${isOpen?' open':''}" contenteditable="${!this.readOnly}" placeholder="Toggle content (click ▶ to expand/collapse)…" data-field="body">${this.data.body}</div>`;
+    this.wrapper.__isOpen=isOpen;
+    // Prevent header click from firing when editing title
+    this.wrapper.querySelector('.toggle-block-title').addEventListener('click',e=>e.stopPropagation());
+  }
+  save(el){
+    return{
+      title:el.querySelector('[data-field="title"]')?.innerHTML||'',
+      body: el.querySelector('[data-field="body"]')?.innerHTML||'',
+      isOpen:el.__isOpen!==undefined?el.__isOpen:true
+    };
+  }
+  static get pasteConfig(){ return {tags:[]}; }
 }
 
 async function initBlockEditor(holderId, savedData, onChange){
