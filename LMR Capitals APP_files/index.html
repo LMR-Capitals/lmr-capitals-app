@@ -3200,15 +3200,19 @@ async function getImg(k){
   await openDB();
   const local=await new Promise(res=>{const t=db.transaction(STORE,'readonly');const r=t.objectStore(STORE).get(k);r.onsuccess=()=>res(r.result)});
   if(local) return local;
-  // Fallback: try Supabase Storage
-  if(_sb&&_sbUserId){
+  // Fallback: use direct PUBLIC URL fetch (more reliable than SDK download)
+  if(_sbUserId){
     try{
       const fileName=`${_sbUserId}/${encodeURIComponent(k)}`;
-      const {data}=await _sb.storage.from(SB_IMG_BUCKET).download(fileName);
-      if(data){
-        // Save locally for next time
-        await new Promise((res,rej)=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(data,k);t.oncomplete=res;t.onerror=res});
-        return data;
+      const publicUrl=SB_IMG_URL+fileName;
+      const resp=await fetch(publicUrl);
+      if(resp.ok){
+        const blob=await resp.blob();
+        if(blob.size>0){
+          // Cache in IndexedDB for next time
+          await new Promise(res=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(blob,k);t.oncomplete=res;t.onerror=res});
+          return blob;
+        }
       }
     }catch(e){}
   }
@@ -3250,28 +3254,83 @@ async function syncAllImagesToCloud(){
 // ── RESTORE ALL IMAGES FROM CLOUD ──────────────────────────────
 // Downloads all images from Supabase Storage back to IndexedDB
 async function restoreAllImagesFromCloud(){
-  if(!_sb||!_sbUserId){flash('⚠ Sign in first');return;}
+  if(!_sbUserId){flash('⚠ Sign in first');return;}
   flash('⟳ Restoring images from cloud…');
   try{
+    // Use Supabase API to list files (still needs SDK for listing)
     const{data:files,error}=await _sb.storage.from(SB_IMG_BUCKET).list(`${_sbUserId}/`,{limit:1000});
-    if(error||!files){flash('No images found in cloud');return;}
+    if(error||!files||!files.length){flash('No images found in cloud');return;}
+
     let done=0;
+    let skipped=0;
+    await openDB();
+
     for(const file of files){
       const key=decodeURIComponent(file.name);
-      await openDB(); // ensure db is open before transaction
-      const existing=await new Promise((res,rej)=>{try{const t=db.transaction(STORE,'readonly');const r=t.objectStore(STORE).get(key);r.onsuccess=()=>res(r.result);r.onerror=()=>res(null);}catch(e){res(null);}});
-      if(!existing){
-        const{data}=await _sb.storage.from(SB_IMG_BUCKET).download(`${_sbUserId}/${file.name}`);
-        if(data){
-          await new Promise((res,rej)=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(data,key);t.oncomplete=res;t.onerror=res});
-          done++;
+      // Check if already in local IndexedDB
+      const existing=await new Promise(res=>{try{const t=db.transaction(STORE,'readonly');const r=t.objectStore(STORE).get(key);r.onsuccess=()=>res(r.result);r.onerror=()=>res(null);}catch(e){res(null);}});
+      if(existing){skipped++;continue;}
+
+      // Download via direct public URL (more reliable)
+      try{
+        const publicUrl=SB_IMG_URL+`${_sbUserId}/${file.name}`;
+        const resp=await fetch(publicUrl);
+        if(resp.ok){
+          const blob=await resp.blob();
+          if(blob.size>0){
+            await new Promise(res=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(blob,key);t.oncomplete=res;t.onerror=res});
+            done++;
+          }
         }
-      }
+      }catch(e){}
     }
-    // Re-render all image zones
+
+    // Re-render ALL image zones so restored images appear
     document.querySelectorAll('.img-zone').forEach(z=>renderImgZone(z));
-    flash(`✅ ${done} images restored from cloud`);
+    flash(`✅ ${done} images restored from cloud (${skipped} already cached)`);
+
   }catch(e){flash('Restore error: '+e.message);}
+}
+
+// ── AUTO-RESTORE IMAGES ON LOGIN (new device) ──────────────────
+// Called after login — silently downloads all cloud images to IndexedDB
+async function autoRestoreImagesOnLogin(){
+  if(!_sbUserId) return;
+  try{
+    const localKeys=await allImgKeys();
+    const{data:files}=await _sb.storage.from(SB_IMG_BUCKET).list(`${_sbUserId}/`,{limit:1000});
+    if(!files||!files.length) return;
+
+    // Find images in cloud but not local
+    const cloudKeys=new Set(files.map(f=>decodeURIComponent(f.name)));
+    const missing=files.filter(f=>!localKeys.includes(decodeURIComponent(f.name)));
+    if(!missing.length) return;
+
+    console.log(`[LMR] Auto-restoring ${missing.length} images from cloud...`);
+    await openDB();
+    let done=0;
+    for(const file of missing){
+      const key=decodeURIComponent(file.name);
+      try{
+        const resp=await fetch(SB_IMG_URL+`${_sbUserId}/${file.name}`);
+        if(resp.ok){
+          const blob=await resp.blob();
+          if(blob.size>0){
+            await new Promise(res=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(blob,key);t.oncomplete=res;t.onerror=res});
+            done++;
+          }
+        }
+      }catch(e){}
+    }
+    if(done>0){
+      console.log(`[LMR] Auto-restored ${done} images`);
+      // Re-render all visible image zones
+      document.querySelectorAll('.img-zone').forEach(z=>renderImgZone(z));
+      setSbStatus(`✓ ${done} images restored from cloud`,'var(--bull)');
+    }
+  }catch(e){
+    console.warn('[LMR] Auto image restore failed:',e.message);
+  }
 }
 
 // ============= STATE =============
@@ -7088,6 +7147,9 @@ function lgUnlock(user){
     if(state.profile?.theme)setTheme(state.profile.theme);
     else setTheme('navy-gold');
     updateSidebarProfile();
+    // Auto-restore any images from cloud that aren't in local IndexedDB
+    // Runs silently in background — re-renders image zones when done
+    setTimeout(()=>autoRestoreImagesOnLogin(), 2000);
   });
 }
 
