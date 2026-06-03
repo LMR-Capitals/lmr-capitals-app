@@ -2110,20 +2110,80 @@ Midnight Open $______"></textarea>
 <!-- PERFORMANCE -->
 <div class="panel" id="p-perf">
 <div class="panel-inner">
-  <div class="dash-grid">
-    <div class="tile pur"><div class="tile-l">Total trades</div><div class="tile-v" id="p-total">0</div></div>
-    <div class="tile pos"><div class="tile-l">Win Rate</div><div class="tile-v" id="p-wr">0%</div></div>
-    <div class="tile"><div class="tile-l">Net P&amp;L</div><div class="tile-v" id="p-pnl">$0</div></div>
-    <div class="tile gold"><div class="tile-l">Best Trade</div><div class="tile-v" id="p-best">$0</div></div>
+
+  <!-- ── STATS ROW 1: Core metrics ── -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px" id="perf-stats-1">
+    <div class="tile pur"><div class="tile-l">📊 Total Trades</div><div class="tile-v" id="p-total">0</div></div>
+    <div class="tile pos"><div class="tile-l">🎯 Win Rate</div><div class="tile-v" id="p-wr">0%</div><div class="tile-sub" id="p-wl">0W · 0L</div></div>
+    <div class="tile"><div class="tile-l">💰 Net P&L</div><div class="tile-v" id="p-pnl">$0</div><div class="tile-sub" id="p-pnl-sub">all trades</div></div>
+    <div class="tile gold"><div class="tile-l">⚡ Avg R:R</div><div class="tile-v" id="p-rr">0</div></div>
   </div>
+
+  <!-- ── STATS ROW 2: Risk & Edge metrics ── -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px" id="perf-stats-2">
+    <div class="tile"><div class="tile-l">📈 Profit Factor</div><div class="tile-v" id="p-pf">0</div><div class="tile-sub">gross profit / gross loss</div></div>
+    <div class="tile neg"><div class="tile-l">📉 Max Drawdown</div><div class="tile-v" id="p-dd">$0</div><div class="tile-sub" id="p-dd-pct">0% from peak</div></div>
+    <div class="tile pos"><div class="tile-l">🏆 Avg Win</div><div class="tile-v" id="p-avgwin">$0</div><div class="tile-sub" id="p-best">best: $0</div></div>
+    <div class="tile neg"><div class="tile-l">💸 Avg Loss</div><div class="tile-v" id="p-avgloss">$0</div><div class="tile-sub" id="p-worst">worst: $0</div></div>
+  </div>
+
+  <!-- ── STATS ROW 3: Expectancy + timing ── -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px" id="perf-stats-3">
+    <div class="tile gold"><div class="tile-l">🧮 Expectancy</div><div class="tile-v" id="p-exp">$0</div><div class="tile-sub">per trade edge</div></div>
+    <div class="tile"><div class="tile-l">📅 Best Day</div><div class="tile-v sm" id="p-bestday">—</div><div class="tile-sub" id="p-bestday-pnl">—</div></div>
+    <div class="tile neg"><div class="tile-l">📅 Worst Day</div><div class="tile-v sm" id="p-worstday">—</div><div class="tile-sub" id="p-worstday-pnl">—</div></div>
+    <div class="tile"><div class="tile-l">⏱ Avg Trades/Day</div><div class="tile-v" id="p-tpd">0</div><div class="tile-sub" id="p-active-days">active days</div></div>
+  </div>
+
+  <!-- ── AI REVIEW BUTTON ── -->
+  <div style="margin-bottom:20px;display:flex;gap:10px;align-items:center">
+    <button onclick="perfAIReview()" style="padding:10px 20px;background:linear-gradient(135deg,rgba(245,166,35,.15),rgba(245,166,35,.08));border:1px solid rgba(245,166,35,.3);border-radius:10px;color:var(--gold);font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px">
+      ✦ AI Performance Review
+    </button>
+    <span style="font-size:11px;color:var(--text3)">Get AI analysis of your trading patterns and specific improvements</span>
+  </div>
+
+  <!-- ── AI REVIEW PANEL (hidden by default) ── -->
+  <div id="perf-ai-panel" style="display:none;margin-bottom:20px;padding:16px 20px;background:rgba(245,166,35,.04);border:1px solid rgba(245,166,35,.2);border-radius:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <span style="font-weight:700;color:var(--gold)">✦ AI Trading Analysis</span>
+      <button onclick="document.getElementById('perf-ai-panel').style.display='none'" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px">×</button>
+    </div>
+    <div id="perf-ai-content" style="font-size:13px;color:var(--text2);line-height:1.7"></div>
+  </div>
+
+  <!-- ── CHARTS SECTION HEADER ── -->
+  <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+    <span>📊 Live Analytics</span>
+    <div style="flex:1;height:1px;background:var(--border)"></div>
+    <span style="font-weight:400;font-size:10px" id="perf-trade-count">0 trades analyzed</span>
+  </div>
+
+  <!-- ── CHARTS GRID ── -->
   <div class="chart-grid">
-    <div class="chart-card"><div class="chart-title">P&amp;L by Model</div><div class="chart-canvas"><canvas id="ch-model"></canvas></div></div>
-    <div class="chart-card"><div class="chart-title">Trades by Emotion</div><div class="chart-canvas"><canvas id="ch-emotion"></canvas></div></div>
-    <div class="chart-card"><div class="chart-title">P&amp;L by Day</div><div class="chart-canvas"><canvas id="ch-day"></canvas></div></div>
     <div class="chart-card"><div class="chart-title">Equity Curve</div><div class="chart-canvas"><canvas id="ch-trend"></canvas></div></div>
-    <div class="chart-card"><div class="chart-title">P&amp;L by Time Period</div><div class="chart-canvas"><canvas id="ch-time"></canvas></div></div>
-    <div class="chart-card"><div class="chart-title">P&amp;L by Session</div><div class="chart-canvas"><canvas id="ch-session"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Monthly P&L</div><div class="chart-canvas"><canvas id="ch-monthly-pnl"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">P&L by Model</div><div class="chart-canvas"><canvas id="ch-model"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Win Rate by Model (%)</div><div class="chart-canvas"><canvas id="ch-model-wr"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">P&L by Day (Mon–Fri)</div><div class="chart-canvas"><canvas id="ch-day"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">P&L by Session</div><div class="chart-canvas"><canvas id="ch-session"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Long vs Short</div><div class="chart-canvas"><canvas id="ch-direction"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">HTF Delivered vs Undelivered</div><div class="chart-canvas"><canvas id="ch-htf"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Emotions (trade count)</div><div class="chart-canvas"><canvas id="ch-emotion"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">P&L by Open Time (hour)</div><div class="chart-canvas"><canvas id="ch-hour"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Drawdown Curve</div><div class="chart-canvas"><canvas id="ch-drawdown"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">P&L by Time Period</div><div class="chart-canvas"><canvas id="ch-time"></canvas></div></div>
   </div>
+
+  <!-- ── PATTERNS & IMPROVEMENT TABLE ── -->
+  <div style="margin-top:24px" id="perf-patterns">
+    <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+      <span>🔍 Pattern Analysis</span>
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+    </div>
+    <div id="perf-patterns-content" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
+  </div>
+
 </div>
 </div>
 
@@ -5646,31 +5706,261 @@ function renderDashCharts(){
 let perfCharts={};
 function renderPerfCharts(){
   const ts=state.trades;
-  const wins=ts.filter(t=>t.win).length;
-  const wr=ts.length?Math.round(wins/ts.length*100):0;
-  const pnl=ts.reduce((s,t)=>s+t.pnl,0);
-  const best=ts.length?Math.max(...ts.map(t=>t.pnl)):0;
-  document.getElementById('p-total').textContent=ts.length;
-  document.getElementById('p-wr').textContent=wr+'%';
-  document.getElementById('p-pnl').textContent=(pnl>=0?'+':'-')+'$'+Math.abs(pnl).toFixed(2);
-  document.getElementById('p-best').textContent='+$'+best.toFixed(2);
+  if(!ts.length) return;
+
+  // ── CORE STATS ──
+  const wins=ts.filter(t=>t.pnl>0);
+  const losses=ts.filter(t=>t.pnl<0);
+  const wr=Math.round(wins.length/ts.length*100);
+  const netPnl=ts.reduce((s,t)=>s+t.pnl,0);
+  const grossProfit=wins.reduce((s,t)=>s+t.pnl,0);
+  const grossLoss=Math.abs(losses.reduce((s,t)=>s+t.pnl,0));
+  const pf=grossLoss>0?(grossProfit/grossLoss).toFixed(2):'∞';
+  const avgWin=wins.length?grossProfit/wins.length:0;
+  const avgLoss=losses.length?grossLoss/losses.length:0;
+  const expectancy=(wr/100*avgWin)-((1-wr/100)*avgLoss);
+  const rrs=ts.filter(t=>t.risk>0&&t.rr).map(t=>parseFloat(t.rr));
+  const avgRR=rrs.length?(rrs.reduce((a,b)=>a+b)/rrs.length).toFixed(2):'—';
+
+  // Max drawdown
+  const sorted=[...ts].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  let peak=0,maxDD=0;let run=0;
+  sorted.forEach(t=>{run+=t.pnl;if(run>peak)peak=run;const dd=peak-run;if(dd>maxDD)maxDD=dd;});
+
+  // Best/Worst Day
+  const byDatePnl={};
+  ts.forEach(t=>{const d=(t.date||'').slice(0,10);if(d)byDatePnl[d]=(byDatePnl[d]||0)+t.pnl;});
+  const dateEntries=Object.entries(byDatePnl).sort((a,b)=>a[0].localeCompare(b[0]));
+  const bestEntry=dateEntries.reduce((a,b)=>b[1]>a[1]?b:a,['—',0]);
+  const worstEntry=dateEntries.reduce((a,b)=>b[1]<a[1]?b:a,['—',0]);
+  const activeDays=dateEntries.length;
+  const tpd=activeDays?+(ts.length/activeDays).toFixed(1):0;
+
+  // ── UPDATE STAT TILES ──
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set('p-total',ts.length);
+  set('p-wr',wr+'%');
+  set('p-wl',wins.length+'W · '+losses.length+'L');
+  set('p-pnl',(netPnl>=0?'+':'-')+'$'+Math.abs(netPnl).toFixed(2));
+  set('p-pnl-sub',ts.length+' trades');
+  set('p-rr',avgRR);
+  set('p-pf',pf);
+  set('p-dd','-$'+maxDD.toFixed(2));
+  set('p-dd-pct',peak>0?Math.round(maxDD/peak*100)+'% from peak':'—');
+  set('p-avgwin','+$'+avgWin.toFixed(2));
+  set('p-best','best: +$'+(wins.length?Math.max(...wins.map(t=>t.pnl)).toFixed(2):'0'));
+  set('p-avgloss','-$'+avgLoss.toFixed(2));
+  set('p-worst','worst: -$'+(losses.length?Math.abs(Math.min(...losses.map(t=>t.pnl))).toFixed(2):'0'));
+  set('p-exp',(expectancy>=0?'+':'')+expectancy.toFixed(2));
+  set('p-bestday',bestEntry[0]);
+  set('p-bestday-pnl','+$'+bestEntry[1].toFixed(2));
+  set('p-worstday',worstEntry[0]);
+  set('p-worstday-pnl','-$'+Math.abs(worstEntry[1]).toFixed(2));
+  set('p-tpd',tpd);
+  set('p-active-days',activeDays+' active days');
+  set('perf-trade-count',ts.length+' trades analyzed');
+
+  // Color the net P&L tile
+  const pnlTile=document.getElementById('p-pnl');
+  if(pnlTile){pnlTile.style.color=netPnl>=0?'var(--bull)':'var(--bear)';}
+
+  // ── CHARTS ──
   setTimeout(()=>{
-    if(!window.Chart)return;
-    const byModel={};ts.forEach(t=>{const m=t.models?.[0]||'?';byModel[m]=(byModel[m]||0)+t.pnl});
+    if(!window.Chart) return;
+
+    // 1. Equity Curve
+    const cumPnl=[];let c=0;
+    sorted.forEach(t=>{c+=t.pnl;cumPnl.push(c)});
+    drawLine('ch-trend',sorted.map((_,i)=>i+1),cumPnl);
+
+    // 2. Monthly P&L
+    const byMonth={};
+    ts.forEach(t=>{const m=(t.date||'').slice(0,7);if(m)byMonth[m]=(byMonth[m]||0)+t.pnl;});
+    const months=Object.keys(byMonth).sort();
+    const MSHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    drawBar('ch-monthly-pnl',months.map(m=>MSHORT[parseInt(m.split('-')[1])-1]+' '+m.split('-')[0].slice(2)),months.map(m=>byMonth[m]));
+
+    // 3. P&L by Model
+    const byModel={};ts.forEach(t=>{const m=t.models?.[0]||'?';byModel[m]=(byModel[m]||0)+t.pnl;});
     drawBar('ch-model',Object.keys(byModel),Object.values(byModel));
-    const byEm={};ts.forEach(t=>{(t.emotions||['?']).forEach(e=>{byEm[e]=(byEm[e]||0)+1})});
-    drawDonut('ch-emotion',Object.keys(byEm),Object.values(byEm));
-    const days=['Mon','Tue','Wed','Thu','Fri'];const byDay=days.map(()=>0);ts.forEach(t=>{const d=new Date(t.date+'T12:00').getDay();if(d>=1&&d<=5)byDay[d-1]+=t.pnl});
+
+    // 4. Win Rate by Model
+    const modelWR={};const modelTotal={};
+    ts.forEach(t=>{const m=t.models?.[0]||'?';modelTotal[m]=(modelTotal[m]||0)+1;if(t.pnl>0)modelWR[m]=(modelWR[m]||0)+1;});
+    const models=Object.keys(modelTotal);
+    drawBar('ch-model-wr',models,models.map(m=>Math.round((modelWR[m]||0)/modelTotal[m]*100)),true,'%');
+
+    // 5. P&L by Day
+    const days=['Mon','Tue','Wed','Thu','Fri'];const byDay=days.map(()=>0);
+    ts.forEach(t=>{const d=new Date((t.date||'')+'T12:00').getDay();if(d>=1&&d<=5)byDay[d-1]+=t.pnl;});
     drawBar('ch-day',days,byDay);
-    const sorted=[...ts].sort((a,b)=>new Date(a.date)-new Date(b.date));const cum=[];let run=0;sorted.forEach(t=>{run+=t.pnl;cum.push(run)});
-    drawLine('ch-trend',sorted.map((_,i)=>i+1),cum);
-    const byTime={};ts.forEach(t=>{if(t.timePeriod){byTime[t.timePeriod]=(byTime[t.timePeriod]||0)+t.pnl}});
-    drawBar('ch-time',Object.keys(byTime).map(k=>k.length>14?k.slice(0,14)+'...':k),Object.values(byTime));
-    const bySess={};ts.forEach(t=>{const s=t.session||'?';bySess[s]=(bySess[s]||0)+t.pnl});
+
+    // 6. P&L by Session
+    const bySess={};ts.forEach(t=>{const s=t.session||'?';bySess[s]=(bySess[s]||0)+t.pnl;});
     drawBar('ch-session',Object.keys(bySess),Object.values(bySess));
+
+    // 7. Long vs Short
+    const longPnl=ts.filter(t=>t.position==='Long').reduce((s,t)=>s+t.pnl,0);
+    const shortPnl=ts.filter(t=>t.position==='Short').reduce((s,t)=>s+t.pnl,0);
+    const longWR=ts.filter(t=>t.position==='Long').length?Math.round(ts.filter(t=>t.position==='Long'&&t.pnl>0).length/ts.filter(t=>t.position==='Long').length*100):0;
+    const shortWR=ts.filter(t=>t.position==='Short').length?Math.round(ts.filter(t=>t.position==='Short'&&t.pnl>0).length/ts.filter(t=>t.position==='Short').length*100):0;
+    drawBar('ch-direction',['Long ('+longWR+'%WR)','Short ('+shortWR+'%WR)'],[longPnl,shortPnl]);
+
+    // 8. HTF Delivered vs Undelivered
+    const htfD=ts.filter(t=>t.htf==='Delivered');
+    const htfU=ts.filter(t=>t.htf==='Undelivered'||t.htf==='Not Delivered');
+    const htfDPnl=htfD.reduce((s,t)=>s+t.pnl,0);
+    const htfUPnl=htfU.reduce((s,t)=>s+t.pnl,0);
+    const htfDWR=htfD.length?Math.round(htfD.filter(t=>t.pnl>0).length/htfD.length*100):0;
+    const htfUWR=htfU.length?Math.round(htfU.filter(t=>t.pnl>0).length/htfU.length*100):0;
+    drawBar('ch-htf',['Delivered ('+htfDWR+'%WR)','Undelivered ('+htfUWR+'%WR)'],[htfDPnl,htfUPnl]);
+
+    // 9. Emotions
+    const byEm={};ts.forEach(t=>{(t.emotions||['—']).forEach(e=>{byEm[e]=(byEm[e]||0)+1});});
+    drawDonut('ch-emotion',Object.keys(byEm),Object.values(byEm));
+
+    // 10. P&L by Open Hour
+    const byHour={};
+    ts.forEach(t=>{
+      const ot=t.openTime||'';
+      if(ot&&ot.includes(':')){ const h=parseInt(ot.split(':')[0]); if(!isNaN(h)){const lbl=h+':00';byHour[lbl]=(byHour[lbl]||0)+t.pnl;} }
+    });
+    const hours=Object.keys(byHour).sort((a,b)=>parseInt(a)-parseInt(b));
+    if(hours.length) drawBar('ch-hour',hours,hours.map(h=>byHour[h]));
+    else drawBar('ch-hour',['No time data'],[0]);
+
+    // 11. Drawdown Curve
+    const ddCurve=[];let pk=0;let runDD=0;
+    sorted.forEach(t=>{runDD+=t.pnl;if(runDD>pk)pk=runDD;ddCurve.push(pk-runDD);});
+    drawLine('ch-drawdown',sorted.map((_,i)=>i+1),ddCurve.map(v=>-v),'dd');
+
+    // 12. P&L by Time Period
+    const byTime={};ts.forEach(t=>{if(t.timePeriod){byTime[t.timePeriod]=(byTime[t.timePeriod]||0)+t.pnl;}});
+    if(Object.keys(byTime).length) drawBar('ch-time',Object.keys(byTime).map(k=>k.length>14?k.slice(0,14)+'…':k),Object.values(byTime));
+
   },50);
+
+  // ── PATTERN ANALYSIS TABLE ──
+  renderPerfPatterns(ts,wr,wins,losses,avgWin,avgLoss,expectancy,pf);
 }
-function drawBar(id,labels,data){if(perfCharts[id])perfCharts[id].destroy();const ctx=document.getElementById(id);if(!ctx)return;if(!data.length){data=[0];labels=['No data']}perfCharts[id]=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data,backgroundColor:data.map(v=>v>=0?'#5dba80':'#d45c5c'),borderRadius:3}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#9a9690',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#9a9690',font:{size:9},callback:v=>'$'+v},grid:{color:'#262626'}}}}})}
+
+function renderPerfPatterns(ts,wr,wins,losses,avgWin,avgLoss,expectancy,pf){
+  const el=document.getElementById('perf-patterns-content');
+  if(!el) return;
+
+  // Identify key patterns
+  const byModel={};const modelWR={};const modelTotal={};
+  ts.forEach(t=>{const m=t.models?.[0]||'?';modelTotal[m]=(modelTotal[m]||0)+1;byModel[m]=(byModel[m]||0)+t.pnl;if(t.pnl>0)modelWR[m]=(modelWR[m]||0)+1;});
+  const bestModel=Object.keys(byModel).sort((a,b)=>byModel[b]-byModel[a])[0];
+  const worstModel=Object.keys(byModel).sort((a,b)=>byModel[a]-byModel[b])[0];
+
+  const bySess={};const sessWR={};const sessTotal={};
+  ts.forEach(t=>{const s=t.session||'?';sessTotal[s]=(sessTotal[s]||0)+1;bySess[s]=(bySess[s]||0)+t.pnl;if(t.pnl>0)sessWR[s]=(sessWR[s]||0)+1;});
+  const bestSess=Object.keys(bySess).sort((a,b)=>bySess[b]-bySess[a])[0];
+
+  const revengeCount=ts.filter(t=>(t.emotions||[]).some(e=>e.toLowerCase().includes('revang')||e.toLowerCase().includes('revenge'))).length;
+  const htfUndeliv=ts.filter(t=>t.htf==='Undelivered');
+  const htfUndelivLoss=htfUndeliv.filter(t=>t.pnl<0).length;
+
+  const patterns=[
+    {
+      icon: bestModel?'✅':'—',
+      title: 'Best Model: '+bestModel,
+      value: '+$'+(byModel[bestModel]||0).toFixed(0)+' · '+(modelTotal[bestModel]||0)+' trades',
+      desc: 'Win rate: '+Math.round((modelWR[bestModel]||0)/(modelTotal[bestModel]||1)*100)+'% — Focus more on this setup.',
+      color:'var(--bull)'
+    },
+    {
+      icon: worstModel&&worstModel!==bestModel?'⚠️':'—',
+      title: 'Weakest Model: '+worstModel,
+      value: '$'+(byModel[worstModel]||0).toFixed(0)+' · '+(modelTotal[worstModel]||0)+' trades',
+      desc: 'Win rate: '+Math.round((modelWR[worstModel]||0)/(modelTotal[worstModel]||1)*100)+'% — Consider reducing size or avoiding.',
+      color:'var(--bear)'
+    },
+    {
+      icon: revengeCount>2?'🔴':'🟢',
+      title: 'Revenge Trading',
+      value: revengeCount+' revenge trades',
+      desc: revengeCount>2?'You revenge traded '+revengeCount+' times. Each costs you on avg $'+Math.abs(ts.filter(t=>(t.emotions||[]).some(e=>e.toLowerCase().includes('revang'))).reduce((s,t)=>s+t.pnl,0)/Math.max(revengeCount,1)).toFixed(0)+'. Stop after 2 losses.':'Revenge trading is under control. Stay disciplined.',
+      color: revengeCount>2?'var(--bear)':'var(--bull)'
+    },
+    {
+      icon: bestSess?'📊':'—',
+      title: 'Best Session: '+bestSess,
+      value: '+$'+(bySess[bestSess]||0).toFixed(0),
+      desc: 'Win rate: '+Math.round((sessWR[bestSess]||0)/(sessTotal[bestSess]||1)*100)+'% — Trade most in '+bestSess+' session.',
+      color:'var(--bull)'
+    },
+    {
+      icon: parseFloat(pf)>1?'✅':'⚠️',
+      title: 'Profit Factor: '+pf,
+      value: 'Expectancy: $'+expectancy.toFixed(2)+' per trade',
+      desc: parseFloat(pf)>1?'You have a positive edge. Profit factor above 1.0 means gross profits exceed gross losses.':'Profit factor below 1.0. Focus on either improving win rate or letting winners run longer.',
+      color: parseFloat(pf)>1?'var(--bull)':'var(--bear)'
+    },
+    {
+      icon: htfUndeliv.length>5?'⚠️':'✅',
+      title: 'HTF Undelivered: '+htfUndeliv.length+' trades',
+      value: htfUndelivLoss+' losses from undelivered HTF',
+      desc: htfUndeliv.length>5?'You traded '+htfUndeliv.length+' times without HTF delivery. Wait for HTF to deliver before entering.':'You mostly trade when HTF delivers. Good discipline.',
+      color: htfUndeliv.length>5?'var(--bear)':'var(--bull)'
+    }
+  ];
+
+  el.innerHTML=patterns.map(p=>`
+    <div style="padding:12px 16px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;border-left:3px solid ${p.color}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <span style="font-size:14px">${p.icon}</span>
+        <span style="font-size:12px;font-weight:700;color:var(--text)">${p.title}</span>
+        <span style="margin-left:auto;font-size:11px;font-weight:600;color:${p.color}">${p.value}</span>
+      </div>
+      <div style="font-size:11px;color:var(--text3);line-height:1.5">${p.desc}</div>
+    </div>
+  `).join('');
+}
+
+async function perfAIReview(){
+  if(!getAIKey()){flash('⚠ Add your Claude API key in Settings → AI');return;}
+  const btn=event?.target;
+  if(btn){btn.textContent='✦ Analyzing…';btn.disabled=true;}
+  const panel=document.getElementById('perf-ai-panel');
+  const content=document.getElementById('perf-ai-content');
+  if(panel) panel.style.display='block';
+  if(content) content.innerHTML='<div style="display:flex;gap:4px;padding:8px 0"><span style="width:6px;height:6px;border-radius:50%;background:var(--gold);animation:aiPulse 1.2s ease infinite"></span><span style="width:6px;height:6px;border-radius:50%;background:var(--gold);animation:aiPulse 1.2s ease infinite;animation-delay:.2s"></span><span style="width:6px;height:6px;border-radius:50%;background:var(--gold);animation:aiPulse 1.2s ease infinite;animation-delay:.4s"></span></div>';
+
+  const ctx = buildTradingContext();
+  const result = await callClaude([{role:'user',content:`Generate a comprehensive performance review covering:
+1. My biggest strengths (what's working)
+2. My biggest weaknesses (what's costing me money)
+3. Top 3 specific, actionable improvements I should make this week
+4. One thing to STOP doing immediately
+
+Context:
+${ctx}`}],'report');
+
+  if(result && content){
+    content.innerHTML='<div style="font-size:13px;color:var(--text2);line-height:1.7">'+formatAIResponse(result)+'</div>';
+  }
+  if(btn){btn.textContent='✦ AI Performance Review';btn.disabled=false;}
+}
+
+function drawBar(id,labels,data,isPercent=false,suffix=''){
+  if(perfCharts[id])perfCharts[id].destroy();
+  const ctx=document.getElementById(id);if(!ctx)return;
+  if(!data.length){data=[0];labels=['No data'];}
+  perfCharts[id]=new Chart(ctx,{
+    type:'bar',
+    data:{labels,datasets:[{data,backgroundColor:data.map(v=>v>=0?'rgba(0,212,164,.75)':'rgba(255,64,96,.75)'),borderRadius:4,borderSkipped:false}]},
+    options:{
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>isPercent?ctx.raw+'%':'$'+ctx.raw.toFixed(0)}}},
+      scales:{
+        x:{ticks:{color:'#7A9AC0',font:{size:9},maxRotation:30},grid:{display:false}},
+        y:{ticks:{color:'#7A9AC0',font:{size:9},callback:v=>isPercent?v+'%':'$'+v},grid:{color:'rgba(255,255,255,.05)'}}
+      }
+    }
+  });
+}
 function drawDonut(id,labels,data){if(perfCharts[id])perfCharts[id].destroy();const ctx=document.getElementById(id);if(!ctx)return;if(!data.length){data=[1];labels=['No data']}perfCharts[id]=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:['#5dba80','#c8a84b','#9b8aff','#d45c5c','#5d9ee8','#c49b4a','#888'],borderColor:'#141414',borderWidth:2}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#9a9690',font:{size:9},boxWidth:8}}}}})}
 function drawLine(id,labels,data){if(perfCharts[id])perfCharts[id].destroy();if(dashCharts[id])dashCharts[id].destroy();const ctx=document.getElementById(id);if(!ctx)return;if(!data.length){data=[0];labels=['0']}const last=data[data.length-1]||0;const chart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data,borderColor:last>=0?'#5dba80':'#d45c5c',backgroundColor:last>=0?'rgba(93,186,128,0.1)':'rgba(212,92,92,0.1)',fill:true,tension:0.3,pointRadius:0}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#9a9690',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#9a9690',font:{size:9},callback:v=>'$'+v},grid:{color:'#262626'}}}}});if(id.startsWith('dash'))dashCharts[id]=chart;else perfCharts[id]=chart}
 
