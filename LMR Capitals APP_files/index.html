@@ -1125,9 +1125,8 @@ select option[value="PM"] { color: #5BA8FF; }
     <div class="sb-sec">Knowledge</div>
     <button class="sb-item" data-panel="notes"><span class="sb-icon">✦</span> Journal</button>
     <button class="sb-item" data-panel="terminology"><span class="sb-icon">◧</span> LMR Terminology</button>
-    <button class="sb-item" data-panel="canvas"><span class="sb-icon" style="color:var(--gold)">✎</span> <span style="color:var(--gold)">Canvas</span></button>
-    <button class="sb-item" data-panel="observation"><span class="sb-icon">👁</span> Observation</button>
     <button class="sb-item" data-panel="psychology"><span class="sb-icon">◈</span> LMR Psychology</button>
+    <button class="sb-item" data-panel="observation"><span class="sb-icon">👁</span> LMR Observation</button>
     <div class="sb-sec">AI</div>
     <button class="sb-item" data-panel="ai-coach" style="background:linear-gradient(90deg,rgba(245,166,35,.08),transparent)"><span class="sb-icon" style="color:var(--gold)">✦</span> <span style="color:var(--gold);font-weight:700">AI Coach</span></button>
     <button class="sb-item" data-panel="reports"><span class="sb-icon">📊</span> Reports</button>
@@ -2075,15 +2074,26 @@ Midnight Open $______"></textarea>
 
 <!-- LMR TERMINOLOGY -->
 <div class="panel" id="p-terminology">
-<div class="panel-inner">
-  <div class="card">
-    <div class="card-head">
-      <span class="card-tag t-m">📖 LMR Terminology</span>
-      <div class="card-title">Free-form knowledge base — write anything</div>
+<div style="height:100%;display:flex;flex-direction:column;background:var(--bg)">
+  <!-- Sticky topbar -->
+  <div style="padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:50">
+    <span style="font-size:20px">📖</span>
+    <div>
+      <div style="font-size:17px;font-weight:800;color:var(--text)">LMR Terminology</div>
+      <div style="font-size:11px;color:var(--text3)">ICT concepts · PD Arrays · Key levels · Model explanations</div>
     </div>
-    <div class="card-body" style="padding:0">
-      <div class="lmr-page-wrap">
-        <div class="lmr-page-toolbar" style="gap:3px;flex-wrap:wrap">
+    <span class="canvas-status" id="terminology-status" style="margin-left:auto">type / for commands</span>
+    <button class="btn btn-primary btn-sm" onclick="lmrBlockSave('terminology')">💾 Save</button>
+  </div>
+  <!-- Block editor -->
+  <div style="flex:1;overflow-y:auto;padding:0 40px">
+    <div id="terminology-block-editor" style="max-width:900px;margin:0 auto;padding:20px 0 100px;min-height:600px"></div>
+  </div>
+</div>
+<!-- KEEP old contenteditable hidden for backwards compat -->
+<div style="display:none">
+  <div class="lmr-page-wrap" style="display:none">
+    <div class="lmr-page-toolbar" style="gap:3px;flex-wrap:wrap;display:none">
           <button class="btn btn-sm" onclick="lmrFmt('h1')" title="Heading 1">H1</button>
           <button class="btn btn-sm" onclick="lmrFmt('h2')" title="Heading 2">H2</button>
           <button class="btn btn-sm" onclick="lmrFmt('h3')" title="Heading 3">H3</button>
@@ -2111,25 +2121,10 @@ Midnight Open $______"></textarea>
             <option value="20px">20</option><option value="24px">24</option>
           </select>
           <input type="color" title="Text color" onchange="lmrSetColor(this.value,'terminology')" style="width:28px;height:28px;padding:2px;border-radius:4px;border:1px solid var(--border);background:var(--bg4);cursor:pointer">
-          <button class="btn btn-sm" onclick="lmrInsertImg('terminology')" style="color:var(--gold)">🖼 Image</button>
-          <button class="btn btn-sm" onclick="lmrInsertFile('terminology')" style="color:var(--blue)">📎 File</button>
-          <span style="font-size:9px;color:var(--text3);margin-left:4px">/ for slash menu</span>
+          <!-- hidden legacy toolbar content -->
         </div>
-        <div class="lmr-page-content" id="terminology-content" contenteditable="true" spellcheck="false" data-page="terminology"
-          placeholder="Start writing LMR terminology, concepts, PD arrays, key levels, model explanations…">
-        </div>
-        <div class="lmr-save-row" style="padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg3)">
-          <span style="font-size:10px;color:var(--text3)" id="terminology-saved">Not saved</span>
-          <button class="btn btn-primary btn-sm" onclick="saveLmrPage('terminology')">💾 Save</button>
-        </div>
+        <div class="lmr-page-content" id="terminology-content" contenteditable="false" spellcheck="false" data-page="terminology" style="display:none"></div>
       </div>
-    </div>
-  </div>
-  <!-- Image zone for paste-in -->
-  <div class="card" id="terminology-img-card" style="display:none">
-    <div class="card-head"><span class="card-tag t-g">Image</span><div class="card-title">Paste or upload an image for the page</div></div>
-    <div class="card-body">
-      <div class="img-zone" id="terminology-img-zone" data-imgkey="terminology-inline" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or upload image</div></div>
     </div>
   </div>
 </div>
@@ -2137,9 +2132,24 @@ Midnight Open $______"></textarea>
 
 <!-- LMR PSYCHOLOGY -->
 <div class="panel" id="p-psychology">
-<div class="panel-inner">
+<div style="height:100%;display:flex;flex-direction:column;background:var(--bg)">
+  <div style="padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:50">
+    <span style="font-size:20px">🎯</span>
+    <div>
+      <div style="font-size:17px;font-weight:800;color:var(--text)">LMR Psychology</div>
+      <div style="font-size:11px;color:var(--text3)">Mindset · Discipline · Emotional control · Trade psychology</div>
+    </div>
+    <span class="canvas-status" id="psychology-status" style="margin-left:auto">type / for commands</span>
+    <button class="btn btn-primary btn-sm" onclick="lmrBlockSave('psychology')">💾 Save</button>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:0 40px">
+    <div id="psychology-block-editor" style="max-width:900px;margin:0 auto;padding:20px 0 100px;min-height:600px"></div>
+  </div>
+</div>
+<!-- hidden legacy -->
+<div style="display:none">
   <div class="card">
-    <div class="card-head">
+    <div class="card-head" style="display:none">
       <span class="card-tag t-r">🎯 LMR Psychology</span>
       <div class="card-title">Mindset · Discipline · Trade Psychology</div>
     </div>
@@ -2173,24 +2183,10 @@ Midnight Open $______"></textarea>
             <option value="20px">20</option><option value="24px">24</option>
           </select>
           <input type="color" title="Text color" onchange="lmrSetColor(this.value,'psychology')" style="width:28px;height:28px;padding:2px;border-radius:4px;border:1px solid var(--border);background:var(--bg4);cursor:pointer">
-          <button class="btn btn-sm" onclick="lmrInsertImg('psychology')" style="color:var(--gold)">🖼 Image</button>
-          <button class="btn btn-sm" onclick="lmrInsertFile('psychology')" style="color:var(--blue)">📎 File</button>
-          <span style="font-size:9px;color:var(--text3);margin-left:4px">/ for slash menu</span>
+          <!-- legacy hidden -->
         </div>
-        <div class="lmr-page-content" id="psychology-content" contenteditable="true" spellcheck="false" data-page="psychology"
-          placeholder="Mindset rules, trading psychology notes, emotional triggers, discipline checklist…">
-        </div>
-        <div class="lmr-save-row" style="padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg3)">
-          <span style="font-size:10px;color:var(--text3)" id="psychology-saved">Not saved</span>
-          <button class="btn btn-primary btn-sm" onclick="saveLmrPage('psychology')">💾 Save</button>
-        </div>
+        <div class="lmr-page-content" id="psychology-content" contenteditable="false" data-page="psychology" style="display:none"></div>
       </div>
-    </div>
-  </div>
-  <div class="card" id="psychology-img-card" style="display:none">
-    <div class="card-head"><span class="card-tag t-r">Image</span><div class="card-title">Paste or upload an image</div></div>
-    <div class="card-body">
-      <div class="img-zone" id="psychology-img-zone" data-imgkey="psychology-inline" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or upload image</div></div>
     </div>
   </div>
 </div>
@@ -2364,57 +2360,22 @@ Midnight Open $______"></textarea>
 </div>
 
 <!-- Settings moved to side panel -->
-<!-- ── CANVAS (Notion-like free writing space) ── -->
-<div class="panel" id="p-canvas">
-  <div class="canvas-wrap">
-    <div class="canvas-topbar">
-      <input class="canvas-title" id="canvas-title" placeholder="Untitled canvas…" oninput="canvasAutoSave()">
-      <span class="canvas-status" id="canvas-status">Type / for commands</span>
-      <button class="btn btn-primary btn-sm" onclick="canvasSave()">💾 Save</button>
-      <button class="btn btn-sm" onclick="canvasNew()" title="New page">+ New</button>
+<!-- ── LMR OBSERVATION (block editor) ── -->
+<div class="panel" id="p-observation">
+<div style="height:100%;display:flex;flex-direction:column;background:var(--bg)">
+  <div style="padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:50">
+    <span style="font-size:20px">👁</span>
+    <div>
+      <div style="font-size:17px;font-weight:800;color:var(--text)">LMR Observation</div>
+      <div style="font-size:11px;color:var(--text3)">Market notes · Trade setups · Confluences · Pre/post analysis</div>
     </div>
-    <!-- Page list sidebar + editor area -->
-    <div style="display:flex;height:calc(100vh - 57px)">
-      <!-- Page list -->
-      <div style="width:220px;min-width:220px;border-right:1px solid var(--border);background:var(--bg2);overflow-y:auto;padding:10px 8px">
-        <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;padding:0 4px">Canvas Pages</div>
-        <button onclick="canvasNew()" style="width:100%;padding:6px 8px;background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.2);border-radius:8px;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;margin-bottom:8px">+ New Page</button>
-        <div id="canvas-page-list" style="display:flex;flex-direction:column;gap:3px"></div>
-      </div>
-      <!-- Editor -->
-      <div style="flex:1;overflow-y:auto;padding:0 20px">
-        <div id="canvas-editor" style="max-width:900px;margin:0 auto;padding:20px 0 100px"></div>
-      </div>
-    </div>
+    <span class="canvas-status" id="observation-status" style="margin-left:auto">type / for commands</span>
+    <button class="btn btn-primary btn-sm" onclick="lmrBlockSave('observation')">💾 Save</button>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:0 40px">
+    <div id="observation-block-editor" style="max-width:900px;margin:0 auto;padding:20px 0 100px;min-height:600px"></div>
   </div>
 </div>
-
-<!-- ── OBSERVATION ── -->
-<div class="panel" id="p-observation">
-  <div class="canvas-wrap">
-    <div class="canvas-topbar">
-      <div>
-        <div style="font-size:18px;font-weight:800;color:var(--text)">👁 Market Observations</div>
-        <div style="font-size:11px;color:var(--text3)">Daily market notes, setups, confluences — free writing canvas</div>
-      </div>
-      <span class="canvas-status" id="obs-status">Auto-saves</span>
-      <button class="btn btn-primary btn-sm" onclick="obsSave()">💾 Save</button>
-      <button class="btn btn-sm" onclick="obsNew()">+ New Entry</button>
-    </div>
-    <div style="display:flex;height:calc(100vh - 57px)">
-      <!-- Entry list -->
-      <div style="width:220px;min-width:220px;border-right:1px solid var(--border);background:var(--bg2);overflow-y:auto;padding:10px 8px">
-        <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;padding:0 4px">Observations</div>
-        <button onclick="obsNew()" style="width:100%;padding:6px 8px;background:rgba(91,168,255,.08);border:1px solid rgba(91,168,255,.2);border-radius:8px;color:var(--blue);font-size:11px;font-weight:700;cursor:pointer;margin-bottom:8px">+ New Observation</button>
-        <div id="obs-entry-list" style="display:flex;flex-direction:column;gap:3px"></div>
-      </div>
-      <!-- Editor -->
-      <div style="flex:1;overflow-y:auto;padding:0 20px">
-        <input id="obs-title" placeholder="Observation title (e.g. NQ Setup - Distribution)" style="width:100%;background:none;border:none;outline:none;font-size:20px;font-weight:700;color:var(--text);padding:20px 0 8px;max-width:900px;margin:0 auto;display:block" oninput="obsAutoSave()">
-        <div id="obs-editor" style="max-width:900px;margin:0 auto;padding:0 0 100px"></div>
-      </div>
-    </div>
-  </div>
 </div>
 
 </main>
@@ -3921,7 +3882,7 @@ function dayCountFor(dateStr){
 }
 
 // ============= NAVIGATION =============
-const panels=['dash','today','cal','perf','monthly','weekly','daily','trades','accounts','trans','notes','terminology','canvas','observation','psychology','ai-coach','reports'];
+const panels=['dash','today','cal','perf','monthly','weekly','daily','trades','accounts','trans','notes','terminology','psychology','observation','ai-coach','reports'];
 const titles={
   dash:['Dashboard','Welcome back · Day '],
   today:['Today','Fill the chain · Day '],
@@ -3934,10 +3895,9 @@ const titles={
   accounts:['Accounts','Funded · Live · Eval'],
   trans:['Transactions','Deposits · Withdrawals · Payouts · Fees'],
   notes:['Journal','Trade psychology · lessons · notes'],
-  terminology:['LMR Terminology','Free-form knowledge base'],
-  canvas:['Canvas','Notion-like free writing space'],
-  observation:['Observation','Market notes, setups & confluences'],
+  terminology:['LMR Terminology','ICT concepts · PD Arrays · Models'],
   psychology:['LMR Psychology','Mindset · Discipline · Trade psychology'],
+  observation:['LMR Observation','Market notes · Setups · Confluences'],
   'ai-coach':['AI Trading Coach','Your personal LMR AI coaching assistant'],
   reports:['Reports','AI-generated weekly performance reports'],
 };
@@ -4213,10 +4173,9 @@ function navTo(p){
   if(p==='notes') renderNotesList();
   if(p==='today') loadDaily();
   if(p==='settings') renderSettings();
-  if(p==='terminology') loadLmrPage('terminology');
-  if(p==='psychology') loadLmrPage('psychology');
-  if(p==='canvas') setTimeout(loadCanvas, 100);
-  if(p==='observation') setTimeout(loadObservation, 100);
+  if(p==='terminology') setTimeout(()=>lmrBlockLoad('terminology'),100);
+  if(p==='psychology')  setTimeout(()=>lmrBlockLoad('psychology'),100);
+  if(p==='observation') setTimeout(()=>lmrBlockLoad('observation'),100);
   if(p==='ai-coach') { setTimeout(loadAndRenderAIHistory, 300); }
   if(p==='reports') loadAndRenderReports();
 }
@@ -6186,6 +6145,100 @@ function drawBar(id,labels,data,isPercent=false,suffix=''){
 }
 function drawDonut(id,labels,data){if(perfCharts[id])perfCharts[id].destroy();const ctx=document.getElementById(id);if(!ctx)return;if(!data.length){data=[1];labels=['No data']}perfCharts[id]=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:['#5dba80','#c8a84b','#9b8aff','#d45c5c','#5d9ee8','#c49b4a','#888'],borderColor:'#141414',borderWidth:2}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#9a9690',font:{size:9},boxWidth:8}}}}})}
 function drawLine(id,labels,data){if(perfCharts[id])perfCharts[id].destroy();if(dashCharts[id])dashCharts[id].destroy();const ctx=document.getElementById(id);if(!ctx)return;if(!data.length){data=[0];labels=['0']}const last=data[data.length-1]||0;const chart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data,borderColor:last>=0?'#5dba80':'#d45c5c',backgroundColor:last>=0?'rgba(93,186,128,0.1)':'rgba(212,92,92,0.1)',fill:true,tension:0.3,pointRadius:0}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#9a9690',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#9a9690',font:{size:9},callback:v=>'$'+v},grid:{color:'#262626'}}}}});if(id.startsWith('dash'))dashCharts[id]=chart;else perfCharts[id]=chart}
+
+// ============= LMR BLOCK EDITORS (Terminology / Psychology / Observation) =============
+// Shared Editor.js instance per section
+const _lmrEditors = {};  // { terminology: EditorInstance, psychology: EditorInstance, ... }
+const _lmrSaveTimers = {};
+
+const LMR_SECTION_KEYS = {
+  terminology: 'lmr-terminology',
+  psychology:  'lmr-psychology',
+  observation: 'lmr-observation'
+};
+
+async function lmrBlockLoad(section){
+  const holderId = section + '-block-editor';
+  const el = document.getElementById(holderId);
+  if(!el) return;
+
+  setStatus(section+'-status','Loading…','saving');
+
+  // Destroy existing editor if re-opening
+  if(_lmrEditors[section]){
+    try{ await _lmrEditors[section].destroy(); }catch(e){}
+    _lmrEditors[section] = null;
+  }
+  el.innerHTML = '';
+
+  // 1. Try local state first
+  let savedData = null;
+  const localKey = section+'Page';
+  if(state[localKey]){
+    // Try to parse as JSON blocks (new format)
+    try{
+      const parsed = JSON.parse(state[localKey]);
+      if(parsed && parsed.blocks) savedData = parsed;
+    }catch(e){
+      // Old HTML format — wrap in a single paragraph block
+      savedData = null; // will fall through to Supabase
+    }
+  }
+
+  // 2. Load from Supabase monthly table (source of truth for block data)
+  if(!savedData && _sb && _sbUserId){
+    try{
+      const sbKey = LMR_SECTION_KEYS[section];
+      const{data:row} = await _sb.from('monthly').select('data')
+        .eq('key',sbKey).eq('user_id',_sbUserId).single();
+      if(row?.data?.blocks) savedData = row.data;
+    }catch(e){}
+  }
+
+  // 3. Init Editor.js
+  const editor = new EditorJS({
+    holder: holderId,
+    data: savedData || {blocks:[]},
+    placeholder: 'Start writing… type / for commands',
+    tools: getEditorJSTools(),
+    onChange: async()=>{
+      setStatus(section+'-status','Saving…','saving');
+      clearTimeout(_lmrSaveTimers[section]);
+      _lmrSaveTimers[section] = setTimeout(()=>lmrBlockSave(section), 1500);
+    }
+  });
+
+  await editor.isReady;
+  _lmrEditors[section] = editor;
+  setStatus(section+'-status','✦ Ready — type / for blocks','');
+}
+
+async function lmrBlockSave(section){
+  const editor = _lmrEditors[section];
+  if(!editor) return;
+  try{
+    const data = await editor.save();
+    const json = JSON.stringify(data);
+
+    // Save to state + localStorage
+    state[section+'Page'] = json;
+    save();
+
+    // Save to Supabase immediately
+    if(_sb && _sbUserId){
+      const sbKey = LMR_SECTION_KEYS[section];
+      await _sb.from('monthly').upsert(
+        {key:sbKey, data:data, user_id:_sbUserId},
+        {onConflict:'key,user_id'}
+      );
+    }
+    setStatus(section+'-status','✓ Saved','saved');
+    setTimeout(()=>setStatus(section+'-status','✦ Ready',''),2000);
+  }catch(e){
+    setStatus(section+'-status','Save failed — try again','');
+    console.error('[LMR Editor] Save error:',e);
+  }
+}
 
 // ============= CANVAS (Notion-like free writing) =============
 let _canvasEditor = null;
