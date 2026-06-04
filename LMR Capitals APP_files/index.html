@@ -626,6 +626,16 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .pdc-val{color:var(--text2);font-family:'JetBrains Mono',monospace;font-size:11px}
 
 /* ── LMR FREE PAGE ── */
+/* ── LMR SIMPLE EDITOR (contenteditable) ── */
+[contenteditable][data-placeholder]:empty::before{content:attr(data-placeholder);color:var(--text3);pointer-events:none;white-space:pre-line;font-style:italic}
+[contenteditable]:focus{outline:none}
+#terminology-content h1,#psychology-content h1,#observation-content h1{font-size:22px;font-weight:800;color:var(--gold);margin:16px 0 8px}
+#terminology-content h2,#psychology-content h2,#observation-content h2{font-size:17px;font-weight:700;color:var(--text);margin:14px 0 6px}
+#terminology-content h3,#psychology-content h3,#observation-content h3{font-size:14px;font-weight:700;color:var(--blue);margin:10px 0 4px}
+#terminology-content blockquote,#psychology-content blockquote,#observation-content blockquote{border-left:3px solid var(--gold);padding:6px 14px;background:rgba(245,166,35,.05);border-radius:0 8px 8px 0;margin:8px 0;color:var(--text2)}
+#terminology-content ul,#psychology-content ul,#observation-content ul,#terminology-content ol,#psychology-content ol,#observation-content ol{padding-left:20px;color:var(--text2);margin:4px 0}
+#terminology-content p,#psychology-content p,#observation-content p{margin:4px 0;color:var(--text2)}
+#terminology-content strong,#psychology-content strong,#observation-content strong{color:var(--text);font-weight:700}
 .lmr-page-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
 .lmr-page-toolbar{display:flex;gap:4px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg3)}
 .lmr-page-toolbar .btn{font-size:10px;padding:4px 9px}
@@ -2102,120 +2112,52 @@ Midnight Open $______"></textarea>
 
 <!-- LMR TERMINOLOGY -->
 <div class="panel" id="p-terminology">
-<div style="height:100%;display:flex;flex-direction:column;background:var(--bg)">
-  <!-- Sticky topbar -->
-  <div style="padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:50">
+<div style="height:100%;display:flex;flex-direction:column">
+  <div style="padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <span style="font-size:20px">📖</span>
     <div>
-      <div style="font-size:17px;font-weight:800;color:var(--text)">LMR Terminology</div>
+      <div style="font-size:16px;font-weight:800;color:var(--text)">LMR Terminology</div>
       <div style="font-size:11px;color:var(--text3)">ICT concepts · PD Arrays · Key levels · Model explanations</div>
     </div>
-    <span class="canvas-status" id="terminology-status" style="margin-left:auto">type / for commands</span>
-    <button class="btn btn-primary btn-sm" onclick="lmrBlockSave('terminology')">💾 Save</button>
-  </div>
-  <!-- Block editor -->
-  <div style="flex:1;overflow-y:auto;padding:0 20px">
-    <div id="terminology-block-editor" style="width:100%;padding:20px 0 100px;min-height:600px"></div>
-  </div>
-</div>
-<!-- KEEP old contenteditable hidden for backwards compat -->
-<div style="display:none">
-  <div class="lmr-page-wrap" style="display:none">
-    <div class="lmr-page-toolbar" style="gap:3px;flex-wrap:wrap;display:none">
-          <button class="btn btn-sm" onclick="lmrFmt('h1')" title="Heading 1">H1</button>
-          <button class="btn btn-sm" onclick="lmrFmt('h2')" title="Heading 2">H2</button>
-          <button class="btn btn-sm" onclick="lmrFmt('h3')" title="Heading 3">H3</button>
-          <button class="btn btn-sm" onclick="lmrFmt('h4')" title="Heading 4">H4</button>
-          <span style="width:1px;background:var(--border);margin:0 2px;align-self:stretch"></span>
-          <button class="btn btn-sm" onclick="lmrFmt('b')" title="Bold"><b>B</b></button>
-          <button class="btn btn-sm" onclick="lmrFmt('i')" title="Italic"><i>I</i></button>
-          <button class="btn btn-sm" onclick="lmrFmt('ul')" title="Bullet list">• List</button>
-          <button class="btn btn-sm" onclick="lmrFmt('ol')" title="Numbered list">1. List</button>
-          <button class="btn btn-sm" onclick="lmrFmt('check','terminology')" title="Checklist item" style="color:var(--gold)">☑ Check</button>
-          <span style="width:1px;background:var(--border);margin:0 2px;align-self:stretch"></span>
-          <button class="btn btn-sm" onclick="lmrFmt('quote')">❝</button>
-          <button class="btn btn-sm" onclick="lmrFmt('hr')">— HR</button>
-          <button class="btn btn-sm" onclick="lmrFmt('toggle')" title="Toggle/Collapsible section">▸ Toggle</button>
-          <span style="width:1px;background:var(--border);margin:0 2px;align-self:stretch"></span>
-          <button class="btn btn-sm" onclick="lmrFmt('cols2','terminology')" title="2 Columns" style="color:var(--blue)">⊞ 2</button>
-          <button class="btn btn-sm" onclick="lmrFmt('cols3','terminology')" title="3 Columns" style="color:var(--blue)">⊞ 3</button>
-          <button class="btn btn-sm" onclick="lmrFmt('cols4','terminology')" title="4 Columns" style="color:var(--blue)">⊞ 4</button>
-          <button class="btn btn-sm" onclick="lmrFmt('cols5','terminology')" title="5 Columns" style="color:var(--blue)">⊞ 5</button>
-          <span style="width:1px;background:var(--border);margin:0 2px;align-self:stretch"></span>
-          <select onchange="lmrSetFontSize(this.value,'terminology');this.value=''" style="font-size:10px;padding:3px 5px;width:auto;border-radius:var(--r);background:var(--bg4);color:var(--text2);border:1px solid var(--border)">
-            <option value="">Size</option>
-            <option value="11px">11</option><option value="12px">12</option><option value="13px">13</option>
-            <option value="14px">14</option><option value="16px">16</option><option value="18px">18</option>
-            <option value="20px">20</option><option value="24px">24</option>
-          </select>
-          <input type="color" title="Text color" onchange="lmrSetColor(this.value,'terminology')" style="width:28px;height:28px;padding:2px;border-radius:4px;border:1px solid var(--border);background:var(--bg4);cursor:pointer">
-          <!-- hidden legacy toolbar content -->
-        </div>
-        <div class="lmr-page-content" id="terminology-content" contenteditable="false" spellcheck="false" data-page="terminology" style="display:none"></div>
-      </div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+      <span class="canvas-status" id="terminology-status" style="font-size:10px;color:var(--text3)">Auto-saves</span>
+      <button class="btn btn-primary btn-sm" onclick="lmrSimpleSave('terminology')">💾 Save</button>
     </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:20px">
+    <div id="terminology-content"
+         contenteditable="true"
+         spellcheck="false"
+         data-placeholder="Start typing your ICT terminology notes…&#10;&#10;Use H1, H2 headings, bullet lists, tables. Your notes auto-save."
+         style="min-height:500px;color:var(--text);font-size:14px;line-height:1.8;outline:none;padding-bottom:100px"
+         oninput="lmrSimpleAutoSave('terminology')"
+    ></div>
   </div>
 </div>
 </div>
 
 <!-- LMR PSYCHOLOGY -->
 <div class="panel" id="p-psychology">
-<div style="height:100%;display:flex;flex-direction:column;background:var(--bg)">
-  <div style="padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:50">
+<div style="height:100%;display:flex;flex-direction:column">
+  <div style="padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <span style="font-size:20px">🎯</span>
     <div>
-      <div style="font-size:17px;font-weight:800;color:var(--text)">LMR Psychology</div>
+      <div style="font-size:16px;font-weight:800;color:var(--text)">LMR Psychology</div>
       <div style="font-size:11px;color:var(--text3)">Mindset · Discipline · Emotional control · Trade psychology</div>
     </div>
-    <span class="canvas-status" id="psychology-status" style="margin-left:auto">type / for commands</span>
-    <button class="btn btn-primary btn-sm" onclick="lmrBlockSave('psychology')">💾 Save</button>
-  </div>
-  <div style="flex:1;overflow-y:auto;padding:0 20px">
-    <div id="psychology-block-editor" style="width:100%;padding:20px 0 100px;min-height:600px"></div>
-  </div>
-</div>
-<!-- hidden legacy -->
-<div style="display:none">
-  <div class="card">
-    <div class="card-head" style="display:none">
-      <span class="card-tag t-r">🎯 LMR Psychology</span>
-      <div class="card-title">Mindset · Discipline · Trade Psychology</div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+      <span class="canvas-status" id="psychology-status" style="font-size:10px;color:var(--text3)">Auto-saves</span>
+      <button class="btn btn-primary btn-sm" onclick="lmrSimpleSave('psychology')">💾 Save</button>
     </div>
-    <div class="card-body" style="padding:0">
-      <div class="lmr-page-wrap">
-        <div class="lmr-page-toolbar" style="gap:3px;flex-wrap:wrap">
-          <button class="btn btn-sm" onclick="lmrFmtPsych('h1')">H1</button>
-          <button class="btn btn-sm" onclick="lmrFmtPsych('h2')">H2</button>
-          <button class="btn btn-sm" onclick="lmrFmtPsych('h3')">H3</button>
-          <button class="btn btn-sm" onclick="lmrFmtPsych('h4')">H4</button>
-          <span style="width:1px;background:var(--border);margin:0 2px;align-self:stretch"></span>
-          <button class="btn btn-sm" onclick="lmrFmtPsych('b')"><b>B</b></button>
-          <button class="btn btn-sm" onclick="lmrFmtPsych('i')"><i>I</i></button>
-          <button class="btn btn-sm" onclick="lmrFmtPsych('ul')">• List</button>
-          <button class="btn btn-sm" onclick="lmrFmtPsych('ol')">1. List</button>
-          <button class="btn btn-sm" onclick="lmrFmt('check','psychology')" style="color:var(--gold)">☑ Check</button>
-          <span style="width:1px;background:var(--border);margin:0 2px;align-self:stretch"></span>
-          <button class="btn btn-sm" onclick="lmrFmtPsych('quote')">❝</button>
-          <button class="btn btn-sm" onclick="lmrFmtPsych('hr')">— HR</button>
-          <button class="btn btn-sm" onclick="lmrFmtPsych('toggle')">▸ Toggle</button>
-          <span style="width:1px;background:var(--border);margin:0 2px;align-self:stretch"></span>
-          <button class="btn btn-sm" onclick="lmrFmt('cols2','psychology')" style="color:var(--blue)">⊞ 2</button>
-          <button class="btn btn-sm" onclick="lmrFmt('cols3','psychology')" style="color:var(--blue)">⊞ 3</button>
-          <button class="btn btn-sm" onclick="lmrFmt('cols4','psychology')" style="color:var(--blue)">⊞ 4</button>
-          <button class="btn btn-sm" onclick="lmrFmt('cols5','psychology')" style="color:var(--blue)">⊞ 5</button>
-          <span style="width:1px;background:var(--border);margin:0 2px;align-self:stretch"></span>
-          <select onchange="lmrSetFontSize(this.value,'psychology');this.value=''" style="font-size:10px;padding:3px 5px;width:auto;border-radius:var(--r);background:var(--bg4);color:var(--text2);border:1px solid var(--border)">
-            <option value="">Size</option>
-            <option value="11px">11</option><option value="12px">12</option><option value="13px">13</option>
-            <option value="14px">14</option><option value="16px">16</option><option value="18px">18</option>
-            <option value="20px">20</option><option value="24px">24</option>
-          </select>
-          <input type="color" title="Text color" onchange="lmrSetColor(this.value,'psychology')" style="width:28px;height:28px;padding:2px;border-radius:4px;border:1px solid var(--border);background:var(--bg4);cursor:pointer">
-          <!-- legacy hidden -->
-        </div>
-        <div class="lmr-page-content" id="psychology-content" contenteditable="false" data-page="psychology" style="display:none"></div>
-      </div>
-    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:20px">
+    <div id="psychology-content"
+         contenteditable="true"
+         spellcheck="false"
+         data-placeholder="Write your trading psychology notes…&#10;&#10;Mindset, discipline rules, emotional triggers, trade rules."
+         style="min-height:500px;color:var(--text);font-size:14px;line-height:1.8;outline:none;padding-bottom:100px"
+         oninput="lmrSimpleAutoSave('psychology')"
+    ></div>
   </div>
 </div>
 </div>
@@ -2390,18 +2332,26 @@ Midnight Open $______"></textarea>
 <!-- Settings moved to side panel -->
 <!-- ── LMR OBSERVATION (block editor) ── -->
 <div class="panel" id="p-observation">
-<div style="height:100%;display:flex;flex-direction:column;background:var(--bg)">
-  <div style="padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:50">
+<div style="height:100%;display:flex;flex-direction:column">
+  <div style="padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <span style="font-size:20px">👁</span>
     <div>
-      <div style="font-size:17px;font-weight:800;color:var(--text)">LMR Observation</div>
+      <div style="font-size:16px;font-weight:800;color:var(--text)">LMR Observation</div>
       <div style="font-size:11px;color:var(--text3)">Market notes · Trade setups · Confluences · Pre/post analysis</div>
     </div>
-    <span class="canvas-status" id="observation-status" style="margin-left:auto">type / for commands</span>
-    <button class="btn btn-primary btn-sm" onclick="lmrBlockSave('observation')">💾 Save</button>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+      <span class="canvas-status" id="observation-status" style="font-size:10px;color:var(--text3)">Auto-saves</span>
+      <button class="btn btn-primary btn-sm" onclick="lmrSimpleSave('observation')">💾 Save</button>
+    </div>
   </div>
-  <div style="flex:1;overflow-y:auto;padding:0 20px">
-    <div id="observation-block-editor" style="width:100%;padding:20px 0 100px;min-height:600px"></div>
+  <div style="flex:1;overflow-y:auto;padding:20px">
+    <div id="observation-content"
+         contenteditable="true"
+         spellcheck="false"
+         data-placeholder="Write your market observations…&#10;&#10;Pre-session notes, setups spotted, confluences, post-trade analysis."
+         style="min-height:500px;color:var(--text);font-size:14px;line-height:1.8;outline:none;padding-bottom:100px"
+         oninput="lmrSimpleAutoSave('observation')"
+    ></div>
   </div>
 </div>
 </div>
@@ -4205,9 +4155,9 @@ function navTo(p){
   if(p==='notes') renderNotesList();
   if(p==='today') loadDaily();
   if(p==='settings') renderSettings();
-  if(p==='terminology') setTimeout(()=>lmrBlockLoad('terminology'),100);
-  if(p==='psychology')  setTimeout(()=>lmrBlockLoad('psychology'),100);
-  if(p==='observation') setTimeout(()=>lmrBlockLoad('observation'),100);
+  if(p==='terminology') setTimeout(()=>lmrSimpleLoad('terminology'),100);
+  if(p==='psychology')  setTimeout(()=>lmrSimpleLoad('psychology'),100);
+  if(p==='observation') setTimeout(()=>lmrSimpleLoad('observation'),100);
   if(p==='ai-coach') { setTimeout(loadAndRenderAIHistory, 300); }
   if(p==='reports') loadAndRenderReports();
 }
@@ -6189,342 +6139,105 @@ function drawBar(id,labels,data,isPercent=false,suffix=''){
 function drawDonut(id,labels,data){if(perfCharts[id])perfCharts[id].destroy();const ctx=document.getElementById(id);if(!ctx)return;if(!data.length){data=[1];labels=['No data']}perfCharts[id]=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:['#5dba80','#c8a84b','#9b8aff','#d45c5c','#5d9ee8','#c49b4a','#888'],borderColor:'#141414',borderWidth:2}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#9a9690',font:{size:9},boxWidth:8}}}}})}
 function drawLine(id,labels,data){if(perfCharts[id])perfCharts[id].destroy();if(dashCharts[id])dashCharts[id].destroy();const ctx=document.getElementById(id);if(!ctx)return;if(!data.length){data=[0];labels=['0']}const last=data[data.length-1]||0;const chart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data,borderColor:last>=0?'#5dba80':'#d45c5c',backgroundColor:last>=0?'rgba(93,186,128,0.1)':'rgba(212,92,92,0.1)',fill:true,tension:0.3,pointRadius:0}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#9a9690',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#9a9690',font:{size:9},callback:v=>'$'+v},grid:{color:'#262626'}}}}});if(id.startsWith('dash'))dashCharts[id]=chart;else perfCharts[id]=chart}
 
-// ============= LMR BLOCK EDITORS (Terminology / Psychology / Observation) =============
-// Shared Editor.js instance per section
-const _lmrEditors = {};  // { terminology: EditorInstance, psychology: EditorInstance, ... }
-const _lmrSaveTimers = {};
+// ============= LMR SIMPLE EDITORS (Terminology / Psychology / Observation) =============
+// Clean contenteditable approach — no external dependencies
 
 const LMR_SECTION_KEYS = {
   terminology: 'lmr-terminology',
   psychology:  'lmr-psychology',
   observation: 'lmr-observation'
 };
+const _lmrSaveTimers = {};
+const _lmrEditors = {}; // kept for compat
 
-// ── LAZY LOAD EditorJS scripts (only when LMR section opens) ──────────────
-const EDITORJS_SCRIPTS = [
-  'https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.2/dist/editorjs.umd.min.js',
-  'https://cdn.jsdelivr.net/npm/@editorjs/header@2.8.7/dist/header.umd.min.js',
-  'https://cdn.jsdelivr.net/npm/@editorjs/list@1.9.0/dist/list.umd.min.js',
-  'https://cdn.jsdelivr.net/npm/@editorjs/checklist@1.6.0/dist/checklist.umd.min.js',
-  'https://cdn.jsdelivr.net/npm/@editorjs/quote@2.6.0/dist/quote.umd.min.js',
-  'https://cdn.jsdelivr.net/npm/@editorjs/code@2.9.0/dist/code.umd.min.js',
-  'https://cdn.jsdelivr.net/npm/@editorjs/delimiter@1.4.2/dist/delimiter.umd.min.js',
-  'https://cdn.jsdelivr.net/npm/@editorjs/image@2.9.3/dist/image.umd.min.js',
-  'https://cdn.jsdelivr.net/npm/@editorjs/embed@2.7.4/dist/embed.umd.min.js',
-  'https://cdn.jsdelivr.net/npm/@editorjs/table@2.3.0/dist/table.umd.min.js',
-  'https://cdn.jsdelivr.net/npm/@editorjs/warning@1.4.0/dist/warning.umd.min.js',
-  'https://cdn.jsdelivr.net/npm/@editorjs/marker@1.4.0/dist/marker.umd.min.js',
-  'https://cdn.jsdelivr.net/npm/@editorjs/inline-code@1.5.0/dist/inline-code.umd.min.js',
-  'https://cdn.jsdelivr.net/npm/@editorjs/underline@1.1.0/dist/underline.umd.min.js',
-];
-let _editorJSLoadPromise = null;
-function loadEditorJSLazy(){
-  if(_editorJSLoadPromise) return _editorJSLoadPromise;
-  if(typeof EditorJS !== 'undefined'){ _editorJSLoadPromise=Promise.resolve(); return _editorJSLoadPromise; }
-  _editorJSLoadPromise = new Promise(resolve=>{
-    let loaded=0;
-    const total=EDITORJS_SCRIPTS.length;
-    EDITORJS_SCRIPTS.forEach(src=>{
-      const s=document.createElement('script');
-      s.src=src;
-      s.onload=()=>{ if(++loaded===total) resolve(); };
-      s.onerror=()=>{ if(++loaded===total) resolve(); }; // resolve anyway
-      document.body.appendChild(s);
-    });
-  });
-  return _editorJSLoadPromise;
-}
-
-async function lmrBlockLoad(section){
-  const holderId = section + '-block-editor';
-  const el = document.getElementById(holderId);
+// ── Load LMR content from Supabase/localStorage ──
+async function lmrSimpleLoad(section){
+  const elId = section === 'observation' ? 'observation-content' : section + '-content';
+  const el = document.getElementById(elId);
   if(!el) return;
+  const statusEl = document.getElementById(section + '-status');
+  if(statusEl) statusEl.textContent = 'Loading…';
 
-  // Lazy-load EditorJS scripts ONLY NOW (so they don't pollute other panels)
-  el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3)"><div style="font-size:32px;margin-bottom:12px">📝</div><div style="font-size:13px;font-weight:600;color:var(--text2)">Loading block editor…</div></div>';
-  try{ await loadEditorJSLazy(); }catch(e){ console.warn('[LMR] EditorJS load error:',e); }
+  let html = '';
 
-  if(typeof EditorJS==='undefined'){
-    el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);font-size:13px">Failed to load editor. Please check your internet connection and refresh.</div>';
-    return;
-  }
-
-  setStatus(section+'-status','Loading from cloud…','saving');
-
-  // 1. ALWAYS load from Supabase first (authoritative source)
-  //    Local state is only used as fallback when offline/no auth
-  let savedData = null;
-
+  // Try Supabase first
   if(_sb && _sbUserId){
     try{
-      const{data:row}=await _sb.from('monthly').select('data')
-        .eq('key',LMR_SECTION_KEYS[section]).eq('user_id',_sbUserId).single();
-      if(row?.data?.blocks && row.data.blocks.length > 0){
-        savedData = row.data;
-        // Update local cache with fresh Supabase data
-        state[section+'Page'] = JSON.stringify(savedData);
+      const{data:row} = await _sb.from('monthly').select('data')
+        .eq('key', LMR_SECTION_KEYS[section]).eq('user_id',_sbUserId).single();
+      if(row?.data?.html) html = row.data.html;
+      else if(row?.data?.blocks){
+        // Convert old EditorJS block format to plain HTML
+        html = (row.data.blocks||[]).map(b=>{
+          if(b.type==='paragraph') return '<p>'+( b.data?.text||'')+'</p>';
+          if(b.type==='header') return '<h'+( b.data?.level||2)+'>'+( b.data?.text||'')+'</h'+( b.data?.level||2)+'>';
+          if(b.type==='list') return '<ul>'+( b.data?.items||[]).map(it=>'<li>'+it+'</li>').join('')+'</ul>';
+          if(b.type==='quote') return '<blockquote>'+( b.data?.text||'')+'</blockquote>';
+          return '<p>'+JSON.stringify(b.data||'')+'</p>';
+        }).join('');
       }
-    }catch(e){ console.warn('[LMR] Supabase load error:',e.message); }
+    }catch(e){ console.warn('[LMR] Load error:', e.message); }
   }
 
-  // 2. Fallback to local state only if Supabase failed
-  if(!savedData){
+  // Fallback to localStorage
+  if(!html){
     const localKey = section+'Page';
-    if(state[localKey]){
+    const saved = state[localKey];
+    if(saved){
       try{
-        const p=JSON.parse(state[localKey]);
-        if(p&&p.blocks&&p.blocks.length>0) savedData=p;
-      }catch(e){}
+        const p=JSON.parse(saved);
+        if(p?.html) html=p.html;
+        else if(typeof saved==='string' && saved.startsWith('<')) html=saved;
+      }catch(e){ if(typeof saved==='string') html=saved; }
     }
   }
 
-  // 2. Init with new spec-compliant function
-  const editor = await initBlockEditor(holderId, savedData, ()=>{
-    setStatus(section+'-status','Saving…','saving');
-    clearTimeout(_lmrSaveTimers[section]);
-    _lmrSaveTimers[section]=setTimeout(()=>lmrBlockSave(section),1500);
-  });
-
-  _lmrEditors[section] = editor;
-  if(editor) setStatus(section+'-status','✦ Ready  ·  type / to insert blocks','');
-  else setStatus(section+'-status','Failed to load editor','');
+  el.innerHTML = html || '';
+  if(statusEl) statusEl.textContent = html ? '✓ Loaded' : 'Start typing…';
+  setTimeout(()=>{ if(statusEl) statusEl.textContent='Auto-saves'; }, 1500);
 }
 
-async function lmrBlockSave(section){
-  const holderId=section+'-block-editor';
-  const editor=_lmrEditors[section]||window['__ej_'+holderId];
-  if(!editor) return;
-  try{
-    const data = await editor.save();
-    const json = JSON.stringify(data);
+// ── Auto-save on input (debounced 1.5s) ──
+function lmrSimpleAutoSave(section){
+  clearTimeout(_lmrSaveTimers[section]);
+  _lmrSaveTimers[section] = setTimeout(()=>lmrSimpleSave(section, true), 1500);
+}
 
-    // Save to state + localStorage
-    state[section+'Page'] = json;
-    save();
+// ── Save LMR content to Supabase + localStorage ──
+async function lmrSimpleSave(section, silent=false){
+  const elId = section === 'observation' ? 'observation-content' : section + '-content';
+  const el = document.getElementById(elId);
+  if(!el) return;
+  const html = el.innerHTML;
+  const statusEl = document.getElementById(section+'-status');
+  if(!silent && statusEl) statusEl.textContent = '💾 Saving…';
 
-    // Save to Supabase immediately
-    if(_sb && _sbUserId){
-      const sbKey = LMR_SECTION_KEYS[section];
+  // Save to state + localStorage
+  state[section+'Page'] = JSON.stringify({html});
+  save();
+
+  // Save to Supabase
+  if(_sb && _sbUserId){
+    try{
       await _sb.from('monthly').upsert(
-        {key:sbKey, data:data, user_id:_sbUserId},
+        {key: LMR_SECTION_KEYS[section], data:{html}, user_id:_sbUserId},
         {onConflict:'key,user_id'}
       );
+      if(statusEl) statusEl.textContent = '✓ Saved';
+      setTimeout(()=>{ if(statusEl) statusEl.textContent='Auto-saves'; }, 1500);
+    }catch(e){
+      console.error('[LMR] Save error:',e);
+      if(statusEl) statusEl.textContent = 'Save failed';
     }
-    setStatus(section+'-status','✓ Saved','saved');
-    setTimeout(()=>setStatus(section+'-status','✦ Ready',''),2000);
-  }catch(e){
-    setStatus(section+'-status','Save failed — try again','');
-    console.error('[LMR Editor] Save error:',e);
+  } else {
+    if(statusEl) statusEl.textContent = '✓ Saved locally';
+    setTimeout(()=>{ if(statusEl) statusEl.textContent='Auto-saves'; }, 1500);
   }
 }
 
-// ============= CANVAS (Notion-like free writing) =============
-let _canvasEditor = null;
-let _canvasPageId = null;
-let _canvasSaveTimer = null;
-
-// ── SPEC-COMPLIANT EDITOR.JS CONFIGURATION ────────────────────────────────
-// Implements the full developer spec block type list
-
-async function lmrUploadFile(file){
-  try{
-    const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-    const key=`block-${Date.now()}-${safeName}`;
-    if(_sb&&_sbUserId){
-      const{data,error}=await _sb.storage.from('app-images').upload(
-        `${_sbUserId}/blocks/${key}`,file,{upsert:true,contentType:file.type}
-      );
-      if(!error){
-        return{
-          success:1,
-          file:{
-            url:`https://agrvylclhvxyevsmmexf.supabase.co/storage/v1/object/public/app-images/${_sbUserId}/blocks/${key}`,
-            name:file.name, size:file.size, extension:file.name.split('.').pop()
-          }
-        };
-      }
-    }
-    // Fallback to object URL
-    return{success:1,file:{url:URL.createObjectURL(file),name:file.name}};
-  }catch(e){ return{success:0,message:e.message}; }
-}
-
-function buildEditorTools(){
-  const t={};
-
-  // ── Structural block types (spec section 2.2A) ──
-  if(window.Header){
-    t.header={
-      class:Header,
-      inlineToolbar:['link','marker','inlineCode'],
-      config:{levels:[1,2,3],defaultLevel:2,
-        placeholder:{1:'Heading 1',2:'Heading 2',3:'Heading 3'}}
-    };
-  }
-
-  if(window.NestedList){
-    t.list={
-      class:NestedList, inlineToolbar:true,
-      config:{defaultStyle:'unordered',enableLineBreaks:false}
-    };
-  }else if(window.List){
-    t.list={class:List,inlineToolbar:true,config:{defaultStyle:'unordered'}};
-  }
-
-  if(window.Checklist){
-    t.checklist={class:Checklist,inlineToolbar:true};
-  }
-
-  if(window.Quote){
-    t.quote={
-      class:Quote, inlineToolbar:true,
-      config:{quotePlaceholder:'Write a quote…',captionPlaceholder:'Attribution'}
-    };
-  }
-
-  if(window.Warning){
-    t.callout={
-      class:Warning, inlineToolbar:true,
-      config:{titlePlaceholder:'Callout title',messagePlaceholder:'Callout text…'}
-    };
-  }
-
-  if(window.CodeTool){
-    t.code={class:CodeTool,config:{placeholder:'// Write code…'}};
-  }
-
-  if(window.Delimiter){
-    t.divider={class:Delimiter};
-  }
-
-  if(window.Table){
-    t.table={class:Table,inlineToolbar:true,config:{rows:2,cols:3,withHeadings:true}};
-  }
-
-  // ── Media blocks (spec section 3.13) ──
-  if(window.ImageTool){
-    t.image={
-      class:ImageTool,
-      config:{
-        uploader:{
-          uploadByFile: lmrUploadFile,
-          uploadByUrl:  async(url)=>({success:1,file:{url}})
-        },
-        captionPlaceholder:'Caption…',
-        buttonContent:'Select image or paste URL'
-      }
-    };
-  }
-
-  if(window.AttachesTool){
-    t.attaches={
-      class:AttachesTool,
-      config:{
-        uploader:{ uploadByFile: lmrUploadFile }
-      }
-    };
-  }
-
-  // ── Provider embeds (spec section 2.2B — generic embed) ──
-  if(window.Embed){
-    t.embed={
-      class:Embed,
-      config:{
-        services:{
-          youtube:true, twitter:true, codepen:true,
-          instagram:true, twitch:true, vimeo:true
-        }
-      }
-    };
-  }
-
-  // ── Inline tools (spec section 1.3 marks) ──
-  if(window.Marker)      t.marker     ={class:Marker};
-  if(window.InlineCode)  t.inlineCode ={class:InlineCode};
-  if(window.Underline)   t.underline  ={class:Underline};
-  if(window.LinkTool)    t.linkTool   ={class:LinkTool};
-
-  // ── Custom Toggle block (spec section 3.4) ──
-  t.toggle = {class: LMRToggleTool, inlineToolbar: true};
-
-  return t;
-}
-
-// ── CUSTOM TOGGLE BLOCK TOOL (Notion-spec section 3.4) ──────────────────────
-class LMRToggleTool {
-  static get toolbox(){ return {title:'Toggle',icon:'<svg width="17" height="13" viewBox="0 0 17 13"><path d="M5.625 0L11.25 6.5 5.625 13" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'}; }
-  static get isReadOnlySupported(){ return true; }
-  constructor({data,api,readOnly}){
-    this.data={title:data.title||'',body:data.body||'',isOpen:data.isOpen!==false};
-    this.api=api; this.readOnly=readOnly; this.wrapper=null;
-  }
-  render(){
-    this.wrapper=document.createElement('div');
-    this.wrapper.className='toggle-block';
-    this._rebuild();
-    return this.wrapper;
-  }
-  _rebuild(){
-    const isOpen=this.data.isOpen;
-    this.wrapper.innerHTML=`
-      <div class="toggle-block-header" onclick="this.parentElement.querySelector('.toggle-block-arrow').classList.toggle('open');this.parentElement.querySelector('.toggle-block-body').classList.toggle('open');this.parentElement.__isOpen=!this.parentElement.__isOpen">
-        <span class="toggle-block-arrow${isOpen?' open':''}">▶</span>
-        <div class="toggle-block-title" contenteditable="${!this.readOnly}" placeholder="Toggle title…" data-field="title">${this.data.title}</div>
-      </div>
-      <div class="toggle-block-body${isOpen?' open':''}" contenteditable="${!this.readOnly}" placeholder="Toggle content (click ▶ to expand/collapse)…" data-field="body">${this.data.body}</div>`;
-    this.wrapper.__isOpen=isOpen;
-    // Prevent header click from firing when editing title
-    this.wrapper.querySelector('.toggle-block-title').addEventListener('click',e=>e.stopPropagation());
-  }
-  save(el){
-    return{
-      title:el.querySelector('[data-field="title"]')?.innerHTML||'',
-      body: el.querySelector('[data-field="body"]')?.innerHTML||'',
-      isOpen:el.__isOpen!==undefined?el.__isOpen:true
-    };
-  }
-  static get pasteConfig(){ return {tags:[]}; }
-}
-
-async function initBlockEditor(holderId, savedData, onChange){
-  // Destroy any existing instance
-  if(window['__ej_'+holderId]){
-    try{ await window['__ej_'+holderId].destroy(); }catch(e){}
-    window['__ej_'+holderId]=null;
-  }
-
-  const el=document.getElementById(holderId);
-  if(!el){ console.error('Editor holder not found:',holderId); return null; }
-  el.innerHTML='';
-
-  // Check if EditorJS is available (CDN might still be loading)
-  if(typeof EditorJS==='undefined'){
-    el.innerHTML='<div style="padding:24px;color:var(--text2);text-align:center"><div style="font-size:28px;margin-bottom:10px">📝</div><div style="font-weight:700;font-size:14px;margin-bottom:6px">Loading editor…</div><div style="font-size:11px;color:var(--text3);margin-bottom:12px">The block editor is loading. Please wait a moment.</div><button onclick="lmrBlockLoad(\''+holderId.replace('-block-editor','')+'\');" style="background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.3);border-radius:8px;color:var(--gold);padding:8px 16px;cursor:pointer;font-size:12px">Retry</button></div>';
-    // Retry automatically after 2s
-    setTimeout(()=>{ if(typeof EditorJS!=='undefined') initBlockEditor(holderId,savedData,onChange); }, 2000);
-    return null;
-  }
-
-  const editor=new EditorJS({
-    holder:holderId,
-    data:savedData&&savedData.blocks?savedData:{blocks:[]},
-    placeholder:'Type / to insert a block, or start writing…',
-    tools:buildEditorTools(),
-    logLevel:'ERROR',
-    onChange:async()=>{ if(typeof onChange==='function') onChange(); }
-  });
-
-  try{
-    await editor.isReady;
-    window['__ej_'+holderId]=editor;
-    return editor;
-  }catch(e){
-    console.error('EditorJS init error:',e);
-    el.innerHTML=`<div style="padding:20px;color:var(--bear)">Editor failed to load: ${e.message}</div>`;
-    return null;
-  }
-}
-
+// Legacy stubs — kept so old onclick handlers don't throw
+function lmrBlockSave(section){ return lmrSimpleSave(section); }
+async function lmrBlockLoad(section){ return lmrSimpleLoad(section); }
 async function canvasUploadImage(file){ return lmrUploadFile(file); }
 async function canvasUploadUrl(url){ return{success:1,file:{url}}; }
 // Legacy alias
@@ -7256,236 +6969,6 @@ function editJournal(id){
   if(btn){btn.dataset.editId=id;btn.textContent='💾 Update';}
 }
 
-// ── LMR FREE PAGES (Terminology + Psychology) ────────────────────────────────
-function lmrFmt(tag,pageId='terminology'){
-  const el=document.getElementById(pageId+'-content');
-  if(!el)return;el.focus();
-  if(tag==='h1')document.execCommand('formatBlock',false,'h1');
-  else if(tag==='h2')document.execCommand('formatBlock',false,'h2');
-  else if(tag==='h3')document.execCommand('formatBlock',false,'h3');
-  else if(tag==='h4')document.execCommand('formatBlock',false,'h4');
-  else if(tag==='p')document.execCommand('formatBlock',false,'p');
-  else if(tag==='b')document.execCommand('bold');
-  else if(tag==='i')document.execCommand('italic');
-  else if(tag==='ul')document.execCommand('insertUnorderedList');
-  else if(tag==='ol')document.execCommand('insertOrderedList');
-  else if(tag==='hr')document.execCommand('insertHorizontalRule');
-  else if(tag==='quote')document.execCommand('formatBlock',false,'blockquote');
-  else if(tag==='toggle'){
-    const toggle=document.createElement('div');
-    toggle.className='lmr-toggle open';
-    toggle.innerHTML=`<div class="lmr-toggle-head" contenteditable="false" onclick="this.parentElement.classList.toggle('open')">▸ Section Title (click to toggle)</div><div class="lmr-toggle-body" contenteditable="true"><br></div>`;
-    const sel=window.getSelection();
-    if(sel&&sel.rangeCount){const r=sel.getRangeAt(0);r.deleteContents();r.insertNode(toggle);}
-    else el.appendChild(toggle);
-  }
-  // ── CHECKLIST ──
-  else if(tag==='check'){
-    const wrap=document.createElement('div');
-    wrap.className='lmr-check';
-    wrap.innerHTML=`<input type="checkbox" onchange="this.closest('.lmr-check').classList.toggle('checked',this.checked);autoSave('${pageId}',()=>saveLmrPage('${pageId}'),800)"><span class="lmr-check-text" contenteditable="true">To-do item</span>`;
-    lmrInsertBlock(el,wrap);
-  }
-  // ── COLUMNS ──
-  else if(tag.startsWith('cols')){
-    const n=parseInt(tag.replace('cols',''))||2;
-    const cols=document.createElement('div');
-    cols.className=`lmr-cols lmr-cols-${n}`;
-    for(let i=1;i<=n;i++){
-      const col=document.createElement('div');
-      col.className='lmr-col';
-      col.contentEditable='true';
-      col.dataset.col=`Column ${i}`;
-      col.innerHTML='<br>';
-      col.addEventListener('input',()=>autoSave(pageId,()=>saveLmrPage(pageId),1000));
-      cols.appendChild(col);
-    }
-    lmrInsertBlock(el,cols);
-  }
-  // ── IMAGE (from slash menu) ──
-  else if(tag==='image'){ lmrInsertImg(pageId); }
-  // ── FILE (from slash menu) ──
-  else if(tag==='file'){ lmrInsertFile(pageId); }
-  autoSave(pageId,()=>saveLmrPage(pageId),1200);
-}
-
-// Helper: insert a block node at cursor or end of editor
-function lmrInsertBlock(el,node){
-  const sel=window.getSelection();
-  if(sel&&sel.rangeCount){
-    const r=sel.getRangeAt(0);
-    // Find top-level parent inside editor
-    let container=r.commonAncestorContainer;
-    while(container&&container.parentNode!==el) container=container.parentNode;
-    if(container&&container.parentNode===el){
-      el.insertBefore(node,container.nextSibling);
-    } else {
-      r.deleteContents();r.insertNode(node);
-    }
-  } else { el.appendChild(node); }
-  // Place cursor inside the new block
-  const first=node.querySelector('[contenteditable="true"]')||node;
-  if(first){const r2=document.createRange();r2.setStart(first,0);r2.collapse(true);sel.removeAllRanges();sel.addRange(r2);first.focus();}
-}
-
-// ── FILE ATTACHMENT ──
-let _lmrFilePageId='terminology';
-function lmrInsertFile(pageId){
-  _lmrFilePageId=pageId;
-  const el=document.getElementById(pageId+'-content');
-  if(el){el.focus();const sel=window.getSelection();if(sel&&sel.rangeCount)_lmrSavedRange=sel.getRangeAt(0).cloneRange();}
-  document.getElementById('lmrFileInput').click();
-}
-document.getElementById('lmrFileInput').addEventListener('change',async e=>{
-  const f=e.target.files[0];if(!f)return;
-  const pageId=_lmrFilePageId;
-  const el=document.getElementById(pageId+'-content');
-  if(!el){e.target.value='';return;}
-  // Upload file to Supabase Storage
-  const fileName=`file-${Date.now()}-${f.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
-  let fileUrl='';
-  try{
-    if(_sb&&_sbUserId){
-      const{data}=await _sb.storage.from('app-images').upload(`${_sbUserId}/${fileName}`,f,{upsert:true});
-      if(data) fileUrl=`https://agrvylclhvxyevsmmexf.supabase.co/storage/v1/object/public/app-images/${_sbUserId}/${fileName}`;
-    }
-  }catch(err){}
-  // Insert file link
-  const link=document.createElement('a');
-  link.className='lmr-file-attach';
-  link.textContent=`📎 ${f.name} (${(f.size/1024).toFixed(1)}KB)`;
-  link.href=fileUrl||'#';
-  link.target='_blank';
-  link.rel='noopener';
-  el.focus();
-  if(_lmrSavedRange){
-    _lmrSavedRange.collapse(false);
-    const sel=window.getSelection();sel.removeAllRanges();sel.addRange(_lmrSavedRange);
-    _lmrSavedRange.insertNode(link);
-  } else { el.appendChild(link); }
-  autoSave(pageId,()=>saveLmrPage(pageId),600);
-  flash(`✓ File "${f.name}" attached`);
-  e.target.value='';
-});
-
-// ── IMAGE PASTE DIRECTLY INTO EDITOR ──
-// Wire paste event on all lmr-page-content elements to handle image paste
-document.addEventListener('paste',async e=>{
-  const activeEl=document.activeElement;
-  if(!activeEl||!activeEl.classList.contains('lmr-page-content')&&!activeEl.classList.contains('lmr-col')&&!activeEl.classList.contains('lmr-check-text')) return;
-  const items=e.clipboardData?.items||[];
-  for(const item of items){
-    if(item.type.startsWith('image/')){
-      e.preventDefault();
-      const blob=item.getAsFile();if(!blob)continue;
-      const pageId=activeEl.dataset.page||(activeEl.closest('[data-page]')?.dataset.page)||_lmrImgPageId||'terminology';
-      const key='lmr-img-paste-'+Date.now();
-      const compressed=await compress(blob,1600,0.88);
-      await saveImg(key,compressed);
-      const url=URL.createObjectURL(compressed);
-      const img=document.createElement('img');
-      img.src=url;img.className='lmr-inline-img';img.dataset.imgkey=key;
-      img.style.cssText='max-width:100%;border-radius:10px;margin:10px 0;display:block;cursor:zoom-in;border:1px solid var(--border2)';
-      img.onclick=()=>openLightbox(img.src);
-      const sel=window.getSelection();
-      if(sel&&sel.rangeCount){const r=sel.getRangeAt(0);r.deleteContents();r.insertNode(img);}
-      else activeEl.appendChild(img);
-      autoSave(pageId,()=>saveLmrPage(pageId),600);
-      flash('✓ Image pasted');
-      return;
-    }
-  }
-});
-
-// ── SLASH COMMAND MENU ──
-let _slashPageId='terminology';
-let _slashRange=null;
-let _slashActiveIdx=0;
-
-document.addEventListener('keydown',e=>{
-  const menu=document.getElementById('lmrSlashMenu');
-  if(menu.style.display!=='none'){
-    const items=menu.querySelectorAll('.lmr-slash-item');
-    if(e.key==='ArrowDown'){e.preventDefault();_slashActiveIdx=(_slashActiveIdx+1)%items.length;items.forEach((i,n)=>i.classList.toggle('active',n===_slashActiveIdx));return;}
-    if(e.key==='ArrowUp'){e.preventDefault();_slashActiveIdx=(_slashActiveIdx-1+items.length)%items.length;items.forEach((i,n)=>i.classList.toggle('active',n===_slashActiveIdx));return;}
-    if(e.key==='Enter'){e.preventDefault();const active=items[_slashActiveIdx];if(active)lmrSlashExec(active.dataset.cmd);return;}
-    if(e.key==='Escape'){lmrSlashClose();return;}
-  }
-});
-
-function lmrSlashClose(){const m=document.getElementById('lmrSlashMenu');if(m)m.style.display='none';}
-
-document.addEventListener('input',e=>{
-  const el=e.target;
-  if(!el.classList.contains('lmr-page-content')&&!el.classList.contains('lmr-col')&&!el.classList.contains('lmr-check-text')) return;
-  const sel=window.getSelection();if(!sel||!sel.rangeCount)return;
-  const range=sel.getRangeAt(0).cloneRange();
-  range.setStart(range.startContainer,0);
-  const text=range.toString();
-  const slashIdx=text.lastIndexOf('/');
-  if(slashIdx>=0){
-    const after=text.slice(slashIdx+1);
-    _slashPageId=el.dataset.page||(el.closest('[data-page]')?.dataset.page)||'terminology';
-    _slashRange=sel.getRangeAt(0).cloneRange();
-    // Position menu near cursor
-    const rect=sel.getRangeAt(0).getBoundingClientRect();
-    const menu=document.getElementById('lmrSlashMenu');
-    menu.style.left=Math.min(rect.left,window.innerWidth-220)+'px';
-    menu.style.top=(rect.bottom+4)+'px';
-    // Filter items by search text
-    const items=menu.querySelectorAll('.lmr-slash-item');
-    const q=after.toLowerCase();
-    let visible=0;
-    items.forEach(item=>{
-      const text=(item.querySelector('div div')?.textContent||'').toLowerCase();
-      const show=!q||text.includes(q);
-      item.style.display=show?'':'none';
-      if(show){item.classList.toggle('active',visible===_slashActiveIdx);visible++;}
-    });
-    menu.style.display=visible?'block':'none';
-  } else {
-    lmrSlashClose();
-  }
-});
-
-document.addEventListener('click',e=>{
-  if(!e.target.closest('#lmrSlashMenu'))lmrSlashClose();
-  const item=e.target.closest('.lmr-slash-item');
-  if(item)lmrSlashExec(item.dataset.cmd);
-});
-
-function lmrSlashExec(cmd){
-  lmrSlashClose();
-  const el=document.getElementById(_slashPageId+'-content');
-  if(!el)return;
-  // Remove the "/" character that triggered the menu
-  if(_slashRange){
-    const r=_slashRange.cloneRange();
-    const text=r.startContainer.textContent||'';
-    const slashIdx=text.lastIndexOf('/');
-    if(slashIdx>=0){
-      r.setStart(r.startContainer,slashIdx);
-      r.setEnd(r.startContainer,text.length);
-      r.deleteContents();
-    }
-  }
-  if(cmd==='image')lmrInsertImg(_slashPageId);
-  else if(cmd==='file')lmrInsertFile(_slashPageId);
-  else lmrFmt(cmd,_slashPageId);
-}
-function lmrFmtPsych(tag){lmrFmt(tag,'psychology');}
-function lmrSetFontSize(size,pageId){
-  if(!size)return;
-  const el=document.getElementById(pageId+'-content');if(!el)return;el.focus();
-  document.execCommand('fontSize',false,'7');
-  el.querySelectorAll('font[size="7"]').forEach(f=>{f.removeAttribute('size');f.style.fontSize=size;});
-  autoSave(pageId,()=>saveLmrPage(pageId),1200);
-}
-function lmrSetColor(color,pageId){
-  const el=document.getElementById(pageId+'-content');if(!el)return;el.focus();
-  document.execCommand('foreColor',false,color);
-  autoSave(pageId,()=>saveLmrPage(pageId),1200);
-}
 
 // ── LMR INLINE IMAGE ────────────────────────────────────────────
 let _lmrImgPageId='terminology';
