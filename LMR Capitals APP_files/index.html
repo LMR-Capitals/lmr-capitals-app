@@ -4213,24 +4213,33 @@ const EYE_OPEN = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circl
 const EYE_SHUT = `<line x1="1" y1="1" x2="23" y2="23"/><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>`;
 
 let _pnlHidden = localStorage.getItem('lmr_pnl_hidden') === '1';
+// Cache keeps real values so we can restore without a re-fetch
+const _pnlCache = {bal:'$0', trades:'0', wr:'0%'};
 
 function applyPnlVisibility(){
-  const bal  = document.getElementById('sbBalance');
-  const stat = document.getElementById('sbStatRow');
-  const svg  = document.getElementById('pnl-eye-svg');
-  const btn  = document.getElementById('pnl-eye');
-  if(!bal) return;
+  const balEl    = document.getElementById('sbBalance');
+  const tradesEl = document.getElementById('sbTrades');
+  const wrEl     = document.getElementById('sbWR');
+  const svg      = document.getElementById('pnl-eye-svg');
+  const btn      = document.getElementById('pnl-eye');
+  if(!balEl) return;
 
   if(_pnlHidden){
-    // Show clean professional dashes — no dollar sign, no numbers
-    bal.innerHTML  = `<span class="pnl-mask">—— &nbsp;——</span>`;
-    if(stat) stat.innerHTML = `<span class="pnl-mask-sub">— — &nbsp;·&nbsp; — —%&nbsp;WR</span>`;
+    // Use textContent ONLY — never innerHTML — so sbTrades/sbWR spans survive
+    balEl.textContent   = '——  ——';
+    balEl.style.cssText = 'font-size:18px;letter-spacing:.18em;color:var(--text3)';
+    if(tradesEl){ tradesEl.textContent='——'; tradesEl.style.color='var(--text3)'; }
+    if(wrEl)    { wrEl.textContent='——'; wrEl.style.color='var(--text3)'; }
     if(svg) svg.innerHTML = EYE_SHUT;
     if(btn) btn.classList.add('hidden-state');
   } else {
+    // Restore cached real values — no fetch needed
+    balEl.textContent   = _pnlCache.bal;
+    balEl.style.cssText = '';            // reset inline style
+    if(tradesEl){ tradesEl.textContent=_pnlCache.trades; tradesEl.style.color=''; }
+    if(wrEl)    { wrEl.textContent=_pnlCache.wr;         wrEl.style.color=''; }
     if(svg) svg.innerHTML = EYE_OPEN;
     if(btn) btn.classList.remove('hidden-state');
-    updateSidebarProfile();
   }
 }
 
@@ -6811,34 +6820,40 @@ async function renderSettings(){
 // ============= MISC =============
 function updateAllStats(){
   const dc=dayCountFor(todayStr())||'—';
-  document.getElementById('dayCount').textContent=dc;
-  document.getElementById('mDayCount').textContent=dc;
+  const dcEl=document.getElementById('dayCount');
+  const mdcEl=document.getElementById('mDayCount');
+  if(dcEl)dcEl.textContent=dc;
+  if(mdcEl)mdcEl.textContent=dc;
+
   const acc=state.accounts.find(a=>String(a.id)===String(state.currentAcc));
+  const ts  = acc ? state.trades.filter(t=>String(t.accountId)===String(acc.id)) : state.trades;
+  const pnl = ts.reduce((s,t)=>s+t.pnl,0);
+  const bal = acc ? acc.deposit+pnl : pnl;
+  const wins= ts.filter(t=>t.win).length;
+  const wr  = ts.length ? Math.round(wins/ts.length*100) : 0;
+
+  // Always cache the real values (needed to restore after unhide)
+  _pnlCache.bal    = '$'+bal.toFixed(0);
+  _pnlCache.trades = String(ts.length);
+  _pnlCache.wr     = wr+'%';
+
+  // Write to DOM only when visible; applyPnlVisibility handles the masked state
+  if(!_pnlHidden){
+    const balEl=document.getElementById('sbBalance');
+    const trEl =document.getElementById('sbTrades');
+    const wrEl =document.getElementById('sbWR');
+    if(balEl){ balEl.textContent=_pnlCache.bal; balEl.style.cssText=''; }
+    if(trEl) { trEl.textContent =_pnlCache.trades; trEl.style.color=''; }
+    if(wrEl) { wrEl.textContent =_pnlCache.wr;     wrEl.style.color=''; }
+  }
+
+  // acc-quick widget always shows account name (never masked)
+  const aqn=document.getElementById('accQuickName');
+  const aqs=document.getElementById('accQuickStats');
   if(acc){
-    const ts=state.trades.filter(t=>String(t.accountId)===String(acc.id));
-    const pnl=ts.reduce((s,t)=>s+t.pnl,0);
-    const bal=acc.deposit+pnl;
-    if(!_pnlHidden){
-      document.getElementById('sbBalance').textContent='$'+bal.toFixed(0);
-      document.getElementById('sbTrades').textContent=ts.length;
-      const wins=ts.filter(t=>t.win).length;
-      document.getElementById('sbWR').textContent=(ts.length?Math.round(wins/ts.length*100):0)+'%';
-    }
-    // update acc-quick widget
-    const aqn=document.getElementById('accQuickName');
-    const aqs=document.getElementById('accQuickStats');
     if(aqn)aqn.textContent=acc.name;
-    if(aqs)aqs.textContent=_pnlHidden?'$ • • •  ·  ••T  ·  ••% WR':`$${bal.toFixed(0)} · ${ts.length}T · ${ts.length?Math.round(wins/ts.length*100):0}% WR`;
+    if(aqs)aqs.textContent=`$${bal.toFixed(0)} · ${ts.length}T · ${wr}% WR`;
   } else {
-    const ts=state.trades;const pnl=ts.reduce((s,t)=>s+t.pnl,0);
-    if(!_pnlHidden){
-      document.getElementById('sbBalance').textContent='$'+pnl.toFixed(0);
-      document.getElementById('sbTrades').textContent=ts.length;
-      const wins=ts.filter(t=>t.win).length;
-      document.getElementById('sbWR').textContent=(ts.length?Math.round(wins/ts.length*100):0)+'%';
-    }
-    const aqn=document.getElementById('accQuickName');
-    const aqs=document.getElementById('accQuickStats');
     if(aqn)aqn.textContent='No account set';
     if(aqs)aqs.textContent='Click to manage accounts';
   }
@@ -6886,10 +6901,9 @@ async function init(){
   updateTicker();
   setInterval(updateTicker,6000);
   if(!state.profile)state.profile={};
-  updateAllStats();
+  updateAllStats();        // caches _pnlCache with real values
   updateSidebarProfile();
-  // Restore P&L eye state from last session
-  setTimeout(applyPnlVisibility, 200);
+  applyPnlVisibility();   // apply hidden/visible state immediately — no delay
   loadDaily();
   navTo('dash');
 }
