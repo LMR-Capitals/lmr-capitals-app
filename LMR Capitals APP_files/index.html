@@ -326,8 +326,8 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .sidebar{width:242px;min-width:242px;background:linear-gradient(180deg,#080D18 0%,#05080F 100%);border-right:2px solid transparent;background-clip:padding-box;box-shadow:2px 0 20px rgba(0,0,0,.5),inset -1px 0 0 rgba(245,166,35,.35);display:flex;flex-direction:column}
 .sb-head{padding:16px 14px;background:linear-gradient(135deg,rgba(245,166,35,.06),transparent);border-bottom:1px solid var(--border);transition:background var(--t)}
 .sb-head:hover{background:linear-gradient(135deg,rgba(245,166,35,.12),transparent)}
-.sb-logo{display:flex;align-items:center;gap:9px;font-weight:700;font-size:13px;letter-spacing:.01em}
-.sb-logo-icon{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#0B1421,#080D18);display:flex;align-items:center;justify-content:center;color:#000;font-weight:900;font-size:16px;border:1.5px solid rgba(245,166,35,.4);box-shadow:0 2px 16px rgba(245,166,35,.2)}
+.sb-logo{display:flex;align-items:center;gap:11px;font-weight:700;font-size:15px;letter-spacing:.01em}
+.sb-logo-icon{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#0B1421,#080D18);display:flex;align-items:center;justify-content:center;color:#000;font-weight:900;font-size:20px;border:1.5px solid rgba(245,166,35,.4);box-shadow:0 2px 16px rgba(245,166,35,.2)}
 .sb-status{font-size:9px;color:var(--text3);margin-top:4px;display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-weight:600}
 .sb-sec{font-size:10px;color:rgba(245,166,35,.6);text-transform:uppercase;letter-spacing:.14em;padding:14px 14px 4px;font-weight:700}
 .sb-item{display:flex;align-items:center;gap:9px;padding:8px 14px;border-radius:var(--r);font-size:13px;color:var(--text2);cursor:pointer;border-left:2px solid transparent;font-weight:500;transition:all var(--t);letter-spacing:.01em}
@@ -340,6 +340,26 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .sb-day{margin:8px;padding:11px 14px;text-align:center;background:linear-gradient(135deg,rgba(245,166,35,.1),rgba(245,166,35,.03));border:1px solid rgba(245,166,35,.18);border-radius:var(--r2);box-shadow:0 0 24px rgba(245,166,35,.08),inset 0 1px 0 rgba(245,166,35,.1)}
 .sb-day-l{font-size:8px;color:var(--gold);text-transform:uppercase;letter-spacing:.14em;font-weight:700}
 .sb-day-v{font-size:28px;font-weight:900;color:var(--gold);font-family:'JetBrains Mono',monospace;letter-spacing:-.04em;text-shadow:0 0 24px var(--gold-glow);line-height:1;margin-top:2px}
+/* ── QUARTERLY STRIP ── */
+.sb-quarter-strip{margin:0 8px 6px;padding:8px 10px;background:rgba(245,166,35,.03);border:1px solid rgba(245,166,35,.1);border-radius:var(--r2)}
+.sbq-row{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px}
+.sbq-item{display:flex;flex-direction:column;gap:1px}
+.sbq-l{font-size:7px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+.sbq-v{font-size:11px;font-weight:700;color:var(--gold2);font-family:'JetBrains Mono',monospace;line-height:1.2}
+.sbq-v.active{color:var(--bull);text-shadow:0 0 8px var(--bull-glow)}
+/* ── MACRO WINDOWS ── */
+.sb-macro-strip{margin:0 8px 6px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2)}
+.sbm-head{font-size:7px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.sbm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
+.sbm-item{padding:3px 4px;border-radius:5px;background:rgba(255,255,255,.03);border:1px solid var(--border);cursor:default;transition:all .2s}
+.sbm-item.active{background:rgba(245,166,35,.15);border-color:rgba(245,166,35,.4)}
+.sbm-item.next{background:rgba(0,212,164,.06);border-color:rgba(0,212,164,.25)}
+.sbm-name{font-size:8px;font-weight:700;color:var(--text2);letter-spacing:.03em}
+.sbm-item.active .sbm-name{color:var(--gold)}
+.sbm-item.next .sbm-name{color:var(--bull)}
+.sbm-time{font-size:7px;color:var(--text3);font-family:'JetBrains Mono',monospace;line-height:1.3}
+.sbm-item.active .sbm-time{color:var(--gold2)}
+.sbm-next-label{font-size:9px;color:var(--bull);font-weight:600;grid-column:1/-1;padding:2px 0}
 .sb-pnl-v.txt-pos{text-shadow:0 0 16px var(--bull-glow)}
 .sb-pnl-v.txt-neg{text-shadow:0 0 16px var(--bear-glow)}
 
@@ -1121,23 +1141,46 @@ select option[value="PM"] { color: #5BA8FF; }
         <img id="sb-logo-photo" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:10px">
       </div>
       <div>
-        <div style="font-weight:700;font-size:13px;line-height:1.2" id="sb-profile-name">LMR Capitals</div>
-        <div style="font-size:9px;color:var(--text3);font-weight:500" id="sb-profile-role">Trading Journal</div>
+        <div style="font-weight:800;font-size:15px;line-height:1.2;color:var(--text)" id="sb-profile-name">LMR Capitals</div>
+        <div style="font-size:10px;color:var(--gold);font-weight:600;letter-spacing:.03em" id="sb-profile-role">Trading Journal</div>
       </div>
-      <span style="margin-left:auto;font-size:11px;color:var(--text3);opacity:.5">⚙</span>
+      <span style="margin-left:auto;font-size:16px;color:var(--text3);opacity:.7" title="Settings">⚙</span>
     </div>
     <div class="sb-status"><span class="dot"></span> <span id="sb-save-status">Auto-saved</span></div>
   </div>
   
   <div class="sb-day">
     <div class="sb-day-l">Current Day</div>
-    <div class="sb-day-v" id="dayCount">363</div>
+    <div class="sb-day-v" id="dayCount">—</div>
   </div>
 
   <div class="ny-clock">
     <div class="ny-clock-label">🕐 New York Time</div>
     <div class="ny-clock-time" id="nyClockTime">--:--:--</div>
     <div class="ny-clock-date" id="nyClockDate">--- NY</div>
+  </div>
+
+  <!-- ── QUARTERLY CYCLE STRIP ── -->
+  <div class="sb-quarter-strip">
+    <div class="sbq-row">
+      <div class="sbq-item"><span class="sbq-l">Intra</span><span class="sbq-v" id="sq-intra">—</span></div>
+      <div class="sbq-item"><span class="sbq-l">Daily</span><span class="sbq-v" id="sq-daily">—</span></div>
+      <div class="sbq-item"><span class="sbq-l">Weekly</span><span class="sbq-v" id="sq-weekly">—</span></div>
+      <div class="sbq-item"><span class="sbq-l">Monthly</span><span class="sbq-v" id="sq-monthly">—</span></div>
+    </div>
+    <div style="margin-top:4px;display:flex;align-items:center;justify-content:space-between">
+      <div class="sbq-item"><span class="sbq-l">Yearly</span><span class="sbq-v" id="sq-yearly">—</span></div>
+      <div class="sbq-item" style="text-align:right"><span class="sbq-l">Session</span><span class="sbq-v" id="sq-session" style="color:var(--blue)">—</span></div>
+    </div>
+  </div>
+
+  <!-- ── MACRO TIME WINDOWS ── -->
+  <div class="sb-macro-strip">
+    <div class="sbm-head">
+      <span>⏱ Macro Windows</span>
+      <span id="sbm-next" style="color:var(--bull);font-weight:700;font-size:8px"></span>
+    </div>
+    <div class="sbm-grid" id="sbm-grid"></div>
   </div>
 
   <div class="acc-quick" onclick="navTo('accounts')" id="accQuick">
@@ -3799,6 +3842,21 @@ function hideCtxMenu(){
 }
 
 // ── NY CLOCK ────────────────────────────────────────────
+// ── MACRO TIME WINDOWS (NY time) ──────────────────────────────
+const MACROS=[
+  {n:'LAN 1',s:90,e:120},   // 1:30–2:00
+  {n:'LAN 2',s:170,e:190},  // 2:50–3:10
+  {n:'LAN 3',s:270,e:300},  // 4:30–5:00
+  {n:'NY 1', s:530,e:550},  // 8:50–9:10
+  {n:'NY 2', s:590,e:610},  // 9:50–10:10
+  {n:'NY 3', s:650,e:670},  // 10:50–11:10
+  {n:'LCH',  s:710,e:730},  // 11:50–12:10
+  {n:'PM 1', s:810,e:840},  // 13:30–14:00
+  {n:'CLS',  s:915,e:945},  // 15:15–15:45
+  {n:'FNL',  s:950,e:960},  // 15:50–16:00
+];
+function minsToLabel(m){const h=Math.floor(m/60),mi=m%60;return (h%12||12)+':'+(mi<10?'0':'')+mi+(h<12?'am':'pm');}
+
 function updateNyClock(){
   const now=new Date();
   const timeStr=now.toLocaleTimeString('en-US',{timeZone:'America/New_York',hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
@@ -3807,6 +3865,105 @@ function updateNyClock(){
   const del=document.getElementById('nyClockDate');
   if(el)el.textContent=timeStr;
   if(del)del.textContent=dateStr+' · NY';
+
+  // Get NY time parts
+  const nyStr=now.toLocaleString('en-US',{timeZone:'America/New_York'});
+  const ny=new Date(nyStr);
+  const h=ny.getHours(), m=ny.getMinutes(), dow=ny.getDay(), date=ny.getDate(), mo=ny.getMonth();
+  const totalMins=h*60+m;
+
+  // ── CURRENT DAY COUNT ──
+  const dc=document.getElementById('dayCount');
+  if(dc){
+    const td=dayCountFor(todayStr());
+    if(td){ dc.textContent='D'+td; }
+    else{
+      const next=getNextDayCount();
+      dc.textContent='D'+next+' *';
+    }
+  }
+
+  // ── QUARTERLY CYCLES ──
+  // Intra-day (90-min windows per session)
+  const intraSessions=[
+    {name:'ASIA',qs:[{s:18*60,e:19*60+30,q:1},{s:19*60+30,e:21*60,q:2},{s:21*60,e:22*60+30,q:3},{s:22*60+30,e:24*60,q:4}]},
+    {name:'LDN', qs:[{s:0,e:90,q:1},{s:90,e:180,q:2},{s:180,e:270,q:3},{s:270,e:360,q:4}]},
+    {name:'NY AM',qs:[{s:360,e:450,q:1},{s:450,e:540,q:2},{s:540,e:630,q:3},{s:630,e:720,q:4}]},
+    {name:'NY PM',qs:[{s:720,e:810,q:1},{s:810,e:900,q:2},{s:900,e:990,q:3},{s:990,e:1080,q:4}]},
+  ];
+  let intraSess='—', intraQ=0, dailyQ=0, sessName='—';
+  // Daily Q = which session block (Q1=Asia 18-00, Q2=Ldn 00-06, Q3=NYAM 06-12, Q4=NYPM 12-18)
+  if(totalMins>=18*60) { dailyQ=1; sessName='ASIA'; }
+  else if(totalMins<6*60){ dailyQ=2; sessName='LDN'; }
+  else if(totalMins<12*60){ dailyQ=3; sessName='NY AM'; }
+  else { dailyQ=4; sessName='NY PM'; }
+  // Find intra quarter
+  for(const sess of intraSessions){
+    for(const r of sess.qs){
+      if(totalMins>=r.s&&totalMins<r.e){ intraQ=r.q; intraSess=sess.name; break; }
+    }
+    if(intraQ) break;
+  }
+
+  // Weekly Q: Mon=1,Tue=2,Wed=3,Thu=4, Fri/Sat/Sun=special
+  const wDays=['','MON','TUE','WED','THU','FRI','SAT','SUN'];
+  let weeklyQ=0, weeklyLabel='—';
+  if(dow>=1&&dow<=4){ weeklyQ=dow; weeklyLabel='Q'+dow+'·'+wDays[dow]; }
+  else if(dow===5){ weeklyLabel='FRI·EXP'; }
+  else { weeklyLabel='WKND'; }
+
+  // Monthly Q: roughly which week of month (2nd Monday = true open = start of Q2)
+  const weekOfMonth=Math.ceil(date/7);
+  const monthlyQ=Math.min(weekOfMonth,4);
+
+  // Yearly Q: Q1=Dec/Jan/Feb, Q2=Mar/Apr/May, Q3=Jun/Jul/Aug, Q4=Sep/Oct/Nov
+  const mName=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  let yearlyQ=0;
+  if(mo===11||mo<=1) yearlyQ=1;
+  else if(mo<=4) yearlyQ=2;
+  else if(mo<=7) yearlyQ=3;
+  else yearlyQ=4;
+
+  // Update quarter elements
+  const sq=(id,val,isActive)=>{
+    const e=document.getElementById(id);
+    if(e){e.textContent=val;e.className='sbq-v'+(isActive?' active':'');}
+  };
+  sq('sq-intra', intraQ?'Q'+intraQ+'·'+intraSess:'—', intraQ>0);
+  sq('sq-daily', dailyQ?'Q'+dailyQ:'—', dailyQ>0);
+  sq('sq-weekly', weeklyLabel, weeklyQ>0);
+  sq('sq-monthly', monthlyQ?'Q'+monthlyQ:'—', monthlyQ>0);
+  sq('sq-yearly', 'Q'+yearlyQ+'·'+mName[mo], true);
+  sq('sq-session', sessName, true);
+
+  // ── MACRO WINDOWS ──
+  const grid=document.getElementById('sbm-grid');
+  const nextLabel=document.getElementById('sbm-next');
+  if(grid){
+    let nextMacro=null, nextMinsDiff=999999;
+    const items=MACROS.map(mac=>{
+      const isActive=totalMins>=mac.s&&totalMins<mac.e;
+      const isNext=!isActive&&totalMins<mac.s&&(mac.s-totalMins)<nextMinsDiff;
+      if(totalMins<mac.s&&(mac.s-totalMins)<nextMinsDiff){
+        nextMinsDiff=mac.s-totalMins;
+        nextMacro=mac;
+      }
+      return{...mac,isActive};
+    });
+    grid.innerHTML=items.map(mac=>`
+      <div class="sbm-item ${mac.isActive?'active':''}" title="${minsToLabel(mac.s)}–${minsToLabel(mac.e)}">
+        <div class="sbm-name">${mac.n}</div>
+        <div class="sbm-time">${minsToLabel(mac.s)}</div>
+      </div>`).join('');
+    if(nextLabel){
+      if(nextMacro){
+        const h2=Math.floor(nextMinsDiff/60),m2=nextMinsDiff%60;
+        nextLabel.textContent=`Next: ${nextMacro.n} in ${h2?h2+'h ':''}`+(m2?m2+'m':'');
+      } else {
+        nextLabel.textContent='No more macros today';
+      }
+    }
+  }
 }
 
 // ── JOURNAL TICKER ───────────────────────────────────────
@@ -6190,6 +6347,43 @@ async function lmrSimpleLoad(section){
         else if(typeof saved==='string' && saved.startsWith('<')) html=saved;
       }catch(e){ if(typeof saved==='string') html=saved; }
     }
+  }
+
+  // Default starter content for Terminology if nothing saved
+  if(!html && section==='terminology'){
+    html = `<h1>📊 Quarterly Theory — ICT</h1>
+<h2>Yearly Cycle</h2>
+<p><strong>Q1</strong> — December · January · February</p>
+<p><strong>Q2</strong> — March · April · May</p>
+<p><strong>Q3</strong> — June · July · August</p>
+<p><strong>Q4</strong> — September · October · November</p>
+<blockquote>True Open is always the Open of the 1st of April (Q2). The second quarter of the year is the True Open of the yearly cycle. Price will derive by its quarter and helps determine future market prediction for the current &amp; following year. Price will specifically follow Quarterly PD Arrays to form back.</blockquote>
+
+<h2>Monthly Cycle</h2>
+<p><strong>Q1</strong> — Dec · Jan · Feb &nbsp; <strong>Q2</strong> — Mar · Apr · May &nbsp; <strong>Q3</strong> — Jun · Jul · Aug &nbsp; <strong>Q4</strong> — Sep · Oct · Nov</p>
+<blockquote>Monthly quarterly cycle starts with the first week of the month and 2nd Monday. Each quarter starts with the second Monday — the True Open of the monthly cycle.</blockquote>
+
+<h2>Weekly Cycle</h2>
+<p><strong>Q1</strong> Monday &nbsp; <strong>Q2</strong> Tuesday &nbsp; <strong>Q3</strong> Wednesday &nbsp; <strong>Q4</strong> Thursday</p>
+<blockquote>First quarter of the week is Monday — True Open of that week. Friday has its own function.</blockquote>
+
+<h2>Daily Cycle</h2>
+<p><strong>Q1</strong> 7 PM EST — Asia &nbsp; <strong>Q2</strong> 12 AM EST — London &nbsp; <strong>Q3</strong> 6 AM EST — NY AM &nbsp; <strong>Q4</strong> 12 PM EST — NY PM</p>
+
+<h2>Intra Day Cycle — 90 Min Windows</h2>
+<p><strong>Asia</strong> &nbsp; Q1 6pm–7:30pm &nbsp; Q2 7:30pm–9pm &nbsp; Q3 9pm–10:30pm &nbsp; Q4 10:30pm–12am</p>
+<p><strong>London</strong> &nbsp; Q1 12am–1:30am &nbsp; Q2 1:30am–3am &nbsp; Q3 3am–4:30am &nbsp; Q4 4:30am–6am</p>
+<p><strong>NY AM</strong> &nbsp; Q1 6am–7:30am &nbsp; Q2 7:30am–9am &nbsp; Q3 9am–10:30am &nbsp; Q4 10:30am–12pm</p>
+<p><strong>NY PM</strong> &nbsp; Q1 12pm–1:30pm &nbsp; Q2 1:30pm–3pm &nbsp; Q3 3pm–4:30pm &nbsp; Q4 4:30pm–6pm</p>
+<blockquote>Each session has 4 quarters. Q1 = Manipulation · Q2 = Distribution · Q3 = Re-accumulation/Continuation · Q4 = Accumulation. If Asia Q makes distribution, London Q will retrace Asian Q to re-accumulate. Each quarter has its own PD Array — the following quarter reacts to the high-potential PD Array as True Open drags to Point of Interest for new moves.</blockquote>
+
+<h2>Macro Time Windows</h2>
+<p><strong>LAN 1</strong> 1:30–2:00am &nbsp; <strong>LAN 2</strong> 2:50–3:10am &nbsp; <strong>LAN 3</strong> 4:30–5:00am</p>
+<p><strong>NY 1</strong> 8:50–9:10am &nbsp; <strong>NY 2</strong> 9:50–10:10am &nbsp; <strong>NY 3</strong> 10:50–11:10am</p>
+<p><strong>LCH</strong> 11:50am–12:10pm &nbsp; <strong>PM 1</strong> 1:30–2:00pm &nbsp; <strong>CLS</strong> 3:15–3:45pm &nbsp; <strong>FNL</strong> 3:50–4:00pm</p>
+
+<h2>Reference Videos</h2>
+<ul><li>Sav Fx Quarterly Basis</li><li>London Quarterly, ICT PO3</li><li>Standard Deviation ICT</li><li>NY AM Quarterly, ICT</li><li>Quarterly Theory</li><li>Entries using ICT and Quarterly</li></ul>`;
   }
 
   el.innerHTML = html || '';
