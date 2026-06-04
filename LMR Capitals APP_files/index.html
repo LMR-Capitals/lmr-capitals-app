@@ -670,8 +670,12 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .canvas-topbar{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:50}
 .canvas-title{flex:1;font-size:22px;font-weight:800;color:var(--text);background:none;border:none;outline:none;padding:4px 0}
 .canvas-title::placeholder{color:var(--text3);font-weight:400}
-#canvas-editor .codex-editor{color:var(--text)!important}
-/* Full-width block editors — no max-width centering */
+/* ── EDITOR.JS DARK THEME — applied to ALL block editors ── */
+#canvas-editor .codex-editor,
+#terminology-block-editor .codex-editor,
+#psychology-block-editor .codex-editor,
+#observation-block-editor .codex-editor{color:var(--text)!important;background:transparent!important}
+/* Full-width — no centering */
 #terminology-block-editor .ce-block__content,
 #psychology-block-editor .ce-block__content,
 #observation-block-editor .ce-block__content,
@@ -688,26 +692,47 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .toggle-block-title{flex:1;outline:none;color:var(--text);font-size:14px;font-weight:600;background:none;border:none;cursor:text}
 .toggle-block-body{padding:8px 12px 10px 28px;display:none;color:var(--text2);font-size:13px;line-height:1.65;outline:none;min-height:32px}
 .toggle-block-body.open{display:block}
+/* All block editors share the same dark theme — one rule set for all IDs */
+#terminology-block-editor .cdx-block,#psychology-block-editor .cdx-block,#observation-block-editor .cdx-block,
 #canvas-editor .cdx-block,#obs-editor .cdx-block{color:var(--text2)!important;font-size:14px!important;line-height:1.75!important}
+
+#terminology-block-editor .ce-header,#psychology-block-editor .ce-header,#observation-block-editor .ce-header,
 #canvas-editor .ce-header,#obs-editor .ce-header{color:var(--text)!important;font-weight:700!important}
+
+#terminology-block-editor .ce-paragraph[data-placeholder]:empty::before,
+#psychology-block-editor .ce-paragraph[data-placeholder]:empty::before,
+#observation-block-editor .ce-paragraph[data-placeholder]:empty::before,
 #canvas-editor .ce-paragraph[data-placeholder]:empty::before,
 #obs-editor .ce-paragraph[data-placeholder]:empty::before{color:var(--text3)!important}
-#canvas-editor .codex-editor__redactor,#obs-editor .codex-editor__redactor{padding:20px 0 80px!important}
+
+#terminology-block-editor .ce-toolbar__plus,#psychology-block-editor .ce-toolbar__plus,#observation-block-editor .ce-toolbar__plus,
 #canvas-editor .ce-toolbar__plus,#obs-editor .ce-toolbar__plus,
+#terminology-block-editor .ce-toolbar__settings-btn,#psychology-block-editor .ce-toolbar__settings-btn,
+#observation-block-editor .ce-toolbar__settings-btn,
 #canvas-editor .ce-toolbar__settings-btn,#obs-editor .ce-toolbar__settings-btn{color:var(--text3)!important;background:var(--bg3)!important;border:1px solid var(--border)!important;border-radius:6px!important}
-#canvas-editor .ce-popover,#obs-editor .ce-popover{background:var(--bg2)!important;border:1px solid var(--border2)!important;border-radius:12px!important;box-shadow:0 12px 40px rgba(0,0,0,.5)!important}
-#canvas-editor .ce-popover-item,#obs-editor .ce-popover-item{color:var(--text2)!important}
-#canvas-editor .ce-popover-item:hover,#obs-editor .ce-popover-item:hover,
-#canvas-editor .ce-popover-item--active,#obs-editor .ce-popover-item--active{background:rgba(245,166,35,.1)!important;color:var(--text)!important}
-#canvas-editor .ce-popover-item__icon,#obs-editor .ce-popover-item__icon{background:var(--bg3)!important;border-radius:6px!important}
-#canvas-editor .ce-inline-toolbar,#obs-editor .ce-inline-toolbar{background:var(--bg2)!important;border:1px solid var(--border2)!important;border-radius:8px!important;box-shadow:0 8px 24px rgba(0,0,0,.4)!important}
-#canvas-editor .ce-inline-tool,#obs-editor .ce-inline-tool{color:var(--text2)!important}
-#canvas-editor .ce-inline-tool--active,#obs-editor .ce-inline-tool--active{color:var(--gold)!important}
+
+.ce-popover{background:var(--bg2)!important;border:1px solid var(--border2)!important;border-radius:12px!important;box-shadow:0 12px 40px rgba(0,0,0,.5)!important}
+.ce-popover-item{color:var(--text2)!important}
+.ce-popover-item:hover,.ce-popover-item--active{background:rgba(245,166,35,.1)!important;color:var(--text)!important}
+.ce-popover-item__icon{background:var(--bg3)!important;border-radius:6px!important}
+.ce-inline-toolbar{background:var(--bg2)!important;border:1px solid var(--border2)!important;border-radius:8px!important;box-shadow:0 8px 24px rgba(0,0,0,.4)!important}
+.ce-inline-tool{color:var(--text2)!important}
+.ce-inline-tool--active{color:var(--gold)!important}
+
+#terminology-block-editor blockquote,#psychology-block-editor blockquote,#observation-block-editor blockquote,
 #canvas-editor blockquote,#obs-editor blockquote{border-left:3px solid var(--gold)!important;background:rgba(245,166,35,.04)!important;padding:8px 16px!important;border-radius:0 8px 8px 0!important}
-#canvas-editor .cdx-checklist__item-checkbox,#obs-editor .cdx-checklist__item-checkbox{border:2px solid var(--border2)!important;border-radius:4px!important}
-#canvas-editor .cdx-checklist__item--checked .cdx-checklist__item-checkbox,
-#obs-editor .cdx-checklist__item--checked .cdx-checklist__item-checkbox{background:var(--gold)!important;border-color:var(--gold)!important}
-#canvas-editor .cdx-warning,#obs-editor .cdx-warning{background:rgba(255,64,96,.06)!important;border:1px solid rgba(255,64,96,.2)!important;border-radius:8px!important}
+
+.cdx-checklist__item-checkbox{border:2px solid var(--border2)!important;border-radius:4px!important}
+.cdx-checklist__item--checked .cdx-checklist__item-checkbox{background:var(--gold)!important;border-color:var(--gold)!important}
+.cdx-warning{background:rgba(255,64,96,.06)!important;border:1px solid rgba(255,64,96,.2)!important;border-radius:8px!important}
+.ce-code__textarea{background:var(--bg3)!important;color:var(--text)!important;border:1px solid var(--border)!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important}
+.cdx-attaches{background:var(--bg3)!important;border:1px solid var(--border2)!important;border-radius:8px!important}
+.cdx-attaches__title{color:var(--text)!important}
+.cdx-attaches__size{color:var(--text3)!important}
+.image-tool__caption,.cdx-quote__caption{color:var(--text3)!important;font-style:italic}
+.tc-table{border-color:var(--border)!important}
+.tc-cell{border-color:var(--border)!important;color:var(--text2)!important;background:var(--bg2)!important}
+.tc-row:first-child .tc-cell{background:var(--bg3)!important;font-weight:700!important;color:var(--text)!important}
 .canvas-status{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace}
 .canvas-status.saving{color:var(--gold)}
 .canvas-status.saved{color:var(--bull)}
@@ -4178,7 +4203,11 @@ function navTo(p){
   }
   if(window.innerWidth<=900)toggleSidebar();
   if(p==='dash') renderDashboard();
-  if(p==='perf') renderPerfCharts();
+  if(p==='perf'){
+    renderPerfCharts();
+    // If no trades yet, retry after cloud data loads
+    if(!state.trades.length) setTimeout(renderPerfCharts, 2000);
+  }
   if(p==='trades') renderTradeTable();
   if(p==='journal') renderJournalList();
   if(p==='monthly') loadMonthly();
@@ -5910,7 +5939,15 @@ function renderDashCharts(){
 let perfCharts={};
 function renderPerfCharts(){
   const ts=state.trades;
-  if(!ts.length) return;
+  if(!ts.length){
+    // Show empty state instead of silently failing
+    const el=document.getElementById('perf-trade-count');
+    if(el) el.textContent='No trades yet — add trades to see analytics';
+    document.getElementById('p-total').textContent='0';
+    document.getElementById('p-wr').textContent='0%';
+    document.getElementById('p-pnl').textContent='$0';
+    return;
+  }
 
   // ── CORE STATS ──
   const wins=ts.filter(t=>t.pnl>0);
