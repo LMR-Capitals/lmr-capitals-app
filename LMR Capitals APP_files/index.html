@@ -4249,6 +4249,109 @@ function togglePnlVisibility(){
   applyPnlVisibility();
 }
 
+// ── DYNAMIC PWA ICON (canvas-generated: navy bg + gold strip + profile) ──────
+async function buildAppIcon(size=512){
+  const c=document.createElement('canvas');
+  c.width=c.height=size;
+  const ctx=c.getContext('2d');
+  const R=size*0.18; // border-radius
+
+  // Rounded-rect helper
+  function rrPath(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+    ctx.arcTo(x+w,y,x+w,y+r,r); ctx.lineTo(x+w,y+h-r);
+    ctx.arcTo(x+w,y+h,x+w-r,y+h,r); ctx.lineTo(x+r,y+h);
+    ctx.arcTo(x,y+h,x,y+h-r,r); ctx.lineTo(x,y+r);
+    ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
+  }
+
+  // 1. Navy background
+  rrPath(0,0,size,size,R);
+  ctx.fillStyle='#080D18'; ctx.fill();
+
+  // 2. Subtle radial glow in top-right
+  const glow=ctx.createRadialGradient(size*.7,size*.2,0,size*.7,size*.2,size*.6);
+  glow.addColorStop(0,'rgba(245,166,35,.12)');
+  glow.addColorStop(1,'rgba(0,0,0,0)');
+  rrPath(0,0,size,size,R);
+  ctx.fillStyle=glow; ctx.fill();
+
+  // 3. Profile photo (circular) OR LMR text
+  const photoBlob=await getImg('profile-photo').catch(()=>null);
+  if(photoBlob){
+    const url=URL.createObjectURL(photoBlob);
+    const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url;});
+    const cx=size/2,cy=size*.42,cr=size*.3;
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx,cy,cr,0,Math.PI*2); ctx.clip();
+    ctx.drawImage(img,cx-cr,cy-cr,cr*2,cr*2);
+    ctx.restore();
+    // thin gold ring around photo
+    ctx.beginPath(); ctx.arc(cx,cy,cr,0,Math.PI*2);
+    ctx.strokeStyle='rgba(245,166,35,.7)'; ctx.lineWidth=size*.016; ctx.stroke();
+    URL.createObjectURL && URL.revokeObjectURL(url);
+  } else {
+    // LMR gold text + "CAPITALS" subtitle
+    ctx.textAlign='center';
+    ctx.fillStyle='#F5A623';
+    ctx.font=`900 ${Math.round(size*.28)}px "Plus Jakarta Sans",Arial`;
+    ctx.fillText('LMR',size/2,size*.42);
+    ctx.fillStyle='rgba(245,166,35,.55)';
+    ctx.font=`700 ${Math.round(size*.09)}px "Plus Jakarta Sans",Arial`;
+    ctx.letterSpacing='0.1em';
+    ctx.fillText('CAPITALS',size/2,size*.55);
+  }
+
+  // 4. Gold gradient strip at bottom (10% of height, clipped to rounded rect)
+  const stripH=size*.1;
+  ctx.save();
+  rrPath(0,0,size,size,R); ctx.clip();
+  const stripG=ctx.createLinearGradient(0,0,size,0);
+  stripG.addColorStop(0,'#E8901A'); stripG.addColorStop(.5,'#FFD166'); stripG.addColorStop(1,'#F5A623');
+  ctx.fillStyle=stripG; ctx.fillRect(0,size-stripH,size,stripH);
+  // LMR label inside strip
+  ctx.fillStyle='rgba(0,0,0,.55)';
+  ctx.font=`800 ${Math.round(size*.055)}px "Plus Jakarta Sans",Arial`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('LMR Capitals',size/2,size-stripH/2);
+  ctx.restore();
+
+  // 5. Gold outer border
+  const pad=size*.014;
+  rrPath(pad,pad,size-pad*2,size-pad*2,R);
+  ctx.strokeStyle='rgba(245,166,35,.4)'; ctx.lineWidth=size*.018; ctx.stroke();
+
+  return c.toDataURL('image/png');
+}
+
+async function updatePWAIcon(){
+  try{
+    const icon512=await buildAppIcon(512);
+    const icon192=await buildAppIcon(192);
+    // Update all apple-touch-icon links (iOS "Add to Home Screen")
+    document.querySelectorAll('link[rel*="apple-touch-icon"]').forEach(l=>l.href=icon512);
+    // Update favicon
+    const fav=document.querySelector('link[rel*="icon"][sizes="32x32"]');
+    if(fav) fav.href=await buildAppIcon(32);
+    // Update manifest dynamically (Android Chrome)
+    const mJson=JSON.stringify({
+      name:'LMR Capitals',short_name:'LMR',start_url:'./index.html',
+      display:'standalone',background_color:'#080D18',theme_color:'#F5A623',
+      orientation:'any',
+      icons:[
+        {src:icon192,sizes:'192x192',type:'image/png',purpose:'any maskable'},
+        {src:icon512,sizes:'512x512',type:'image/png',purpose:'any maskable'}
+      ]
+    });
+    const mBlob=new Blob([mJson],{type:'application/json'});
+    const mUrl=URL.createObjectURL(mBlob);
+    let mLink=document.querySelector('link[rel="manifest"]');
+    if(!mLink){mLink=document.createElement('link');mLink.rel='manifest';document.head.appendChild(mLink);}
+    mLink.href=mUrl;
+  }catch(e){ console.warn('[LMR] PWA icon generation failed:',e); }
+}
+
 async function updateSidebarProfile(){
   const p=state.profile||{};
   const name=p.name||'LMR Capitals';
@@ -4301,6 +4404,8 @@ document.getElementById('profilePhotoInput').addEventListener('change',async e=>
   await updateSidebarProfile();
   flash('✓ Photo updated');
   e.target.value='';
+  // Regenerate PWA icon with new profile photo
+  setTimeout(updatePWAIcon, 200);
 });
 
 function navTo(p){
@@ -6906,6 +7011,8 @@ async function init(){
   applyPnlVisibility();   // apply hidden/visible state immediately — no delay
   loadDaily();
   navTo('dash');
+  // Generate PWA icon from profile photo + LMR branding
+  setTimeout(updatePWAIcon, 800);
 }
 init();
 
