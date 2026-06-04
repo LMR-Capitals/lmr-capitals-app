@@ -1185,9 +1185,14 @@ select option[value="PM"] { color: #5BA8FF; }
   </nav>
   
   <div class="sb-foot">
-    <div class="sb-pnl-l">Total P&amp;L</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+      <div class="sb-pnl-l">Total P&amp;L</div>
+      <button id="pnl-eye" onclick="togglePnlVisibility()"
+        style="background:none;border:none;cursor:pointer;font-size:14px;color:var(--text3);padding:0 2px;line-height:1;transition:color .15s"
+        title="Show / hide P&L">👁</button>
+    </div>
     <div class="sb-pnl-v" id="sbBalance">$0</div>
-    <div class="sb-pnl-sub"><span id="sbTrades">0</span>T · <span id="sbWR">0%</span> WR</div>
+    <div class="sb-pnl-sub" id="sbStatRow"><span id="sbTrades">0</span>T · <span id="sbWR">0%</span> WR</div>
   </div>
 </aside>
 
@@ -4187,6 +4192,29 @@ async function loadProfile(){
     if(avatarInitials)avatarInitials.style.display='none';
   }
 }
+// ── P&L VISIBILITY TOGGLE ─────────────────────────────────────────────────
+let _pnlHidden = localStorage.getItem('lmr_pnl_hidden') === '1';
+function applyPnlVisibility(){
+  const bal  = document.getElementById('sbBalance');
+  const stat = document.getElementById('sbStatRow');
+  const eye  = document.getElementById('pnl-eye');
+  if(!bal) return;
+  if(_pnlHidden){
+    bal.textContent  = '$ • • • •';
+    if(stat) stat.innerHTML = '••T · ••% WR';
+    if(eye)  { eye.textContent='🙈'; eye.style.color='var(--text2)'; }
+  } else {
+    // Values will be re-applied by updateSidebarProfile on next call
+    if(eye) { eye.textContent='👁'; eye.style.color='var(--text3)'; }
+    updateSidebarProfile();
+  }
+}
+function togglePnlVisibility(){
+  _pnlHidden = !_pnlHidden;
+  localStorage.setItem('lmr_pnl_hidden', _pnlHidden ? '1' : '0');
+  applyPnlVisibility();
+}
+
 async function updateSidebarProfile(){
   const p=state.profile||{};
   const name=p.name||'LMR Capitals';
@@ -6765,21 +6793,25 @@ function updateAllStats(){
     const ts=state.trades.filter(t=>String(t.accountId)===String(acc.id));
     const pnl=ts.reduce((s,t)=>s+t.pnl,0);
     const bal=acc.deposit+pnl;
-    document.getElementById('sbBalance').textContent='$'+bal.toFixed(0);
-    document.getElementById('sbTrades').textContent=ts.length;
-    const wins=ts.filter(t=>t.win).length;
-    document.getElementById('sbWR').textContent=(ts.length?Math.round(wins/ts.length*100):0)+'%';
+    if(!_pnlHidden){
+      document.getElementById('sbBalance').textContent='$'+bal.toFixed(0);
+      document.getElementById('sbTrades').textContent=ts.length;
+      const wins=ts.filter(t=>t.win).length;
+      document.getElementById('sbWR').textContent=(ts.length?Math.round(wins/ts.length*100):0)+'%';
+    }
     // update acc-quick widget
     const aqn=document.getElementById('accQuickName');
     const aqs=document.getElementById('accQuickStats');
     if(aqn)aqn.textContent=acc.name;
-    if(aqs)aqs.textContent=`$${bal.toFixed(0)} · ${ts.length}T · ${ts.length?Math.round(wins/ts.length*100):0}% WR`;
+    if(aqs)aqs.textContent=_pnlHidden?'$ • • •  ·  ••T  ·  ••% WR':`$${bal.toFixed(0)} · ${ts.length}T · ${ts.length?Math.round(wins/ts.length*100):0}% WR`;
   } else {
     const ts=state.trades;const pnl=ts.reduce((s,t)=>s+t.pnl,0);
-    document.getElementById('sbBalance').textContent='$'+pnl.toFixed(0);
-    document.getElementById('sbTrades').textContent=ts.length;
-    const wins=ts.filter(t=>t.win).length;
-    document.getElementById('sbWR').textContent=(ts.length?Math.round(wins/ts.length*100):0)+'%';
+    if(!_pnlHidden){
+      document.getElementById('sbBalance').textContent='$'+pnl.toFixed(0);
+      document.getElementById('sbTrades').textContent=ts.length;
+      const wins=ts.filter(t=>t.win).length;
+      document.getElementById('sbWR').textContent=(ts.length?Math.round(wins/ts.length*100):0)+'%';
+    }
     const aqn=document.getElementById('accQuickName');
     const aqs=document.getElementById('accQuickStats');
     if(aqn)aqn.textContent='No account set';
@@ -6831,6 +6863,8 @@ async function init(){
   if(!state.profile)state.profile={};
   updateAllStats();
   updateSidebarProfile();
+  // Restore P&L eye state from last session
+  setTimeout(applyPnlVisibility, 200);
   loadDaily();
   navTo('dash');
 }
