@@ -341,25 +341,20 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .sb-day-l{font-size:8px;color:var(--gold);text-transform:uppercase;letter-spacing:.14em;font-weight:700}
 .sb-day-v{font-size:28px;font-weight:900;color:var(--gold);font-family:'JetBrains Mono',monospace;letter-spacing:-.04em;text-shadow:0 0 24px var(--gold-glow);line-height:1;margin-top:2px}
 /* ── QUARTERLY STRIP ── */
-.sb-quarter-strip{margin:0 8px 6px;padding:8px 10px;background:rgba(245,166,35,.03);border:1px solid rgba(245,166,35,.1);border-radius:var(--r2)}
-.sbq-row{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px}
-.sbq-item{display:flex;flex-direction:column;gap:1px}
-.sbq-l{font-size:7px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-weight:700}
-.sbq-v{font-size:11px;font-weight:700;color:var(--gold2);font-family:'JetBrains Mono',monospace;line-height:1.2}
-.sbq-v.active{color:var(--bull);text-shadow:0 0 8px var(--bull-glow)}
+/* ── CLOCK QUARTERLY LINE (inside clock box) ── */
+.ny-clock-q{font-size:8px;font-family:'JetBrains Mono',monospace;color:var(--gold2);font-weight:700;margin-top:5px;letter-spacing:.03em;line-height:1.5;border-top:1px solid rgba(91,168,255,.12);padding-top:4px}
+.ny-clock-q span{color:var(--text3);font-weight:500;margin:0 1px}
 /* ── MACRO WINDOWS ── */
-.sb-macro-strip{margin:0 8px 6px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2)}
-.sbm-head{font-size:7px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
-.sbm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
-.sbm-item{padding:3px 4px;border-radius:5px;background:rgba(255,255,255,.03);border:1px solid var(--border);cursor:default;transition:all .2s}
-.sbm-item.active{background:rgba(245,166,35,.15);border-color:rgba(245,166,35,.4)}
-.sbm-item.next{background:rgba(0,212,164,.06);border-color:rgba(0,212,164,.25)}
-.sbm-name{font-size:8px;font-weight:700;color:var(--text2);letter-spacing:.03em}
-.sbm-item.active .sbm-name{color:var(--gold)}
-.sbm-item.next .sbm-name{color:var(--bull)}
-.sbm-time{font-size:7px;color:var(--text3);font-family:'JetBrains Mono',monospace;line-height:1.3}
-.sbm-item.active .sbm-time{color:var(--gold2)}
-.sbm-next-label{font-size:9px;color:var(--bull);font-weight:600;grid-column:1/-1;padding:2px 0}
+.sb-macro-strip{margin:0 8px 5px;padding:7px 9px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2)}
+.sbm-head{font-size:7px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between}
+.sbm-countdown{font-size:8px;font-weight:700;color:var(--bull);font-family:'JetBrains Mono',monospace}
+.sbm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
+.sbm-item{padding:3px 4px;border-radius:4px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);transition:all .2s}
+.sbm-item.active{background:rgba(0,212,164,.12);border-color:rgba(0,212,164,.4);box-shadow:0 0 8px rgba(0,212,164,.2)}
+.sbm-name{font-size:7px;font-weight:700;color:var(--text3);letter-spacing:.04em}
+.sbm-item.active .sbm-name{color:var(--bull);font-size:8px}
+.sbm-range{font-size:7px;color:var(--text3);font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;line-height:1.2}
+.sbm-item.active .sbm-range{color:var(--bull)}
 .sb-pnl-v.txt-pos{text-shadow:0 0 16px var(--bull-glow)}
 .sb-pnl-v.txt-neg{text-shadow:0 0 16px var(--bear-glow)}
 
@@ -1158,27 +1153,14 @@ select option[value="PM"] { color: #5BA8FF; }
     <div class="ny-clock-label">🕐 New York Time</div>
     <div class="ny-clock-time" id="nyClockTime">--:--:--</div>
     <div class="ny-clock-date" id="nyClockDate">--- NY</div>
-  </div>
-
-  <!-- ── QUARTERLY CYCLE STRIP ── -->
-  <div class="sb-quarter-strip">
-    <div class="sbq-row">
-      <div class="sbq-item"><span class="sbq-l">Intra</span><span class="sbq-v" id="sq-intra">—</span></div>
-      <div class="sbq-item"><span class="sbq-l">Daily</span><span class="sbq-v" id="sq-daily">—</span></div>
-      <div class="sbq-item"><span class="sbq-l">Weekly</span><span class="sbq-v" id="sq-weekly">—</span></div>
-      <div class="sbq-item"><span class="sbq-l">Monthly</span><span class="sbq-v" id="sq-monthly">—</span></div>
-    </div>
-    <div style="margin-top:4px;display:flex;align-items:center;justify-content:space-between">
-      <div class="sbq-item"><span class="sbq-l">Yearly</span><span class="sbq-v" id="sq-yearly">—</span></div>
-      <div class="sbq-item" style="text-align:right"><span class="sbq-l">Session</span><span class="sbq-v" id="sq-session" style="color:var(--blue)">—</span></div>
-    </div>
+    <div class="ny-clock-q" id="clock-q">—</div>
   </div>
 
   <!-- ── MACRO TIME WINDOWS ── -->
   <div class="sb-macro-strip">
     <div class="sbm-head">
-      <span>⏱ Macro Windows</span>
-      <span id="sbm-next" style="color:var(--bull);font-weight:700;font-size:8px"></span>
+      <span>⏱ Macros</span>
+      <span class="sbm-countdown" id="sbm-next"></span>
     </div>
     <div class="sbm-grid" id="sbm-grid"></div>
   </div>
@@ -3842,20 +3824,46 @@ function hideCtxMenu(){
 }
 
 // ── NY CLOCK ────────────────────────────────────────────
-// ── MACRO TIME WINDOWS (NY time) ──────────────────────────────
+// ── MACRO TIME WINDOWS (NY time, minutes from midnight) ──────────────────
 const MACROS=[
-  {n:'LAN 1',s:90,e:120},   // 1:30–2:00
-  {n:'LAN 2',s:170,e:190},  // 2:50–3:10
-  {n:'LAN 3',s:270,e:300},  // 4:30–5:00
-  {n:'NY 1', s:530,e:550},  // 8:50–9:10
-  {n:'NY 2', s:590,e:610},  // 9:50–10:10
-  {n:'NY 3', s:650,e:670},  // 10:50–11:10
-  {n:'LCH',  s:710,e:730},  // 11:50–12:10
-  {n:'PM 1', s:810,e:840},  // 13:30–14:00
-  {n:'CLS',  s:915,e:945},  // 15:15–15:45
-  {n:'FNL',  s:950,e:960},  // 15:50–16:00
+  {n:'LAN 1',s:90, e:120}, // 1:30–2:00am
+  {n:'LAN 2',s:170,e:190}, // 2:50–3:10am
+  {n:'LAN 3',s:270,e:300}, // 4:30–5:00am
+  {n:'NY 1', s:530,e:550}, // 8:50–9:10am
+  {n:'NY 2', s:590,e:610}, // 9:50–10:10am
+  {n:'NY 3', s:650,e:670}, // 10:50–11:10am
+  {n:'LCH',  s:710,e:730}, // 11:50am–12:10pm
+  {n:'PM 1', s:810,e:840}, // 1:30–2:00pm
+  {n:'CLS',  s:915,e:945}, // 3:15–3:45pm
+  {n:'FNL',  s:950,e:960}, // 3:50–4:00pm
 ];
-function minsToLabel(m){const h=Math.floor(m/60),mi=m%60;return (h%12||12)+':'+(mi<10?'0':'')+mi+(h<12?'am':'pm');}
+// Format minutes → "1:30am" or "12:10pm"
+function minsToLabel(m){
+  const h=Math.floor(m/60)%24, mi=m%60, ampm=h<12?'am':'pm';
+  return (h%12||12)+':'+(mi<10?'0':'')+mi+ampm;
+}
+// Format minutes range → "1:30-2:00am"
+function minsToRange(s,e){
+  const sh=Math.floor(s/60)%24, sm=s%60;
+  const eh=Math.floor(e/60)%24, em=e%60;
+  const ampm=sh<12?'am':'pm';
+  return (sh%12||12)+':'+(sm<10?'0':'')+sm+'-'+(eh%12||12)+':'+(em<10?'0':'')+em+ampm;
+}
+
+// ── QUARTERLY CONFIG ──────────────────────────────────────────────────────
+const INTRA_SESS=[
+  {abbr:'ASI',qs:[{s:1080,e:1170,q:1},{s:1170,e:1260,q:2},{s:1260,e:1350,q:3},{s:1350,e:1440,q:4}]},
+  {abbr:'LDN',qs:[{s:0,e:90,q:1},{s:90,e:180,q:2},{s:180,e:270,q:3},{s:270,e:360,q:4}]},
+  {abbr:'NAM',qs:[{s:360,e:450,q:1},{s:450,e:540,q:2},{s:540,e:630,q:3},{s:630,e:720,q:4}]},
+  {abbr:'NPM',qs:[{s:720,e:810,q:1},{s:810,e:900,q:2},{s:900,e:990,q:3},{s:990,e:1080,q:4}]},
+];
+const YR_Q=[
+  {q:1,range:'DEC-FEB',months:[11,0,1]},
+  {q:2,range:'MAR-MAY',months:[2,3,4]},
+  {q:3,range:'JUN-AUG',months:[5,6,7]},
+  {q:4,range:'SEP-NOV',months:[8,9,10]},
+];
+const WK_ABR=['','MON','TUE','WED','THU'];
 
 function updateNyClock(){
   const now=new Date();
@@ -3866,102 +3874,83 @@ function updateNyClock(){
   if(el)el.textContent=timeStr;
   if(del)del.textContent=dateStr+' · NY';
 
-  // Get NY time parts
+  // NY time parts
   const nyStr=now.toLocaleString('en-US',{timeZone:'America/New_York'});
   const ny=new Date(nyStr);
   const h=ny.getHours(), m=ny.getMinutes(), dow=ny.getDay(), date=ny.getDate(), mo=ny.getMonth();
   const totalMins=h*60+m;
 
-  // ── CURRENT DAY COUNT ──
+  // ── CURRENT DAY — just the number ──
   const dc=document.getElementById('dayCount');
-  if(dc){
-    const td=dayCountFor(todayStr());
-    if(td){ dc.textContent='D'+td; }
-    else{
-      const next=getNextDayCount();
-      dc.textContent='D'+next+' *';
-    }
-  }
+  if(dc){ dc.textContent=dayCountFor(todayStr())||getNextDayCount(); }
 
-  // ── QUARTERLY CYCLES ──
-  // Intra-day (90-min windows per session)
-  const intraSessions=[
-    {name:'ASIA',qs:[{s:18*60,e:19*60+30,q:1},{s:19*60+30,e:21*60,q:2},{s:21*60,e:22*60+30,q:3},{s:22*60+30,e:24*60,q:4}]},
-    {name:'LDN', qs:[{s:0,e:90,q:1},{s:90,e:180,q:2},{s:180,e:270,q:3},{s:270,e:360,q:4}]},
-    {name:'NY AM',qs:[{s:360,e:450,q:1},{s:450,e:540,q:2},{s:540,e:630,q:3},{s:630,e:720,q:4}]},
-    {name:'NY PM',qs:[{s:720,e:810,q:1},{s:810,e:900,q:2},{s:900,e:990,q:3},{s:990,e:1080,q:4}]},
-  ];
-  let intraSess='—', intraQ=0, dailyQ=0, sessName='—';
-  // Daily Q = which session block (Q1=Asia 18-00, Q2=Ldn 00-06, Q3=NYAM 06-12, Q4=NYPM 12-18)
-  if(totalMins>=18*60) { dailyQ=1; sessName='ASIA'; }
-  else if(totalMins<6*60){ dailyQ=2; sessName='LDN'; }
-  else if(totalMins<12*60){ dailyQ=3; sessName='NY AM'; }
-  else { dailyQ=4; sessName='NY PM'; }
-  // Find intra quarter
-  for(const sess of intraSessions){
+  // ── INTRA QUARTER (90-min within session) ──
+  let intraTag='—';
+  for(const sess of INTRA_SESS){
     for(const r of sess.qs){
-      if(totalMins>=r.s&&totalMins<r.e){ intraQ=r.q; intraSess=sess.name; break; }
+      if(totalMins>=r.s&&totalMins<r.e){ intraTag='Q'+r.q+' '+sess.abbr; break; }
     }
-    if(intraQ) break;
+    if(intraTag!=='—') break;
   }
 
-  // Weekly Q: Mon=1,Tue=2,Wed=3,Thu=4, Fri/Sat/Sun=special
-  const wDays=['','MON','TUE','WED','THU','FRI','SAT','SUN'];
-  let weeklyQ=0, weeklyLabel='—';
-  if(dow>=1&&dow<=4){ weeklyQ=dow; weeklyLabel='Q'+dow+'·'+wDays[dow]; }
-  else if(dow===5){ weeklyLabel='FRI·EXP'; }
-  else { weeklyLabel='WKND'; }
+  // ── DAILY QUARTER (which session block) ──
+  let dailyTag='—';
+  if(totalMins>=18*60||totalMins<0) dailyTag='Q1 ASI';
+  else if(totalMins<6*60)  dailyTag='Q2 LDN';
+  else if(totalMins<12*60) dailyTag='Q3 NAM';
+  else                     dailyTag='Q4 NPM';
 
-  // Monthly Q: roughly which week of month (2nd Monday = true open = start of Q2)
-  const weekOfMonth=Math.ceil(date/7);
-  const monthlyQ=Math.min(weekOfMonth,4);
+  // ── WEEKLY QUARTER (Mon=Q1…Thu=Q4) ──
+  let weeklyTag = dow>=1&&dow<=4 ? 'Q'+dow+' '+WK_ABR[dow] : (dow===5?'FRI':'WKND');
 
-  // Yearly Q: Q1=Dec/Jan/Feb, Q2=Mar/Apr/May, Q3=Jun/Jul/Aug, Q4=Sep/Oct/Nov
-  const mName=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-  let yearlyQ=0;
-  if(mo===11||mo<=1) yearlyQ=1;
-  else if(mo<=4) yearlyQ=2;
-  else if(mo<=7) yearlyQ=3;
-  else yearlyQ=4;
+  // ── MONTHLY QUARTER (which week) ──
+  const weekOfMonth=Math.min(Math.ceil(date/7),4);
+  const monthlyTag='Q'+weekOfMonth+'W';
 
-  // Update quarter elements
-  const sq=(id,val,isActive)=>{
-    const e=document.getElementById(id);
-    if(e){e.textContent=val;e.className='sbq-v'+(isActive?' active':'');}
-  };
-  sq('sq-intra', intraQ?'Q'+intraQ+'·'+intraSess:'—', intraQ>0);
-  sq('sq-daily', dailyQ?'Q'+dailyQ:'—', dailyQ>0);
-  sq('sq-weekly', weeklyLabel, weeklyQ>0);
-  sq('sq-monthly', monthlyQ?'Q'+monthlyQ:'—', monthlyQ>0);
-  sq('sq-yearly', 'Q'+yearlyQ+'·'+mName[mo], true);
-  sq('sq-session', sessName, true);
+  // ── YEARLY QUARTER ──
+  const yq=YR_Q.find(q=>q.months.includes(mo))||{q:'?',range:'?'};
+  const yearlyTag='Q'+yq.q+' '+yq.range;
 
-  // ── MACRO WINDOWS ──
+  // ── BUILD COMPACT LINE for clock box ──
+  const qEl=document.getElementById('clock-q');
+  if(qEl){
+    qEl.innerHTML=
+      `<span style="color:var(--blue)">${intraTag}</span>`+
+      `<span style="color:var(--text3)"> · </span>`+
+      `<span style="color:var(--gold2)">${weeklyTag}</span>`+
+      `<span style="color:var(--text3)"> · </span>`+
+      `<span style="color:var(--pur)">${monthlyTag}</span>`+
+      `<span style="color:var(--text3)"> · </span>`+
+      `<span style="color:var(--bull)">${yearlyTag}</span>`;
+  }
+
+  // ── MACRO WINDOWS (active=green, show start-to-end) ──
   const grid=document.getElementById('sbm-grid');
   const nextLabel=document.getElementById('sbm-next');
-  if(grid){
-    let nextMacro=null, nextMinsDiff=999999;
-    const items=MACROS.map(mac=>{
-      const isActive=totalMins>=mac.s&&totalMins<mac.e;
-      const isNext=!isActive&&totalMins<mac.s&&(mac.s-totalMins)<nextMinsDiff;
-      if(totalMins<mac.s&&(mac.s-totalMins)<nextMinsDiff){
-        nextMinsDiff=mac.s-totalMins;
-        nextMacro=mac;
-      }
-      return{...mac,isActive};
-    });
-    grid.innerHTML=items.map(mac=>`
-      <div class="sbm-item ${mac.isActive?'active':''}" title="${minsToLabel(mac.s)}–${minsToLabel(mac.e)}">
-        <div class="sbm-name">${mac.n}</div>
-        <div class="sbm-time">${minsToLabel(mac.s)}</div>
-      </div>`).join('');
-    if(nextLabel){
-      if(nextMacro){
-        const h2=Math.floor(nextMinsDiff/60),m2=nextMinsDiff%60;
-        nextLabel.textContent=`Next: ${nextMacro.n} in ${h2?h2+'h ':''}`+(m2?m2+'m':'');
-      } else {
-        nextLabel.textContent='No more macros today';
-      }
+  if(!grid) return;
+
+  let nextMacro=null, nextDiff=99999;
+  const enriched=MACROS.map(mac=>{
+    const active=totalMins>=mac.s&&totalMins<mac.e;
+    if(!active&&mac.s>totalMins&&mac.s-totalMins<nextDiff){
+      nextDiff=mac.s-totalMins; nextMacro=mac;
+    }
+    return{...mac,active};
+  });
+
+  grid.innerHTML=enriched.map(mac=>
+    `<div class="sbm-item${mac.active?' active':''}">
+      <div class="sbm-name">${mac.n}</div>
+      <div class="sbm-range">${minsToRange(mac.s,mac.e)}</div>
+    </div>`
+  ).join('');
+
+  if(nextLabel){
+    if(nextMacro){
+      const hh=Math.floor(nextDiff/60),mm=nextDiff%60;
+      nextLabel.textContent=(hh?hh+'h ':'')+(mm?mm+'m':'')+' → '+nextMacro.n;
+    } else {
+      nextLabel.textContent='done';
     }
   }
 }
