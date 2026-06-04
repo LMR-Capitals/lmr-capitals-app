@@ -387,12 +387,12 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .card-body{padding:14px 18px}
 
 /* ── TILES v3 ── */
-.tile{background:linear-gradient(145deg,#0B1220,#080D18);border:1px solid rgba(245,166,35,.15);border-radius:var(--r2);padding:16px 18px;position:relative;overflow:hidden;transition:transform var(--t),box-shadow var(--t),border-color var(--t)}
+.tile{background:linear-gradient(145deg,#0B1220,#080D18);border:1px solid rgba(245,166,35,.15);border-radius:var(--r2);padding:16px 18px;position:relative;overflow:hidden;transition:transform var(--t),box-shadow var(--t),border-color var(--t);color:var(--text)}
 .tile::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);pointer-events:none}
 .tile::after{content:'';position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,255,255,.025),transparent 60%);pointer-events:none}
 .tile:hover{transform:translateY(-3px);box-shadow:0 0 20px rgba(245,166,35,.1);border-color:rgba(245,166,35,.3)}
 .tile-l{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:8px}
-.tile-v{font-size:26px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1;letter-spacing:-.04em}
+.tile-v{font-size:26px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1;letter-spacing:-.04em;color:var(--text)}
 .tile-v.txt-pos{text-shadow:0 0 28px var(--bull-glow)}
 .tile-v.txt-neg{text-shadow:0 0 28px var(--bear-glow)}
 .tile-v.txt-gold{text-shadow:0 0 28px var(--gold-glow)}
@@ -4199,9 +4199,9 @@ function navTo(p){
   if(window.innerWidth<=900)toggleSidebar();
   if(p==='dash') renderDashboard();
   if(p==='perf'){
-    renderPerfCharts();
-    // If no trades yet, retry after cloud data loads
-    if(!state.trades.length) setTimeout(renderPerfCharts, 2000);
+    // Always retry after 500ms to ensure state is populated from cloud pull
+    setTimeout(renderPerfCharts, 100);
+    setTimeout(renderPerfCharts, 1500);
   }
   if(p==='trades') renderTradeTable();
   if(p==='journal') renderJournalList();
