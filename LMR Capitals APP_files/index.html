@@ -27,26 +27,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="./chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<!-- Editor.js — Full Notion-like block editor spec implementation -->
-<!-- Core -->
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest/dist/editorjs.umd.min.js"></script>
-<!-- Block tools (structural primitives from spec) -->
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest/dist/header.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/nested-list@latest/dist/nested-list.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/checklist@latest/dist/checklist.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest/dist/quote.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/code@latest/dist/code.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@latest/dist/delimiter.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest/dist/image.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/attaches@latest/dist/attaches.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/embed@latest/dist/embed.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/table@latest/dist/table.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/warning@latest/dist/warning.umd.min.js"></script>
-<!-- Inline tools -->
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/marker@latest/dist/marker.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/inline-code@latest/dist/inline-code.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/underline@latest/dist/underline.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/link@latest/dist/link.umd.min.js"></script>
+<!-- Editor.js — Pinned stable versions (no @latest to avoid CDN failures) -->
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.2/dist/editorjs.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@2.8.7/dist/header.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/list@1.9.0/dist/list.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/checklist@1.6.0/dist/checklist.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@2.6.0/dist/quote.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/code@2.9.0/dist/code.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@1.4.2/dist/delimiter.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/image@2.9.3/dist/image.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/embed@2.7.4/dist/embed.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/table@2.3.0/dist/table.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/warning@1.4.0/dist/warning.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/marker@1.4.0/dist/marker.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/inline-code@1.5.0/dist/inline-code.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/underline@1.1.0/dist/underline.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 
@@ -6469,11 +6464,17 @@ async function initBlockEditor(holderId, savedData, onChange){
   if(!el){ console.error('Editor holder not found:',holderId); return null; }
   el.innerHTML='';
 
-  // Ensure EditorJS is loaded
+  // Wait for EditorJS to load (CDN might be slow)
   if(typeof EditorJS==='undefined'){
-    console.error('EditorJS not loaded');
-    el.innerHTML='<div style="padding:20px;color:var(--bear)">Editor loading failed. Check your connection.</div>';
-    return null;
+    let waited=0;
+    while(typeof EditorJS==='undefined' && waited<8000){
+      await new Promise(r=>setTimeout(r,200));
+      waited+=200;
+    }
+    if(typeof EditorJS==='undefined'){
+      el.innerHTML='<div style="padding:20px;color:var(--text2);text-align:center"><div style="font-size:24px;margin-bottom:8px">📝</div><div style="font-weight:700;margin-bottom:4px">Editor loading…</div><div style="font-size:12px;color:var(--text3)">Check your internet connection. <a href="" onclick="location.reload()" style="color:var(--gold)">Reload page</a></div></div>';
+      return null;
+    }
   }
 
   const editor=new EditorJS({
@@ -7822,12 +7823,22 @@ async function _sbDoPull() {
     amount: parseFloat(x.amount)||0,
     accountId: String(x.account_id||x.accountId||'') // always preserve account link
   })).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  state.notes = (no.data||[]).map(n => ({
-    ...n,
-    id: Number(n.id)||n.id,
+  // MERGE notes: keep local notes not in Supabase + all Supabase notes
+  // This preserves today's local-only entries that haven't synced yet
+  const cloudNotes = (no.data||[]).map(n => ({
+    ...n, id: Number(n.id)||n.id,
     images: Array.isArray(n.images) ? n.images : (n.images ? JSON.parse(n.images) : [])
-  })).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
-  state.journal = (ju.data||[]).map(j => ({ ...j, id: Number(j.id)||j.id }));
+  }));
+  const cloudNoteIds = new Set(cloudNotes.map(n=>String(n.id)));
+  const localOnlyNotes = (state.notes||[]).filter(n=>!cloudNoteIds.has(String(n.id)));
+  state.notes = [...cloudNotes, ...localOnlyNotes]
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
+
+  // MERGE journal: same approach
+  const cloudJournal = (ju.data||[]).map(j => ({ ...j, id: Number(j.id)||j.id }));
+  const cloudJournalIds = new Set(cloudJournal.map(j=>String(j.id)));
+  const localOnlyJournal = (state.journal||[]).filter(j=>!cloudJournalIds.has(String(j.id)));
+  state.journal = [...cloudJournal, ...localOnlyJournal];
   // Daily: replace entirely — map Supabase snake_case columns to app camelCase
   state.daily = {};
   (da.data||[]).forEach(d => {
@@ -8026,6 +8037,9 @@ function lgUnlock(user){
         if(gotData){
           save();
           updateAllStats();renderDashboard();renderTradeTable();renderNotesList();loadDaily();
+          // Refresh any active panels that depend on trade data
+          if(document.getElementById('p-perf')?.classList.contains('active')) renderPerfCharts();
+          if(document.getElementById('p-notes')?.classList.contains('active')) renderNotesList();
           setSyncIndicator('synced');
           setSbStatus('✓ Synced — '+state.trades.length+' trades, '+Object.keys(state.daily).length+' days','var(--bull)');
         } else {
