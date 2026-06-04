@@ -5933,14 +5933,17 @@ function renderDashCharts(){
 // ============= PERFORMANCE CHARTS =============
 let perfCharts={};
 function renderPerfCharts(){
+  try{ _renderPerfChartsInner(); }
+  catch(e){ console.error('[LMR] Performance render error:',e); }
+}
+function _renderPerfChartsInner(){
   const ts=state.trades;
   if(!ts.length){
-    // Show empty state instead of silently failing
     const el=document.getElementById('perf-trade-count');
     if(el) el.textContent='No trades yet — add trades to see analytics';
-    document.getElementById('p-total').textContent='0';
-    document.getElementById('p-wr').textContent='0%';
-    document.getElementById('p-pnl').textContent='$0';
+    ['p-total','p-wr','p-pnl','p-rr','p-pf','p-dd','p-avgwin','p-avgloss','p-exp'].forEach(id=>{
+      const el=document.getElementById(id);if(el)el.textContent='—';
+    });
     return;
   }
 
@@ -6077,7 +6080,7 @@ function renderPerfCharts(){
   },50);
 
   // ── PATTERN ANALYSIS TABLE ──
-  renderPerfPatterns(ts,wr,wins,losses,avgWin,avgLoss,expectancy,pf);
+  try{ renderPerfPatterns(ts,wr,wins,losses,avgWin,avgLoss,expectancy,pf); }catch(e){ console.warn('[LMR] Pattern analysis error:',e); }
 }
 
 function renderPerfPatterns(ts,wr,wins,losses,avgWin,avgLoss,expectancy,pf){
@@ -6215,6 +6218,14 @@ async function lmrBlockLoad(section){
   const holderId = section + '-block-editor';
   const el = document.getElementById(holderId);
   if(!el) return;
+
+  // If EditorJS CDN hasn't loaded yet, show loading and retry
+  if(typeof EditorJS==='undefined'){
+    setStatus(section+'-status','Loading editor scripts…','saving');
+    el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3)"><div style="font-size:32px;margin-bottom:12px">📝</div><div style="font-size:13px;font-weight:600;color:var(--text2)">Loading block editor…</div><div style="font-size:11px;margin-top:6px">Scripts are loading. This usually takes 2-3 seconds.</div></div>';
+    setTimeout(()=>lmrBlockLoad(section), 3000);
+    return;
+  }
 
   setStatus(section+'-status','Loading from cloud…','saving');
 
@@ -6464,17 +6475,12 @@ async function initBlockEditor(holderId, savedData, onChange){
   if(!el){ console.error('Editor holder not found:',holderId); return null; }
   el.innerHTML='';
 
-  // Wait for EditorJS to load (CDN might be slow)
+  // Check if EditorJS is available (CDN might still be loading)
   if(typeof EditorJS==='undefined'){
-    let waited=0;
-    while(typeof EditorJS==='undefined' && waited<8000){
-      await new Promise(r=>setTimeout(r,200));
-      waited+=200;
-    }
-    if(typeof EditorJS==='undefined'){
-      el.innerHTML='<div style="padding:20px;color:var(--text2);text-align:center"><div style="font-size:24px;margin-bottom:8px">📝</div><div style="font-weight:700;margin-bottom:4px">Editor loading…</div><div style="font-size:12px;color:var(--text3)">Check your internet connection. <a href="" onclick="location.reload()" style="color:var(--gold)">Reload page</a></div></div>';
-      return null;
-    }
+    el.innerHTML='<div style="padding:24px;color:var(--text2);text-align:center"><div style="font-size:28px;margin-bottom:10px">📝</div><div style="font-weight:700;font-size:14px;margin-bottom:6px">Loading editor…</div><div style="font-size:11px;color:var(--text3);margin-bottom:12px">The block editor is loading. Please wait a moment.</div><button onclick="lmrBlockLoad(\''+holderId.replace('-block-editor','')+'\');" style="background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.3);border-radius:8px;color:var(--gold);padding:8px 16px;cursor:pointer;font-size:12px">Retry</button></div>';
+    // Retry automatically after 2s
+    setTimeout(()=>{ if(typeof EditorJS!=='undefined') initBlockEditor(holderId,savedData,onChange); }, 2000);
+    return null;
   }
 
   const editor=new EditorJS({
