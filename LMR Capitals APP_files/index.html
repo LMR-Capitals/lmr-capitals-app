@@ -345,23 +345,12 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .ny-clock-q{font-size:8px;font-family:'JetBrains Mono',monospace;color:var(--gold2);font-weight:700;margin-top:5px;letter-spacing:.03em;line-height:1.5;border-top:1px solid rgba(91,168,255,.12);padding-top:4px}
 .ny-clock-q span{color:var(--text3);font-weight:500;margin:0 1px}
 /* ── MACRO WINDOWS ── */
-.sb-macro-strip{margin:0 8px 5px;padding:7px 9px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2)}
-.sbm-head{font-size:7px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-weight:700;display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:1px 0;user-select:none}
-.sbm-head:hover{color:var(--text2)}
-.sbm-toggle{font-size:8px;color:var(--text3);transition:transform .2s;display:inline-block}
-.sbm-head.open .sbm-toggle{transform:rotate(180deg)}
-.sbm-countdown{font-size:8px;font-weight:700;color:var(--bull);font-family:'JetBrains Mono',monospace}
-/* Grid hidden by default — expands on click or when a macro is active */
-.sbm-grid{display:none;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:5px}
-.sbm-grid.open{display:grid}
-/* Normal macro cell */
-.sbm-item{padding:3px 4px;border-radius:4px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);transition:all .15s}
-/* ACTIVE macro = green BG + red text */
-.sbm-item.active{background:#0d2a10;border:1px solid #2ecc71;box-shadow:0 0 10px rgba(46,204,113,.3)}
-.sbm-name{font-size:7px;font-weight:700;color:var(--text3);letter-spacing:.04em}
-.sbm-item.active .sbm-name{color:#ff3333;font-weight:800;font-size:7px}
-.sbm-range{font-size:7px;color:var(--text3);font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;line-height:1.2}
-.sbm-item.active .sbm-range{color:#ff6666}
+/* ── ACTIVE MACRO INSIDE CLOCK BOX — invisible until triggered ── */
+#clock-macro{margin-top:6px;padding:5px 8px;background:#071a09;border:1px solid #2ecc71;border-radius:6px;text-align:center;box-shadow:0 0 12px rgba(46,204,113,.25),inset 0 0 8px rgba(46,204,113,.05);animation:macroIn .3s ease}
+@keyframes macroIn{from{opacity:0;transform:scaleY(.8)}to{opacity:1;transform:scaleY(1)}}
+#clock-macro .cm-label{font-size:7px;color:#2ecc71;text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:2px}
+#clock-macro .cm-name{font-size:12px;font-weight:900;color:#ff3333;letter-spacing:.06em;font-family:'JetBrains Mono',monospace;text-shadow:0 0 8px rgba(255,51,51,.4)}
+#clock-macro .cm-range{font-size:9px;color:#ff6666;font-family:'JetBrains Mono',monospace;margin-top:1px}
 .sb-pnl-v.txt-pos{text-shadow:0 0 16px var(--bull-glow)}
 .sb-pnl-v.txt-neg{text-shadow:0 0 16px var(--bear-glow)}
 
@@ -1161,15 +1150,8 @@ select option[value="PM"] { color: #5BA8FF; }
     <div class="ny-clock-time" id="nyClockTime">--:--:--</div>
     <div class="ny-clock-date" id="nyClockDate">--- NY</div>
     <div class="ny-clock-q" id="clock-q">—</div>
-  </div>
-
-  <!-- ── MACRO TIME WINDOWS (collapsed by default, click to expand) ── -->
-  <div class="sb-macro-strip">
-    <div class="sbm-head" id="sbm-head" onclick="toggleMacroGrid()">
-      <span>⏱ Macros <span class="sbm-toggle" id="sbm-toggle">▾</span></span>
-      <span class="sbm-countdown" id="sbm-next"></span>
-    </div>
-    <div class="sbm-grid" id="sbm-grid"></div>
+    <!-- Active macro: completely absent when not triggered, no trace -->
+    <div id="clock-macro" style="display:none"></div>
   </div>
 
   <div class="acc-quick" onclick="navTo('accounts')" id="accQuick">
@@ -3933,52 +3915,22 @@ function updateNyClock(){
       `<span style="color:var(--bull)">${yearlyTag}</span>`;
   }
 
-  // ── MACRO WINDOWS ──
-  const grid=document.getElementById('sbm-grid');
-  const nextLabel=document.getElementById('sbm-next');
-  if(!grid) return;
-
-  let nextMacro=null, nextDiff=99999, anyActive=false;
-  const enriched=MACROS.map(mac=>{
-    const active=totalMins>=mac.s&&totalMins<mac.e;
-    if(active) anyActive=true;
-    if(!active&&mac.s>totalMins&&mac.s-totalMins<nextDiff){
-      nextDiff=mac.s-totalMins; nextMacro=mac;
-    }
-    return{...mac,active};
-  });
-
-  grid.innerHTML=enriched.map(mac=>
-    `<div class="sbm-item${mac.active?' active':''}">
-      <div class="sbm-name">${mac.n}</div>
-      <div class="sbm-range">${minsToRange(mac.s,mac.e)}</div>
-    </div>`
-  ).join('');
-
-  // Auto-open grid when a macro is active; keep user-toggle otherwise
-  if(anyActive){
-    grid.classList.add('open');
-    const head=document.getElementById('sbm-head');
-    if(head) head.classList.add('open');
-  }
-
-  if(nextLabel){
-    if(nextMacro){
-      const hh=Math.floor(nextDiff/60),mm=nextDiff%60;
-      nextLabel.textContent=(hh?hh+'h ':'')+(mm?mm+'m':'')+' → '+nextMacro.n;
+  // ── MACRO — show ONLY the active window inside clock box, zero trace otherwise ──
+  const clockMacro=document.getElementById('clock-macro');
+  if(clockMacro){
+    const active=MACROS.find(m=>totalMins>=m.s&&totalMins<m.e);
+    if(active){
+      clockMacro.style.display='block';
+      clockMacro.innerHTML=
+        `<div class="cm-label">⏱ Macro Window</div>`+
+        `<div class="cm-name">${active.n}</div>`+
+        `<div class="cm-range">${minsToRange(active.s,active.e)}</div>`;
     } else {
-      nextLabel.textContent=anyActive?'LIVE':'—';
+      // Completely gone — no element, no placeholder, no trace
+      clockMacro.style.display='none';
+      clockMacro.innerHTML='';
     }
   }
-}
-
-// ── TOGGLE MACRO GRID (click the header) ──────────────────────────────────
-function toggleMacroGrid(){
-  const grid=document.getElementById('sbm-grid');
-  const head=document.getElementById('sbm-head');
-  if(!grid) return;
-  const isOpen=grid.classList.toggle('open');
-  if(head) head.classList.toggle('open', isOpen);
 }
 
 // ── JOURNAL TICKER ───────────────────────────────────────
