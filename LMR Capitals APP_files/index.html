@@ -2236,30 +2236,30 @@ Midnight Open $______"></textarea>
 
 <!-- PERFORMANCE -->
 <div class="panel" id="p-perf">
-<div class="panel-inner">
+<div class="panel-inner" style="color:#EDF2FF">
 
   <!-- ── STATS ROW 1: Core metrics ── -->
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px" id="perf-stats-1">
-    <div class="tile pur"><div class="tile-l">📊 Total Trades</div><div class="tile-v" id="p-total">0</div></div>
-    <div class="tile pos"><div class="tile-l">🎯 Win Rate</div><div class="tile-v" id="p-wr">0%</div><div class="tile-sub" id="p-wl">0W · 0L</div></div>
-    <div class="tile"><div class="tile-l">💰 Net P&L</div><div class="tile-v" id="p-pnl">$0</div><div class="tile-sub" id="p-pnl-sub">all trades</div></div>
-    <div class="tile gold"><div class="tile-l">⚡ Avg R:R</div><div class="tile-v" id="p-rr">0</div></div>
+    <div class="tile pur" style="color:#EDF2FF"><div class="tile-l" style="color:#7A9AC0">📊 Total Trades</div><div class="tile-v" id="p-total" style="color:#EDF2FF">0</div></div>
+    <div class="tile pos" style="color:#EDF2FF"><div class="tile-l" style="color:#7A9AC0">🎯 Win Rate</div><div class="tile-v" id="p-wr" style="color:#00D4A4">0%</div><div class="tile-sub" id="p-wl" style="color:#7A9AC0">0W · 0L</div></div>
+    <div class="tile" style="color:#EDF2FF"><div class="tile-l" style="color:#7A9AC0">💰 Net P&L</div><div class="tile-v" id="p-pnl" style="color:#EDF2FF">$0</div><div class="tile-sub" id="p-pnl-sub" style="color:#7A9AC0">all trades</div></div>
+    <div class="tile gold" style="color:#EDF2FF"><div class="tile-l" style="color:#7A9AC0">⚡ Avg R:R</div><div class="tile-v" id="p-rr" style="color:#F5A623">0</div></div>
   </div>
 
   <!-- ── STATS ROW 2: Risk & Edge metrics ── -->
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px" id="perf-stats-2">
-    <div class="tile"><div class="tile-l">📈 Profit Factor</div><div class="tile-v" id="p-pf">0</div><div class="tile-sub">gross profit / gross loss</div></div>
-    <div class="tile neg"><div class="tile-l">📉 Max Drawdown</div><div class="tile-v" id="p-dd">$0</div><div class="tile-sub" id="p-dd-pct">0% from peak</div></div>
-    <div class="tile pos"><div class="tile-l">🏆 Avg Win</div><div class="tile-v" id="p-avgwin">$0</div><div class="tile-sub" id="p-best">best: $0</div></div>
-    <div class="tile neg"><div class="tile-l">💸 Avg Loss</div><div class="tile-v" id="p-avgloss">$0</div><div class="tile-sub" id="p-worst">worst: $0</div></div>
+    <div class="tile" style="color:#EDF2FF"><div class="tile-l" style="color:#7A9AC0">📈 Profit Factor</div><div class="tile-v" id="p-pf" style="color:#EDF2FF">0</div><div class="tile-sub" style="color:#7A9AC0">gross profit / gross loss</div></div>
+    <div class="tile neg" style="color:#EDF2FF"><div class="tile-l" style="color:#7A9AC0">📉 Max Drawdown</div><div class="tile-v" id="p-dd" style="color:#FF4060">$0</div><div class="tile-sub" id="p-dd-pct" style="color:#7A9AC0">0% from peak</div></div>
+    <div class="tile pos" style="color:#EDF2FF"><div class="tile-l" style="color:#7A9AC0">🏆 Avg Win</div><div class="tile-v" id="p-avgwin" style="color:#00D4A4">$0</div><div class="tile-sub" id="p-best" style="color:#7A9AC0">best: $0</div></div>
+    <div class="tile neg" style="color:#EDF2FF"><div class="tile-l" style="color:#7A9AC0">💸 Avg Loss</div><div class="tile-v" id="p-avgloss" style="color:#FF4060">$0</div><div class="tile-sub" id="p-worst" style="color:#7A9AC0">worst: $0</div></div>
   </div>
 
   <!-- ── STATS ROW 3: Expectancy + timing ── -->
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px" id="perf-stats-3">
-    <div class="tile gold"><div class="tile-l">🧮 Expectancy</div><div class="tile-v" id="p-exp">$0</div><div class="tile-sub">per trade edge</div></div>
-    <div class="tile"><div class="tile-l">📅 Best Day</div><div class="tile-v sm" id="p-bestday">—</div><div class="tile-sub" id="p-bestday-pnl">—</div></div>
-    <div class="tile neg"><div class="tile-l">📅 Worst Day</div><div class="tile-v sm" id="p-worstday">—</div><div class="tile-sub" id="p-worstday-pnl">—</div></div>
-    <div class="tile"><div class="tile-l">⏱ Avg Trades/Day</div><div class="tile-v" id="p-tpd">0</div><div class="tile-sub" id="p-active-days">active days</div></div>
+    <div class="tile gold" style="color:#EDF2FF"><div class="tile-l" style="color:#7A9AC0">🧮 Expectancy</div><div class="tile-v" id="p-exp" style="color:#F5A623">$0</div><div class="tile-sub" style="color:#7A9AC0">per trade edge</div></div>
+    <div class="tile" style="color:#EDF2FF"><div class="tile-l" style="color:#7A9AC0">📅 Best Day</div><div class="tile-v sm" id="p-bestday" style="color:#EDF2FF">—</div><div class="tile-sub" id="p-bestday-pnl" style="color:#7A9AC0">—</div></div>
+    <div class="tile neg" style="color:#EDF2FF"><div class="tile-l" style="color:#7A9AC0">📅 Worst Day</div><div class="tile-v sm" id="p-worstday" style="color:#EDF2FF">—</div><div class="tile-sub" id="p-worstday-pnl" style="color:#7A9AC0">—</div></div>
+    <div class="tile" style="color:#EDF2FF"><div class="tile-l" style="color:#7A9AC0">⏱ Avg Trades/Day</div><div class="tile-v" id="p-tpd" style="color:#EDF2FF">0</div><div class="tile-sub" id="p-active-days" style="color:#7A9AC0">active days</div></div>
   </div>
 
   <!-- ── AI REVIEW BUTTON ── -->
