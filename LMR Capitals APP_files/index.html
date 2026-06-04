@@ -353,6 +353,16 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 #clock-macro .cm-range{font-size:9px;color:#ff6666;font-family:'JetBrains Mono',monospace;margin-top:1px}
 .sb-pnl-v.txt-pos{text-shadow:0 0 16px var(--bull-glow)}
 .sb-pnl-v.txt-neg{text-shadow:0 0 16px var(--bear-glow)}
+/* ── P&L EYE TOGGLE ── */
+.pnl-eye-btn{background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.2);border-radius:6px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--gold);transition:all .18s;padding:0;flex-shrink:0}
+.pnl-eye-btn:hover{background:rgba(245,166,35,.18);border-color:rgba(245,166,35,.4);box-shadow:0 0 8px rgba(245,166,35,.2)}
+.pnl-eye-btn.hidden-state{color:var(--text3);background:rgba(255,255,255,.03);border-color:var(--border)}
+/* Hidden values: smooth filter transition */
+.pnl-value,.pnl-stats{transition:filter .25s,opacity .25s}
+.pnl-value.masked,.pnl-stats.masked{filter:blur(0);opacity:1}
+/* Masked text style — dashes, no numbers, no $ */
+.pnl-mask{font-family:'JetBrains Mono',monospace;letter-spacing:.18em;color:var(--text3);font-size:18px;font-weight:700;user-select:none}
+.pnl-mask-sub{font-family:'JetBrains Mono',monospace;letter-spacing:.12em;color:var(--text3);font-size:10px;user-select:none}
 
 /* Topbar */
 .topbar{padding:12px 20px;background:linear-gradient(180deg,rgba(245,166,35,.03) 0%,transparent 100%);backdrop-filter:blur(20px);border-bottom:1px solid rgba(245,166,35,.2)}
@@ -1185,14 +1195,20 @@ select option[value="PM"] { color: #5BA8FF; }
   </nav>
   
   <div class="sb-foot">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
       <div class="sb-pnl-l">Total P&amp;L</div>
-      <button id="pnl-eye" onclick="togglePnlVisibility()"
-        style="background:none;border:none;cursor:pointer;font-size:14px;color:var(--text3);padding:0 2px;line-height:1;transition:color .15s"
-        title="Show / hide P&L">👁</button>
+      <button id="pnl-eye" onclick="togglePnlVisibility()" class="pnl-eye-btn" title="Show / hide P&L">
+        <!-- SVG eye — swaps open/closed via JS -->
+        <svg id="pnl-eye-svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
     </div>
-    <div class="sb-pnl-v" id="sbBalance">$0</div>
-    <div class="sb-pnl-sub" id="sbStatRow"><span id="sbTrades">0</span>T · <span id="sbWR">0%</span> WR</div>
+    <div class="sb-pnl-v pnl-value" id="sbBalance">$0</div>
+    <div class="sb-pnl-sub pnl-stats" id="sbStatRow">
+      <span id="sbTrades">0</span>T · <span id="sbWR">0%</span> WR
+    </div>
   </div>
 </aside>
 
@@ -4193,22 +4209,31 @@ async function loadProfile(){
   }
 }
 // ── P&L VISIBILITY TOGGLE ─────────────────────────────────────────────────
+const EYE_OPEN = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+const EYE_SHUT = `<line x1="1" y1="1" x2="23" y2="23"/><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>`;
+
 let _pnlHidden = localStorage.getItem('lmr_pnl_hidden') === '1';
+
 function applyPnlVisibility(){
   const bal  = document.getElementById('sbBalance');
   const stat = document.getElementById('sbStatRow');
-  const eye  = document.getElementById('pnl-eye');
+  const svg  = document.getElementById('pnl-eye-svg');
+  const btn  = document.getElementById('pnl-eye');
   if(!bal) return;
+
   if(_pnlHidden){
-    bal.textContent  = '$ • • • •';
-    if(stat) stat.innerHTML = '••T · ••% WR';
-    if(eye)  { eye.textContent='🙈'; eye.style.color='var(--text2)'; }
+    // Show clean professional dashes — no dollar sign, no numbers
+    bal.innerHTML  = `<span class="pnl-mask">—— &nbsp;——</span>`;
+    if(stat) stat.innerHTML = `<span class="pnl-mask-sub">— — &nbsp;·&nbsp; — —%&nbsp;WR</span>`;
+    if(svg) svg.innerHTML = EYE_SHUT;
+    if(btn) btn.classList.add('hidden-state');
   } else {
-    // Values will be re-applied by updateSidebarProfile on next call
-    if(eye) { eye.textContent='👁'; eye.style.color='var(--text3)'; }
+    if(svg) svg.innerHTML = EYE_OPEN;
+    if(btn) btn.classList.remove('hidden-state');
     updateSidebarProfile();
   }
 }
+
 function togglePnlVisibility(){
   _pnlHidden = !_pnlHidden;
   localStorage.setItem('lmr_pnl_hidden', _pnlHidden ? '1' : '0');
