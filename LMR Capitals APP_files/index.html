@@ -27,21 +27,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="./chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<!-- Editor.js — Pinned stable versions (no @latest to avoid CDN failures) -->
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.2/dist/editorjs.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@2.8.7/dist/header.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/list@1.9.0/dist/list.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/checklist@1.6.0/dist/checklist.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@2.6.0/dist/quote.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/code@2.9.0/dist/code.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@1.4.2/dist/delimiter.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/image@2.9.3/dist/image.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/embed@2.7.4/dist/embed.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/table@2.3.0/dist/table.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/warning@1.4.0/dist/warning.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/marker@1.4.0/dist/marker.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/inline-code@1.5.0/dist/inline-code.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/underline@1.1.0/dist/underline.umd.min.js"></script>
+<!-- Editor.js loaded LAZILY — only when LMR sections are opened (prevents CSS conflicts) -->
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 
@@ -6214,16 +6200,52 @@ const LMR_SECTION_KEYS = {
   observation: 'lmr-observation'
 };
 
+// ── LAZY LOAD EditorJS scripts (only when LMR section opens) ──────────────
+const EDITORJS_SCRIPTS = [
+  'https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.2/dist/editorjs.umd.min.js',
+  'https://cdn.jsdelivr.net/npm/@editorjs/header@2.8.7/dist/header.umd.min.js',
+  'https://cdn.jsdelivr.net/npm/@editorjs/list@1.9.0/dist/list.umd.min.js',
+  'https://cdn.jsdelivr.net/npm/@editorjs/checklist@1.6.0/dist/checklist.umd.min.js',
+  'https://cdn.jsdelivr.net/npm/@editorjs/quote@2.6.0/dist/quote.umd.min.js',
+  'https://cdn.jsdelivr.net/npm/@editorjs/code@2.9.0/dist/code.umd.min.js',
+  'https://cdn.jsdelivr.net/npm/@editorjs/delimiter@1.4.2/dist/delimiter.umd.min.js',
+  'https://cdn.jsdelivr.net/npm/@editorjs/image@2.9.3/dist/image.umd.min.js',
+  'https://cdn.jsdelivr.net/npm/@editorjs/embed@2.7.4/dist/embed.umd.min.js',
+  'https://cdn.jsdelivr.net/npm/@editorjs/table@2.3.0/dist/table.umd.min.js',
+  'https://cdn.jsdelivr.net/npm/@editorjs/warning@1.4.0/dist/warning.umd.min.js',
+  'https://cdn.jsdelivr.net/npm/@editorjs/marker@1.4.0/dist/marker.umd.min.js',
+  'https://cdn.jsdelivr.net/npm/@editorjs/inline-code@1.5.0/dist/inline-code.umd.min.js',
+  'https://cdn.jsdelivr.net/npm/@editorjs/underline@1.1.0/dist/underline.umd.min.js',
+];
+let _editorJSLoadPromise = null;
+function loadEditorJSLazy(){
+  if(_editorJSLoadPromise) return _editorJSLoadPromise;
+  if(typeof EditorJS !== 'undefined'){ _editorJSLoadPromise=Promise.resolve(); return _editorJSLoadPromise; }
+  _editorJSLoadPromise = new Promise(resolve=>{
+    let loaded=0;
+    const total=EDITORJS_SCRIPTS.length;
+    EDITORJS_SCRIPTS.forEach(src=>{
+      const s=document.createElement('script');
+      s.src=src;
+      s.onload=()=>{ if(++loaded===total) resolve(); };
+      s.onerror=()=>{ if(++loaded===total) resolve(); }; // resolve anyway
+      document.body.appendChild(s);
+    });
+  });
+  return _editorJSLoadPromise;
+}
+
 async function lmrBlockLoad(section){
   const holderId = section + '-block-editor';
   const el = document.getElementById(holderId);
   if(!el) return;
 
-  // If EditorJS CDN hasn't loaded yet, show loading and retry
+  // Lazy-load EditorJS scripts ONLY NOW (so they don't pollute other panels)
+  el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3)"><div style="font-size:32px;margin-bottom:12px">📝</div><div style="font-size:13px;font-weight:600;color:var(--text2)">Loading block editor…</div></div>';
+  try{ await loadEditorJSLazy(); }catch(e){ console.warn('[LMR] EditorJS load error:',e); }
+
   if(typeof EditorJS==='undefined'){
-    setStatus(section+'-status','Loading editor scripts…','saving');
-    el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3)"><div style="font-size:32px;margin-bottom:12px">📝</div><div style="font-size:13px;font-weight:600;color:var(--text2)">Loading block editor…</div><div style="font-size:11px;margin-top:6px">Scripts are loading. This usually takes 2-3 seconds.</div></div>';
-    setTimeout(()=>lmrBlockLoad(section), 3000);
+    el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text3);font-size:13px">Failed to load editor. Please check your internet connection and refresh.</div>';
     return;
   }
 
