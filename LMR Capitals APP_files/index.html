@@ -8018,23 +8018,29 @@ async function lgSignIn(){
   try{
     const{data,error}=await _sb.auth.signInWithPassword({email,password:pass});
     if(error)throw error;
-    // Check if 2FA is required
-    const{data:mfaData}=await _sb.auth.mfa.listFactors();
-    const activeTOTP=(mfaData?.totp||[]).filter(f=>f.status==='verified');
-    if(activeTOTP.length > 0){
-      // 2FA required — show 2FA challenge
-      _mfaFactorId=activeTOTP[0].id;
-      document.getElementById('lg-signin-form').style.display='none';
-      document.getElementById('lg-2fa-area').style.display='';
-      document.getElementById('lg-2fa-code').value='';
-      document.getElementById('lg-2fa-code').focus();
-      const e2=document.getElementById('lg-2fa-err');if(e2)e2.style.display='none';
-      if(btn){btn.disabled=false;btn.textContent='Sign In →';}
-      return; // Don't call lgUnlock yet
+
+    // ── MFA CHECK — wrapped separately so it NEVER blocks a valid login ──
+    try{
+      const{data:mfaData}=await _sb.auth.mfa.listFactors();
+      const activeTOTP=(mfaData?.totp||[]).filter(f=>f.status==='verified');
+      if(activeTOTP.length > 0){
+        _mfaFactorId=activeTOTP[0].id;
+        document.getElementById('lg-signin-form').style.display='none';
+        document.getElementById('lg-2fa-area').style.display='';
+        document.getElementById('lg-2fa-code').value='';
+        document.getElementById('lg-2fa-code').focus();
+        const e2=document.getElementById('lg-2fa-err');if(e2)e2.style.display='none';
+        if(btn){btn.disabled=false;btn.textContent='Sign In →';}
+        return;
+      }
+    }catch(mfaErr){
+      // MFA API failed — log it but don't block login (credentials were valid)
+      console.warn('[LMR] MFA check skipped:', mfaErr?.message);
     }
+
     lgUnlock(data.user);
   }catch(e){
-    err.textContent=e.message||'Sign-in failed. Check your credentials.';
+    err.textContent=e.message||'Sign-in failed. Please check your credentials.';
     err.style.display='';
     btn.disabled=false;btn.textContent='Sign In →';
   }
@@ -8280,7 +8286,7 @@ window.addEventListener('beforeunload',()=>{
 });
 
 // ── SESSION TIMEOUT ──────────────────────────────────────────────
-const SESSION_TIMEOUT_MS = 60 * 60 * 1000; // 1 hour
+const SESSION_TIMEOUT_MS = 12 * 60 * 60 * 1000; // 12 hours (was 1 hour)
 const SESSION_KEY = 'lmr_session_ts';
 
 function checkSessionTimeout(){
@@ -8306,6 +8312,15 @@ function checkSessionTimeout(){
 
 // Check every 5 minutes while app is open
 setInterval(checkSessionTimeout, 5*60*1000);
+
+// Refresh session timestamp on any user activity (click / keydown)
+// so the 12-hour clock resets with use — you won't be kicked out mid-session
+['click','keydown','touchstart'].forEach(evt=>{
+  document.addEventListener(evt, ()=>{
+    if(localStorage.getItem(SESSION_KEY))
+      localStorage.setItem(SESSION_KEY, Date.now().toString());
+  }, {passive:true, capture:false});
+});
 
 // ── RT STATUS INDICATOR ──────────────────────────────────────────
 function updateRTIndicator(status){
