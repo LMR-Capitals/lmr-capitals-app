@@ -560,6 +560,23 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .ny-clock-sub{font-size:8px;color:var(--text3);margin-top:1px}
 
 /* ── TICKER BAR ── */
+/* ── ADAPTIVE ALERT BANNER ── */
+.alert-banner{position:sticky;top:0;z-index:12;display:flex;align-items:center;gap:10px;padding:6px 16px;border-bottom:1px solid rgba(245,166,35,.15);background:linear-gradient(90deg,rgba(245,166,35,.06),rgba(5,8,15,.95));backdrop-filter:blur(12px);transition:padding .2s,background .3s}
+.alert-banner.ab-min{padding:3px 16px}
+.alert-banner.ab-min .ab-msg,.alert-banner.ab-min .ab-dots,.alert-banner.ab-min .ab-ai-btn{display:none}
+.ab-label{flex-shrink:0;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;padding:2px 8px;border-radius:99px;border:1px solid;white-space:nowrap}
+.ab-msg{flex:1;font-size:11px;color:var(--text2);line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
+.alert-banner:hover .ab-msg{-webkit-line-clamp:3}
+.ab-right{flex-shrink:0;display:flex;align-items:center;gap:5px}
+.ab-dots{display:flex;gap:3px;align-items:center}
+.ab-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.12);cursor:pointer;transition:background .2s,transform .2s}
+.ab-dot.on{background:var(--gold);transform:scale(1.3)}
+.ab-ai-btn{font-size:9px;font-weight:800;padding:3px 8px;background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.25);border-radius:6px;color:var(--gold);cursor:pointer;letter-spacing:.04em;transition:all .2s;white-space:nowrap}
+.ab-ai-btn:hover{background:rgba(245,166,35,.2);box-shadow:0 0 8px rgba(245,166,35,.2)}
+.ab-min-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:0 2px;line-height:1;transition:color .2s}
+.ab-min-btn:hover{color:var(--text2)}
+@keyframes abSlideIn{from{opacity:0;transform:translateY(-100%)}to{opacity:1;transform:none}}
+.alert-banner[data-ready]{animation:abSlideIn .3s ease}
 .ticker-bar{
   background:linear-gradient(90deg,rgba(255,64,96,.12),rgba(255,64,96,.06),rgba(255,64,96,.12));
   border-top:1px solid rgba(255,64,96,.3);border-bottom:1px solid rgba(255,64,96,.3);
@@ -1234,6 +1251,17 @@ select option[value="PM"] { color: #5BA8FF; }
       <button class="btn btn-primary btn-sm" onclick="openTradeModal()">+ Trade</button>
     </div>
   </div>
+
+<!-- ── ADAPTIVE ALERT BANNER ── Fixed between topbar and panels ── -->
+<div id="alert-banner" class="alert-banner" style="display:none">
+  <span id="ab-label" class="ab-label">FOCUS</span>
+  <span id="ab-msg" class="ab-msg">Loading…</span>
+  <div class="ab-right">
+    <div id="ab-dots" class="ab-dots"></div>
+    <button class="ab-ai-btn" onclick="alertAIDeepDive()" title="✦ AI deep analysis (uses Claude API)">✦</button>
+    <button class="ab-min-btn" onclick="toggleAlertMin()" id="ab-min-btn" title="Minimise">—</button>
+  </div>
+</div>
 
 <!-- DASHBOARD -->
 <div class="panel active" id="p-dash">
@@ -4002,6 +4030,146 @@ function getNextDayCount(){
 function dayCountFor(dateStr){
   // Only return a count if there is an actual saved entry for this date
   return state.daily[dateStr]?.dayCount || null;
+}
+
+// ============= ADAPTIVE ALERT ENGINE =============
+// Free rule-based daily alerts + optional AI deep dive
+
+let _abAlerts=[], _abIdx=0, _abTimer=null;
+
+const AB_COLORS={
+  warn:   ['#FFB830','rgba(255,184,48,.14)'],
+  stop:   ['#FF4060','rgba(255,64,96,.14)'],
+  good:   ['#00D4A4','rgba(0,212,164,.12)'],
+  focus:  ['#F5A623','rgba(245,166,35,.12)'],
+  avoid:  ['#FF4060','rgba(255,64,96,.08)'],
+  psych:  ['#A78BFA','rgba(167,139,250,.1)'],
+  timing: ['#5BA8FF','rgba(91,168,255,.1)'],
+  chart:  ['#F5A623','rgba(245,166,35,.08)'],
+  plan:   ['#F5A623','rgba(245,166,35,.07)'],
+  edge:   ['#00D4A4','rgba(0,212,164,.08)'],
+  ai:     ['#FFD166','rgba(255,209,102,.12)'],
+  info:   ['#7A9AC0','rgba(122,154,192,.07)'],
+};
+
+function buildDailyAlerts(){
+  const out=[];
+  const trades=[...(state.trades||[])].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(!trades.length){
+    return [{type:'info',label:'📖 LMR ALERT',text:'Start logging trades and journal entries — your personalised daily focus alerts will appear here as your data grows.'}];
+  }
+  const r5=trades.slice(0,5), r20=trades.slice(0,20);
+  const wr=n=>n.length?Math.round(n.filter(t=>t.pnl>0).length/n.length*100):0;
+
+  // ── STREAK FIRST (most urgent) ──
+  let streak=0;
+  for(const t of r5){ if(t.pnl<0) streak++; else break; }
+  if(streak>=3) out.push({type:'stop',label:'🛑 STOP TRADING',text:`${streak} consecutive losses. LMR rule: stop after 2 straight losses. Take a full review day — study your last ${streak} trades before the next session.`});
+
+  // ── WIN RATE TREND ──
+  const w5=wr(r5), wAll=wr(trades);
+  if(r5.length>=3 && w5<40 && w5<wAll-15) out.push({type:'warn',label:'⚠ DECLINING EDGE',text:`Win rate dropped to ${w5}% in last 5 trades (overall ${wAll}%). Check: are you entering outside your model? Review rules before next session.`});
+  else if(r5.length>=3 && w5>70) out.push({type:'good',label:'✅ MOMENTUM',text:`${w5}% WR in your last 5 trades — you're in sync. Stay disciplined, don't add size or deviate from the setup that's working.`});
+
+  // ── BEST MODEL ──
+  const mMap={};
+  trades.forEach(t=>{const m=t.models?.[0]||'Unknown';if(!mMap[m])mMap[m]={w:0,n:0,pnl:0};mMap[m].n++;mMap[m].pnl+=t.pnl;if(t.pnl>0)mMap[m].w++;});
+  const mq=Object.entries(mMap).filter(([,v])=>v.n>=3);
+  if(mq.length){
+    const best=mq.slice().sort((a,b)=>b[1].pnl-a[1].pnl)[0];
+    const worst=mq.slice().sort((a,b)=>a[1].pnl-b[1].pnl)[0];
+    out.push({type:'focus',label:'🎯 BEST SETUP',text:`${best[0]}: $${best[1].pnl.toFixed(0)} P&L · ${Math.round(best[1].w/best[1].n*100)}% WR in ${best[1].n} trades. This is your highest-edge model — prioritise it in coming sessions.`});
+    if(worst[0]!==best[0]) out.push({type:'avoid',label:'🚫 REVIEW THIS',text:`${worst[0]}: $${worst[1].pnl.toFixed(0)} · ${Math.round(worst[1].w/worst[1].n*100)}% WR. Weakest setup in your data. Reduce size or skip until you identify why it's underperforming.`});
+  }
+
+  // ── BEST SESSION ──
+  const sMap={};
+  trades.forEach(t=>{const s=t.session||'?';if(!sMap[s])sMap[s]={pnl:0,n:0};sMap[s].pnl+=t.pnl;sMap[s].n++;});
+  const sq=Object.entries(sMap).filter(([,v])=>v.n>=3);
+  if(sq.length>=2){
+    const bS=sq.slice().sort((a,b)=>b[1].pnl-a[1].pnl)[0];
+    const wS=sq.slice().sort((a,b)=>a[1].pnl-b[1].pnl)[0];
+    out.push({type:'timing',label:'⏰ SESSION EDGE',text:`Peak session: ${bS[0]} ($${bS[1].pnl.toFixed(0)}). Weakest: ${wS[0]} ($${wS[1].pnl.toFixed(0)}). Allocate most attention and size to ${bS[0]}.`});
+  }
+
+  // ── PSYCH / REVENGE ──
+  const rv=trades.filter(t=>(t.emotions||[]).some(e=>/reveng/i.test(e)));
+  if(rv.length>=2){const rvPnl=rv.reduce((s,t)=>s+t.pnl,0);out.push({type:'psych',label:'🧠 PSYCHOLOGY',text:`${rv.length} revenge trades logged (avg P&L: $${(rvPnl/rv.length).toFixed(0)}). Implement hard rule: 2-loss stop. No exceptions.`});}
+
+  // ── HTF DISCIPLINE ──
+  const htfFail=trades.filter(t=>(t.htf==='Undelivered'||t.htf==='Not Delivered')&&t.pnl<0);
+  if(htfFail.length>=2) out.push({type:'chart',label:'📊 HTF RULE',text:`${htfFail.length} losses from Undelivered HTF trades. Core LMR rule: wait for HTF delivery confirmation before entry — not before.`});
+
+  // ── BEST DAY OF WEEK ──
+  const dMap={Mon:{pnl:0,n:0},Tue:{pnl:0,n:0},Wed:{pnl:0,n:0},Thu:{pnl:0,n:0},Fri:{pnl:0,n:0}};
+  trades.forEach(t=>{if(!t.date)return;const d=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(t.date+'T12:00').getDay()];if(dMap[d])dMap[d].pnl+=t.pnl,dMap[d].n++;});
+  const dq=Object.entries(dMap).filter(([,v])=>v.n>=2).sort((a,b)=>b[1].pnl-a[1].pnl);
+  if(dq.length>=2) out.push({type:'plan',label:'📅 WEEKLY PLAN',text:`Best day: ${dq[0][0]} ($${dq[0][1].pnl.toFixed(0)}). Worst: ${dq[dq.length-1][0]} ($${dq[dq.length-1][1].pnl.toFixed(0)}). Structure your week — be most selective on ${dq[dq.length-1][0]}.`});
+
+  // ── OVERALL EDGE ──
+  const net=trades.reduce((s,t)=>s+t.pnl,0);
+  out.push({type:'edge',label:'✦ YOUR EDGE',text:`${trades.length} trades · ${wAll}% WR · $${net.toFixed(0)} net P&L. ${net>0?'You have a live edge — protect it by trading your model only.':'Focus on process. Every disciplined trade builds the edge.'}`});
+
+  // ── WEEKLY PLAN from notes ──
+  const wn=(state.notes||[]).filter(n=>(n.title||'').toLowerCase().includes('week')||(n.type||'')==='weekly').sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(wn.length){const t=(wn[0].text||'').replace(/<[^>]*>/g,'').trim().slice(0,160);if(t.length>10)out.push({type:'plan',label:'📋 WEEKLY FOCUS',text:t+(t.length===160?'…':'')});}
+
+  return out;
+}
+
+// ── RENDER / CYCLE ──
+function showAbAlert(idx){
+  const a=_abAlerts[idx];
+  const banner=document.getElementById('alert-banner');
+  const label=document.getElementById('ab-label');
+  const msg=document.getElementById('ab-msg');
+  const dots=document.getElementById('ab-dots');
+  if(!banner||!a)return;
+  const [col,bg]=AB_COLORS[a.type]||AB_COLORS.info;
+  banner.style.background=`linear-gradient(90deg,${bg},rgba(5,8,15,.97))`;
+  banner.style.borderBottomColor=col.replace(')',',0.2)').replace('rgb','rgba');
+  if(label){label.textContent=a.label;label.style.color=col;label.style.background=col+'18';label.style.borderColor=col+'35';}
+  if(msg) msg.textContent=a.text;
+  if(dots) dots.innerHTML=_abAlerts.map((_,i)=>`<span class="ab-dot${i===idx?' on':''}" onclick="_abIdx=${i};showAbAlert(${i});clearInterval(_abTimer)"></span>`).join('');
+}
+
+function renderAlertBanner(){
+  _abAlerts=buildDailyAlerts();
+  _abIdx=0;
+  const banner=document.getElementById('alert-banner');
+  if(banner){banner.setAttribute('data-ready','1');banner.style.display='flex';}
+  showAbAlert(0);
+  clearInterval(_abTimer);
+  if(_abAlerts.length>1){
+    _abTimer=setInterval(()=>{_abIdx=(_abIdx+1)%_abAlerts.length;showAbAlert(_abIdx);},9000);
+  }
+  // Restore minimised state
+  if(localStorage.getItem('lmr_ab_min')==='1') banner?.classList.add('ab-min');
+}
+
+function toggleAlertMin(){
+  const b=document.getElementById('alert-banner');
+  const btn=document.getElementById('ab-min-btn');
+  if(!b)return;
+  const m=b.classList.toggle('ab-min');
+  if(btn)btn.textContent=m?'+':'—';
+  localStorage.setItem('lmr_ab_min',m?'1':'0');
+}
+
+// ── AI DEEP DIVE ──
+async function alertAIDeepDive(){
+  if(!getAIKey()){flash('⚠ Add Claude API key in Settings → AI');return;}
+  const btn=document.querySelector('.ab-ai-btn');
+  if(btn){btn.textContent='✦…';btn.disabled=true;}
+  const ctx=buildTradingContext();
+  const result=await callClaude([{role:'user',content:`You are an LMR trading coach. Analyse this trader's data and give a sharp 3-point focus plan for the next 5 sessions. Be specific — reference their actual models, sessions, emotional patterns. Max 180 words, no fluff.\n\n${ctx}`}],'haiku');
+  if(result){
+    clearInterval(_abTimer);
+    _abAlerts.unshift({type:'ai',label:'✦ AI INSIGHT',text:result.replace(/[\n\r]+/g,' ').trim()});
+    _abIdx=0;
+    showAbAlert(0);
+  }
+  if(btn){btn.textContent='✦ AI';btn.disabled=false;}
 }
 
 // ============= NAVIGATION =============
@@ -7008,9 +7176,11 @@ async function init(){
   if(!state.profile)state.profile={};
   updateAllStats();        // caches _pnlCache with real values
   updateSidebarProfile();
-  applyPnlVisibility();   // apply hidden/visible state immediately — no delay
+  applyPnlVisibility();
   loadDaily();
   navTo('dash');
+  // Build adaptive alerts from trade/journal data
+  setTimeout(renderAlertBanner, 600);
   // Generate PWA icon from profile photo + LMR branding
   setTimeout(updatePWAIcon, 800);
 }
@@ -7745,6 +7915,7 @@ async function sbPullNow() {
       // Re-render in-place — NO reload (prevents losing new unsaved data)
       save();
       updateAllStats();renderDashboard();renderTradeTable();renderNotesList();loadDaily();
+      setTimeout(renderAlertBanner, 400); // refresh alerts with cloud data
       setSbStatus('✓ Restored from cloud — '+state.trades.length+' trades', 'var(--bull)');
       flash('✓ Cloud data restored — '+state.trades.length+' trades, '+Object.keys(state.daily).length+' daily entries');
     } else {
