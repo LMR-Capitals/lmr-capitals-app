@@ -1135,6 +1135,14 @@ select option[value="PM"] { color: #5BA8FF; }
 
       <div class="lg-err" id="lg-err"></div>
       <div class="lg-success" id="lg-success"></div>
+      <!-- Shown after login failure — helps clear stale SW cache -->
+      <div id="lg-cache-hint" style="display:none;margin-top:10px;padding:8px 12px;background:rgba(91,168,255,.07);border:1px solid rgba(91,168,255,.2);border-radius:8px;font-size:10px;color:var(--blue)">
+        Still blocked?
+        <button onclick="caches.keys().then(k=>Promise.all(k.map(c=>caches.delete(c)))).then(()=>location.reload(true))"
+          style="background:none;border:none;color:var(--blue);font-weight:700;cursor:pointer;font-size:10px;text-decoration:underline;padding:0">
+          Clear cache &amp; reload
+        </button>
+      </div>
 
       <!-- 2FA challenge step -->
       <div id="lg-2fa-area" style="display:none">
@@ -8006,24 +8014,71 @@ async function sbPullNow() {
 }
 
 // ── LOGIN GATE ───────────────────────────────────────────────────────────────
+function lgShowErr(msg){
+  const err=document.getElementById('lg-err');
+  if(!err)return;
+  // Translate common Supabase error codes to human-readable messages
+  const friendly={
+    'Invalid login credentials':'Wrong email or password. Please try again.',
+    'Email not confirmed':'Please confirm your email address first — check your inbox.',
+    'Too many requests':'Too many attempts — wait 60 seconds then try again.',
+    'User not found':'No account found with that email.',
+    'Network request failed':'Cannot reach the server — check your internet connection.',
+    'Auth session missing':'Session expired — please sign in again.',
+  };
+  const clean=Object.entries(friendly).find(([k])=>msg.includes(k));
+  err.textContent=clean?clean[1]:`Error: ${msg}`;
+  err.style.display='';
+}
+
+// Allow Enter key to submit login form
+document.addEventListener('DOMContentLoaded',()=>{
+  ['lg-email','lg-password'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('keydown',e=>{ if(e.key==='Enter') lgSignIn(); });
+  });
+  const code=document.getElementById('lg-2fa-code');
+  if(code) code.addEventListener('keydown',e=>{ if(e.key==='Enter') lgVerify2FA(); });
+});
+
 async function lgSignIn(){
-  if(!sbInit()){alert('Auth service unavailable');return;}
-  const email=document.getElementById('lg-email').value.trim();
-  const pass=document.getElementById('lg-password').value;
+  const email=document.getElementById('lg-email')?.value?.trim();
+  const pass=document.getElementById('lg-password')?.value;
   const err=document.getElementById('lg-err');
   const btn=document.getElementById('lg-submit');
-  err.style.display='none';
-  if(!email||!pass){err.textContent='Email and password are required.';err.style.display='';return;}
-  btn.disabled=true;btn.textContent='Signing in…';
-  try{
-    const{data,error}=await _sb.auth.signInWithPassword({email,password:pass});
-    if(error)throw error;
+  if(err) err.style.display='none';
 
-    // ── MFA CHECK — wrapped separately so it NEVER blocks a valid login ──
+  // Guard: SDK must be loaded
+  if(!window.supabase){
+    lgShowErr('Auth SDK not loaded yet — please wait a moment and try again.');
+    return;
+  }
+  const sb=sbInit();
+  if(!sb){
+    lgShowErr('Could not connect to auth service. Try refreshing the page.');
+    return;
+  }
+
+  if(!email||!pass){
+    lgShowErr('Email and password are both required.');
+    return;
+  }
+  if(btn){btn.disabled=true;btn.textContent='Signing in…';}
+
+  try{
+    const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
+    if(error) throw error;
+
+    // Guard: user object must exist
+    if(!data?.user){
+      throw new Error('Authentication succeeded but user object is missing — please refresh and try again.');
+    }
+
+    // MFA check — in its own try-catch so it NEVER blocks a valid login
     try{
-      const{data:mfaData}=await _sb.auth.mfa.listFactors();
+      const{data:mfaData}=await sb.auth.mfa.listFactors();
       const activeTOTP=(mfaData?.totp||[]).filter(f=>f.status==='verified');
-      if(activeTOTP.length > 0){
+      if(activeTOTP.length>0){
         _mfaFactorId=activeTOTP[0].id;
         document.getElementById('lg-signin-form').style.display='none';
         document.getElementById('lg-2fa-area').style.display='';
@@ -8033,16 +8088,16 @@ async function lgSignIn(){
         if(btn){btn.disabled=false;btn.textContent='Sign In →';}
         return;
       }
-    }catch(mfaErr){
-      // MFA API failed — log it but don't block login (credentials were valid)
-      console.warn('[LMR] MFA check skipped:', mfaErr?.message);
-    }
+    }catch(mfaErr){ console.warn('[LMR] MFA check skipped:',mfaErr?.message); }
 
     lgUnlock(data.user);
+
   }catch(e){
-    err.textContent=e.message||'Sign-in failed. Please check your credentials.';
-    err.style.display='';
-    btn.disabled=false;btn.textContent='Sign In →';
+    lgShowErr(e.message||'Sign-in failed');
+    if(btn){btn.disabled=false;btn.textContent='Sign In →';}
+    // Show cache-clear tip after any failure
+    const hint=document.getElementById('lg-cache-hint');
+    if(hint) hint.style.display='';
   }
 }
 
