@@ -561,11 +561,11 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 
 /* ── TICKER BAR ── */
 /* ── ADAPTIVE ALERT BANNER ── */
-.alert-banner{position:sticky;top:0;z-index:12;display:flex;align-items:center;gap:10px;padding:6px 16px;border-bottom:1px solid rgba(245,166,35,.15);background:linear-gradient(90deg,rgba(245,166,35,.06),rgba(5,8,15,.95));backdrop-filter:blur(12px);transition:padding .2s,background .3s}
+.alert-banner{position:sticky;top:0;z-index:12;display:flex;align-items:center;gap:12px;padding:9px 18px;border-bottom:1px solid rgba(245,166,35,.18);background:linear-gradient(90deg,rgba(245,166,35,.07),rgba(5,8,15,.95));backdrop-filter:blur(12px);transition:padding .2s,background .3s}
 .alert-banner.ab-min{padding:3px 16px}
 .alert-banner.ab-min .ab-msg,.alert-banner.ab-min .ab-dots,.alert-banner.ab-min .ab-ai-btn{display:none}
-.ab-label{flex-shrink:0;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;padding:2px 8px;border-radius:99px;border:1px solid;white-space:nowrap}
-.ab-msg{flex:1;font-size:11px;color:var(--text2);line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
+.ab-label{flex-shrink:0;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;padding:2px 8px;border-radius:99px;border:1px solid;white-space:nowrap}
+.ab-msg{flex:1;font-size:13px;color:var(--text);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
 .alert-banner:hover .ab-msg{-webkit-line-clamp:3}
 .ab-right{flex-shrink:0;display:flex;align-items:center;gap:5px}
 .ab-dots{display:flex;gap:3px;align-items:center}
@@ -574,6 +574,9 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .ab-ai-btn{font-size:9px;font-weight:800;padding:3px 8px;background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.25);border-radius:6px;color:var(--gold);cursor:pointer;letter-spacing:.04em;transition:all .2s;white-space:nowrap}
 .ab-ai-btn:hover{background:rgba(245,166,35,.2);box-shadow:0 0 8px rgba(245,166,35,.2)}
 .ab-min-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:0 2px;line-height:1;transition:color .2s}
+.rpt-tab{font-size:10px;font-weight:700;padding:5px 12px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;transition:all .15s;letter-spacing:.03em}
+.rpt-tab:hover{border-color:var(--border2);color:var(--text2)}
+.rpt-tab.active{background:rgba(245,166,35,.12);border-color:rgba(245,166,35,.3);color:var(--gold)}
 .ab-min-btn:hover{color:var(--text2)}
 @keyframes abSlideIn{from{opacity:0;transform:translateY(-100%)}to{opacity:1;transform:none}}
 .alert-banner[data-ready]{animation:abSlideIn .3s ease}
@@ -2371,24 +2374,27 @@ Midnight Open $______"></textarea>
 <!-- REPORTS PANEL -->
 <div class="panel" id="p-reports">
 <div class="panel-inner">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
     <div>
-      <div style="font-size:20px;font-weight:800;color:var(--text)">Weekly Reports</div>
-      <div style="font-size:12px;color:var(--text3);margin-top:2px">AI-generated performance analysis — newest first</div>
+      <div style="font-size:20px;font-weight:800;color:var(--text)">AI Reports</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px">Auto-saved when you click ✦ AI · organised by type</div>
     </div>
-    <button class="btn btn-primary" onclick="generateWeeklyReport()" style="display:flex;align-items:center;gap:6px">
-      <span style="color:#000">✦</span> Generate This Week
-    </button>
-  </div>
-
-  <!-- Reports list -->
-  <div id="reports-list">
-    <div class="empty" style="padding:48px;text-align:center">
-      <div style="font-size:40px;margin-bottom:12px">📊</div>
-      <div style="font-size:14px;color:var(--text2)">No reports yet</div>
-      <div style="font-size:11px;color:var(--text3);margin-top:6px">Click "Generate This Week" to create your first AI performance report</div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap">
+      <button class="btn" onclick="generateAndSaveAIReport('weekly')" style="font-size:10px">📅 Weekly</button>
+      <button class="btn" onclick="generateAndSaveAIReport('trade')"  style="font-size:10px">📊 Trade</button>
+      <button class="btn" onclick="generateAndSaveAIReport('psych')"  style="font-size:10px">🧠 Psych</button>
+      <button class="btn btn-primary" onclick="generateAndSaveAIReport('full')" style="font-size:10px">✦ Full Review</button>
     </div>
   </div>
+  <div style="display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:10px;flex-wrap:wrap" id="report-tabs">
+    <button class="rpt-tab active" onclick="filterReports('all',this)">All</button>
+    <button class="rpt-tab" onclick="filterReports('full',this)">⚡ Full</button>
+    <button class="rpt-tab" onclick="filterReports('trade',this)">📊 Trade</button>
+    <button class="rpt-tab" onclick="filterReports('psych',this)">🧠 Psych</button>
+    <button class="rpt-tab" onclick="filterReports('weekly',this)">📅 Weekly</button>
+    <button class="rpt-tab" onclick="filterReports('monthly',this)">📈 Monthly</button>
+  </div>
+  <div id="reports-list"></div>
 </div>
 </div>
 
@@ -4157,19 +4163,84 @@ function toggleAlertMin(){
 }
 
 // ── AI DEEP DIVE ──
-async function alertAIDeepDive(){
+// ── AI REPORT TYPES ──────────────────────────────────────────────────────────
+const REPORT_TYPES={
+  full:   {label:'⚡ Full Review',   prompt:'comprehensive analysis of EVERYTHING — trade patterns, psychology, models, sessions, emotional patterns, HTF discipline, and a clear 5-day focus plan. Use sections with headers.'},
+  trade:  {label:'📊 Trade Analysis',prompt:'deep analysis of trade setups, models used, entry quality, HTF discipline, session timing, R:R management. What setups to prioritise and which to reduce.'},
+  psych:  {label:'🧠 Psychology',    prompt:'emotional patterns, revenge trading, discipline issues, mindset observations. Specific rules the trader needs to implement based on their emotional trading data.'},
+  weekly: {label:'📅 Weekly Review', prompt:'this week's performance vs objectives, what worked, what failed, and a specific plan for the coming 5 sessions. Reference day-of-week patterns.'},
+  monthly:{label:'📈 Monthly Review',prompt:'monthly arc — equity curve, drawdown, win rate trend, best/worst periods, model performance evolution. What changed and what must change next month.'},
+};
+
+let _currentReportFilter='all';
+
+async function generateAndSaveAIReport(type='full'){
   if(!getAIKey()){flash('⚠ Add Claude API key in Settings → AI');return;}
+  const t=REPORT_TYPES[type]||REPORT_TYPES.full;
+  
+  // Show generating state
+  flash('✦ Generating '+t.label+'…');
+  const btn=event?.target;
+  const origText=btn?.textContent;
+  if(btn){btn.disabled=true;btn.textContent='Generating…';}
+  
+  const ctx=buildTradingContext();
+  const ts=state.trades||[];
+  
+  const result=await callClaude([{role:'user',content:`You are an expert LMR trading performance coach. Generate a detailed ${t.prompt}. Be tactical, specific, reference actual data from the trader. Structure with bold section headers. 400-550 words.\n\nTrader Data:\n${ctx}`}],'haiku');
+  
+  if(!result){ if(btn){btn.disabled=false;btn.textContent=origText;} return null; }
+  
+  // Show brief preview in alert banner
+  clearInterval(_abTimer);
+  _abAlerts.unshift({type:'ai',label:t.label,text:result.replace(/[\n\r#*]+/g,' ').trim().slice(0,200)+'…'});
+  _abIdx=0;
+  showAbAlert(0);
+  
+  // Save to Supabase weekly_reports table
+  const date=new Date().toISOString().split('T')[0];
+  const dateLabel=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  if(_sb&&_sbUserId){
+    try{
+      await _sb.from('weekly_reports').insert({
+        user_id:_sbUserId,
+        title:`${t.label} — ${dateLabel}`,
+        content:result,
+        metrics:{
+          pnl:  ts.reduce((s,t)=>s+t.pnl,0),
+          trades:ts.length,
+          win_rate:ts.length?Math.round(ts.filter(t=>t.pnl>0).length/ts.length*100):0,
+          wins:  ts.filter(t=>t.pnl>0).length,
+          losses:ts.filter(t=>t.pnl<0).length,
+          report_type:type,
+        },
+        week_start:date,
+        week_end:  date,
+      });
+      flash('✓ Report saved → Reports section');
+      // Refresh reports panel if open
+      if(document.getElementById('p-reports')?.classList.contains('active')) loadAndRenderReports();
+    }catch(e){ console.warn('Report save error:',e); }
+  }
+  
+  if(btn){btn.disabled=false;btn.textContent=origText;}
+  return result;
+}
+
+// Now alertAIDeepDive just calls the full review
+async function alertAIDeepDive(){
   const btn=document.querySelector('.ab-ai-btn');
   if(btn){btn.textContent='✦…';btn.disabled=true;}
-  const ctx=buildTradingContext();
-  const result=await callClaude([{role:'user',content:`You are an LMR trading coach. Analyse this trader's data and give a sharp 3-point focus plan for the next 5 sessions. Be specific — reference their actual models, sessions, emotional patterns. Max 180 words, no fluff.\n\n${ctx}`}],'haiku');
-  if(result){
-    clearInterval(_abTimer);
-    _abAlerts.unshift({type:'ai',label:'✦ AI INSIGHT',text:result.replace(/[\n\r]+/g,' ').trim()});
-    _abIdx=0;
-    showAbAlert(0);
-  }
+  await generateAndSaveAIReport('full');
   if(btn){btn.textContent='✦ AI';btn.disabled=false;}
+}
+
+// ── FILTER REPORTS BY TYPE ────────────────────────────────────────────────
+function filterReports(type, tabEl){
+  _currentReportFilter=type;
+  document.querySelectorAll('.rpt-tab').forEach(b=>b.classList.remove('active'));
+  if(tabEl) tabEl.classList.add('active');
+  loadAndRenderReports();
 }
 
 // ============= NAVIGATION =============
@@ -4582,7 +4653,7 @@ function navTo(p){
   const [t,s]=titles[p];
   document.getElementById('tbTitle').textContent=t;
   const tbSub=document.getElementById('tbSub');
-  const day=dayCountFor(todayStr())||'—';
+  const day=dayCountFor(todayStr())||getNextDayCount();
   if(p==='dash'||p==='today'){
     const name=(state.profile?.name)||'LMR Capitals';
     tbSub.innerHTML=`Welcome back, <span id="tb-username">${name}</span>. Day <span id="tbDay">${day}</span>`;
@@ -6146,7 +6217,7 @@ function renderWeekNews(){
 
 // ============= DASHBOARD =============
 function renderDashboard(){
-  const day=dayCountFor(todayStr())||'—';
+  const day=dayCountFor(todayStr())||getNextDayCount();
   document.getElementById('t-day').textContent=day;
   document.getElementById('t-date').textContent=fmtDate(todayStr());
   
@@ -8612,76 +8683,59 @@ function startNewAIChat(){
 // ── REPORTS (Weekly) ──────────────────────────────────────────────────────
 
 async function loadAndRenderReports(){
-  const el = document.getElementById('reports-list');
+  const el=document.getElementById('reports-list');
   if(!el) return;
-  el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3)">Loading reports…</div>';
-
-  if(!_sb || !_sbUserId){
-    el.innerHTML = '<div class="empty" style="padding:24px">Sign in to view reports</div>';
-    return;
-  }
-
+  el.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3)">Loading…</div>';
+  if(!_sb||!_sbUserId){el.innerHTML='<div style="padding:24px;color:var(--text3)">Sign in to view reports</div>';return;}
   try{
-    const{data,error} = await _sb.from('weekly_reports')
-      .select('*')
-      .eq('user_id',_sbUserId)
-      .order('created_at',{ascending:false});
-
+    const{data,error}=await _sb.from('weekly_reports').select('*').eq('user_id',_sbUserId).order('created_at',{ascending:false});
     if(error||!data?.length){
-      el.innerHTML = `<div style="text-align:center;padding:48px">
+      el.innerHTML=`<div style="text-align:center;padding:48px">
         <div style="font-size:40px;margin-bottom:12px">📊</div>
         <div style="font-size:14px;color:var(--text2)">No reports yet</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:6px">Click "Generate This Week" to create your first report</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:8px">Click ✦ Full Review or any category button above to generate your first report</div>
       </div>`;
       return;
     }
-
-    el.innerHTML = data.map((r,i)=>{
-      const m = r.metrics||{};
-      const pnlColor = (m.pnl||0)>=0?'var(--bull)':'var(--bear)';
-      const isLatest = i===0;
-      return `<div style="background:var(--bg2);border:1px solid ${isLatest?'rgba(245,166,35,.25)':'var(--border2)'};border-radius:14px;padding:20px 24px;margin-bottom:14px;${isLatest?'box-shadow:0 0 20px rgba(245,166,35,.06)':''}">
-        <!-- Report header -->
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
-          <div>
-            ${isLatest?`<div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">LATEST REPORT</div>`:''}
-            <div style="font-size:15px;font-weight:800;color:var(--text)">${r.title||'Weekly Report'}</div>
-            <div style="font-size:10px;color:var(--text3);margin-top:2px">${r.week_start||''} → ${r.week_end||''} · Generated ${(r.created_at||'').slice(0,10)}</div>
+    // Apply folder filter
+    const filter=_currentReportFilter||'all';
+    const filtered=filter==='all'?data:data.filter(r=>(r.metrics?.report_type||'weekly')===filter);
+    if(!filtered.length){
+      el.innerHTML=`<div style="text-align:center;padding:32px;color:var(--text3)">No ${filter} reports yet — click the button above to generate one.</div>`;
+      return;
+    }
+    const typeColors={full:'#FFD166',trade:'#5BA8FF',psych:'#A78BFA',weekly:'#F5A623',monthly:'#00D4A4'};
+    el.innerHTML=filtered.map((r,i)=>{
+      const m=r.metrics||{};
+      const rtype=m.report_type||'weekly';
+      const tcol=typeColors[rtype]||'var(--gold)';
+      const isNew=i===0&&filter==='all';
+      const pnlC=(m.pnl||0)>=0?'var(--bull)':'var(--bear)';
+      return `<div style="background:var(--bg2);border:1px solid ${isNew?'rgba(245,166,35,.28)':'var(--border2)'};border-radius:14px;padding:18px 22px;margin-bottom:12px;${isNew?'box-shadow:0 0 20px rgba(245,166,35,.07)':''}">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px">
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+              ${isNew?`<span style="font-size:8px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;padding:2px 7px;border-radius:99px;background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.2)">NEW</span>`:''}
+              <span style="font-size:8px;font-weight:700;color:${tcol};text-transform:uppercase;letter-spacing:.1em;padding:2px 7px;border-radius:99px;background:${tcol}18;border:1px solid ${tcol}30">${(REPORT_TYPES[rtype]||{label:'Report'}).label}</span>
+            </div>
+            <div style="font-size:14px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.title||'Report'}</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:2px">Generated ${(r.created_at||'').slice(0,10)}</div>
           </div>
-          <button onclick="deleteReport('${r.id}')" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);padding:3px 8px;cursor:pointer;font-size:11px">✕</button>
+          <button onclick="deleteReport('${r.id}')" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);padding:3px 8px;cursor:pointer;font-size:10px;flex-shrink:0">✕</button>
         </div>
-
-        <!-- Metrics strip -->
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;padding:12px;background:var(--bg3);border-radius:10px">
-          <div style="text-align:center">
-            <div style="font-size:18px;font-weight:800;color:${pnlColor}">${(m.pnl||0)>=0?'+':''}$${Math.abs(m.pnl||0).toFixed(0)}</div>
-            <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Net P&amp;L</div>
-          </div>
-          <div style="text-align:center">
-            <div style="font-size:18px;font-weight:800;color:var(--text)">${m.trades||0}</div>
-            <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Trades</div>
-          </div>
-          <div style="text-align:center">
-            <div style="font-size:18px;font-weight:800;color:${(m.win_rate||0)>=50?'var(--bull)':'var(--bear)'}">${m.win_rate||0}%</div>
-            <div style="font-size:9px;color:var(--text3);font-weight:400;text-transform:uppercase;letter-spacing:.06em">Win Rate</div>
-          </div>
-          <div style="text-align:center">
-            <div style="font-size:18px;font-weight:800;color:var(--bull)">${m.wins||0}W</div>
-            <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">${m.losses||0} Losses</div>
-          </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px;background:var(--bg3);border-radius:9px;margin-bottom:12px">
+          <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:${pnlC}">${(m.pnl||0)>=0?'+':'−'}$${Math.abs(m.pnl||0).toFixed(0)}</div><div style="font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">P&amp;L</div></div>
+          <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:var(--text)">${m.trades||0}</div><div style="font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Trades</div></div>
+          <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:${(m.win_rate||0)>=50?'var(--bull)':'var(--bear)'}">${m.win_rate||0}%</div><div style="font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Win Rate</div></div>
+          <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:var(--bull)">${m.wins||0}W</div><div style="font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">${m.losses||0}L</div></div>
         </div>
-
-        <!-- Report content (collapsed by default) -->
-        <div id="report-body-${r.id}" style="display:none;font-size:13px;color:var(--text2);line-height:1.7;padding-top:12px;border-top:1px solid var(--border)">${typeof formatAIResponse === 'function' ? formatAIResponse(r.content||'') : (r.content||'')}</div>
-        <button onclick="toggleReportBody('${r.id}',this)" style="background:none;border:none;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;padding:4px 0;margin-top:8px">
-          ▼ Read Full Report
-        </button>
+        <div id="report-body-${r.id}" style="display:none;font-size:13px;color:var(--text2);line-height:1.75;padding-top:12px;border-top:1px solid var(--border)">${typeof formatAIResponse==='function'?formatAIResponse(r.content||''):(r.content||'')}</div>
+        <button onclick="toggleReportBody('${r.id}',this)" style="background:none;border:none;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;padding:4px 0">▼ Read Full Report</button>
       </div>`;
     }).join('');
-  }catch(e){
-    el.innerHTML = `<div class="empty">Error loading reports: ${e.message}</div>`;
-  }
+  }catch(e){ el.innerHTML=`<div style="padding:24px;color:var(--bear)">Error: ${e.message}</div>`; }
 }
+
 
 function toggleReportBody(id, btn){
   const el = document.getElementById('report-body-'+id);
