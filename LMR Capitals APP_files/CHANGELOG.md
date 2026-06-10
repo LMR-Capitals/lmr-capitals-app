@@ -2,7 +2,12 @@
 
 All notable changes to the LMR Capitals trading journal app are documented here.
 
-## [Unreleased] — 2026-06-10 (latest)
+## [Deployed] — 2026-06-10 (latest)
+
+- Deployed commit `539dbf44` (Professional Landing Page) to production via `netlify deploy --prod`.
+- Live at https://lmrcapitals.com — deploy: https://app.netlify.com/projects/lmrcapitalsapp/deploys/6a29603da32b2100cb2dc0d8
+
+## [Unreleased] — 2026-06-10
 
 ### Added — Professional Landing Page
 - New `#landingPage` shown before the login/sign-up gate — a full marketing page introducing LMR Capitals.
