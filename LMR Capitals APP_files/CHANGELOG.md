@@ -2,6 +2,11 @@
 
 All notable changes to the LMR Capitals trading journal app are documented here.
 
+## [Deployed] — 2026-06-10
+
+- Deployed commit `895c0300` (Tier 5: Share to Discord/X) to production via `netlify deploy --prod`.
+- Live at https://lmrcapitals.com — deploy: https://app.netlify.com/projects/lmrcapitalsapp/deploys/6a28eed840d7b171ebd4f70e
+
 ## [Unreleased] — 2026-06-10
 
 ### Added — Tier 5: Share to Discord / X (Twitter)
