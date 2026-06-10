@@ -2,6 +2,12 @@
 
 All notable changes to the LMR Capitals trading journal app are documented here.
 
+## [Deployed] — 2026-06-09
+
+- Deployed commit `49c1ceb3` to production via `netlify deploy --prod` (CLI, using existing authenticated session — Netlify project has no linked Git repo, so deploys are manual).
+- Live at https://lmrcapitals.com — deploy: https://app.netlify.com/projects/lmrcapitalsapp/deploys/6a28dc7c0e34f8edb1c60d0d
+- Includes everything below (Tier 1/2/4 features + professional icon system).
+
 ## [Unreleased] — 2026-06-09
 
 ### Added — Tier 1: Notifications, Analytics, Scheduled AI Recap
