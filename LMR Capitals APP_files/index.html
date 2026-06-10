@@ -1216,10 +1216,10 @@ select option[value="PM"] { color: #5BA8FF; }
     <button class="sb-item" data-panel="notes"><span class="sb-icon">✦</span> Journal</button>
     <button class="sb-item" data-panel="terminology"><span class="sb-icon">◧</span> LMR Terminology</button>
     <button class="sb-item" data-panel="psychology"><span class="sb-icon">◈</span> LMR Psychology</button>
-    <button class="sb-item" data-panel="observation"><span class="sb-icon">👁</span> LMR Observation</button>
+    <button class="sb-item" data-panel="observation"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span> LMR Observation</button>
     <div class="sb-sec">AI</div>
-    <button class="sb-item" data-panel="ai-coach" style="background:linear-gradient(90deg,rgba(245,166,35,.08),transparent)"><span class="sb-icon" style="color:var(--gold)">✦</span> <span style="color:var(--gold);font-weight:700">AI Coach</span></button>
-    <button class="sb-item" data-panel="reports"><span class="sb-icon">📊</span> Reports</button>
+    <button class="sb-item" data-panel="ai-coach" style="background:linear-gradient(90deg,rgba(245,166,35,.08),transparent)"><span class="sb-icon" style="color:var(--gold)"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg></span> <span style="color:var(--gold);font-weight:700">AI Coach</span></button>
+    <button class="sb-item" data-panel="reports"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span> Reports</button>
   </nav>
   
   <div class="sb-foot">
@@ -2257,11 +2257,19 @@ Midnight Open $______"></textarea>
   </div>
 
   <!-- ── STATS ROW 3: Expectancy + timing ── -->
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px" id="perf-stats-3">
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px" id="perf-stats-3">
     <div class="tile gold" style="color:#EDF2FF"><div class="tile-l" style="color:#7A9AC0">🧮 Expectancy</div><div class="tile-v" id="p-exp" style="color:#F5A623">$0</div><div class="tile-sub" style="color:#7A9AC0">per trade edge</div></div>
     <div class="tile" style="color:#EDF2FF"><div class="tile-l" style="color:#7A9AC0">📅 Best Day</div><div class="tile-v sm" id="p-bestday" style="color:#EDF2FF">—</div><div class="tile-sub" id="p-bestday-pnl" style="color:#7A9AC0">—</div></div>
     <div class="tile neg" style="color:#EDF2FF"><div class="tile-l" style="color:#7A9AC0">📅 Worst Day</div><div class="tile-v sm" id="p-worstday" style="color:#EDF2FF">—</div><div class="tile-sub" id="p-worstday-pnl" style="color:#7A9AC0">—</div></div>
     <div class="tile" style="color:#EDF2FF"><div class="tile-l" style="color:#7A9AC0">⏱ Avg Trades/Day</div><div class="tile-v" id="p-tpd" style="color:#EDF2FF">0</div><div class="tile-sub" id="p-active-days" style="color:#7A9AC0">active days</div></div>
+  </div>
+
+  <!-- ── STATS ROW 4: Streaks & R-Multiple ── -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px" id="perf-stats-4">
+    <div class="tile" style="color:#EDF2FF"><div class="tile-l" style="color:#7A9AC0;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> Current Streak</div><div class="tile-v" id="p-streak" style="color:#EDF2FF">—</div><div class="tile-sub" style="color:#7A9AC0">consecutive W/L</div></div>
+    <div class="tile pos" style="color:#EDF2FF"><div class="tile-l" style="color:#7A9AC0;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg> Longest Win Streak</div><div class="tile-v" id="p-streak-win" style="color:#00D4A4">0</div></div>
+    <div class="tile neg" style="color:#EDF2FF"><div class="tile-l" style="color:#7A9AC0;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><path d="m20 16-4-4 4-4"/><path d="m4 8 4 4-4 4"/><path d="m16 4-4 4-4-4"/><path d="m8 20 4-4 4 4"/></svg> Longest Loss Streak</div><div class="tile-v" id="p-streak-loss" style="color:#FF4060">0</div></div>
+    <div class="tile gold" style="color:#EDF2FF"><div class="tile-l" style="color:#7A9AC0;display:flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 7V5H6l6 7-6 7h12v-2"/></svg> Total R</div><div class="tile-v" id="p-total-r" style="color:#F5A623">0R</div><div class="tile-sub" style="color:#7A9AC0">sum of R-multiples</div></div>
   </div>
 
   <!-- ── AI REVIEW BUTTON ── -->
@@ -2302,6 +2310,9 @@ Midnight Open $______"></textarea>
     <div class="chart-card"><div class="chart-title">P&L by Open Time (hour)</div><div class="chart-canvas"><canvas id="ch-hour"></canvas></div></div>
     <div class="chart-card"><div class="chart-title">Drawdown Curve</div><div class="chart-canvas"><canvas id="ch-drawdown"></canvas></div></div>
     <div class="chart-card"><div class="chart-title">P&L by Time Period</div><div class="chart-canvas"><canvas id="ch-time"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">R-Multiple Distribution</div><div class="chart-canvas"><canvas id="ch-rmultiple"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Win Rate by Session (%)</div><div class="chart-canvas"><canvas id="ch-session-wr"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Win Rate by Day (%)</div><div class="chart-canvas"><canvas id="ch-day-wr"></canvas></div></div>
   </div>
 
   <!-- ── PATTERNS & IMPROVEMENT TABLE ── -->
@@ -2321,7 +2332,7 @@ Midnight Open $______"></textarea>
 <div class="panel-inner">
   <div class="card" style="display:flex;flex-direction:column;height:calc(100vh - 140px)">
     <div class="card-head" style="border-bottom:1px solid rgba(245,166,35,.15)">
-      <span class="card-tag" style="background:rgba(245,166,35,.15);color:var(--gold)">✦ AI</span>
+      <span class="card-tag" style="background:rgba(245,166,35,.15);color:var(--gold);display:inline-flex;align-items:center;gap:4px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg> AI</span>
       <div class="card-title">LMR Trading Coach</div>
       <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
         <span id="ai-coach-model" style="font-size:9px;color:var(--text3)">claude-haiku</span>
@@ -2348,7 +2359,7 @@ Midnight Open $______"></textarea>
         <div id="ai-chat-messages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px">
           <!-- Welcome message -->
           <div class="ai-msg ai-msg-assistant">
-            <div class="ai-msg-avatar">✦</div>
+            <div class="ai-msg-avatar"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg></div>
             <div class="ai-msg-bubble">
               <p>Hello! I'm your LMR AI Trading Coach. I have full access to your trading data, journal, and performance metrics.</p>
               <p style="margin-top:8px">Try asking:</p>
@@ -2385,22 +2396,22 @@ Midnight Open $______"></textarea>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
     <div>
       <div style="font-size:20px;font-weight:800;color:var(--text)">AI Reports</div>
-      <div style="font-size:11px;color:var(--text3);margin-top:2px">Auto-saved when you click ✦ AI · organised by type</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:4px">Auto-saved when you click <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg> AI · organised by type</div>
     </div>
     <div style="display:flex;gap:7px;flex-wrap:wrap">
-      <button class="btn" onclick="generateAndSaveAIReport('weekly')" style="font-size:10px">📅 Weekly</button>
-      <button class="btn" onclick="generateAndSaveAIReport('trade')"  style="font-size:10px">📊 Trade</button>
-      <button class="btn" onclick="generateAndSaveAIReport('psych')"  style="font-size:10px">🧠 Psych</button>
-      <button class="btn btn-primary" onclick="generateAndSaveAIReport('full')" style="font-size:10px">✦ Full Review</button>
+      <button class="btn" onclick="generateAndSaveAIReport('weekly')" style="font-size:10px;display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Weekly</button>
+      <button class="btn" onclick="generateAndSaveAIReport('trade')"  style="font-size:10px;display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg> Trade</button>
+      <button class="btn" onclick="generateAndSaveAIReport('psych')"  style="font-size:10px;display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.5H7a2.5 2.5 0 0 1-2.5-2.5v-1A2.5 2.5 0 0 1 3 14v-2a2.5 2.5 0 0 1 1-2 2.5 2.5 0 0 1 1.5-3.5A2.5 2.5 0 0 1 7 4.5 2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.5H17a2.5 2.5 0 0 0 2.5-2.5v-1a2.5 2.5 0 0 0 1.5-2v-2a2.5 2.5 0 0 0-1-2 2.5 2.5 0 0 0-1.5-3.5A2.5 2.5 0 0 0 17 4.5 2.5 2.5 0 0 0 14.5 2Z"/></svg> Psych</button>
+      <button class="btn btn-primary" onclick="generateAndSaveAIReport('full')" style="font-size:10px;display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg> Full Review</button>
     </div>
   </div>
   <div style="display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:10px;flex-wrap:wrap" id="report-tabs">
     <button class="rpt-tab active" onclick="filterReports('all',this)">All</button>
-    <button class="rpt-tab" onclick="filterReports('full',this)">⚡ Full</button>
-    <button class="rpt-tab" onclick="filterReports('trade',this)">📊 Trade</button>
-    <button class="rpt-tab" onclick="filterReports('psych',this)">🧠 Psych</button>
-    <button class="rpt-tab" onclick="filterReports('weekly',this)">📅 Weekly</button>
-    <button class="rpt-tab" onclick="filterReports('monthly',this)">📈 Monthly</button>
+    <button class="rpt-tab" onclick="filterReports('full',this)" style="display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Full</button>
+    <button class="rpt-tab" onclick="filterReports('trade',this)" style="display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg> Trade</button>
+    <button class="rpt-tab" onclick="filterReports('psych',this)" style="display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.5H7a2.5 2.5 0 0 1-2.5-2.5v-1A2.5 2.5 0 0 1 3 14v-2a2.5 2.5 0 0 1 1-2 2.5 2.5 0 0 1 1.5-3.5A2.5 2.5 0 0 1 7 4.5 2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.5H17a2.5 2.5 0 0 0 2.5-2.5v-1a2.5 2.5 0 0 0 1.5-2v-2a2.5 2.5 0 0 0-1-2 2.5 2.5 0 0 0-1.5-3.5A2.5 2.5 0 0 0 17 4.5 2.5 2.5 0 0 0 14.5 2Z"/></svg> Psych</button>
+    <button class="rpt-tab" onclick="filterReports('weekly',this)" style="display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Weekly</button>
+    <button class="rpt-tab" onclick="filterReports('monthly',this)" style="display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg> Monthly</button>
   </div>
   <div id="reports-list"></div>
 </div>
@@ -2411,14 +2422,14 @@ Midnight Open $______"></textarea>
 <div class="panel" id="p-observation">
 <div style="height:100%;display:flex;flex-direction:column">
   <div style="padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-    <span style="font-size:20px">👁</span>
+    <span style="font-size:20px;display:inline-flex"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
     <div>
       <div style="font-size:16px;font-weight:800;color:var(--text)">LMR Observation</div>
       <div style="font-size:11px;color:var(--text3)">Market notes · Trade setups · Confluences · Pre/post analysis</div>
     </div>
     <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
       <span class="canvas-status" id="observation-status" style="font-size:10px;color:var(--text3)">Auto-saves</span>
-      <button class="btn btn-primary btn-sm" onclick="lmrSimpleSave('observation')">💾 Save</button>
+      <button class="btn btn-primary btn-sm" onclick="lmrSimpleSave('observation')" style="display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save</button>
     </div>
   </div>
   <div style="flex:1;overflow-y:auto;padding:20px">
@@ -2592,6 +2603,114 @@ Midnight Open $______"></textarea>
       <option value="dark">Dark (Default)</option>
       <option value="light">Light</option>
     </select>
+
+    <hr class="div">
+    <div class="sp-section-title" style="display:flex;align-items:center;gap:6px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Notifications</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px">
+      <div style="font-size:11px;color:var(--text2)">Status: <b id="notif-perm-status" style="color:var(--text)">Not enabled</b></div>
+      <button id="notif-enable-btn" class="btn btn-sm btn-primary" onclick="requestNotifPermission()">Enable</button>
+    </div>
+    <div class="form-row" style="margin-bottom:8px">
+      <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="notif-daily" onchange="saveNotifSettings()" style="width:16px;height:16px;accent-color:var(--gold)">
+        Daily journal reminder
+      </label>
+    </div>
+    <div class="form-row" style="margin-bottom:8px">
+      <label class="form-label">Reminder time</label>
+      <input type="time" id="notif-reminder-time" class="form-input" onchange="saveNotifSettings()">
+    </div>
+    <div class="form-row" style="margin-bottom:8px">
+      <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="notif-ai-report" onchange="saveNotifSettings()" style="width:16px;height:16px;accent-color:var(--gold)">
+        AI report ready alerts
+      </label>
+    </div>
+    <div class="form-row" style="margin-bottom:8px">
+      <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="notif-sync" onchange="saveNotifSettings()" style="width:16px;height:16px;accent-color:var(--gold)">
+        Sync status alerts
+      </label>
+    </div>
+    <div class="form-row" style="margin-bottom:8px">
+      <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="notif-pattern" onchange="saveNotifSettings()" style="width:16px;height:16px;accent-color:var(--gold)">
+        Negative pattern alerts
+      </label>
+    </div>
+
+    <hr class="div">
+    <div class="sp-section-title" style="display:flex;align-items:center;gap:6px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Integrations</div>
+
+    <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+      Discord Webhook
+    </div>
+    <div class="form-row" style="margin-bottom:8px">
+      <label class="form-label">Webhook URL</label>
+      <input type="password" id="discord-webhook-url" class="form-input" placeholder="https://discord.com/api/webhooks/..." onchange="saveIntegrationSettings()">
+      <div style="font-size:10px;color:var(--text3);margin-top:4px">Create one in Discord: Server Settings → Integrations → Webhooks → New Webhook → Copy URL</div>
+    </div>
+    <div class="form-row" style="margin-bottom:8px">
+      <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="discord-ai-reports" onchange="saveIntegrationSettings()" style="width:16px;height:16px;accent-color:var(--gold)">
+        Post AI reports
+      </label>
+    </div>
+    <div class="form-row" style="margin-bottom:8px">
+      <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="discord-trade-logged" onchange="saveIntegrationSettings()" style="width:16px;height:16px;accent-color:var(--gold)">
+        Post new trades
+      </label>
+    </div>
+    <div class="form-row" style="margin-bottom:8px">
+      <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="discord-pattern-alerts" onchange="saveIntegrationSettings()" style="width:16px;height:16px;accent-color:var(--gold)">
+        Post negative pattern alerts
+      </label>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+      <button class="btn btn-sm btn-primary" onclick="testDiscordWebhook()">Send Test Message</button>
+      <span id="discord-test-status" style="font-size:11px;color:var(--text2)"></span>
+    </div>
+
+    <hr class="div">
+    <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v3a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8z"/></svg>
+      Broker Sync — Tradovate
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px">
+      <div style="font-size:11px;color:var(--text2)">Status: <b id="tradovate-status" style="color:var(--text)">Not connected</b></div>
+    </div>
+    <div class="form-row" style="margin-bottom:8px">
+      <label class="form-label">Environment</label>
+      <select id="tradovate-env" class="form-input" onchange="saveIntegrationSettings()">
+        <option value="demo">Demo</option>
+        <option value="live">Live</option>
+      </select>
+    </div>
+    <div class="form-row" style="margin-bottom:8px">
+      <label class="form-label">Username</label>
+      <input type="text" id="tradovate-username" class="form-input" placeholder="Tradovate username" onchange="saveIntegrationSettings()" autocomplete="off">
+    </div>
+    <div class="form-row" style="margin-bottom:8px">
+      <label class="form-label">Password</label>
+      <input type="password" id="tradovate-password" class="form-input" placeholder="Tradovate password" onchange="saveIntegrationSettings()" autocomplete="off">
+    </div>
+    <div class="form-row" style="margin-bottom:8px">
+      <label class="form-label">App / CID</label>
+      <input type="text" id="tradovate-cid" class="form-input" placeholder="API Client ID (cid)" onchange="saveIntegrationSettings()" autocomplete="off">
+    </div>
+    <div class="form-row" style="margin-bottom:8px">
+      <label class="form-label">App Secret</label>
+      <input type="password" id="tradovate-sec" class="form-input" placeholder="API Client Secret (sec)" onchange="saveIntegrationSettings()" autocomplete="off">
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:10px">Stored only in your account profile. Read-only — this app never places, modifies, or cancels orders. Get API credentials from Tradovate → Settings → API Access.</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <button class="btn btn-sm btn-primary" onclick="tradovateConnect()" id="tradovate-connect-btn" style="display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Connect</button>
+      <button class="btn btn-sm" onclick="tradovateSyncTrades()" id="tradovate-sync-btn" style="display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg> Sync Trades Now</button>
+    </div>
+    <div id="tradovate-sync-status" style="font-size:11px;color:var(--text2)"></div>
 
     <hr class="div">
     <div class="sp-section-title">Export</div>
@@ -3627,12 +3746,23 @@ function sbScheduleSync(){
   _sbSyncTimer=setTimeout(()=>sbDoSafeSync(),800); // was 5000 — reduced to 800ms
 }
 
+// Safety net: the debounced sync above can be missed (timer cleared while the
+// tab is backgrounded, sign-in finishing after a save already marked us dirty,
+// etc). Every 20s, if we're signed in and still dirty/not syncing, retry —
+// this is what makes "leave the app open and it just uploads" actually true.
+if(!window._sbSafetyNet){
+  window._sbSafetyNet=setInterval(()=>{
+    if(_sbSyncEnabled&&_sbUserId&&_sbDirty&&!_sbSyncing)sbDoSafeSync();
+  },20000);
+}
+
 // Immediate single-record upsert (called by individual save functions)
 async function sbSyncRecord(table,record){
   if(!_sbSyncEnabled||!_sbUserId||!_sb)return;
   try{
     const conflictKey=table==='daily'?'date,user_id':table==='monthly'?'key,user_id':table==='weekly'?'week_key,user_id':'id';
-    await _sb.from(table).upsert({...record,user_id:_sbUserId},{onConflict:conflictKey});
+    const {error}=await _sb.from(table).upsert({...record,user_id:_sbUserId},{onConflict:conflictKey});
+    if(error)throw error;
     setSbStatus('✓ Auto-saved','var(--bull)');
   }catch(e){_sbDirty=true;sbScheduleSync();setSbStatus('⚠ Save failed — retrying','var(--bear)');}
 }
@@ -3643,6 +3773,8 @@ async function sbDeleteRecord(table,id,field='id'){
   try{await _sb.from(table).delete().eq(field,String(id)).eq('user_id',_sbUserId);}catch(e){}
 }
 
+let _sbSyncFailNotified=false;
+let _sbSyncFailCount=0;
 async function sbDoSafeSync(){
   if(!_sb||!_sbSyncEnabled||!_sbDirty||_sbSyncing||!_sbUserId)return;
   _sbSyncing=true;
@@ -3653,8 +3785,19 @@ async function sbDoSafeSync(){
     setSyncIndicator('synced');
     setSbStatus('✓ Synced '+new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}),'var(--bull)');
     localStorage.setItem('lmr_lastSync',new Date().toISOString());
+    // Recovered from a previous failure — let the user know it's safe now
+    if(_sbSyncFailNotified&&notifSettings().syncAlerts!==false){
+      sendAppNotification('☁ Cloud Sync Restored','Your data is syncing to the cloud again.');
+    }
+    _sbSyncFailNotified=false;_sbSyncFailCount=0;
   }catch(e){
     _sbSyncing=false;setSyncIndicator('error');
+    _sbSyncFailCount++;
+    // Only alert after a few consecutive failures (avoid noise from transient blips)
+    if(_sbSyncFailCount>=3&&!_sbSyncFailNotified&&notifSettings().syncAlerts!==false){
+      sendAppNotification('⚠ Cloud Sync Issue','Some data is failing to upload. Open the app to check your connection.');
+      _sbSyncFailNotified=true;
+    }
     setTimeout(()=>sbDoSafeSync(),15000);
   }
 }
@@ -3691,30 +3834,37 @@ function _mapDaily(date,d,uid){
 }
 
 async function _sbUpsertAll(uid){
+  // Supabase upserts resolve with {error} rather than throwing — without
+  // checking it, a bad row (e.g. a column mismatch) silently fails while the
+  // sync indicator still reports "Synced". Collect and throw so the caller's
+  // retry/error UI actually fires.
+  const _errs=[];
+  const _chk=(label,res)=>{ if(res&&res.error) _errs.push(label+': '+res.error.message); };
   if(state.trades.length)
-    await _sb.from('trades').upsert(state.trades.map(t=>_mapTrade(t,uid)),{onConflict:'id'});
+    _chk('trades', await _sb.from('trades').upsert(state.trades.map(t=>_mapTrade(t,uid)),{onConflict:'id'}));
   if(state.accounts.length)
-    await _sb.from('accounts').upsert(
+    _chk('accounts', await _sb.from('accounts').upsert(
       state.accounts.map(a=>({id:String(a.id),user_id:uid,notion_id:a.notionId||null,
         name:a.name||null,type:a.type||null,status:a.status||null,
-        date:a.date||null,deposit:parseFloat(a.deposit)||0})),{onConflict:'id'});
+        date:a.date||null,deposit:parseFloat(a.deposit)||0})),{onConflict:'id'}));
   if(state.transactions.length)
-    await _sb.from('transactions').upsert(
+    _chk('transactions', await _sb.from('transactions').upsert(
       state.transactions.map(x=>({id:String(x.id),user_id:uid,notion_id:x.notionId||null,
         account_id:x.accountId?String(x.accountId):null,date:x.date||null,type:x.type||null,
         amount:parseFloat(x.amount)||0,note:x.note||null,status:x.status||null,
-        updated_at:new Date().toISOString()})),{onConflict:'id'});
+        updated_at:new Date().toISOString()})),{onConflict:'id'}));
   if(state.notes.length)
-    await _sb.from('notes').upsert(
+    _chk('notes', await _sb.from('notes').upsert(
       state.notes.map(n=>({id:String(n.id),user_id:uid,notion_id:n.notionId||null,
         title:n.title||null,text:n.text||'',date:n.date||null,
-        created_at:n.createdAt||new Date().toISOString()})),{onConflict:'id'});
+        created_at:n.createdAt||new Date().toISOString()})),{onConflict:'id'}));
   const dailyRows=Object.entries(state.daily).map(([date,d])=>_mapDaily(date,d,uid));
-  if(dailyRows.length)await _sb.from('daily').upsert(dailyRows,{onConflict:'date,user_id'});
+  if(dailyRows.length)_chk('daily', await _sb.from('daily').upsert(dailyRows,{onConflict:'date,user_id'}));
   const monthlyRows=Object.entries(state.monthly).map(([key,data])=>({key,data,user_id:uid}));
-  if(monthlyRows.length)await _sb.from('monthly').upsert(monthlyRows,{onConflict:'key,user_id'});
+  if(monthlyRows.length)_chk('monthly', await _sb.from('monthly').upsert(monthlyRows,{onConflict:'key,user_id'}));
   const weeklyRows=Object.entries(state.weekly).map(([week_key,data])=>({week_key,data,user_id:uid}));
-  if(weeklyRows.length)await _sb.from('weekly').upsert(weeklyRows,{onConflict:'week_key,user_id'});
+  if(weeklyRows.length)_chk('weekly', await _sb.from('weekly').upsert(weeklyRows,{onConflict:'week_key,user_id'}));
+  if(_errs.length) throw new Error(_errs.join(' | '));
 }
 
 function sbAutoSync(){_sbDirty=true;sbScheduleSync();}
@@ -4226,6 +4376,18 @@ async function generateAndSaveAIReport(type='full'){
         week_end:  date,
       });
       flash('✓ Report saved → Reports section');
+      if(notifSettings().aiReportReady!==false){
+        sendAppNotification('✦ AI Report Ready',`${t.label} has been generated and saved to Reports.`);
+      }
+      if(integrationSettings().discord.aiReports!==false){
+        sendDiscordMessage(null,{
+          title:`✦ ${t.label} — ${dateLabel}`,
+          description:result.length>900?result.slice(0,900)+'…':result,
+          color:0xF5A623,
+          footer:{text:'LMR Capitals · '+ts.length+' trades on file'},
+          timestamp:new Date().toISOString()
+        });
+      }
       // Refresh reports panel if open
       if(document.getElementById('p-reports')?.classList.contains('active')) loadAndRenderReports();
     }catch(e){ console.warn('Report save error:',e); }
@@ -4371,7 +4533,9 @@ async function syncProfileToCloud(){
       balance_format:   p.balanceFormat||'total',
       current_acc:      state.currentAcc?String(state.currentAcc):null,
       cal_month:        state.calMonth||null,
-      settings:         {},
+      // NOTE: Tradovate credentials (username/password/cid/sec/accessToken) are deliberately
+      // NOT synced to the cloud profile — they stay device-local (localStorage) only.
+      settings:         {notifications:p.notifications||{},integrations:{discord:(p.integrations&&p.integrations.discord)||{}}},
       updated_at:       new Date().toISOString()
     },{onConflict:'user_id'});
   }catch(e){
@@ -4405,6 +4569,13 @@ async function loadProfileFromCloud(){
     if(data.day_count_start)  state.dayCountStart=data.day_count_start;
     if(data.day_count_start_date) state.dayCountStartDate=data.day_count_start_date;
     if(data.balance_format) state.profile.balanceFormat=data.balance_format;
+    if(data.settings&&typeof data.settings==='object'){
+      if(data.settings.notifications) state.profile.notifications={...notifSettings(),...data.settings.notifications};
+      if(data.settings.integrations&&data.settings.integrations.discord){
+        state.profile.integrations=state.profile.integrations||{};
+        state.profile.integrations.discord={...integrationSettings().discord,...data.settings.integrations.discord};
+      }
+    }
     // Only update currentAcc from cloud if:
     // 1. Local has no active account set, OR
     // 2. The local currentAcc no longer exists in state.accounts (account was deleted elsewhere)
@@ -5405,6 +5576,24 @@ function _setTradeImgKeys(id){
     renderImgZone(z);
   });
 }
+// Move any images saved under a temporary "new-<ts>" prefix to the final trade id
+// (fixes: images uploaded while creating a new trade getting orphaned once the
+// trade is saved with its real numeric id)
+async function _migrateTradeImgKeys(oldPrefix,newId){
+  const sidNew=String(newId);
+  if(!oldPrefix||oldPrefix===sidNew)return;
+  for(const suffix of ['htf','15m','entry','result']){
+    const oldKey=`trade-${oldPrefix}-${suffix}`;
+    const newKey=`trade-${sidNew}-${suffix}`;
+    try{
+      const blob=await getImg(oldKey);
+      if(blob){
+        await saveImg(newKey,blob);
+        await delImg(oldKey);
+      }
+    }catch(e){}
+  }
+}
 function openTradeModal(editId){
   _tmEditId=editId||null;
   // Normalise to same type used when images were saved
@@ -5500,10 +5689,30 @@ function saveTrade(){
   };
   t.rr=t.risk>0?(t.pnl/t.risk).toFixed(2):0;
   t.win=t.pnl>0;
+  const _oldImgId=_tmCurrentImgId; // capture before reset, may be "new-<ts>"
+  const _isNewTrade=!_tmEditId;
   if(_tmEditId){state.trades=state.trades.map(x=>x.id===_tmEditId?t:x);flash('✓ Trade updated');}
   else{state.trades.unshift(t);flash('✓ Trade logged');}
   save();
+  if(_isNewTrade&&integrationSettings().discord.tradeLogged){
+    sendDiscordMessage(null,{
+      title:(t.pnl>=0?'🟢 ':'🔴 ')+(t.market||'Trade')+' · '+(t.win?'Win':'Loss'),
+      color:t.pnl>=0?0x00D4A4:0xFF4060,
+      fields:[
+        {name:'P&L',value:(t.pnl>=0?'+$':'-$')+Math.abs(t.pnl).toFixed(2),inline:true},
+        {name:'R',value:(t.rr||0)+'R',inline:true},
+        {name:'Session',value:t.session||'—',inline:true},
+        {name:'Model',value:(t.models&&t.models[0])||'—',inline:true},
+        {name:'Date',value:t.date||'—',inline:true}
+      ],
+      timestamp:new Date().toISOString()
+    });
+  }
   sbSyncRecord('trades',_mapTrade(t,_sbUserId)); // instant cloud sync
+  // If this was a new trade, move any images saved under the temp "new-<ts>" key to the real id
+  if(_oldImgId&&_oldImgId.startsWith('new-')){
+    _migrateTradeImgKeys(_oldImgId,t.id).then(()=>{_setTradeImgKeys(t.id);});
+  }
   closeModal('tradeModal');
   renderTradeTable();updateAllStats();
   ['tm-pnl','tm-risk','tm-lots','tm-draws','tm-fb'].forEach(id=>document.getElementById(id).value='');
@@ -6415,7 +6624,7 @@ function _renderPerfChartsInner(){
   if(!ts.length){
     const el=document.getElementById('perf-trade-count');
     if(el) el.textContent='No trades yet — add trades to see analytics';
-    ['p-total','p-wr','p-pnl','p-rr','p-pf','p-dd','p-avgwin','p-avgloss','p-exp'].forEach(id=>{
+    ['p-total','p-wr','p-pnl','p-rr','p-pf','p-dd','p-avgwin','p-avgloss','p-exp','p-streak','p-streak-win','p-streak-loss','p-total-r'].forEach(id=>{
       const el=document.getElementById(id);if(el)el.textContent='—';
     });
     return;
@@ -6449,6 +6658,16 @@ function _renderPerfChartsInner(){
   const activeDays=dateEntries.length;
   const tpd=activeDays?+(ts.length/activeDays).toFixed(1):0;
 
+  // Streaks (in chronological order) + Total R
+  let curWinRun=0,curLossRun=0,maxWinStreak=0,maxLossStreak=0;
+  sorted.forEach(t=>{
+    if(t.pnl>0){curWinRun++;curLossRun=0;if(curWinRun>maxWinStreak)maxWinStreak=curWinRun;}
+    else if(t.pnl<0){curLossRun++;curWinRun=0;if(curLossRun>maxLossStreak)maxLossStreak=curLossRun;}
+    else{curWinRun=0;curLossRun=0;}
+  });
+  const curStreakLabel=curWinRun>0?(curWinRun+'W'):curLossRun>0?(curLossRun+'L'):'—';
+  const totalR=ts.reduce((s,t)=>s+(parseFloat(t.rr)||0),0);
+
   // ── UPDATE STAT TILES ──
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   set('p-total',ts.length);
@@ -6472,6 +6691,14 @@ function _renderPerfChartsInner(){
   set('p-tpd',tpd);
   set('p-active-days',activeDays+' active days');
   set('perf-trade-count',ts.length+' trades analyzed');
+  set('p-streak',curStreakLabel);
+  set('p-streak-win',maxWinStreak);
+  set('p-streak-loss',maxLossStreak);
+  set('p-total-r',(totalR>=0?'+':'')+totalR.toFixed(2)+'R');
+  const streakTile=document.getElementById('p-streak');
+  if(streakTile)streakTile.style.color=curWinRun>0?'var(--bull)':curLossRun>0?'var(--bear)':'var(--text)';
+  const totalRTile=document.getElementById('p-total-r');
+  if(totalRTile)totalRTile.style.color=totalR>=0?'var(--bull)':'var(--bear)';
 
   // Color the net P&L tile
   const pnlTile=document.getElementById('p-pnl');
@@ -6551,6 +6778,31 @@ function _renderPerfChartsInner(){
     const byTime={};ts.forEach(t=>{if(t.timePeriod){byTime[t.timePeriod]=(byTime[t.timePeriod]||0)+t.pnl;}});
     if(Object.keys(byTime).length) drawBar('ch-time',Object.keys(byTime).map(k=>k.length>14?k.slice(0,14)+'…':k),Object.values(byTime));
 
+    // 13. R-Multiple Distribution
+    const rBuckets=[
+      {label:'< -2R',  test:r=>r<-2,            neg:true},
+      {label:'-2..-1R',test:r=>r>=-2&&r<-1,     neg:true},
+      {label:'-1..0R', test:r=>r>=-1&&r<0,      neg:true},
+      {label:'0..1R',  test:r=>r>=0&&r<1,       neg:false},
+      {label:'1..2R',  test:r=>r>=1&&r<2,       neg:false},
+      {label:'2..3R',  test:r=>r>=2&&r<3,       neg:false},
+      {label:'> 3R',   test:r=>r>=3,            neg:false},
+    ];
+    const rValues=ts.map(t=>parseFloat(t.rr)||0);
+    const rCounts=rBuckets.map(b=>rValues.filter(b.test).length);
+    drawHistogram('ch-rmultiple',rBuckets.map(b=>b.label),rCounts,rBuckets.map(b=>b.neg?'rgba(255,64,96,.75)':'rgba(0,212,164,.75)'));
+
+    // 14. Win Rate by Session (%)
+    const sessTotal={};const sessWins={};
+    ts.forEach(t=>{const s=t.session||'?';sessTotal[s]=(sessTotal[s]||0)+1;if(t.pnl>0)sessWins[s]=(sessWins[s]||0)+1;});
+    const sessions=Object.keys(sessTotal);
+    drawBar('ch-session-wr',sessions,sessions.map(s=>Math.round((sessWins[s]||0)/sessTotal[s]*100)),true,'%');
+
+    // 15. Win Rate by Day (%)
+    const dayTotal=days.map(()=>0);const dayWins=days.map(()=>0);
+    ts.forEach(t=>{const d=new Date((t.date||'')+'T12:00').getDay();if(d>=1&&d<=5){dayTotal[d-1]++;if(t.pnl>0)dayWins[d-1]++;}});
+    drawBar('ch-day-wr',days,days.map((d,i)=>dayTotal[i]?Math.round(dayWins[i]/dayTotal[i]*100):0),true,'%');
+
   },50);
 
   // ── PATTERN ANALYSIS TABLE ──
@@ -6575,44 +6827,103 @@ function renderPerfPatterns(ts,wr,wins,losses,avgWin,avgLoss,expectancy,pf){
   const htfUndeliv=ts.filter(t=>t.htf==='Undelivered');
   const htfUndelivLoss=htfUndeliv.filter(t=>t.pnl<0).length;
 
+  // --- Tier 2: Proactive pattern detection (session win-rate, emotion-loss correlation, overtrading) ---
+  const extraPatterns=[];
+
+  // Session win-rate alert (lowest win-rate session with a meaningful sample size)
+  const sessEligible=Object.keys(sessTotal).filter(s=>s!=='?'&&sessTotal[s]>=3);
+  if(sessEligible.length){
+    const worstSess=sessEligible.sort((a,b)=>((sessWR[a]||0)/sessTotal[a])-((sessWR[b]||0)/sessTotal[b]))[0];
+    const worstSessWRPct=Math.round((sessWR[worstSess]||0)/sessTotal[worstSess]*100);
+    if(worstSessWRPct<40){
+      extraPatterns.push({
+        key:'session-wr-'+worstSess,
+        icon:icon('alert-triangle'),
+        title:'Low Win Rate: '+worstSess+' Session',
+        value:worstSessWRPct+'% win rate · '+sessTotal[worstSess]+' trades',
+        desc:'Your win rate in the '+worstSess+' session is only '+worstSessWRPct+'%. Review your setups or reduce size during this session.',
+        color:'var(--bear)',
+        negative:true,
+        notif:'⚠️ Only '+worstSessWRPct+'% win rate in your '+worstSess+' session ('+sessTotal[worstSess]+' trades).'
+      });
+    }
+  }
+
+  // Emotion-loss correlation — which tagged emotion is costing the most money
+  const emoCount={};const emoPnl={};
+  ts.forEach(t=>(t.emotions||[]).forEach(e=>{emoCount[e]=(emoCount[e]||0)+1;emoPnl[e]=(emoPnl[e]||0)+t.pnl;}));
+  const emoCandidates=Object.keys(emoCount).filter(e=>emoCount[e]>=3&&emoPnl[e]<0);
+  if(emoCandidates.length){
+    const worstEmo=emoCandidates.sort((a,b)=>emoPnl[a]-emoPnl[b])[0];
+    const avgLossEmo=emoPnl[worstEmo]/emoCount[worstEmo];
+    extraPatterns.push({
+      key:'emotion-'+worstEmo,
+      icon:icon('brain'),
+      title:'Costly Emotion: '+worstEmo,
+      value:'$'+emoPnl[worstEmo].toFixed(0)+' · '+emoCount[worstEmo]+' trades',
+      desc:'Trades tagged "'+worstEmo+'" have cost you $'+Math.abs(emoPnl[worstEmo]).toFixed(0)+' total ('+emoCount[worstEmo]+' trades, avg $'+Math.abs(avgLossEmo).toFixed(0)+'/trade). Watch for this state before entering.',
+      color:'var(--bear)',
+      negative:true,
+      notif:'🧠 "'+worstEmo+'" trades have cost you $'+Math.abs(emoPnl[worstEmo]).toFixed(0)+' total — avg $'+Math.abs(avgLossEmo).toFixed(0)+'/trade.'
+    });
+  }
+
+  // Overtrading streak detection — days with 4+ trades that finished net negative
+  const byDateCount={};const byDatePnl={};
+  ts.forEach(t=>{const d=(t.date||'').slice(0,10);if(!d)return;byDateCount[d]=(byDateCount[d]||0)+1;byDatePnl[d]=(byDatePnl[d]||0)+t.pnl;});
+  const overtradeDays=Object.keys(byDateCount).filter(d=>byDateCount[d]>=4&&byDatePnl[d]<0);
+  if(overtradeDays.length>=2){
+    const overtradeLossSum=overtradeDays.reduce((s,d)=>s+byDatePnl[d],0);
+    extraPatterns.push({
+      key:'overtrading',
+      icon:icon('repeat'),
+      title:'Overtrading Detected',
+      value:overtradeDays.length+' day(s) · -$'+Math.abs(overtradeLossSum).toFixed(0),
+      desc:'On '+overtradeDays.length+' day(s) you took 4+ trades and finished net negative (-$'+Math.abs(overtradeLossSum).toFixed(0)+' total). Consider a daily trade-count cap.',
+      color:'var(--bear)',
+      negative:true,
+      notif:'🔁 Overtrading detected on '+overtradeDays.length+' day(s) — net -$'+Math.abs(overtradeLossSum).toFixed(0)+'.'
+    });
+  }
+
   const patterns=[
     {
-      icon: bestModel?'✅':'—',
+      icon: bestModel?icon('check-circle'):icon('minus'),
       title: 'Best Model: '+bestModel,
       value: '+$'+(byModel[bestModel]||0).toFixed(0)+' · '+(modelTotal[bestModel]||0)+' trades',
       desc: 'Win rate: '+Math.round((modelWR[bestModel]||0)/(modelTotal[bestModel]||1)*100)+'% — Focus more on this setup.',
       color:'var(--bull)'
     },
     {
-      icon: worstModel&&worstModel!==bestModel?'⚠️':'—',
+      icon: worstModel&&worstModel!==bestModel?icon('alert-triangle'):icon('minus'),
       title: 'Weakest Model: '+worstModel,
       value: '$'+(byModel[worstModel]||0).toFixed(0)+' · '+(modelTotal[worstModel]||0)+' trades',
       desc: 'Win rate: '+Math.round((modelWR[worstModel]||0)/(modelTotal[worstModel]||1)*100)+'% — Consider reducing size or avoiding.',
       color:'var(--bear)'
     },
     {
-      icon: revengeCount>2?'🔴':'🟢',
+      icon: revengeCount>2?icon('x-circle'):icon('check-circle'),
       title: 'Revenge Trading',
       value: revengeCount+' revenge trades',
       desc: revengeCount>2?'You revenge traded '+revengeCount+' times. Each costs you on avg $'+Math.abs(ts.filter(t=>(t.emotions||[]).some(e=>e.toLowerCase().includes('revang'))).reduce((s,t)=>s+t.pnl,0)/Math.max(revengeCount,1)).toFixed(0)+'. Stop after 2 losses.':'Revenge trading is under control. Stay disciplined.',
       color: revengeCount>2?'var(--bear)':'var(--bull)'
     },
     {
-      icon: bestSess?'📊':'—',
+      icon: bestSess?icon('bar-chart'):icon('minus'),
       title: 'Best Session: '+bestSess,
       value: '+$'+(bySess[bestSess]||0).toFixed(0),
       desc: 'Win rate: '+Math.round((sessWR[bestSess]||0)/(sessTotal[bestSess]||1)*100)+'% — Trade most in '+bestSess+' session.',
       color:'var(--bull)'
     },
     {
-      icon: parseFloat(pf)>1?'✅':'⚠️',
+      icon: parseFloat(pf)>1?icon('check-circle'):icon('alert-triangle'),
       title: 'Profit Factor: '+pf,
       value: 'Expectancy: $'+expectancy.toFixed(2)+' per trade',
       desc: parseFloat(pf)>1?'You have a positive edge. Profit factor above 1.0 means gross profits exceed gross losses.':'Profit factor below 1.0. Focus on either improving win rate or letting winners run longer.',
       color: parseFloat(pf)>1?'var(--bull)':'var(--bear)'
     },
     {
-      icon: htfUndeliv.length>5?'⚠️':'✅',
+      icon: htfUndeliv.length>5?icon('alert-triangle'):icon('check-circle'),
       title: 'HTF Undelivered: '+htfUndeliv.length+' trades',
       value: htfUndelivLoss+' losses from undelivered HTF',
       desc: htfUndeliv.length>5?'You traded '+htfUndeliv.length+' times without HTF delivery. Wait for HTF to deliver before entering.':'You mostly trade when HTF delivers. Good discipline.',
@@ -6620,7 +6931,7 @@ function renderPerfPatterns(ts,wr,wins,losses,avgWin,avgLoss,expectancy,pf){
     }
   ];
 
-  el.innerHTML=patterns.map(p=>`
+  el.innerHTML=[...patterns,...extraPatterns].map(p=>`
     <div style="padding:12px 16px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;border-left:3px solid ${p.color}">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
         <span style="font-size:14px">${p.icon}</span>
@@ -6630,6 +6941,30 @@ function renderPerfPatterns(ts,wr,wins,losses,avgWin,avgLoss,expectancy,pf){
       <div style="font-size:11px;color:var(--text3);line-height:1.5">${p.desc}</div>
     </div>
   `).join('');
+
+  _checkPatternAlerts(extraPatterns.filter(p=>p.negative));
+}
+
+// Tier 2: fire a notification when a NEW negative pattern appears (deduped via localStorage)
+function _checkPatternAlerts(negPatterns){
+  try{
+    let seen=[];
+    try{seen=JSON.parse(localStorage.getItem('lmr_seenPatternAlerts')||'[]');}catch(e){}
+    const currentKeys=negPatterns.map(p=>p.key);
+    const newOnes=negPatterns.filter(p=>!seen.includes(p.key));
+    if(notifSettings().patternAlerts!==false){
+      newOnes.forEach(p=>sendAppNotification('📉 New Trading Pattern Detected',p.notif));
+    }
+    if(integrationSettings().discord.patternAlerts!==false){
+      newOnes.forEach(p=>sendDiscordMessage(null,{
+        title:'📉 New Trading Pattern Detected',
+        description:p.notif,
+        color:0xFF4060,
+        timestamp:new Date().toISOString()
+      }));
+    }
+    localStorage.setItem('lmr_seenPatternAlerts',JSON.stringify(currentKeys));
+  }catch(e){}
 }
 
 async function perfAIReview(){
@@ -6670,6 +7005,60 @@ function drawBar(id,labels,data,isPercent=false,suffix=''){
       scales:{
         x:{ticks:{color:'#7A9AC0',font:{size:9},maxRotation:30},grid:{display:false}},
         y:{ticks:{color:'#7A9AC0',font:{size:9},callback:v=>isPercent?v+'%':'$'+v},grid:{color:'rgba(255,255,255,.05)'}}
+      }
+    }
+  });
+}
+// ---- Inline SVG icon set (matches the app's minimal stroke style, e.g. the sidebar eye icon) ----
+// Usage: icon('bell',14) -> returns an inline <svg> string. Use via ${icon('bell')} in template literals.
+const ICONS={
+  bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
+  'alert-triangle':'<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  brain:'<path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.5H7a2.5 2.5 0 0 1-2.5-2.5v-1A2.5 2.5 0 0 1 3 14v-2a2.5 2.5 0 0 1 1-2 2.5 2.5 0 0 1 1.5-3.5A2.5 2.5 0 0 1 7 4.5 2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.5H17a2.5 2.5 0 0 0 2.5-2.5v-1a2.5 2.5 0 0 0 1.5-2v-2a2.5 2.5 0 0 0-1-2 2.5 2.5 0 0 0-1.5-3.5A2.5 2.5 0 0 0 17 4.5 2.5 2.5 0 0 0 14.5 2Z"/>',
+  repeat:'<path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>',
+  flame:'<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+  award:'<circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>',
+  snowflake:'<line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><path d="m20 16-4-4 4-4"/><path d="m4 8 4 4-4 4"/><path d="m16 4-4 4-4-4"/><path d="m8 20 4-4 4 4"/>',
+  sparkles:'<path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/>',
+  'bar-chart':'<line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>',
+  eye:'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+  cloud:'<path d="M17.5 19a4.5 4.5 0 1 0-1.44-8.765 5 5 0 0 0-9.566 2.265A4 4 0 0 0 7 19h10.5z"/>',
+  'cloud-off':'<path d="m2 2 20 20"/><path d="M5.78 5.78A4 4 0 0 0 7 13h11a4 4 0 0 0 1.5-7.71"/><path d="M14.65 4.04A5 5 0 0 1 17.5 13"/>',
+  link:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  plug:'<path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v3a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8z"/>',
+  'refresh-cw':'<path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>',
+  'check-circle':'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/>',
+  'trending-up':'<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+  'trending-down':'<polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/>',
+  target:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  'message-circle':'<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
+  sigma:'<path d="M18 7V5H6l6 7-6 7h12v-2"/>',
+  minus:'<line x1="5" y1="12" x2="19" y2="12"/>',
+  circle:'<circle cx="12" cy="12" r="9"/>',
+  'x-circle':'<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',
+  calendar:'<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+  zap:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>'
+};
+function icon(name,size){
+  size=size||14;
+  const body=ICONS[name];
+  if(!body)return '';
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px">${body}</svg>`;
+}
+// Histogram with caller-supplied bar colors (e.g. R-multiple distribution: red for negative-R buckets, green for positive)
+function drawHistogram(id,labels,data,colors){
+  if(perfCharts[id])perfCharts[id].destroy();
+  const ctx=document.getElementById(id);if(!ctx)return;
+  perfCharts[id]=new Chart(ctx,{
+    type:'bar',
+    data:{labels,datasets:[{data,backgroundColor:colors,borderRadius:4,borderSkipped:false}]},
+    options:{
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.raw+' trade'+(ctx.raw===1?'':'s')}}},
+      scales:{
+        x:{ticks:{color:'#7A9AC0',font:{size:9}},grid:{display:false}},
+        y:{ticks:{color:'#7A9AC0',font:{size:9},stepSize:1,precision:0},grid:{color:'rgba(255,255,255,.05)'}}
       }
     }
   });
@@ -7167,6 +7556,381 @@ async function renderSettings(){
       <div>Image size: <b style="color:var(--text)">${(imgSize/1024/1024).toFixed(1)} MB</b></div>
     </div>
   `;
+  renderNotifSettings();
+  renderIntegrationSettings();
+}
+
+// ── NOTIFICATIONS ──────────────────────────────────────────────────────────
+function notifSettings(){
+  state.profile=state.profile||{};
+  if(!state.profile.notifications){
+    state.profile.notifications={enabled:false,dailyReminder:true,reminderTime:'08:00',aiReportReady:true,syncAlerts:true,patternAlerts:true};
+  }
+  if(state.profile.notifications.patternAlerts===undefined) state.profile.notifications.patternAlerts=true;
+  return state.profile.notifications;
+}
+async function requestNotifPermission(){
+  if(!('Notification' in window)){flash('⚠ Notifications not supported in this browser');return;}
+  let perm=Notification.permission;
+  if(perm==='default') perm=await Notification.requestPermission();
+  const ns=notifSettings();
+  ns.enabled=(perm==='granted');
+  save();
+  syncProfileToCloud().catch(()=>{});
+  renderNotifSettings();
+  if(perm==='granted'){
+    flash('✓ Notifications enabled');
+    sendAppNotification('🔔 LMR Capitals','Notifications are now enabled.');
+  } else if(perm==='denied'){
+    flash('⚠ Notifications blocked — enable in browser site settings');
+  }
+}
+function sendAppNotification(title,body,opts={}){
+  try{
+    const ns=notifSettings();
+    if(!ns.enabled)return;
+    if(!('Notification' in window)||Notification.permission!=='granted')return;
+    const n=new Notification(title,{body,icon:'./icons/lmr-icon.png',badge:'./icons/lmr-icon.png',...opts});
+    n.onclick=()=>{try{window.focus();}catch(e){}n.close();};
+  }catch(e){}
+}
+function saveNotifSettings(){
+  const ns=notifSettings();
+  const d=document.getElementById('notif-daily');     if(d)ns.dailyReminder=d.checked;
+  const t=document.getElementById('notif-reminder-time'); if(t&&t.value)ns.reminderTime=t.value;
+  const a=document.getElementById('notif-ai-report'); if(a)ns.aiReportReady=a.checked;
+  const s=document.getElementById('notif-sync');      if(s)ns.syncAlerts=s.checked;
+  const p=document.getElementById('notif-pattern');   if(p)ns.patternAlerts=p.checked;
+  save();
+  syncProfileToCloud().catch(()=>{});
+  flash('✓ Notification settings saved');
+}
+function renderNotifSettings(){
+  const ns=notifSettings();
+  const supported=('Notification' in window);
+  const perm=supported?Notification.permission:'unsupported';
+  const permEl=document.getElementById('notif-perm-status');
+  if(permEl){
+    permEl.textContent = perm==='granted'?'✅ Enabled' : perm==='denied'?'⛔ Blocked (check browser settings)' : perm==='unsupported'?'Not supported':'Not enabled';
+    permEl.style.color = perm==='granted'?'var(--bull)':perm==='denied'?'var(--bear)':'var(--text)';
+  }
+  const btn=document.getElementById('notif-enable-btn');
+  if(btn){btn.style.display=perm==='granted'?'none':'';btn.disabled=(perm==='unsupported'||perm==='denied');}
+  const d=document.getElementById('notif-daily');     if(d)d.checked=ns.dailyReminder!==false;
+  const t=document.getElementById('notif-reminder-time'); if(t)t.value=ns.reminderTime||'08:00';
+  const a=document.getElementById('notif-ai-report'); if(a)a.checked=ns.aiReportReady!==false;
+  const s=document.getElementById('notif-sync');      if(s)s.checked=ns.syncAlerts!==false;
+  const p=document.getElementById('notif-pattern');   if(p)p.checked=ns.patternAlerts!==false;
+}
+
+// Daily journal reminder — checks every 5 min, fires once per local day at/after the configured time
+function checkDailyReminder(){
+  try{
+    const ns=notifSettings();
+    if(!ns.enabled||ns.dailyReminder===false)return;
+    const today=todayStr();
+    if(localStorage.getItem('lmr_lastReminder')===today)return;
+    const [h,m]=(ns.reminderTime||'08:00').split(':').map(Number);
+    const now=new Date(),target=new Date();
+    target.setHours(h||8,m||0,0,0);
+    if(now>=target){
+      sendAppNotification('📝 LMR Capitals — Daily Journal',"Time to log today's plan, trades, and review.");
+      localStorage.setItem('lmr_lastReminder',today);
+    }
+  }catch(e){}
+}
+if(!window._notifReminderTimer){
+  window._notifReminderTimer=setInterval(checkDailyReminder,5*60*1000);
+}
+
+// ── INTEGRATIONS: Discord webhook + Tradovate broker sync ──────────────────
+function integrationSettings(){
+  state.profile=state.profile||{};
+  if(!state.profile.integrations) state.profile.integrations={};
+  const ig=state.profile.integrations;
+  if(!ig.discord) ig.discord={webhookUrl:'',aiReports:true,tradeLogged:false,patternAlerts:true};
+  if(ig.discord.aiReports===undefined) ig.discord.aiReports=true;
+  if(ig.discord.tradeLogged===undefined) ig.discord.tradeLogged=false;
+  if(ig.discord.patternAlerts===undefined) ig.discord.patternAlerts=true;
+  if(!ig.tradovate) ig.tradovate={env:'demo',username:'',password:'',cid:'',sec:'',accessToken:'',accountId:'',lastSync:''};
+  return ig;
+}
+
+// Send a message to the configured Discord webhook. `embed` is a Discord embed object (optional).
+async function sendDiscordMessage(content,embed){
+  const ig=integrationSettings();
+  const url=ig.discord?.webhookUrl;
+  if(!url) return false;
+  try{
+    const body={};
+    if(content) body.content=content;
+    if(embed) body.embeds=[embed];
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    return res.ok;
+  }catch(e){ console.warn('[LMR] Discord webhook failed:',e); return false; }
+}
+
+async function testDiscordWebhook(){
+  const status=document.getElementById('discord-test-status');
+  const url=document.getElementById('discord-webhook-url')?.value?.trim();
+  if(!url){ if(status){status.textContent='Enter a webhook URL first';status.style.color='var(--bear)';} return; }
+  if(status){status.textContent='Sending…';status.style.color='var(--text2)';}
+  const ok=await sendDiscordMessage(null,{
+    title:'✅ LMR Capitals connected',
+    description:"This Discord channel is now linked to your trading journal. You'll receive updates here based on the toggles above.",
+    color:0xF5A623,
+    timestamp:new Date().toISOString()
+  });
+  if(status){
+    status.textContent=ok?'✓ Test message sent — check Discord':'✗ Failed — check the webhook URL';
+    status.style.color=ok?'var(--bull)':'var(--bear)';
+  }
+}
+
+function saveIntegrationSettings(){
+  const ig=integrationSettings();
+  const u=document.getElementById('discord-webhook-url'); if(u) ig.discord.webhookUrl=u.value.trim();
+  const a=document.getElementById('discord-ai-reports'); if(a) ig.discord.aiReports=a.checked;
+  const t=document.getElementById('discord-trade-logged'); if(t) ig.discord.tradeLogged=t.checked;
+  const p=document.getElementById('discord-pattern-alerts'); if(p) ig.discord.patternAlerts=p.checked;
+  const env=document.getElementById('tradovate-env'); if(env) ig.tradovate.env=env.value;
+  const tu=document.getElementById('tradovate-username'); if(tu) ig.tradovate.username=tu.value.trim();
+  const tp=document.getElementById('tradovate-password'); if(tp&&tp.value) ig.tradovate.password=tp.value;
+  const tc=document.getElementById('tradovate-cid'); if(tc) ig.tradovate.cid=tc.value.trim();
+  const ts=document.getElementById('tradovate-sec'); if(ts&&ts.value) ig.tradovate.sec=ts.value;
+  save();
+  syncProfileToCloud().catch(()=>{});
+  flash('✓ Integration settings saved');
+}
+
+function renderIntegrationSettings(){
+  const ig=integrationSettings();
+  const u=document.getElementById('discord-webhook-url'); if(u) u.value=ig.discord.webhookUrl||'';
+  const a=document.getElementById('discord-ai-reports'); if(a) a.checked=ig.discord.aiReports!==false;
+  const t=document.getElementById('discord-trade-logged'); if(t) t.checked=!!ig.discord.tradeLogged;
+  const p=document.getElementById('discord-pattern-alerts'); if(p) p.checked=ig.discord.patternAlerts!==false;
+  const env=document.getElementById('tradovate-env'); if(env) env.value=ig.tradovate.env||'demo';
+  const tu=document.getElementById('tradovate-username'); if(tu) tu.value=ig.tradovate.username||'';
+  const tc=document.getElementById('tradovate-cid'); if(tc) tc.value=ig.tradovate.cid||'';
+  const statusEl=document.getElementById('tradovate-status');
+  if(statusEl){
+    if(ig.tradovate.accessToken){
+      statusEl.textContent='✅ Connected'+(ig.tradovate.accountName?' — '+ig.tradovate.accountName:'')+(ig.tradovate.lastSync?' · last synced '+new Date(ig.tradovate.lastSync).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'');
+      statusEl.style.color='var(--bull)';
+    }else{
+      statusEl.textContent='Not connected';
+      statusEl.style.color='var(--text)';
+    }
+  }
+}
+
+// ── TRADOVATE: read-only auth + fill-based trade import (never places orders) ──
+function tradovateApiBase(){
+  return (integrationSettings().tradovate.env==='live')
+    ? 'https://live.tradovateapi.com/v1'
+    : 'https://demo.tradovateapi.com/v1';
+}
+function _tradovateDeviceId(){
+  let id=localStorage.getItem('lmr_tradovateDeviceId');
+  if(!id){ id='lmr-'+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem('lmr_tradovateDeviceId',id); }
+  return id;
+}
+async function tradovateAuth(){
+  const ig=integrationSettings();
+  const tv=ig.tradovate;
+  if(!tv.username||!tv.password||!tv.cid||!tv.sec){
+    throw new Error('Add your Tradovate username, password, App CID and App Secret first.');
+  }
+  const res=await fetch(tradovateApiBase()+'/auth/accesstokenrequest',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Accept':'application/json'},
+    body:JSON.stringify({
+      name:tv.username, password:tv.password,
+      appId:'LMR Capitals Journal', appVersion:'1.0',
+      cid:tv.cid, sec:tv.sec, deviceId:_tradovateDeviceId()
+    })
+  });
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok||!data.accessToken||data.errorText){
+    throw new Error(data.errorText||data.error||('Tradovate auth failed (HTTP '+res.status+')'));
+  }
+  tv.accessToken=data.accessToken;
+  tv.expirationTime=data.expirationTime||null;
+  tv.userId=data.userId||null;
+  save();
+  return data;
+}
+// GET helper with one automatic re-auth retry on 401 (token expiry)
+async function tradovateApi(path){
+  const tv=integrationSettings().tradovate;
+  if(!tv.accessToken) await tradovateAuth();
+  let res=await fetch(tradovateApiBase()+path,{headers:{'Authorization':'Bearer '+integrationSettings().tradovate.accessToken,'Accept':'application/json'}});
+  if(res.status===401){
+    await tradovateAuth();
+    res=await fetch(tradovateApiBase()+path,{headers:{'Authorization':'Bearer '+integrationSettings().tradovate.accessToken,'Accept':'application/json'}});
+  }
+  if(!res.ok) throw new Error('Tradovate API error '+res.status+' on '+path);
+  return res.json();
+}
+async function tradovateConnect(){
+  const status=document.getElementById('tradovate-status');
+  const btn=document.getElementById('tradovate-connect-btn');
+  saveIntegrationSettings();
+  if(btn)btn.disabled=true;
+  if(status){status.textContent='Connecting…';status.style.color='var(--text2)';}
+  try{
+    await tradovateAuth();
+    const accounts=await tradovateApi('/account/list');
+    const ig=integrationSettings();
+    if(Array.isArray(accounts)&&accounts.length){
+      ig.tradovate.accountId=accounts[0].id;
+      ig.tradovate.accountName=accounts[0].name||('Account '+accounts[0].id);
+    }
+    save();
+    renderIntegrationSettings();
+    flash('✓ Tradovate connected');
+  }catch(e){
+    if(status){status.textContent='✗ '+e.message;status.style.color='var(--bear)';}
+  }finally{
+    if(btn)btn.disabled=false;
+  }
+}
+
+// FIFO-match raw fills into round-trip (entry+exit) trades, per contract
+function _tradovateBuildRoundTrips(fills){
+  const byContract={};
+  fills.forEach(f=>{(byContract[f.contractId]=byContract[f.contractId]||[]).push(f);});
+  const roundTrips=[];
+  Object.keys(byContract).forEach(cid=>{
+    const list=byContract[cid].slice().sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
+    let openLots=[];
+    list.forEach(f=>{
+      let remaining=f.qty;
+      const side=f.action; // 'Buy' or 'Sell'
+      while(remaining>0){
+        if(openLots.length&&openLots[0].side!==side){
+          const lot=openLots[0];
+          const matchQty=Math.min(lot.qty,remaining);
+          const direction=lot.side==='Buy'?1:-1;
+          const points=(f.price-lot.price)*direction;
+          roundTrips.push({
+            contractId:Number(cid),
+            entryTime:lot.timestamp, exitTime:f.timestamp,
+            entryPrice:lot.price, exitPrice:f.price,
+            qty:matchQty, side:lot.side, points,
+            fillIds:[lot.fillId,f.id]
+          });
+          lot.qty-=matchQty; remaining-=matchQty;
+          if(lot.qty<=0)openLots.shift();
+        }else{
+          openLots.push({qty:remaining,price:f.price,timestamp:f.timestamp,side,fillId:f.id});
+          remaining=0;
+        }
+      }
+    });
+  });
+  return roundTrips;
+}
+
+// Pull closed trades (round trips) from Tradovate fills and add them to the journal.
+// Read-only: only ever calls GET endpoints — never places, modifies, or cancels orders.
+async function tradovateSyncTrades(){
+  const status=document.getElementById('tradovate-sync-status');
+  const btn=document.getElementById('tradovate-sync-btn');
+  if(btn)btn.disabled=true;
+  if(status){status.textContent='Syncing…';status.style.color='var(--text2)';}
+  try{
+    if(!integrationSettings().tradovate.accessToken) await tradovateAuth();
+    const fills=await tradovateApi('/fill/list');
+    if(!Array.isArray(fills)||!fills.length){
+      if(status){status.textContent='No fills found on this account.';status.style.color='var(--text2)';}
+      return;
+    }
+    const roundTrips=_tradovateBuildRoundTrips(fills);
+    const ig=integrationSettings();
+    const imported=new Set(ig.tradovate.importedFillIds||[]);
+    const newTrips=roundTrips.filter(rt=>!imported.has(rt.fillIds[1])); // dedupe by exit fill id
+
+    if(!newTrips.length){
+      ig.tradovate.lastSync=new Date().toISOString();
+      save();
+      renderIntegrationSettings();
+      if(status){status.textContent='✓ Already up to date — no new closed trades.';status.style.color='var(--bull)';}
+      return;
+    }
+
+    // Resolve contract names + best-effort value-per-point (for $ P&L). Falls back to raw points if unknown.
+    const contractNames={};
+    const valuePerPoint={};
+    const uniqueCids=[...new Set(newTrips.map(rt=>rt.contractId))];
+    for(const cid of uniqueCids){
+      try{
+        const c=await tradovateApi('/contract/item?id='+cid);
+        contractNames[cid]=c?.name||('Contract '+cid);
+        if(c?.productId){
+          try{
+            const p=await tradovateApi('/product/item?id='+c.productId);
+            const vpp=p?.valuePerPoint ?? p?.tickValue ?? p?.pointValue;
+            if(vpp) valuePerPoint[cid]=vpp;
+          }catch(e){}
+        }
+      }catch(e){ contractNames[cid]='Contract '+cid; }
+    }
+
+    const DAYNAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const MONTHNAMES=['Dec','Jan','Feb','March','April','May','June','July','Aug','Sep','Oct','Nov'];
+    let count=0;
+    newTrips.forEach((rt,i)=>{
+      const date=new Date(rt.exitTime).toISOString().slice(0,10);
+      const dt=new Date(date+'T12:00');
+      const vppKnown=!!valuePerPoint[rt.contractId];
+      const vpp=valuePerPoint[rt.contractId]||1;
+      const pnl=rt.points*rt.qty*vpp;
+      const t={
+        id:Date.now()+i,
+        date,
+        market:contractNames[rt.contractId]||String(rt.contractId),
+        openTime:new Date(rt.entryTime).toISOString().slice(11,16),
+        closeTime:new Date(rt.exitTime).toISOString().slice(11,16),
+        position:rt.side==='Buy'?'Long':'Short',
+        day:DAYNAMES[dt.getDay()],
+        month:MONTHNAMES[dt.getMonth()],
+        session:'',
+        timePeriod:'',
+        models:['Tradovate Import'],
+        confirmations:[],emotions:[],phases:[],mmm:[],movement:[],tframes:[],
+        rth:'',htf:'',
+        pnl:Math.round(pnl*100)/100,
+        risk:0,
+        lots:rt.qty,
+        accountId:state.currentAcc||'',
+        draws:'',
+        feedback:vppKnown
+          ?'Imported from Tradovate (auto-matched fills).'
+          :'Imported from Tradovate — ⚠ contract value could not be auto-detected, so P&L is raw points × qty. Verify against your Tradovate statement and edit if needed.',
+        dayCount:dayCountFor(date)
+      };
+      t.rr=0;
+      t.win=t.pnl>0;
+      state.trades.unshift(t);
+      sbSyncRecord('trades',_mapTrade(t,_sbUserId));
+      imported.add(rt.fillIds[1]);
+      count++;
+    });
+
+    ig.tradovate.importedFillIds=[...imported].slice(-2000);
+    ig.tradovate.lastSync=new Date().toISOString();
+    save();
+    renderTradeTable();
+    updateAllStats();
+    renderIntegrationSettings();
+    if(status){status.textContent='✓ Imported '+count+' closed trade'+(count===1?'':'s')+' from Tradovate.';status.style.color='var(--bull)';}
+    flash('✓ Synced '+count+' trade(s) from Tradovate');
+  }catch(e){
+    if(status){status.textContent='✗ '+e.message;status.style.color='var(--bear)';}
+  }finally{
+    if(btn)btn.disabled=false;
+  }
 }
 
 // ============= MISC =============
@@ -8221,7 +8985,39 @@ function lgUnlock(user){
     // Auto-restore any images from cloud that aren't in local IndexedDB
     // Runs silently in background — re-renders image zones when done
     setTimeout(()=>autoRestoreImagesOnLogin(), 2000);
+    // Auto-generate this week's AI recap (once per week) if AI key is set
+    setTimeout(()=>checkScheduledWeeklyReport(), 5000);
   });
+}
+
+// ── SCHEDULED WEEKLY AI RECAP ───────────────────────────────────────────────
+// Once per ISO week, if a Claude API key is configured and there's trade
+// data, auto-generate a "Weekly Review" report and save it to Reports —
+// no button click required.
+function _isoWeekMonday(d){
+  const date=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  const day=(date.getUTCDay()+6)%7; // 0=Mon..6=Sun
+  date.setUTCDate(date.getUTCDate()-day);
+  return date.toISOString().slice(0,10); // Monday of this week, YYYY-MM-DD
+}
+async function checkScheduledWeeklyReport(){
+  try{
+    if(!getAIKey())return; // needs Claude API key configured in Settings → AI
+    if(!state.trades||!state.trades.length)return;
+    const weekKey=_isoWeekMonday(new Date());
+    if(localStorage.getItem('lmr_lastAutoWeeklyReport')===weekKey)return;
+    // Avoid duplicates across devices — check cloud for a weekly report already saved this week
+    if(_sb&&_sbUserId){
+      try{
+        const{data}=await _sb.from('weekly_reports').select('id')
+          .eq('user_id',_sbUserId).eq('metrics->>report_type','weekly')
+          .gte('created_at',weekKey);
+        if(data&&data.length){localStorage.setItem('lmr_lastAutoWeeklyReport',weekKey);return;}
+      }catch(e){ /* if this check fails, fall through and generate anyway */ }
+    }
+    await generateAndSaveAIReport('weekly');
+    localStorage.setItem('lmr_lastAutoWeeklyReport',weekKey);
+  }catch(e){ console.warn('[LMR] Scheduled weekly report skipped:',e); }
 }
 
 // ── LOGIN GATE TAB SWITCHER ──────────────────────────────
@@ -8650,7 +9446,7 @@ function clearAIChat(){
   _aiMessages = [];
   const el = document.getElementById('ai-chat-messages');
   if(el) el.innerHTML = `<div class="ai-msg ai-msg-assistant">
-    <div class="ai-msg-avatar">✦</div>
+    <div class="ai-msg-avatar">${icon('sparkles',14)}</div>
     <div class="ai-msg-bubble"><p>Chat cleared. Ask me anything about your trading.</p></div>
   </div>`;
 }
@@ -8674,7 +9470,7 @@ function appendAIMessage(role, content, isThinking=false){
   div.className = `ai-msg ai-msg-${role}`;
   if(isThinking) div.id = 'ai-thinking-indicator';
   div.innerHTML = `
-    <div class="ai-msg-avatar">${role==='user'?'You':'✦'}</div>
+    <div class="ai-msg-avatar">${role==='user'?'You':icon('sparkles',14)}</div>
     <div class="ai-msg-bubble">${isThinking
       ? '<div class="ai-thinking"><span></span><span></span><span></span></div>'
       : (role==='assistant' ? `<p>${formatAIResponse(content)}</p>` : `<p>${content}</p>`)
