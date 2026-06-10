@@ -2,6 +2,19 @@
 
 All notable changes to the LMR Capitals trading journal app are documented here.
 
+## [Unreleased] — 2026-06-10 (latest)
+
+### Added — Professional Landing Page
+- New `#landingPage` shown before the login/sign-up gate — a full marketing page introducing LMR Capitals.
+- **Hero**: "Trade With a System. Master The Chain." with Sign In/Sign Up + Learn More CTAs.
+- **Who I Am**: personal/prop trader positioning — the journal as the actual operating system used daily.
+- **What We Do**: three pillars — Trading Journal & Track Record, Education & Mentorship, Fund & Signal Management.
+- **How We Do It (LMR Methodology)**: 6-card grid covering the Daily/Weekly/Monthly Chain, MMBM/MMSM models, session profiling (London/NY), LMR Terminology & Psychology, and daily discipline/journaling.
+- Final CTA section + footer with risk disclaimer.
+- Sticky nav with anchor links (About / What We Do / Methodology) and a "Sign In" button.
+- New `enterApp()` / `showLanding()` toggle functions; `lgUnlock()` now also hides the landing page on auto sign-in. `#loginGate` gained a "← Home" back-link (`showLanding()`) to return to the landing page.
+- New `.lp-*` CSS — dark/gold theme matching `#loginGate`, fully responsive (stacked cards/grid, collapsed nav links on mobile).
+
 ## [Deployed] — 2026-06-10
 
 - Deployed commit `895c0300` (Tier 5: Share to Discord/X) to production via `netlify deploy --prod`.
