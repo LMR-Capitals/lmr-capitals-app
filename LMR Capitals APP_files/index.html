@@ -1813,7 +1813,7 @@ SD Target $______"></textarea></div>
     </div>
   </div></div>
 
-  <div style="text-align:center;margin-top:14px"><button class="btn btn-primary" onclick="saveMonthly()">💾 Save Now</button><div style="font-size:9px;color:var(--text3);text-align:center;margin-top:4px">Changes save automatically</div></div>
+  <div style="text-align:center;margin-top:14px"><button class="btn btn-primary" onclick="saveMonthly()">💾 Save Now</button> <span id="monthly-share-btns" style="display:inline-flex;vertical-align:middle;margin-left:8px"></span><div style="font-size:9px;color:var(--text3);text-align:center;margin-top:4px">Changes save automatically</div></div>
 
   <!-- Linked Weeks -->
   <div class="sec" id="monthly-linked-weeks">
@@ -1928,10 +1928,11 @@ Midnight Open $______"></textarea>
     </div>
   </div></div>
 
-  <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+  <div style="display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
     <button class="btn btn-primary" onclick="saveWeekly()">💾 Save Now</button>
     <button class="btn btn-sm" onclick="recoverWeeklyImages()" title="Migrate old weekly images to this week" style="border-color:rgba(245,166,35,.3);color:var(--gold)">🔄 Recover Images</button>
     <button class="btn btn-sm" onclick="showWeeklyStorageSummary()" title="Show what's stored for each week" style="font-size:10px">📦 Storage Info</button>
+    <span id="weekly-share-btns" style="display:inline-flex"></span>
   </div>
   <div style="font-size:9px;color:var(--text3);text-align:center;margin-top:4px">Changes save automatically</div>
 
@@ -2273,11 +2274,15 @@ Midnight Open $______"></textarea>
   </div>
 
   <!-- ── AI REVIEW BUTTON ── -->
-  <div style="margin-bottom:20px;display:flex;gap:10px;align-items:center">
+  <div style="margin-bottom:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
     <button onclick="perfAIReview()" style="padding:10px 20px;background:linear-gradient(135deg,rgba(245,166,35,.15),rgba(245,166,35,.08));border:1px solid rgba(245,166,35,.3);border-radius:10px;color:var(--gold);font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px">
       ✦ AI Performance Review
     </button>
     <span style="font-size:11px;color:var(--text3)">Get AI analysis of your trading patterns and specific improvements</span>
+    <span style="margin-left:auto;display:flex;align-items:center;gap:6px">
+      <span style="font-size:11px;color:var(--text3)">Share Performance:</span>
+      <span id="perf-share-btns"></span>
+    </span>
   </div>
 
   <!-- ── AI REVIEW PANEL (hidden by default) ── -->
@@ -3169,6 +3174,7 @@ Midnight Open $______"></textarea>
     </div>
     <div class="modal-actions">
       <button class="btn btn-bear btn-sm" onclick="deleteDayEntry(document.getElementById('dm-ds').value)">Delete Entry</button>
+      <span id="dm-share-btns" style="display:inline-flex;align-items:center;margin-right:auto;margin-left:8px"></span>
       <button class="btn btn-sm" onclick="closeModal('dayModal')">Cancel</button>
       <button class="btn btn-primary" onclick="saveDayModal()">💾 Save Day</button>
     </div>
@@ -4331,6 +4337,8 @@ const REPORT_TYPES={
 };
 
 let _currentReportFilter='all';
+let _reportsCache={};
+let _lastAIReviewText='';
 
 async function generateAndSaveAIReport(type='full'){
   if(!getAIKey()){flash('⚠ Add Claude API key in Settings → AI');return;}
@@ -4847,6 +4855,8 @@ function navTo(p){
     // Always retry after 500ms to ensure state is populated from cloud pull
     setTimeout(renderPerfCharts, 100);
     setTimeout(renderPerfCharts, 1500);
+    const pShareEl=document.getElementById('perf-share-btns');
+    if(pShareEl) pShareEl.innerHTML=shareButtonsHTML('sharePerformance');
   }
   if(p==='trades') renderTradeTable();
   if(p==='journal') renderJournalList();
@@ -5053,9 +5063,12 @@ function renderDailyList(){
   w.innerHTML=dates.map(d=>{
     const x=state.daily[d];
     return `<div style="padding:10px 12px;background:var(--bg3);border-radius:var(--r);margin-bottom:6px;border-left:3px solid var(--gold)">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;gap:8px">
         <div class="mono" style="color:var(--gold);font-size:11px;font-weight:600">Day ${x.dayCount||dayCountFor(d)} · ${fmtDate(d)} · ${d}</div>
-        ${x.bias?`<span class="tag tg-${x.bias==='Bullish'?'bull':x.bias==='Bearish'?'bear':'gray'}">${x.bias}</span>`:''}
+        <div style="display:flex;align-items:center;gap:8px">
+          ${x.bias?`<span class="tag tg-${x.bias==='Bullish'?'bull':x.bias==='Bearish'?'bear':'gray'}">${x.bias}</span>`:''}
+          ${shareButtonsHTML('shareDailyEntry',`'${d}'`)}
+        </div>
       </div>
       ${x.weekly?`<div style="font-size:11px;color:var(--text2);margin:2px 0"><span style="color:var(--text3)">Weekly:</span> ${x.weekly}</div>`:''}
       ${x.htfpoi?`<div style="font-size:11px;color:var(--text2);margin:2px 0"><span style="color:var(--text3)">HTF POI:</span> ${x.htfpoi}</div>`:''}
@@ -5098,6 +5111,8 @@ function loadMonthly(){
   document.querySelectorAll('#p-monthly [data-monthly]').forEach(el=>{el.value=data[el.dataset.key]||''});
   document.querySelectorAll('#p-monthly .img-zone').forEach(z=>renderImgZone(z));
   renderLinkedWeeks();
+  const mShareEl=document.getElementById('monthly-share-btns');
+  if(mShareEl) mShareEl.innerHTML=shareButtonsHTML('shareMonthly');
 }
 function saveMonthly(){
   const mk=state.currentMonth;
@@ -5417,6 +5432,8 @@ function loadWeekly(){
     }
   }
   renderLinkedDays();
+  const wShareEl=document.getElementById('weekly-share-btns');
+  if(wShareEl) wShareEl.innerHTML=shareButtonsHTML('shareWeekly');
 }
 
 function saveWeekly(){
@@ -6987,7 +7004,9 @@ Context:
 ${ctx}`}],'report');
 
   if(result && content){
-    content.innerHTML='<div style="font-size:13px;color:var(--text2);line-height:1.7">'+formatAIResponse(result)+'</div>';
+    _lastAIReviewText=result;
+    content.innerHTML='<div style="font-size:13px;color:var(--text2);line-height:1.7">'+formatAIResponse(result)+'</div>'
+      +`<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:flex-end">${shareButtonsHTML('shareAIReview')}</div>`;
   }
   if(btn){btn.textContent='✦ AI Performance Review';btn.disabled=false;}
 }
@@ -7038,7 +7057,9 @@ const ICONS={
   'x-circle':'<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',
   calendar:'<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
   zap:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
-  save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>'
+  save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>',
+  'x-logo':'<path d="M4 4l16 16"/><path d="M20 4 4 20"/>',
+  'share-2':'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>'
 };
 function icon(name,size){
   size=size||14;
@@ -7670,6 +7691,51 @@ async function sendDiscordMessage(content,embed){
   }catch(e){ console.warn('[LMR] Discord webhook failed:',e); return false; }
 }
 
+// ── SHARE TO DISCORD / X ────────────────────────────────────────────────────
+// Strip markdown formatting down to plain text suitable for Discord embeds / tweets.
+function _stripMd(s){
+  return (s||'')
+    .replace(/\*\*(.*?)\*\*/g,'$1')
+    .replace(/\*(.*?)\*/g,'$1')
+    .replace(/^#{1,6}\s*/gm,'')
+    .replace(/^[-•]\s*/gm,'• ')
+    .replace(/\n{3,}/g,'\n\n')
+    .trim();
+}
+
+// Share `text` (with optional `title`) to Discord (as a rich embed, posted automatically via the
+// configured webhook) or to X (opens a pre-filled compose window — user posts manually).
+async function shareContent(platform,title,text,color){
+  const body=_stripMd(text);
+  if(platform==='discord'){
+    const ig=integrationSettings();
+    if(!ig.discord?.webhookUrl){ flash('⚠ Set up a Discord webhook in Settings → Integrations first'); return; }
+    const ok=await sendDiscordMessage(null,{
+      title: title?('📤 '+title):undefined,
+      description: body.length>3800?body.slice(0,3800)+'…':body,
+      color: color||0xF5A623,
+      timestamp:new Date().toISOString()
+    });
+    flash(ok?'✓ Shared to Discord':'✗ Discord share failed — check the webhook URL');
+  }else if(platform==='x'){
+    const full=title?`${title}\n\n${body}`:body;
+    const tweet=full.length>270?full.slice(0,267)+'…':full;
+    window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(tweet),'_blank');
+  }
+}
+
+// Renders a "Share to Discord / Share to X" icon button pair.
+// `fn` is the name of a function with signature (...args, platform) — `args` (if given) is a
+// pre-formatted JS argument string (e.g. "'report-id-123'") inserted before the platform arg.
+function shareButtonsHTML(fn,args){
+  const a=args?args+',':'';
+  const btn='background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);padding:4px 7px;cursor:pointer;display:inline-flex;align-items:center';
+  return `<span class="share-btns" style="display:inline-flex;gap:6px">
+    <button class="share-btn" title="Share to Discord" onclick="event.stopPropagation();${fn}(${a}'discord')" style="${btn}">${icon('message-circle',13)}</button>
+    <button class="share-btn" title="Share to X" onclick="event.stopPropagation();${fn}(${a}'x')" style="${btn}">${icon('x-logo',13)}</button>
+  </span>`;
+}
+
 async function testDiscordWebhook(){
   const status=document.getElementById('discord-test-status');
   const url=document.getElementById('discord-webhook-url')?.value?.trim();
@@ -8216,6 +8282,8 @@ function openDayModal(ds){
     <td><button class="btn btn-sm btn-bear" style="padding:2px 5px;font-size:9px" onclick="deleteTradeInDay(${t.id},'${ds}')">✗</button></td>
   </tr>`).join(''):'<tr><td colspan="7" class="empty" style="padding:10px">No trades this day</td></tr>';
   document.querySelectorAll('#dayModal select').forEach(s=>colorDailySelect(s));
+  const dmShareEl=document.getElementById('dm-share-btns');
+  if(dmShareEl) dmShareEl.innerHTML=shareButtonsHTML('shareDailyEntry',`'${ds}'`);
   document.getElementById('dayModal').classList.add('show');
 }
 function colorDailySelect(sel){
@@ -9571,6 +9639,7 @@ async function loadAndRenderReports(){
       return;
     }
     const typeColors={full:'#FFD166',trade:'#5BA8FF',psych:'#A78BFA',weekly:'#F5A623',monthly:'#00D4A4'};
+    filtered.forEach(r=>{_reportsCache[r.id]=r});
     el.innerHTML=filtered.map((r,i)=>{
       const m=r.metrics||{};
       const rtype=m.report_type||'weekly';
@@ -9596,7 +9665,10 @@ async function loadAndRenderReports(){
           <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:var(--bull)">${m.wins||0}W</div><div style="font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">${m.losses||0}L</div></div>
         </div>
         <div id="report-body-${r.id}" style="display:none;font-size:13px;color:var(--text2);line-height:1.75;padding-top:12px;border-top:1px solid var(--border)">${typeof formatAIResponse==='function'?formatAIResponse(r.content||''):(r.content||'')}</div>
-        <button onclick="toggleReportBody('${r.id}',this)" style="background:none;border:none;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;padding:4px 0">▼ Read Full Report</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:2px">
+          <button onclick="toggleReportBody('${r.id}',this)" style="background:none;border:none;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;padding:4px 0">▼ Read Full Report</button>
+          ${shareButtonsHTML('shareReport',`'${r.id}'`)}
+        </div>
       </div>`;
     }).join('');
   }catch(e){ el.innerHTML=`<div style="padding:24px;color:var(--bear)">Error: ${e.message}</div>`; }
@@ -9618,6 +9690,86 @@ async function deleteReport(id){
     loadAndRenderReports();
     flash('Report deleted');
   }catch(e){ flash('Delete error: '+e.message); }
+}
+
+// ── PER-CONTEXT SHARE HANDLERS ─────────────────────────────────────────────
+function shareReport(id,platform){
+  const r=_reportsCache[id];
+  if(!r){ flash('Report not found'); return; }
+  const m=r.metrics||{};
+  const stats=`P&L: ${(m.pnl||0)>=0?'+':'−'}$${Math.abs(m.pnl||0).toFixed(0)} · Trades: ${m.trades||0} · Win Rate: ${m.win_rate||0}% (${m.wins||0}W/${m.losses||0}L)`;
+  const text=`${stats}\n\n${r.content||''}`;
+  shareContent(platform,r.title||'AI Report',text,0xFFD166);
+}
+
+function shareAIReview(platform){
+  if(!_lastAIReviewText){ flash('Generate an AI Performance Review first'); return; }
+  shareContent(platform,'✦ AI Trading Analysis',_lastAIReviewText,0xF5A623);
+}
+
+// Pulls the live values out of the Performance tab tiles for a quick text summary.
+function _perfStatsLine(){
+  const get=id=>{const el=document.getElementById(id);return el?el.textContent.trim():'';};
+  return [
+    `Total Trades: ${get('p-total')}`,
+    `Win Rate: ${get('p-wr')}`,
+    `Net P&L: ${get('p-pnl')}`,
+    `Avg R:R: ${get('p-rr')}`,
+    `Profit Factor: ${get('p-pf')}`,
+    `Expectancy: ${get('p-exp')}`,
+    `Current Streak: ${get('p-streak')}`,
+    `Total R: ${get('p-total-r')}`
+  ].join('\n');
+}
+
+function sharePerformance(platform){
+  shareContent(platform,'📊 My Trading Performance',_perfStatsLine(),0x00D4A4);
+}
+
+function shareDailyEntry(date,platform){
+  const x=state.daily[date]||{};
+  const dayTrades=state.trades.filter(t=>(t.date||'').slice(0,10)===date);
+  const pnl=dayTrades.reduce((s,t)=>s+(t.pnl||0),0);
+  const wins=dayTrades.filter(t=>(t.pnl||0)>0).length;
+  const wr=dayTrades.length?Math.round(wins/dayTrades.length*100):0;
+  let text=`Day ${x.dayCount||dayCountFor(date)} · ${fmtDate(date)} · ${date}\n`;
+  text+=`P&L: ${pnl>=0?'+':'−'}$${Math.abs(pnl).toFixed(0)} · ${dayTrades.length} trade${dayTrades.length!==1?'s':''} · Win Rate: ${wr}%\n`;
+  if(x.bias) text+=`Bias: ${x.bias}\n`;
+  if(x.weekly) text+=`Weekly: ${x.weekly}\n`;
+  if(x.htfpoi) text+=`HTF POI: ${x.htfpoi}\n`;
+  if(x.london) text+=`London: ${x.london}${x.ny?` · NY: ${x.ny}`:''}\n`;
+  if(x.plan) text+=`Plan: ${x.plan}${x.pred?` · Prediction: ${x.pred}`:''}\n`;
+  shareContent(platform,'📅 Daily Trading Recap',text,0xF5A623);
+}
+
+function shareWeekly(platform){
+  const key=`${state.currentMonth}-W${state.currentWeek}`;
+  const data=state.weekly[key]||{};
+  const pnl=computeWeekPnl(key);
+  const weeks=getWeeksOfMonth(state.currentMonth);
+  const wInfo=weeks.find(w=>w.num===state.currentWeek);
+  let text=`${monthLabel(state.currentMonth)} · ${wInfo?wInfo.label:'Week '+state.currentWeek}\n`;
+  text+=`Week P&L: ${pnl>=0?'+':'−'}$${Math.abs(pnl).toFixed(0)}\n`;
+  if(data['w-model']) text+=`Model: ${data['w-model']}\n`;
+  if(data['w-profile']) text+=`Profile: ${data['w-profile']}\n`;
+  if(data['w-phase']) text+=`Phase: ${data['w-phase']}\n`;
+  if(data['w-range']) text+=`Range Behaviour: ${data['w-range']}\n`;
+  if(data['w-pd']) text+=`P/D Arrays: ${data['w-pd']}\n`;
+  shareContent(platform,'📅 Weekly Analysis',text,0xF5A623);
+}
+
+function shareMonthly(platform){
+  const key=state.currentMonth;
+  const data=state.monthly[key]||{};
+  const pnl=computeMonthPnl(key);
+  let text=`${monthLabel(key)}\n`;
+  text+=`Month P&L: ${pnl>=0?'+':'−'}$${Math.abs(pnl).toFixed(0)}\n`;
+  if(data['m-qshift']) text+=`Quarterly Shift: ${data['m-qshift']}\n`;
+  if(data['m-profile']) text+=`Market Profile: ${data['m-profile']}\n`;
+  if(data['m-seasonal']) text+=`Seasonal: ${data['m-seasonal']}\n`;
+  if(data['m-pred']) text+=`Prediction: ${data['m-pred']}\n`;
+  if(data['m-keylevels']) text+=`Key Levels: ${data['m-keylevels']}\n`;
+  shareContent(platform,'📈 Monthly Analysis',text,0x00D4A4);
 }
 
 // ── TRADE AUTO-ANALYSIS ────────────────────────────────────────────────────

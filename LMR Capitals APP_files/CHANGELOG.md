@@ -2,6 +2,21 @@
 
 All notable changes to the LMR Capitals trading journal app are documented here.
 
+## [Unreleased] — 2026-06-10
+
+### Added — Tier 5: Share to Discord / X (Twitter)
+- New "Share" button pair (Discord + X icons) added to:
+  - **AI Reports** — each report card (Reports tab), next to "Read Full Report".
+  - **AI Performance Review** — appears under the AI analysis once a review is generated.
+  - **Performance tab** — "Share Performance" shares your live stats (total trades, win rate, net P&L, R:R, profit factor, expectancy, streak, total R).
+  - **Daily Pages** — Day modal (calendar → click a day) shares that day's bias, P&L, win rate, and chain notes.
+  - **Weekly Analysis** — shares the week's model/profile/phase plus week P&L.
+  - **Monthly Analysis** — shares the month's quarterly shift/profile/prediction plus month P&L.
+- **Share to Discord**: posts automatically as a rich embed via the existing Discord webhook (Settings → Integrations). One click, no further action needed.
+- **Share to X**: opens a pre-filled X/Twitter compose window (`twitter.com/intent/tweet`) — user reviews and posts manually. No API keys/auth required.
+- Both options are independent — click one, the other, or both.
+- New `shareContent()`, `shareButtonsHTML()`, `_stripMd()` helpers + new `'x-logo'` / `'share-2'` icons in the SVG icon library.
+
 ## [Deployed] — 2026-06-09
 
 - Deployed commit `49c1ceb3` to production via `netlify deploy --prod` (CLI, using existing authenticated session — Netlify project has no linked Git repo, so deploys are manual).
