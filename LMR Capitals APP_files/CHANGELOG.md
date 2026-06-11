@@ -4,6 +4,23 @@ All notable changes to the LMR Capitals trading journal app are documented here.
 
 ## [Deployed] — 2026-06-11 (latest)
 
+- Deployed commit `0e22bfc7` (Align Daily Chain / Daily day-modal fields) to production via `netlify deploy --prod`.
+- Live at https://lmrcapitals.com — deploy: https://app.netlify.com/projects/lmrcapitalsapp/deploys/6a2a6a15a32b21f2562dbde4
+- ⚠️ **Action needed**: run `fix-daily-day-status-column.sql` in the Supabase SQL Editor (adds `day_status` column to `public.daily`) so the Status (Passed/In Process/Blown) field stops getting wiped on cloud sync.
+
+## [Unreleased] — 2026-06-11
+
+### Fixed — Today's Chain ↔ Daily day-modal field alignment
+- **RTH Delivery**: the Daily day-modal's RTH dropdown had a hardcoded option list with typos/spacing that didn't match `RTH_PROFILES` (used by Today's Chain), so a value saved on Today's Chain often showed blank in the Daily modal. `dm-rth` is now populated dynamically from `RTH_PROFILES`, guaranteeing an exact match.
+- **New York field**: standardized the "Manip / Distrib" chip value from `"Manipulation/ Distibution"` (typo) to `"Manipulation / Distribution"` everywhere (chip, colorMap, CSS), matching the day-modal's `<select>` option. Added `_normNY()` to normalize any previously-saved legacy values on load.
+- **Weekly summary bug**: `saveDayModal()` no longer overwrites the `weekly` (model · profile · phase) summary field with the Week Draws text — this was corrupting the "Weekly: ..." line shown in the Daily list.
+- **Cloud sync**: `_mapDaily()` / `_sbDoPull()` now include `day_status`, so the Status chip (Passed/In Process/Blown) survives a cloud pull/reload instead of resetting to blank. Requires the new `day_status` column (see `fix-daily-day-status-column.sql` / updated `supabase-setup.sql`).
+
+### Added — Share buttons on Today's Chain
+- The Today's Chain card header now has Share to Discord/X buttons (`shareDailyEntry`), matching the buttons already on the Daily day-modal and Daily list.
+
+## [Deployed] — 2026-06-11
+
 - Deployed commit `e95c1dbc` (SEO: robots.txt, sitemap.xml, head meta tags) to production via `netlify deploy --prod`.
 - Live at https://lmrcapitals.com — deploy: https://app.netlify.com/projects/lmrcapitalsapp/deploys/6a2a59a416ce6f3393d693cc
 - ⚠️ **Action needed**: `https://lmrcapitals.com/robots.txt` and `https://lmrcapitals.com/sitemap.xml` currently return **HTTP 401 "Password protected site"** — this is Netlify's site-wide Visitor Access / Password Protection feature, which blocks ALL paths including these SEO files. Search engines cannot crawl the site (or read robots.txt/sitemap.xml) while this is enabled. To fix: in the Netlify dashboard go to **Site configuration → Visitor access → Password protection** and disable it (or switch to a different access method that doesn't gate static files). This is an access-control setting and was left unchanged.
