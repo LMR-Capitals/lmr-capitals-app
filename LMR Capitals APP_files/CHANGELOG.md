@@ -2,7 +2,12 @@
 
 All notable changes to the LMR Capitals trading journal app are documented here.
 
-## [Unreleased] — 2026-06-11
+## [Deployed] — 2026-06-11 (latest)
+
+- Deployed commit `85d69608` (Per-account isolation for locally-cached images) to production via `netlify deploy --prod`.
+- Live at https://lmrcapitals.com — deploy: https://app.netlify.com/projects/lmrcapitalsapp/deploys/6a2a7a43d962cdac514bbb5e
+
+## [Released] — 2026-06-11
 
 ### Fixed — Per-account isolation for locally-cached images (security follow-up)
 - Closes the follow-up gap from the previous data-isolation fix: locally-cached
