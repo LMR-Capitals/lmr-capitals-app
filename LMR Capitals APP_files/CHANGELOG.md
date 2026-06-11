@@ -2,6 +2,12 @@
 
 All notable changes to the LMR Capitals trading journal app are documented here.
 
+## [Deployed] — 2026-06-11 (latest)
+
+- Deployed commit `4fb2f3b9` (Per-account data isolation + profiles RLS) to production via `netlify deploy --prod`.
+- Live at https://lmrcapitals.com — deploy: https://app.netlify.com/projects/lmrcapitalsapp/deploys/6a2a74697808ff9e4324e4ab
+- ⚠️ **Action needed**: run `fix-profiles-table.sql` in the Supabase SQL Editor (creates/secures `public.profiles` with RLS).
+
 ## [Unreleased] — 2026-06-11
 
 ### Fixed — Per-account data isolation (security)
