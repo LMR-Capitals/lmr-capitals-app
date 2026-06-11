@@ -2,6 +2,29 @@
 
 All notable changes to the LMR Capitals trading journal app are documented here.
 
+## [Unreleased] — 2026-06-11
+
+### Fixed — Per-account isolation for locally-cached images (security follow-up)
+- Closes the follow-up gap from the previous data-isolation fix: locally-cached
+  chart/trade screenshots (IndexedDB) and the Notion `lmr_imageIndex` helper
+  were still in one shared bucket per device.
+- New `_switchUserImageStore()` mirrors `_switchUserStore()`: each account now
+  gets its own IndexedDB database (`lmr_v3_img__<account id>`) and image-index
+  key (`lmr_imageIndex__<account id>`), switched automatically on sign-in.
+  - First sign-in on a device claims/migrates any existing legacy images into
+    that account's namespace, then removes the shared copy.
+  - A different account signing in afterwards starts with zero local images —
+    `getImg()` returns nothing for any key until that account's own cloud
+    images are restored.
+  - Returning to an account you've used before reloads exactly the images you
+    left it with.
+- Verified end-to-end in Claude Preview: admin's chart image survives
+  claim → a new account sees no image → admin gets it back on return.
+- With this, ALL local app data (trades, daily/weekly/monthly, journal, notes,
+  profile, AI settings, theme, AND cached images) is now fully isolated
+  per-account on shared devices, on top of the database RLS isolation already
+  in place.
+
 ## [Deployed] — 2026-06-11 (latest)
 
 - Deployed commit `4fb2f3b9` (Per-account data isolation + profiles RLS) to production via `netlify deploy --prod`.

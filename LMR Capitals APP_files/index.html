@@ -3731,12 +3731,95 @@ function getEventsForRange(from,to,minImpact=1){
 // On load: try IndexedDB first → fall back to cloud URL.
 // This way images survive browser clears, device switches, and cache wipes.
 
-const DB_NAME='lmr_v3',STORE='images';
+// DB_NAME starts as the legacy shared database, but is switched to a
+// per-account namespace ('lmr_v3_img__<supabase user id>') the moment
+// someone signs in — see _switchUserImageStore(). Mirrors STORE_KEY's
+// per-account isolation, but for locally-cached chart/trade screenshots.
+let DB_NAME='lmr_v3';
+const STORE='images';
 const SB_IMG_BUCKET='app-images';
 const SB_IMG_URL='https://agrvylclhvxyevsmmexf.supabase.co/storage/v1/object/public/'+SB_IMG_BUCKET+'/';
+// lmr_imageIndex is a one-time Notion-import helper; namespaced the same way.
+let IMG_INDEX_KEY='lmr_imageIndex';
 let db;
 
 function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,1);r.onerror=()=>rej(r.error);r.onsuccess=()=>{db=r.result;res(db)};r.onupgradeneeded=e=>{if(!e.target.result.objectStoreNames.contains(STORE))e.target.result.createObjectStore(STORE)}});}
+
+// ── Helpers for migrating the local image DB to a per-account namespace ──
+// Read every [key, blob] pair out of a named IndexedDB 'images' store.
+function _readAllImagesFrom(dbName){
+  return new Promise(resolve=>{
+    const req=indexedDB.open(dbName,1);
+    req.onupgradeneeded=e=>{ if(!e.target.result.objectStoreNames.contains(STORE)) e.target.result.createObjectStore(STORE); };
+    req.onerror=()=>resolve([]);
+    req.onsuccess=()=>{
+      const conn=req.result;
+      if(!conn.objectStoreNames.contains(STORE)){conn.close();resolve([]);return;}
+      const tx=conn.transaction(STORE,'readonly');
+      const cur=tx.objectStore(STORE).openCursor();
+      const out=[];
+      cur.onsuccess=ev=>{
+        const c=ev.target.result;
+        if(c){out.push([c.key,c.value]);c.continue();}
+        else{conn.close();resolve(out);}
+      };
+      cur.onerror=()=>{conn.close();resolve(out);};
+    };
+  });
+}
+// Write [key, blob] pairs into a named IndexedDB 'images' store (creating it if needed).
+function _writeAllImagesTo(dbName,entries){
+  return new Promise(resolve=>{
+    if(!entries.length){resolve(true);return;}
+    const req=indexedDB.open(dbName,1);
+    req.onupgradeneeded=e=>{ if(!e.target.result.objectStoreNames.contains(STORE)) e.target.result.createObjectStore(STORE); };
+    req.onerror=()=>resolve(false);
+    req.onsuccess=()=>{
+      const conn=req.result;
+      const tx=conn.transaction(STORE,'readwrite');
+      const os=tx.objectStore(STORE);
+      entries.forEach(([k,v])=>os.put(v,k));
+      tx.oncomplete=()=>{conn.close();resolve(true)};
+      tx.onerror=()=>{conn.close();resolve(false)};
+    };
+  });
+}
+function _deleteIndexedDB(dbName){
+  return new Promise(resolve=>{
+    try{
+      const req=indexedDB.deleteDatabase(dbName);
+      req.onsuccess=()=>resolve(true);
+      req.onerror=()=>resolve(false);
+      req.onblocked=()=>resolve(false);
+    }catch(e){resolve(false);}
+  });
+}
+
+// Per-account local image-store isolation — mirrors _switchUserStore().
+//  mode 'returning' / 'fresh': just point DB_NAME/IMG_INDEX_KEY at this
+//    account's own namespace (openDB() creates it empty if it's new).
+//  mode 'claim': this device's legacy shared image DB belongs to this
+//    account (or nobody yet) — migrate it into the namespace, then remove
+//    the shared copy so a different account never inherits it.
+async function _switchUserImageStore(uid,mode){
+  const nsDb='lmr_v3_img__'+uid;
+  const nsIdx='lmr_imageIndex__'+uid;
+  if(db){ try{db.close();}catch(e){} db=undefined; }
+  if(mode==='claim'){
+    try{
+      const entries=await _readAllImagesFrom('lmr_v3');
+      if(entries.length) await _writeAllImagesTo(nsDb,entries);
+      await _deleteIndexedDB('lmr_v3');
+    }catch(e){}
+    try{
+      const legacyIdx=localStorage.getItem('lmr_imageIndex');
+      if(legacyIdx!==null) localStorage.setItem(nsIdx,legacyIdx);
+      localStorage.removeItem('lmr_imageIndex');
+    }catch(e){}
+  }
+  DB_NAME=nsDb;
+  IMG_INDEX_KEY=nsIdx;
+}
 
 // Save to IndexedDB AND upload to Supabase Storage
 async function saveImg(k,b){
@@ -3938,7 +4021,7 @@ function resetState(){
 //    (or overwrites) the admin's locally-cached trades/daily/journal/profile/AI data.
 //  - The admin's own data is preserved exactly as-is and reloaded whenever
 //    the admin signs back in on a device they've used before.
-function _switchUserStore(uid){
+async function _switchUserStore(uid){
   if(!uid)return;
   // Always start from a clean in-memory slate before resolving which store
   // to load — prevents any field from a previous account's in-memory state
@@ -3947,13 +4030,16 @@ function _switchUserStore(uid){
   resetState();
   const nsKey='lmr_v3_state__'+uid;
   const lastUid=localStorage.getItem('lmr_active_uid');
+  let mode;
   if(localStorage.getItem(nsKey)!==null){
     // Returning account on this device — use its own existing data.
+    mode='returning';
     STORE_KEY=nsKey;
   } else if(!lastUid||lastUid===uid){
     // Either nobody has signed in on this device yet, or the legacy shared
     // store already belongs to this same account — claim/migrate it into
     // this account's private namespace (one-time, then remove the shared copy).
+    mode='claim';
     try{
       const legacy=localStorage.getItem('lmr_v3_state');
       const legacyBk=localStorage.getItem('lmr_v3_state_bk');
@@ -3968,10 +4054,14 @@ function _switchUserStore(uid){
     // cached data must never be shown to, or pushed into, this account.
     // Start completely clean — cloud pull (below, in lgUnlock) repopulates
     // this account's own data from Supabase.
+    mode='fresh';
     resetState();
     STORE_KEY=nsKey;
   }
   localStorage.setItem('lmr_active_uid',uid);
+  // Mirror the same isolation for locally-cached chart/trade screenshots
+  // (IndexedDB) and the Notion image-index helper.
+  try{ await _switchUserImageStore(uid,mode); }catch(e){}
   load(); // synchronously reload `state` from the now-correct per-account store
 }
 
@@ -9407,7 +9497,7 @@ function showLanding(){
   if(lp)lp.classList.remove('hidden');
 }
 
-function lgUnlock(user){
+async function lgUnlock(user){
   // Hide gate + landing page (mainApp stays hidden until re-rendered below
   // with THIS account's own data — see _switchUserStore)
   document.getElementById('loginGate').classList.add('hidden');
@@ -9416,7 +9506,7 @@ function lgUnlock(user){
   // Switch to this account's isolated local data BEFORE anything renders or
   // syncs — guarantees a different account's cached data is never shown to,
   // or pushed into, this account.
-  _switchUserStore(user.id);
+  await _switchUserStore(user.id);
   // Immediately update NY clock so it shows correct time
   updateNyClock();
   if(!window._clockStarted){window._clockStarted=true;setInterval(updateNyClock,1000);}
