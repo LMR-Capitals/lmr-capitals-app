@@ -2,6 +2,11 @@
 
 All notable changes to the LMR Capitals trading journal app are documented here.
 
+## [Deployed] — 2026-06-10 (latest)
+
+- Deployed commit `f6618930` (Multi-Channel Discord Routing + Image Sharing) to production via `netlify deploy --prod`.
+- Live at https://lmrcapitals.com — deploy: https://app.netlify.com/projects/lmrcapitalsapp/deploys/6a2a0f33f9aca333ef591427
+
 ## [Unreleased] — 2026-06-10
 
 ### Added — Multi-Channel Discord Routing + Image Sharing
