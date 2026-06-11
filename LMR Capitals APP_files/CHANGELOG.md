@@ -2,6 +2,14 @@
 
 All notable changes to the LMR Capitals trading journal app are documented here.
 
+## [Unreleased] — 2026-06-10
+
+### Added — Per-Trade Share to Discord / X
+- Every row in the **Trade Log** table (Trades tab) now has Share to Discord / Share to X icon buttons, alongside the delete (✗) button.
+- The **Edit Trade** modal also shows share buttons in its header when editing an existing trade.
+- New `shareTrade(id, platform)` builds a per-trade summary (date, market, position, P&L, R, session, model, confirmations, HTF delivery, MMM, emotions, draws, feedback notes) and shares it to the **Trades / Executions** Discord channel (`#lmr-executions`) by default — or opens an X compose window.
+- Automatically attaches any saved execution screenshots for that trade (Result, Entry, HTF, 15min) via `_shareImageBlobs()`.
+
 ## [Deployed] — 2026-06-10 (latest)
 
 - Deployed commit `f6618930` (Multi-Channel Discord Routing + Image Sharing) to production via `netlify deploy --prod`.

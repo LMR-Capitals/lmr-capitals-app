@@ -3149,7 +3149,7 @@ Midnight Open $______"></textarea>
 <!-- TRADE MODAL (FULL LMR Trade Data fields) -->
 <div class="modal-bg" id="tradeModal">
   <div class="modal" style="max-width:780px">
-    <div class="modal-head"><div class="modal-title">+ Log Trade</div><span style="font-size:9px;color:var(--bull);margin-left:8px;font-weight:700">AUTO-SAVE</span><button class="close" style="margin-left:auto" onclick="saveTradeAndClose()">×</button></div>
+    <div class="modal-head"><div class="modal-title">+ Log Trade</div><span style="font-size:9px;color:var(--bull);margin-left:8px;font-weight:700">AUTO-SAVE</span><span id="tm-share-btns" style="margin-left:8px"></span><button class="close" style="margin-left:auto" onclick="saveTradeAndClose()">×</button></div>
     <div class="modal-body">
       <div class="cols2">
         <div><label class="form-label">Date</label><input type="date" id="tm-date"></div>
@@ -5911,6 +5911,8 @@ function openTradeModal(editId){
   // Title reflects mode
   const titleEl=document.querySelector('#tradeModal .modal-title');
   if(titleEl)titleEl.textContent=ex?'Edit Trade':'+ Log Trade';
+  const tmShareEl=document.getElementById('tm-share-btns');
+  if(tmShareEl) tmShareEl.innerHTML=ex?shareButtonsHTML('shareTrade',`'${ex.id}'`):'';
   if(ex){
     // Pre-fill from existing
     document.getElementById('tm-market').value=ex.market||'NQ';
@@ -6087,7 +6089,7 @@ function renderTradeTable(){
       <td>${winLoss}</td>
       <td class="mono ${t.pnl>=0?'txt-pos':'txt-neg'}" style="font-weight:800;font-size:12px">${t.pnl>=0?'+':''}$${t.pnl.toFixed(2)}</td>
       <td class="mono ${parseFloat(t.rr)>=0?'txt-pos':'txt-neg'}">${t.rr}R</td>
-      <td onclick="event.stopPropagation()"><button class="btn btn-sm btn-bear" style="padding:2px 6px;font-size:10px" onclick="deleteTrade(${t.id})">✗</button></td>
+      <td onclick="event.stopPropagation()" style="white-space:nowrap"><div style="display:flex;align-items:center;gap:4px">${shareButtonsHTML('shareTrade',`'${t.id}'`)}<button class="btn btn-sm btn-bear" style="padding:2px 6px;font-size:10px" onclick="deleteTrade(${t.id})">✗</button></div></td>
     </tr>`;
   }).join('');
   // update stats tiles
@@ -10046,6 +10048,28 @@ function shareReport(id,platform){
   const stats=`P&L: ${(m.pnl||0)>=0?'+':'−'}$${Math.abs(m.pnl||0).toFixed(0)} · Trades: ${m.trades||0} · Win Rate: ${m.win_rate||0}% (${m.wins||0}W/${m.losses||0}L)`;
   const text=`${stats}\n\n${r.content||''}`;
   shareContent(platform,r.title||'AI Report',text,0xFFD166);
+}
+
+// Share a single logged trade (with its execution screenshots, if any) to the
+// Trades/Executions Discord channel — or to X.
+async function shareTrade(id,platform){
+  const t=state.trades.find(x=>String(x.id)===String(id));
+  if(!t){ flash('Trade not found'); return; }
+  const win=t.pnl>0,loss=t.pnl<0;
+  const title=(win?'🟢 ':loss?'🔴 ':'⚪ ')+(t.market||'Trade')+' · '+(win?'Win':loss?'Loss':'BE');
+  let text=`${(t.date||'').slice(0,10)}${t.day?' ('+t.day+')':''} · ${t.market||'-'} ${t.position||''}\n`;
+  text+=`P&L: ${t.pnl>=0?'+':'-'}$${Math.abs(t.pnl||0).toFixed(2)} · R: ${t.rr||0}R${t.risk?` · Risk: $${t.risk}`:''}\n`;
+  if(t.session) text+=`Session: ${t.session}${t.openTime?` (${t.openTime}${t.closeTime?'–'+t.closeTime:''})`:''}\n`;
+  if(t.models?.length) text+=`Model: ${t.models.join(', ')}\n`;
+  if(t.confirmations?.length) text+=`Confirmation: ${t.confirmations.join(', ')}\n`;
+  if(t.htf) text+=`HTF Delivery: ${t.htf}\n`;
+  if(t.mmm?.length) text+=`MMM: ${t.mmm.join(', ')}\n`;
+  if(t.emotions?.length) text+=`Emotions: ${t.emotions.join(', ')}\n`;
+  if(t.draws) text+=`Draws: ${t.draws}\n`;
+  if(t.feedback) text+=`\n${t.feedback}`;
+  const sid=String(t.id);
+  const images=await _shareImageBlobs([`trade-${sid}-result`,`trade-${sid}-entry`,`trade-${sid}-htf`,`trade-${sid}-15m`]);
+  shareContent(platform,title,text,win?0x00D4A4:loss?0xFF4060:0xF5A623,{category:'trades',images});
 }
 
 function shareAIReview(platform){
