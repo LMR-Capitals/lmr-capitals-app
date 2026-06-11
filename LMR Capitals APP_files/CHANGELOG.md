@@ -2,6 +2,19 @@
 
 All notable changes to the LMR Capitals trading journal app are documented here.
 
+## [Deployed] — 2026-06-11 (latest)
+
+- Deployed commit `e95c1dbc` (SEO: robots.txt, sitemap.xml, head meta tags) to production via `netlify deploy --prod`.
+- Live at https://lmrcapitals.com — deploy: https://app.netlify.com/projects/lmrcapitalsapp/deploys/6a2a59a416ce6f3393d693cc
+- ⚠️ **Action needed**: `https://lmrcapitals.com/robots.txt` and `https://lmrcapitals.com/sitemap.xml` currently return **HTTP 401 "Password protected site"** — this is Netlify's site-wide Visitor Access / Password Protection feature, which blocks ALL paths including these SEO files. Search engines cannot crawl the site (or read robots.txt/sitemap.xml) while this is enabled. To fix: in the Netlify dashboard go to **Site configuration → Visitor access → Password protection** and disable it (or switch to a different access method that doesn't gate static files). This is an access-control setting and was left unchanged.
+
+## [Unreleased] — 2026-06-11
+
+### Added — SEO foundation
+- New `robots.txt` at the project root: allows all crawlers (`User-agent: * / Allow: /`) and points to `https://lmrcapitals.com/sitemap.xml`.
+- New `sitemap.xml` at the project root: lists the homepage (`https://lmrcapitals.com/`, weekly changefreq, priority 1.0).
+- `index.html` `<head>`: updated `<title>` to "LMR Capitals | US Futures Trading | NQ ES YM"; updated `<meta name="description">`, `<meta property="og:title">`, `<meta property="og:description">`, and `<meta property="og:url">` (now trailing-slash) with futures-trading/ICT-focused copy; added new `<meta name="keywords">`, `<meta name="robots" content="index, follow">`, and `<link rel="canonical" href="https://lmrcapitals.com/">`.
+
 ## [Deployed] — 2026-06-10 (latest)
 
 - Deployed commit `977f01e3` (Per-Trade Share to Discord/X) to production via `netlify deploy --prod`.
