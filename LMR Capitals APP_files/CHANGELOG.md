@@ -2,6 +2,60 @@
 
 All notable changes to the LMR Capitals trading journal app are documented here.
 
+## [Unreleased] — 2026-06-11
+
+### Fixed — Per-account data isolation (security)
+- **The bug**: the entire local app state (trades, daily/weekly/monthly chain data,
+  journal, notes, profile, AI settings, accounts, theme — everything) was stored
+  in ONE shared browser key (`lmr_v3_state`). On a device where you had signed in,
+  if anyone created a NEW account and signed in on that same device, the app would
+  load YOUR cached data into memory, display it to them, and (since cloud sync
+  treats Supabase as the source of truth but falls back to "push local data" when
+  the new account's cloud is empty) could even copy your trading journal, profile,
+  and other data into THEIR cloud account. This is the "new account can see my
+  data" / "weak login" issue reported.
+- **The fix**: every Supabase account now gets its own private local data bucket
+  on each device (`lmr_v3_state__<account id>`), switched automatically by a new
+  `_switchUserStore()` the instant someone signs in (`lgUnlock`):
+  - Returning to an account you've used on this device → reloads exactly the data
+    you left it with ("save as it is until i change it").
+  - A brand-new account signing in on a device you've used → starts 100% empty
+    (then pulls only its own data from Supabase) — it can never see, copy, or
+    overwrite your trades/journal/profile/AI data.
+  - The app stays hidden during account switches so a previous account's
+    rendered numbers never flash on screen for the next sign-in.
+  - Signing out no longer wipes your saved data — it stays in your private
+    bucket for next time, only the in-memory copy is cleared.
+- **Known follow-up (not yet covered)**: locally-cached chart screenshots
+  (IndexedDB) and `lmr_imageIndex` are still in one shared bucket per device.
+  Cloud-stored images are already isolated per account (Storage RLS, one folder
+  per `user_id`), so this only matters for images cached *before* a cloud sync on
+  a *shared* device — lower-risk, but a follow-up pass should namespace these too.
+
+### Fixed — Database Row Level Security (RLS) gaps
+- `public.profiles` (name, business goals, theme, Discord settings, etc.) and
+  `public.weekly_reports` (AI-generated reports) were used by the app but were
+  **not** part of `supabase-setup.sql` — if `profiles` didn't exist with RLS, a
+  signed-in user could potentially read/write every row (every account's
+  profile), not just their own.
+- New `fix-profiles-table.sql` creates `public.profiles` (if missing), adds any
+  missing columns, enables RLS, and adds an "own profile only" policy
+  (`auth.uid() = user_id`) — same pattern as every other table.
+- `supabase-setup.sql` updated to include `profiles` and `weekly_reports` with
+  RLS for fresh installs, and a comment clarifying that RLS on every table is
+  what guarantees a new account can never see another account's data.
+- ⚠️ **Action needed**: run `fix-profiles-table.sql` in the Supabase SQL Editor.
+
+### Recommended (Supabase dashboard — not code, please review yourself)
+- Authentication → Providers → Email: confirm **"Confirm email"** is enabled, so
+  a newly created account must verify its email before it can sign in.
+- Authentication → Rate Limits: confirm sign-in/sign-up rate limiting is on
+  (default is on) to slow down brute-force login attempts.
+- 2FA (TOTP) is already implemented correctly (Settings → Security → Enable 2FA)
+  and is enforced on sign-in (`lgVerify2FA`) — no code changes needed there; the
+  "weak login" feeling was caused by the data-isolation bug above, not the
+  authentication check itself.
+
 ## [Deployed] — 2026-06-11 (latest)
 
 - Deployed commit `0e22bfc7` (Align Daily Chain / Daily day-modal fields) to production via `netlify deploy --prod`.

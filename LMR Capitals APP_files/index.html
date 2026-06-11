@@ -3908,13 +3908,72 @@ async function autoRestoreImagesOnLogin(){
 }
 
 // ============= STATE =============
-const STORE_KEY='lmr_v3_state';
-let state={
+// STORE_KEY is the localStorage key holding the current account's data.
+// It starts as the legacy shared key, but is switched to a per-account
+// namespace ('lmr_v3_state__<supabase user id>') the moment someone signs
+// in — see _switchUserStore(). This guarantees that on a shared device,
+// signing in as a different LMR Capitals account NEVER shows or syncs the
+// previous account's trading journal / profile / AI / app data.
+let STORE_KEY='lmr_v3_state';
+const DEFAULT_STATE={
   daily:{}, monthly:{}, weekly:{}, trades:[], journal:[], notes:[], accounts:[], transactions:[],
   currentMonth:'2026-05', currentWeek:1, currentAcc:null,
   dayCountStart:369, dayCountStartDate:'2026-06-02', // Next day after D368 (Jun 1)
   calMonth:'2026-05'
 };
+let state=JSON.parse(JSON.stringify(DEFAULT_STATE));
+
+// Wipe in-memory state back to a clean slate (used when switching to an
+// account that has never used this device/browser before).
+function resetState(){
+  state=JSON.parse(JSON.stringify(DEFAULT_STATE));
+  ensureState();
+}
+
+// ── PER-ACCOUNT LOCAL DATA ISOLATION ─────────────────────────────────────────
+// Called once, right at the start of lgUnlock(), BEFORE anything is rendered
+// or synced. Ensures each Supabase account gets its own localStorage bucket
+// on this device, so:
+//  - A brand-new account that signs up on a device the admin used never sees
+//    (or overwrites) the admin's locally-cached trades/daily/journal/profile/AI data.
+//  - The admin's own data is preserved exactly as-is and reloaded whenever
+//    the admin signs back in on a device they've used before.
+function _switchUserStore(uid){
+  if(!uid)return;
+  // Always start from a clean in-memory slate before resolving which store
+  // to load — prevents any field from a previous account's in-memory state
+  // (e.g. a sign-out → different sign-in within the same page session)
+  // from bleeding into the next account via load()'s merge.
+  resetState();
+  const nsKey='lmr_v3_state__'+uid;
+  const lastUid=localStorage.getItem('lmr_active_uid');
+  if(localStorage.getItem(nsKey)!==null){
+    // Returning account on this device — use its own existing data.
+    STORE_KEY=nsKey;
+  } else if(!lastUid||lastUid===uid){
+    // Either nobody has signed in on this device yet, or the legacy shared
+    // store already belongs to this same account — claim/migrate it into
+    // this account's private namespace (one-time, then remove the shared copy).
+    try{
+      const legacy=localStorage.getItem('lmr_v3_state');
+      const legacyBk=localStorage.getItem('lmr_v3_state_bk');
+      if(legacy!==null)localStorage.setItem(nsKey,legacy);
+      if(legacyBk!==null)localStorage.setItem(nsKey+'_bk',legacyBk);
+      localStorage.removeItem('lmr_v3_state');
+      localStorage.removeItem('lmr_v3_state_bk');
+    }catch(e){}
+    STORE_KEY=nsKey;
+  } else {
+    // A DIFFERENT account previously used this device. That account's
+    // cached data must never be shown to, or pushed into, this account.
+    // Start completely clean — cloud pull (below, in lgUnlock) repopulates
+    // this account's own data from Supabase.
+    resetState();
+    STORE_KEY=nsKey;
+  }
+  localStorage.setItem('lmr_active_uid',uid);
+  load(); // synchronously reload `state` from the now-correct per-account store
+}
 
 // Ensure all state arrays/objects are valid (never null/undefined)
 function ensureState(){
@@ -9017,6 +9076,11 @@ async function sbDoSignOut() {
   // Hide 2FA area in case it was open
   const tfa=document.getElementById('lg-2fa-area');if(tfa)tfa.style.display='none';
   const sfm=document.getElementById('lg-signin-form');if(sfm)sfm.style.display='';
+  // Clear this account's data from memory (NOT from localStorage — it stays
+  // saved under lmr_v3_state__<uid> exactly as-is for next time this account
+  // signs in). Prevents it from lingering in memory if a different account
+  // signs in next within the same page session.
+  resetState();
 }
 
 async function sbPushNow() {
@@ -9344,11 +9408,15 @@ function showLanding(){
 }
 
 function lgUnlock(user){
-  // Hide gate + landing page, show app
+  // Hide gate + landing page (mainApp stays hidden until re-rendered below
+  // with THIS account's own data — see _switchUserStore)
   document.getElementById('loginGate').classList.add('hidden');
   const lp=document.getElementById('landingPage');
   if(lp)lp.classList.add('hidden');
-  document.getElementById('mainApp').style.display='';
+  // Switch to this account's isolated local data BEFORE anything renders or
+  // syncs — guarantees a different account's cached data is never shown to,
+  // or pushed into, this account.
+  _switchUserStore(user.id);
   // Immediately update NY clock so it shows correct time
   updateNyClock();
   if(!window._clockStarted){window._clockStarted=true;setInterval(updateNyClock,1000);}
@@ -9369,6 +9437,9 @@ function lgUnlock(user){
   // Run app init
   sbRefreshUI();
   init().then(async()=>{
+    // Now that init() has rendered THIS account's own data, it's safe to
+    // reveal the app (avoids a flash of a previous account's cached UI).
+    document.getElementById('mainApp').style.display='';
     // ── ALWAYS pull from Supabase on login ──
     // Supabase IS the source of truth for ALL data.
     // Monthly/Weekly use MERGE (local+cloud combined) so nothing is lost.

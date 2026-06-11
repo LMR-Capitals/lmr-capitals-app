@@ -122,23 +122,67 @@ create table if not exists public.journal (
   created_at  timestamptz default now()
 );
 
+create table if not exists public.profiles (
+  user_id               uuid references auth.users not null primary key default auth.uid(),
+  name                  text,
+  email                 text,
+  role                  text,
+  business              text,
+  website               text,
+  photo_b64             text,
+  daily_goal            numeric,
+  monthly_goal          numeric,
+  max_loss              numeric,
+  max_dd                numeric,
+  risk_default          numeric,
+  account_size          numeric,
+  remind_chain          text,
+  remind_weekly         text,
+  theme                 text,
+  day_count_start       int,
+  day_count_start_date  date,
+  balance_format        text,
+  current_acc           text,
+  cal_month             text,
+  settings              jsonb default '{}',
+  updated_at            timestamptz default now()
+);
+
+create table if not exists public.weekly_reports (
+  id          text primary key default gen_random_uuid()::text,
+  user_id     uuid references auth.users not null default auth.uid(),
+  title       text,
+  content     text,
+  metrics     jsonb default '{}',
+  week_start  date,
+  week_end    date,
+  created_at  timestamptz default now()
+);
+
 -- ── ROW LEVEL SECURITY ───────────────────────────────────────────────────────────
--- Each user can only read/write their own rows
+-- Each user can only read/write their own rows. This is what guarantees that a
+-- new account created on this app can NEVER see another account's trading
+-- journal, daily/weekly/monthly chain data, accounts/transactions, notes,
+-- profile, or AI-generated reports — every table is isolated by auth.uid().
 
-alter table public.trades       enable row level security;
-alter table public.daily        enable row level security;
-alter table public.monthly      enable row level security;
-alter table public.weekly       enable row level security;
-alter table public.accounts     enable row level security;
-alter table public.transactions enable row level security;
-alter table public.notes        enable row level security;
-alter table public.journal      enable row level security;
+alter table public.trades        enable row level security;
+alter table public.daily         enable row level security;
+alter table public.monthly       enable row level security;
+alter table public.weekly        enable row level security;
+alter table public.accounts      enable row level security;
+alter table public.transactions  enable row level security;
+alter table public.notes         enable row level security;
+alter table public.journal       enable row level security;
+alter table public.profiles      enable row level security;
+alter table public.weekly_reports enable row level security;
 
-create policy "own trades"       on public.trades       for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy "own daily"        on public.daily        for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy "own monthly"      on public.monthly      for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy "own weekly"       on public.weekly       for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy "own accounts"     on public.accounts     for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy "own transactions" on public.transactions for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy "own notes"        on public.notes        for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy "own journal"      on public.journal      for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own trades"        on public.trades        for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own daily"         on public.daily         for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own monthly"       on public.monthly       for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own weekly"        on public.weekly        for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own accounts"      on public.accounts      for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own transactions"  on public.transactions  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own notes"         on public.notes         for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own journal"       on public.journal       for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own profile"       on public.profiles      for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own weekly_reports" on public.weekly_reports for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
