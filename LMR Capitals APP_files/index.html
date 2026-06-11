@@ -1206,7 +1206,7 @@ select option[value="Accumulation"] { color: #00D4A4; }
 select option[value="Manipulation"] { color: #FF4060; }
 select option[value="Distribution"] { color: #5BA8FF; }
 select option[value="Rebalance / Reversal"] { color: #FF4060; }
-select option[value="Manipulation/ Distibution"] { color: #00D4A4; }
+select option[value="Manipulation / Distribution"] { color: #00D4A4; }
 select option[value="Retracement / Continuations"] { color: #5BA8FF; }
 select option[value="Followed"] { color: #00D4A4; }
 select option[value="Unfollowed"] { color: #FF4060; }
@@ -1684,6 +1684,7 @@ select option[value="PM"] { color: #5BA8FF; }
       <div class="card-title" id="todayDate">Today · Day —</div>
       <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
         <div class="card-meta" id="todayStatus">Not started</div>
+        <span id="today-share-btns" style="display:inline-flex;align-items:center"></span>
         <button class="btn btn-sm" onclick="aiReviewChain()" id="ai-chain-btn" style="background:rgba(245,166,35,.08);border-color:rgba(245,166,35,.25);color:var(--gold)">✦ AI Review</button>
         <button class="btn btn-primary btn-sm" onclick="saveDaily()">💾 Save</button>
         <button class="btn btn-sm" onclick="loadDaily()">↻</button>
@@ -1779,7 +1780,7 @@ select option[value="PM"] { color: #5BA8FF; }
           <div class="prop-right">
             <div class="chips" style="padding:2px 0">
               <button class="chip bear" data-grp="ny" data-val="Rebalance / Reversal">Rebalance / Reversal</button>
-              <button class="chip bull" data-grp="ny" data-val="Manipulation/ Distibution">Manip / Distrib</button>
+              <button class="chip bull" data-grp="ny" data-val="Manipulation / Distribution">Manip / Distrib</button>
               <button class="chip" data-grp="ny" data-val="Retracement / Continuations" style="color:var(--blue);border-color:rgba(91,168,255,.35)">Retracement / Continuation</button>
             </div>
           </div>
@@ -3393,11 +3394,7 @@ Midnight Open $______"></textarea>
           <div class="form-row"><label class="form-label">Week Draws</label>
             <textarea id="dm-weekdraws" rows="2" placeholder="PWH, PWL, NWOG…"></textarea></div>
           <div class="form-row"><label class="form-label">RTH Delivery</label>
-            <select id="dm-rth"><option value="">—</option>
-              <option>Premium Bullish Above RTH</option><option>Discount Bullish RTH-HQ</option>
-              <option>Discount Bullish RTH-CME</option><option>Discount Bullish RTH-LQ</option>
-              <option>Premium Bearish Purged RTH</option><option>Premium Bearish RTH-HQ</option>
-              <option>Discount Bearish Below RTH</option></select></div>
+            <select id="dm-rth"><option value="">—</option></select></div>
           <div class="form-row"><label class="form-label">Price Context</label>
             <input id="dm-price" placeholder="Premium, Discount, NWOG…"></div>
           <div class="form-row"><label class="form-label">Monthly Bias</label>
@@ -4110,6 +4107,7 @@ function _mapDaily(date,d,uid){
     weekly:d.weekly||null,htf_poi:d.htfpoi||null,week_draws:d.weekdraws||null,
     london:d.london||null,ny:d.ny||null,session:d.session||null,rth:d.rth||null,
     plan:d.plan||null,pred:d.pred||null,monthly_bias:d.monthlyBias||null,
+    day_status:d.daystatus||null,
     asian_range:Array.isArray(d.asianRange)?d.asianRange:[],
     price:Array.isArray(d.price)?d.price:[],
     saved_at:d.savedAt||new Date().toISOString()};
@@ -5271,6 +5269,9 @@ function setChipsValues(grp,vals){
 }
 
 // ============= DAILY =============
+// Normalize legacy "Manipulation/ Distibution" values (old typo'd chip value)
+// to the canonical "Manipulation / Distribution" used by the NY select/colorMap.
+function _normNY(v){return v==='Manipulation/ Distibution'?'Manipulation / Distribution':(v||'')}
 function loadDaily(){
   const ds=todayStr();
   const d=state.daily[ds]||{};
@@ -5278,7 +5279,7 @@ function loadDaily(){
   document.getElementById('ch-draws').value=d.weekdraws||'';
   setChipsValues('dbias',d.bias||'');
   setChipsValues('london',d.london||'');
-  setChipsValues('ny',d.ny||'');
+  setChipsValues('ny',_normNY(d.ny));
   setChipsValues('asianRange',d.asianRange||[]);
   setChipsValues('priceRefs',d.priceRefs||d.price||[]); // read from either key
   setChipsValues('session',d.session||'');
@@ -5296,6 +5297,9 @@ function loadDaily(){
   updateMonthlyDisplay();
   updateWeeklyDisplay();
   updateTodayJournalPreview(ds);
+  // share buttons — same share as the Daily day-modal/list
+  const todayShareEl=document.getElementById('today-share-btns');
+  if(todayShareEl) todayShareEl.innerHTML=shareButtonsHTML('shareDailyEntry',`'${ds}'`);
 }
 function saveDaily(){
   const ds=todayStr();
@@ -8400,6 +8404,10 @@ async function init(){
     + '<optgroup label="⚪ Bearish Delivery">'
     + RTH_PROFILES.slice(5).map(r=>`<option value="${r}">${r}</option>`).join('')
     + '</optgroup>';
+  // populate RTH select on the Daily day-modal — same source list as Today's
+  // Chain (RTH_PROFILES) so saved values always match an <option> exactly
+  const dmRth=document.getElementById('dm-rth');
+  if(dmRth) dmRth.innerHTML='<option value="">—</option>'+RTH_PROFILES.map(r=>`<option value="${r}">${r}</option>`).join('');
   // Init journal date (may not exist if journal panel is hidden)
   const jDateEl=document.getElementById('j-date');if(jDateEl)jDateEl.value=todayStr();
   // Wire auto-save to Monthly and Weekly fields
@@ -8586,7 +8594,7 @@ function openDayModal(ds){
   document.getElementById('dm-htfpoi').value=entry.htfpoi||'';
   document.getElementById('dm-weekdraws').value=entry.weekdraws||entry.weekly||'';
   document.getElementById('dm-london').value=entry.london||'';
-  document.getElementById('dm-ny').value=entry.ny||'';
+  document.getElementById('dm-ny').value=_normNY(entry.ny);
   document.getElementById('dm-rth').value=entry.rth||'';
   document.getElementById('dm-asian').value=Array.isArray(entry.asianRange)?entry.asianRange.join(', '):(entry.asianRange||'');
   // Load price refs — check both 'price' and 'priceRefs' keys (Today saves as priceRefs)
@@ -8627,7 +8635,7 @@ function colorDailySelect(sel){
   const colorMap={
     'Bullish':'rgba(0,212,164,.15)','Bearish':'rgba(255,64,96,.12)','Neutral':'rgba(255,255,255,.06)',
     'Accumulation':'rgba(0,212,164,.15)','Manipulation':'rgba(255,64,96,.12)','Distribution':'rgba(91,168,255,.12)',
-    'Rebalance / Reversal':'rgba(255,64,96,.12)','Manipulation/ Distibution':'rgba(0,212,164,.15)','Retracement / Continuations':'rgba(91,168,255,.12)',
+    'Rebalance / Reversal':'rgba(255,64,96,.12)','Manipulation / Distribution':'rgba(0,212,164,.15)','Retracement / Continuations':'rgba(91,168,255,.12)',
     'Followed':'rgba(0,212,164,.15)','Unfollowed':'rgba(255,64,96,.12)',
     'Correct':'rgba(0,212,164,.15)','Incorrect':'rgba(255,64,96,.12)',
     'AM':'rgba(0,212,164,.1)','PM':'rgba(91,168,255,.1)',
@@ -8649,7 +8657,6 @@ function saveDayModal(){
     daystatus:document.getElementById('dm-daystatus').value,
     htfpoi:document.getElementById('dm-htfpoi').value,
     weekdraws:document.getElementById('dm-weekdraws').value,
-    weekly:document.getElementById('dm-weekdraws').value,
     london:document.getElementById('dm-london').value,
     ny:document.getElementById('dm-ny').value,
     rth:document.getElementById('dm-rth').value,
@@ -9120,6 +9127,8 @@ async function _sbDoPull() {
       weekdraws:  d.week_draws  || d.weekdraws || '',
       monthlyBias:d.monthly_bias|| d.monthlyBias||'',
       asianRange: d.asian_range || d.asianRange || [],
+      daystatus:  d.day_status  || d.daystatus || '',
+      ny:         _normNY(d.ny),
       savedAt:    d.saved_at    || d.savedAt   || ''
     };
   });
