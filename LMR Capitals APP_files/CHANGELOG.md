@@ -2,6 +2,19 @@
 
 All notable changes to the LMR Capitals trading journal app are documented here.
 
+## [Unreleased] — 2026-06-10
+
+### Added — Multi-Channel Discord Routing + Image Sharing
+- Settings → Integrations → Discord Webhook now supports **4 separate webhook URLs**, one per Discord channel:
+  - **Main** (`#lmr-captials`) — AI Reports, AI Performance Reviews, Performance stats, Monthly Analysis, and negative pattern alerts. Also the fallback for any channel left blank.
+  - **Weekly** (`#lmr-weekly-profiling`) — Weekly Analysis shares.
+  - **Daily** (`#lmr-daily-profile`) — Daily recap shares.
+  - **Trades / Executions** (`#lmr-executions`) — new-trade-logged notifications.
+- Each channel has its own "Test ..." button (Test Main / Test Weekly / Test Daily / Test Trades) to verify the webhook independently.
+- New `_discordWebhookUrl(category)` resolves the right webhook per category with automatic fallback to Main if a category-specific URL isn't set — existing single-webhook setups keep working unchanged.
+- **Image sharing**: `sendDiscordMessage()` now supports attaching images via Discord's multipart webhook upload (`opts.images`/`opts.image`). Sharing a Daily, Weekly, or Monthly entry to Discord now automatically attaches any chart screenshots already saved for that day/week/month (e.g. Today's Summary, Weekly Profile, Daily Profile, Monthly Result charts) — up to 3 images per share, via new `_shareImageBlobs()` helper.
+- New trade-logged notifications now route to the Trades/Executions webhook by default.
+
 ## [Deployed] — 2026-06-10 (latest)
 
 - Deployed commit `539dbf44` (Professional Landing Page) to production via `netlify deploy --prod`.

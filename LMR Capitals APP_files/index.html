@@ -2910,9 +2910,21 @@ Midnight Open $______"></textarea>
       Discord Webhook
     </div>
     <div class="form-row" style="margin-bottom:8px">
-      <label class="form-label">Webhook URL</label>
+      <label class="form-label">Webhook URL — Main <span style="color:var(--text3);font-weight:400">(#lmr-captials)</span></label>
       <input type="password" id="discord-webhook-url" class="form-input" placeholder="https://discord.com/api/webhooks/..." onchange="saveIntegrationSettings()">
-      <div style="font-size:10px;color:var(--text3);margin-top:4px">Create one in Discord: Server Settings → Integrations → Webhooks → New Webhook → Copy URL</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:4px">Create one in Discord: Server Settings → Integrations → Webhooks → New Webhook → Copy URL. Used for AI reports, performance reviews &amp; pattern alerts — and as the fallback for any channel below that's left blank.</div>
+    </div>
+    <div class="form-row" style="margin-bottom:8px">
+      <label class="form-label">Webhook URL — Weekly <span style="color:var(--text3);font-weight:400">(#lmr-weekly-profiling)</span></label>
+      <input type="password" id="discord-webhook-url-weekly" class="form-input" placeholder="Optional — leave blank to use Main" onchange="saveIntegrationSettings()">
+    </div>
+    <div class="form-row" style="margin-bottom:8px">
+      <label class="form-label">Webhook URL — Daily <span style="color:var(--text3);font-weight:400">(#lmr-daily-profile)</span></label>
+      <input type="password" id="discord-webhook-url-daily" class="form-input" placeholder="Optional — leave blank to use Main" onchange="saveIntegrationSettings()">
+    </div>
+    <div class="form-row" style="margin-bottom:8px">
+      <label class="form-label">Webhook URL — Trades / Executions <span style="color:var(--text3);font-weight:400">(#lmr-executions)</span></label>
+      <input type="password" id="discord-webhook-url-trades" class="form-input" placeholder="Optional — leave blank to use Main" onchange="saveIntegrationSettings()">
     </div>
     <div class="form-row" style="margin-bottom:8px">
       <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer">
@@ -2932,10 +2944,13 @@ Midnight Open $______"></textarea>
         Post negative pattern alerts
       </label>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
-      <button class="btn btn-sm btn-primary" onclick="testDiscordWebhook()">Send Test Message</button>
-      <span id="discord-test-status" style="font-size:11px;color:var(--text2)"></span>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-primary" onclick="testDiscordWebhook('main')">Test Main</button>
+      <button class="btn btn-sm btn-primary" onclick="testDiscordWebhook('weekly')">Test Weekly</button>
+      <button class="btn btn-sm btn-primary" onclick="testDiscordWebhook('daily')">Test Daily</button>
+      <button class="btn btn-sm btn-primary" onclick="testDiscordWebhook('trades')">Test Trades</button>
     </div>
+    <div id="discord-test-status" style="font-size:11px;color:var(--text2);margin-bottom:4px"></div>
 
     <hr class="div">
     <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px">
@@ -5981,7 +5996,7 @@ function saveTrade(){
         {name:'Date',value:t.date||'—',inline:true}
       ],
       timestamp:new Date().toISOString()
-    });
+    },{category:'trades'});
   }
   sbSyncRecord('trades',_mapTrade(t,_sbUserId)); // instant cloud sync
   // If this was a new trade, move any images saved under the temp "new-<ts>" key to the real id
@@ -7927,26 +7942,66 @@ function integrationSettings(){
   state.profile=state.profile||{};
   if(!state.profile.integrations) state.profile.integrations={};
   const ig=state.profile.integrations;
-  if(!ig.discord) ig.discord={webhookUrl:'',aiReports:true,tradeLogged:false,patternAlerts:true};
+  if(!ig.discord) ig.discord={webhookUrl:'',webhookUrlWeekly:'',webhookUrlDaily:'',webhookUrlTrades:'',aiReports:true,tradeLogged:false,patternAlerts:true};
   if(ig.discord.aiReports===undefined) ig.discord.aiReports=true;
   if(ig.discord.tradeLogged===undefined) ig.discord.tradeLogged=false;
   if(ig.discord.patternAlerts===undefined) ig.discord.patternAlerts=true;
+  if(ig.discord.webhookUrlWeekly===undefined) ig.discord.webhookUrlWeekly='';
+  if(ig.discord.webhookUrlDaily===undefined) ig.discord.webhookUrlDaily='';
+  if(ig.discord.webhookUrlTrades===undefined) ig.discord.webhookUrlTrades='';
   if(!ig.tradovate) ig.tradovate={env:'demo',username:'',password:'',cid:'',sec:'',accessToken:'',accountId:'',lastSync:''};
   return ig;
 }
 
+// Resolve which webhook URL to use for a given content category, falling back to the main
+// (#lmr-captials) webhook if a category-specific one isn't configured.
+// category: 'weekly' | 'daily' | 'trades' | undefined/'main'
+function _discordWebhookUrl(category){
+  const d=integrationSettings().discord||{};
+  const map={weekly:d.webhookUrlWeekly,daily:d.webhookUrlDaily,trades:d.webhookUrlTrades};
+  return (category&&map[category])||d.webhookUrl||'';
+}
+
 // Send a message to the configured Discord webhook. `embed` is a Discord embed object (optional).
-async function sendDiscordMessage(content,embed){
-  const ig=integrationSettings();
-  const url=ig.discord?.webhookUrl;
+// `opts.category` routes to a specific channel's webhook (see _discordWebhookUrl).
+// `opts.images` is an optional array of {blob,filename} attached as files (multipart upload).
+async function sendDiscordMessage(content,embed,opts){
+  opts=opts||{};
+  const url=_discordWebhookUrl(opts.category);
   if(!url) return false;
   try{
     const body={};
     if(content) body.content=content;
     if(embed) body.embeds=[embed];
+    const images=opts.images||(opts.image?[opts.image]:[]);
+    if(images.length){
+      const form=new FormData();
+      form.append('payload_json',JSON.stringify(body));
+      images.forEach((img,i)=>{ if(img&&img.blob) form.append(`files[${i}]`,img.blob,img.filename||`image${i}.png`); });
+      const res=await fetch(url,{method:'POST',body:form});
+      return res.ok;
+    }
     const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     return res.ok;
   }catch(e){ console.warn('[LMR] Discord webhook failed:',e); return false; }
+}
+
+// Look up stored chart screenshots by IndexedDB/Supabase image key and return up to `max`
+// {blob,filename} pairs suitable for attaching to a Discord message. Skips keys with no image.
+async function _shareImageBlobs(keys,max){
+  max=max||3;
+  const out=[];
+  for(const k of keys){
+    if(out.length>=max) break;
+    try{
+      const blob=await getImg(k);
+      if(blob&&blob.size){
+        const ext=(blob.type||'').includes('png')?'png':'jpg';
+        out.push({blob,filename:k.replace(/[^a-z0-9]+/gi,'_')+'.'+ext});
+      }
+    }catch(e){}
+  }
+  return out;
 }
 
 // ── SHARE TO DISCORD / X ────────────────────────────────────────────────────
@@ -7963,17 +8018,19 @@ function _stripMd(s){
 
 // Share `text` (with optional `title`) to Discord (as a rich embed, posted automatically via the
 // configured webhook) or to X (opens a pre-filled compose window — user posts manually).
-async function shareContent(platform,title,text,color){
+// `opts.category` routes to a specific channel ('weekly'|'daily'|'trades'|main if omitted).
+// `opts.images` is an optional array of {blob,filename} chart screenshots to attach.
+async function shareContent(platform,title,text,color,opts){
+  opts=opts||{};
   const body=_stripMd(text);
   if(platform==='discord'){
-    const ig=integrationSettings();
-    if(!ig.discord?.webhookUrl){ flash('⚠ Set up a Discord webhook in Settings → Integrations first'); return; }
+    if(!_discordWebhookUrl(opts.category)){ flash('⚠ Set up a Discord webhook in Settings → Integrations first'); return; }
     const ok=await sendDiscordMessage(null,{
       title: title?('📤 '+title):undefined,
       description: body.length>3800?body.slice(0,3800)+'…':body,
       color: color||0xF5A623,
       timestamp:new Date().toISOString()
-    });
+    },{category:opts.category,images:opts.images});
     flash(ok?'✓ Shared to Discord':'✗ Discord share failed — check the webhook URL');
   }else if(platform==='x'){
     const full=title?`${title}\n\n${body}`:body;
@@ -7994,17 +8051,28 @@ function shareButtonsHTML(fn,args){
   </span>`;
 }
 
-async function testDiscordWebhook(){
+// Send a test embed to one of the configured webhooks. `category` selects which input/channel
+// to test: 'main' (#lmr-captials), 'weekly' (#lmr-weekly-profiling), 'daily' (#lmr-daily-profile),
+// or 'trades' (#lmr-executions). Falls back to the Main URL if a category-specific one is empty.
+async function testDiscordWebhook(category){
+  category=category||'main';
   const status=document.getElementById('discord-test-status');
-  const url=document.getElementById('discord-webhook-url')?.value?.trim();
+  const idMap={main:'discord-webhook-url',weekly:'discord-webhook-url-weekly',daily:'discord-webhook-url-daily',trades:'discord-webhook-url-trades'};
+  let url=document.getElementById(idMap[category]||'discord-webhook-url')?.value?.trim();
+  if(!url&&category!=='main') url=document.getElementById('discord-webhook-url')?.value?.trim();
   if(!url){ if(status){status.textContent='Enter a webhook URL first';status.style.color='var(--bear)';} return; }
   if(status){status.textContent='Sending…';status.style.color='var(--text2)';}
-  const ok=await sendDiscordMessage(null,{
-    title:'✅ LMR Capitals connected',
-    description:"This Discord channel is now linked to your trading journal. You'll receive updates here based on the toggles above.",
-    color:0xF5A623,
-    timestamp:new Date().toISOString()
-  });
+  const labels={main:'Main · #lmr-captials',weekly:'Weekly · #lmr-weekly-profiling',daily:'Daily · #lmr-daily-profile',trades:'Trades · #lmr-executions'};
+  let ok=false;
+  try{
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({embeds:[{
+      title:'✅ LMR Capitals connected',
+      description:`This Discord channel is now linked as your **${labels[category]||labels.main}** channel. You'll receive updates here based on the toggles above.`,
+      color:0xF5A623,
+      timestamp:new Date().toISOString()
+    }]})});
+    ok=res.ok;
+  }catch(e){ ok=false; }
   if(status){
     status.textContent=ok?'✓ Test message sent — check Discord':'✗ Failed — check the webhook URL';
     status.style.color=ok?'var(--bull)':'var(--bear)';
@@ -8014,6 +8082,9 @@ async function testDiscordWebhook(){
 function saveIntegrationSettings(){
   const ig=integrationSettings();
   const u=document.getElementById('discord-webhook-url'); if(u) ig.discord.webhookUrl=u.value.trim();
+  const uw=document.getElementById('discord-webhook-url-weekly'); if(uw) ig.discord.webhookUrlWeekly=uw.value.trim();
+  const ud=document.getElementById('discord-webhook-url-daily'); if(ud) ig.discord.webhookUrlDaily=ud.value.trim();
+  const ut=document.getElementById('discord-webhook-url-trades'); if(ut) ig.discord.webhookUrlTrades=ut.value.trim();
   const a=document.getElementById('discord-ai-reports'); if(a) ig.discord.aiReports=a.checked;
   const t=document.getElementById('discord-trade-logged'); if(t) ig.discord.tradeLogged=t.checked;
   const p=document.getElementById('discord-pattern-alerts'); if(p) ig.discord.patternAlerts=p.checked;
@@ -8030,6 +8101,9 @@ function saveIntegrationSettings(){
 function renderIntegrationSettings(){
   const ig=integrationSettings();
   const u=document.getElementById('discord-webhook-url'); if(u) u.value=ig.discord.webhookUrl||'';
+  const uw=document.getElementById('discord-webhook-url-weekly'); if(uw) uw.value=ig.discord.webhookUrlWeekly||'';
+  const ud=document.getElementById('discord-webhook-url-daily'); if(ud) ud.value=ig.discord.webhookUrlDaily||'';
+  const ut=document.getElementById('discord-webhook-url-trades'); if(ut) ut.value=ig.discord.webhookUrlTrades||'';
   const a=document.getElementById('discord-ai-reports'); if(a) a.checked=ig.discord.aiReports!==false;
   const t=document.getElementById('discord-trade-logged'); if(t) t.checked=!!ig.discord.tradeLogged;
   const p=document.getElementById('discord-pattern-alerts'); if(p) p.checked=ig.discord.patternAlerts!==false;
@@ -9998,7 +10072,7 @@ function sharePerformance(platform){
   shareContent(platform,'📊 My Trading Performance',_perfStatsLine(),0x00D4A4);
 }
 
-function shareDailyEntry(date,platform){
+async function shareDailyEntry(date,platform){
   const x=state.daily[date]||{};
   const dayTrades=state.trades.filter(t=>(t.date||'').slice(0,10)===date);
   const pnl=dayTrades.reduce((s,t)=>s+(t.pnl||0),0);
@@ -10011,10 +10085,11 @@ function shareDailyEntry(date,platform){
   if(x.htfpoi) text+=`HTF POI: ${x.htfpoi}\n`;
   if(x.london) text+=`London: ${x.london}${x.ny?` · NY: ${x.ny}`:''}\n`;
   if(x.plan) text+=`Plan: ${x.plan}${x.pred?` · Prediction: ${x.pred}`:''}\n`;
-  shareContent(platform,'📅 Daily Trading Recap',text,0xF5A623);
+  const images=await _shareImageBlobs([`${date}-dm-summary`,`${date}-dm-daily`,`${date}-dm-4h1h`,`${date}-dm-15m`,`${date}-dm-im`]);
+  shareContent(platform,'📅 Daily Trading Recap',text,0xF5A623,{category:'daily',images});
 }
 
-function shareWeekly(platform){
+async function shareWeekly(platform){
   const key=`${state.currentMonth}-W${state.currentWeek}`;
   const data=state.weekly[key]||{};
   const pnl=computeWeekPnl(key);
@@ -10027,10 +10102,11 @@ function shareWeekly(platform){
   if(data['w-phase']) text+=`Phase: ${data['w-phase']}\n`;
   if(data['w-range']) text+=`Range Behaviour: ${data['w-range']}\n`;
   if(data['w-pd']) text+=`P/D Arrays: ${data['w-pd']}\n`;
-  shareContent(platform,'📅 Weekly Analysis',text,0xF5A623);
+  const images=await _shareImageBlobs([`${key}-w-wprof`,`${key}-w-dprof`,`${key}-w-smt`,`${key}-w-4h`,`${key}-w-1h`]);
+  shareContent(platform,'📅 Weekly Analysis',text,0xF5A623,{category:'weekly',images});
 }
 
-function shareMonthly(platform){
+async function shareMonthly(platform){
   const key=state.currentMonth;
   const data=state.monthly[key]||{};
   const pnl=computeMonthPnl(key);
@@ -10041,7 +10117,8 @@ function shareMonthly(platform){
   if(data['m-seasonal']) text+=`Seasonal: ${data['m-seasonal']}\n`;
   if(data['m-pred']) text+=`Prediction: ${data['m-pred']}\n`;
   if(data['m-keylevels']) text+=`Key Levels: ${data['m-keylevels']}\n`;
-  shareContent(platform,'📈 Monthly Analysis',text,0x00D4A4);
+  const images=await _shareImageBlobs([`${key}-m-result`,`${key}-m-proj`,`${key}-m-profile-img`,`${key}-m-qshift-img`]);
+  shareContent(platform,'📈 Monthly Analysis',text,0x00D4A4,{images});
 }
 
 // ── TRADE AUTO-ANALYSIS ────────────────────────────────────────────────────
