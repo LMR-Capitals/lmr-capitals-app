@@ -772,11 +772,15 @@ button{font-family:'Plus Jakarta Sans',sans-serif}
 .canvas-status.saving{color:var(--gold)}
 .canvas-status.saved{color:var(--bull)}
 
-.obs-item{padding:8px 10px;border-radius:7px;cursor:pointer;font-size:12px;border:1px solid transparent;margin-bottom:2px;transition:background .1s}
-.obs-item:hover{background:rgba(245,166,35,.06)}
-.obs-item.active{background:rgba(245,166,35,.08);border-color:rgba(245,166,35,.3)}
-.obs-item-title{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
-.obs-item-date{font-size:9px;color:var(--text3);margin-top:2px}
+.obs-img-grid{display:grid;grid-template-columns:1fr;gap:10px}
+.obs-img-grid>*{min-width:0}
+.obs-img-grid img{max-width:100%;height:auto;display:block;border-radius:8px;object-fit:cover}
+.obs-img-grid p:not(:has(img)){grid-column:1/-1;margin:0 0 8px}
+.obs-post{padding-top:16px;margin-top:16px;border-top:1px solid var(--border);cursor:pointer;transition:opacity .15s}
+.obs-post:hover{opacity:.8}
+.obs-post-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;gap:10px}
+.obs-post-title{font-weight:700;font-size:14px;color:var(--text)}
+.obs-post-date{font-size:10px;color:var(--text3);white-space:nowrap}
 
 /* ── LMR COLUMNS ── */
 .lmr-cols{display:grid;gap:12px;margin:10px 0;min-height:60px}
@@ -2732,39 +2736,39 @@ Midnight Open $______"></textarea>
 <!-- Settings moved to side panel -->
 <!-- ── LMR OBSERVATION (journal — newest first) ── -->
 <div class="panel" id="p-observation">
-<div style="height:100%;display:flex">
+<div style="height:100%;overflow-y:auto;padding:20px 24px 60px">
 
-  <!-- Entry list -->
-  <div style="width:230px;min-width:230px;border-right:1px solid var(--border);background:var(--bg2);display:flex;flex-direction:column;overflow:hidden">
-    <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
-      <div style="font-size:13px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:6px">
-        LMR Observation
-        <span style="display:inline-flex;width:15px;height:15px;border-radius:50%;border:1px solid var(--border3);color:var(--text3);font-size:10px;font-weight:700;align-items:center;justify-content:center;cursor:help;flex-shrink:0" title="A running journal of market observations — setups, confluences, pre/post-session notes. Saved to your LMR Observations database, newest entry first. Use the share icons to post an entry to Discord or X.">i</span>
-      </div>
-      <button class="btn btn-primary btn-sm" onclick="obsNewEntry()" style="margin-left:auto;padding:3px 8px;font-size:11px">+ New</button>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+    <div style="font-size:18px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:6px">
+      LMR Observation
+      <span style="display:inline-flex;width:15px;height:15px;border-radius:50%;border:1px solid var(--border3);color:var(--text3);font-size:10px;font-weight:700;align-items:center;justify-content:center;cursor:help;flex-shrink:0" title="A running journal of market observations — setups, confluences, pre/post-session notes. Each saved entry becomes a post below, newest first. Use the share icons to post an entry to Discord or X.">i</span>
     </div>
-    <div id="obs-list" style="flex:1;overflow-y:auto;padding:8px"></div>
+    <button class="btn btn-primary btn-sm" onclick="obsNewEntry()" style="margin-left:auto">+ New</button>
   </div>
 
-  <!-- Editor -->
-  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
-    <div style="padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <input id="obs-title-input" placeholder="Untitled observation…" oninput="obsAutoSave()" style="flex:1;min-width:160px;background:none;border:none;font-size:16px;font-weight:800;color:var(--text);padding:4px 0;outline:none">
-      <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
-        <span class="canvas-status" id="observation-status" style="font-size:10px;color:var(--text3)">Auto-saves</span>
-        <span id="obs-share-btns"></span>
-        <button class="btn btn-sm" onclick="obsDeleteEntry()" style="color:var(--bear);border-color:rgba(255,64,96,.25)" title="Delete this observation">✗</button>
-        <button class="btn btn-primary btn-sm" onclick="obsSaveEntry()" style="display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save</button>
+  <!-- Current entry editor -->
+  <div class="card">
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+        <input id="obs-title-input" placeholder="Heading…" oninput="obsAutoSave()" style="flex:1;min-width:160px;background:none;border:none;font-size:18px;font-weight:800;color:var(--text);padding:4px 0;outline:none">
+        <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+          <span class="canvas-status" id="observation-status" style="font-size:10px;color:var(--text3)">Auto-saves</span>
+          <span id="obs-share-btns"></span>
+          <button class="btn btn-sm" onclick="obsDeleteEntry()" style="color:var(--bear);border-color:rgba(255,64,96,.25)" title="Delete this observation">✗</button>
+          <button class="btn btn-primary btn-sm" onclick="obsSaveEntry()" style="display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save</button>
+        </div>
       </div>
-    </div>
-    <div style="flex:1;overflow-y:auto;padding:20px">
       <div id="observation-content"
+           class="obs-img-grid"
            contenteditable="true"
            spellcheck="false"
-           data-placeholder="Write your market observations…&#10;&#10;Pre-session notes, setups spotted, confluences, post-trade analysis."
-           style="min-height:500px;color:var(--text);font-size:14px;line-height:1.8;outline:none;padding-bottom:100px"
+           data-placeholder="Write your market observations and paste chart images…&#10;&#10;2 images become 2 columns, 3 become 3, and so on."
+           style="min-height:120px;color:var(--text);font-size:14px;line-height:1.8;outline:none"
            oninput="obsAutoSave()"
       ></div>
+
+      <!-- Previous posts (newest first), embedded in the same card -->
+      <div id="obs-feed"></div>
     </div>
   </div>
 </div>
@@ -7857,6 +7861,13 @@ let _obsSaveTimer = null;
 function getObsEntriesCache(){ return JSON.parse(localStorage.getItem('lmr_obs_entries_v2')||'[]'); }
 function saveObsEntriesCache(entries){ localStorage.setItem('lmr_obs_entries_v2',JSON.stringify(entries)); }
 
+// Number of images in a post sets its column count (1, 2, 3, 4… capped at 4)
+function applyObsGrid(el){
+  if(!el) return;
+  const n=el.querySelectorAll('img').length;
+  el.style.gridTemplateColumns=`repeat(${Math.max(1,Math.min(n,4))},1fr)`;
+}
+
 async function loadObservations(){
   let entries=[];
   if(_sb&&_sbUserId){
@@ -7868,20 +7879,24 @@ async function loadObservations(){
   if(!entries.length) entries=getObsEntriesCache();
   _obsEntries=entries;
   saveObsEntriesCache(entries);
-  renderObsList();
   if(entries.length) openObsEntry(entries[0].id);
   else await obsNewEntry();
 }
 
-function renderObsList(){
-  const el=document.getElementById('obs-list');
+function renderObsFeed(){
+  const el=document.getElementById('obs-feed');
   if(!el) return;
-  if(!_obsEntries.length){ el.innerHTML='<div style="font-size:11px;color:var(--text3);padding:8px 4px;text-align:center">No observations yet</div>'; return; }
-  el.innerHTML=_obsEntries.map(e=>`
-    <div class="obs-item${e.id===_obsCurrentId?' active':''}" onclick="openObsEntry('${e.id}')" id="oeli-${e.id}">
-      <div class="obs-item-title">${e.title||'Untitled Observation'}</div>
-      <div class="obs-item-date">${e.created_at?new Date(e.created_at).toLocaleString():''}</div>
+  const posts=_obsEntries.filter(e=>e.id!==_obsCurrentId);
+  if(!posts.length){ el.innerHTML=''; return; }
+  el.innerHTML=posts.map(e=>`
+    <div class="obs-post" onclick="openObsEntry('${e.id}')" id="oeli-${e.id}">
+      <div class="obs-post-head">
+        <div class="obs-post-title">${e.title||'Untitled Observation'}</div>
+        <div class="obs-post-date">${e.created_at?new Date(e.created_at).toLocaleString():''}</div>
+      </div>
+      <div class="obs-img-grid">${e.content||''}</div>
     </div>`).join('');
+  el.querySelectorAll('.obs-img-grid').forEach(applyObsGrid);
 }
 
 async function obsNewEntry(){
@@ -7892,7 +7907,6 @@ async function obsNewEntry(){
   if(_sb&&_sbUserId){
     try{ await _sb.from('lmr_observations').insert({id:entry.id,user_id:_sbUserId,title:'',content:'',created_at:now,updated_at:now}); }catch(e){}
   }
-  renderObsList();
   openObsEntry(entry.id);
 }
 
@@ -7903,14 +7917,15 @@ function openObsEntry(id){
   const titleEl=document.getElementById('obs-title-input');
   const bodyEl=document.getElementById('observation-content');
   if(titleEl) titleEl.value=entry.title||'';
-  if(bodyEl) bodyEl.innerHTML=entry.content||'';
-  document.querySelectorAll('.obs-item').forEach(el=>el.classList.toggle('active',el.id==='oeli-'+id));
+  if(bodyEl){ bodyEl.innerHTML=entry.content||''; applyObsGrid(bodyEl); }
+  renderObsFeed();
   const shareEl=document.getElementById('obs-share-btns');
   if(shareEl) shareEl.innerHTML=shareButtonsHTML('shareObservation');
   setStatus('observation-status','Auto-saves','');
 }
 
 function obsAutoSave(){
+  applyObsGrid(document.getElementById('observation-content'));
   clearTimeout(_obsSaveTimer);
   _obsSaveTimer=setTimeout(obsSaveEntry,1500);
 }
@@ -7925,10 +7940,6 @@ async function obsSaveEntry(){
   const idx=_obsEntries.findIndex(e=>e.id===_obsCurrentId);
   if(idx>=0){ _obsEntries[idx]={..._obsEntries[idx],title,content,updated_at}; }
   saveObsEntriesCache(_obsEntries);
-
-  // Title is the only field shown in the list — update it in place without a full re-render
-  const titleNode=document.querySelector('#oeli-'+_obsCurrentId+' .obs-item-title');
-  if(titleNode) titleNode.textContent=title||'Untitled Observation';
 
   if(_sb&&_sbUserId){
     try{
@@ -7950,7 +7961,6 @@ async function obsDeleteEntry(){
   if(_sb&&_sbUserId){
     try{ await _sb.from('lmr_observations').delete().eq('id',id).eq('user_id',_sbUserId); }catch(e){}
   }
-  renderObsList();
   if(_obsEntries.length) openObsEntry(_obsEntries[0].id); else await obsNewEntry();
 }
 
