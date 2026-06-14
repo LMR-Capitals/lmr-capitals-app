@@ -7964,11 +7964,30 @@ async function obsDeleteEntry(){
   if(_obsEntries.length) openObsEntry(_obsEntries[0].id); else await obsNewEntry();
 }
 
+// Convert <img> tags inside an element to {blob,filename} pairs for Discord file attachments.
+async function _obsImagesToBlobs(el,max){
+  max=max||3;
+  const out=[];
+  if(!el) return out;
+  const imgs=el.querySelectorAll('img');
+  for(let i=0;i<imgs.length&&out.length<max;i++){
+    try{
+      const res=await fetch(imgs[i].src);
+      const blob=await res.blob();
+      const ext=(blob.type||'').includes('png')?'png':'jpg';
+      out.push({blob,filename:`observation${i+1}.${ext}`});
+    }catch(e){}
+  }
+  return out;
+}
+
 // Share an observation entry to Discord (Observations webhook, falls back to Main) or X (compose intent)
-function shareObservation(platform){
+async function shareObservation(platform){
   const title=document.getElementById('obs-title-input')?.value||'Observation';
-  const body=document.getElementById('observation-content')?.innerText||'';
-  shareContent(platform,title,body,0xF5A623,{category:'observations'});
+  const contentEl=document.getElementById('observation-content');
+  const body=contentEl?.innerText||'';
+  const images=platform==='discord'?await _obsImagesToBlobs(contentEl):[];
+  shareContent(platform,title,body,0xF5A623,{category:'observations',images});
 }
 
 function setStatus(id,text,cls){
