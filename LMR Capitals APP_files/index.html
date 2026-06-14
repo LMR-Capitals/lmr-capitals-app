@@ -2765,6 +2765,7 @@ Midnight Open $______"></textarea>
            data-placeholder="Write your market observations and paste chart images…&#10;&#10;2 images become 2 columns, 3 become 3, and so on."
            style="min-height:120px;color:var(--text);font-size:14px;line-height:1.8;outline:none"
            oninput="obsAutoSave()"
+           onpaste="obsHandlePaste(event)"
       ></div>
 
       <!-- Previous posts (newest first), embedded in the same card -->
@@ -7860,6 +7861,44 @@ let _obsSaveTimer = null;
 
 function getObsEntriesCache(){ return JSON.parse(localStorage.getItem('lmr_obs_entries_v2')||'[]'); }
 function saveObsEntriesCache(entries){ localStorage.setItem('lmr_obs_entries_v2',JSON.stringify(entries)); }
+
+// Pasted screenshots arrive as raw clipboard image data — compress them and embed as a
+// self-contained data URL (like trade screenshots) instead of leaving an external image
+// URL, which the Discord/X share can't fetch due to cross-origin restrictions.
+function obsHandlePaste(e){
+  const items=e.clipboardData?.items;
+  if(!items) return;
+  const item=[...items].find(it=>it.type&&it.type.startsWith('image/'));
+  if(!item) return;
+  const file=item.getAsFile();
+  if(!file) return;
+  e.preventDefault();
+  const contentEl=document.getElementById('observation-content');
+  const sel=window.getSelection();
+  let range=null;
+  if(sel&&sel.rangeCount&&contentEl.contains(sel.getRangeAt(0).commonAncestorContainer)){
+    range=sel.getRangeAt(0).cloneRange();
+  }
+  compress(file,1600,0.85).then(blob=>{
+    const reader=new FileReader();
+    reader.onload=()=>{
+      contentEl.focus();
+      const sel2=window.getSelection();
+      sel2.removeAllRanges();
+      if(range){
+        sel2.addRange(range);
+      }else{
+        const r=document.createRange();
+        r.selectNodeContents(contentEl);
+        r.collapse(false);
+        sel2.addRange(r);
+      }
+      document.execCommand('insertHTML',false,`<p><img src="${reader.result}"></p>`);
+      obsAutoSave();
+    };
+    reader.readAsDataURL(blob);
+  });
+}
 
 // Number of images in a post sets its column count (1, 2, 3, 4… capped at 4)
 function applyObsGrid(el){
