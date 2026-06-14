@@ -7986,7 +7986,7 @@ async function shareObservation(platform){
   const title=document.getElementById('obs-title-input')?.value||'Observation';
   const contentEl=document.getElementById('observation-content');
   const body=contentEl?.innerText||'';
-  const images=platform==='discord'?await _obsImagesToBlobs(contentEl):[];
+  const images=await _obsImagesToBlobs(contentEl,platform==='x'?1:3);
   shareContent(platform,title,body,0xF5A623,{category:'observations',images});
 }
 
@@ -8328,6 +8328,14 @@ async function shareContent(platform,title,text,color,opts){
   }else if(platform==='x'){
     const full=title?`${title}\n\n${body}`:body;
     const tweet=full.length>270?full.slice(0,267)+'…':full;
+    // X's compose intent can't attach images via URL — copy the first image to the
+    // clipboard instead so the user can paste it (Ctrl/Cmd+V) into the tweet box.
+    if(opts.images&&opts.images.length&&navigator.clipboard&&window.ClipboardItem){
+      try{
+        await navigator.clipboard.write([new ClipboardItem({[opts.images[0].blob.type]:opts.images[0].blob})]);
+        flash('✓ Image copied — paste it (Ctrl/Cmd+V) into the tweet');
+      }catch(e){}
+    }
     window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(tweet),'_blank');
   }
 }
