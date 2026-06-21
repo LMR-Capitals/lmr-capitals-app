@@ -937,6 +937,16 @@ button{font-family:'Inter',sans-serif}
 .po-step.done::before,.po-step.active::before{background:var(--bull)}
 .po-step .po-dot,.po-step .l{position:relative;z-index:1}
 .po-review-meta{min-width:200px;text-align:right;flex:1}
+/* Transactions: Funded Profit vs Withdrawal Profit */
+.tx-profit-strip{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.tx-profit-tile{background:linear-gradient(145deg,#0B1220,#080D18);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px}
+.tx-profit-tile.funded{border-top:2px solid var(--bull)}
+.tx-profit-tile.withdrawn{border-top:2px solid var(--gold)}
+.tx-profit-l{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:6px}
+.tx-profit-v{font-size:28px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:-.03em;margin-top:4px;font-variant-numeric:tabular-nums;line-height:1}
+.tx-profit-c{font-size:10px;color:var(--text3);margin-top:5px}
+.tx-info{display:inline-flex;width:14px;height:14px;border-radius:50%;border:1px solid var(--border3);color:var(--text3);font-size:9px;font-weight:700;align-items:center;justify-content:center;cursor:help;flex-shrink:0}
+@media(max-width:560px){.tx-profit-strip{grid-template-columns:1fr}}
 .po-block{background:rgba(255,64,96,.08);border:1px solid rgba(255,64,96,.3);border-radius:var(--r);padding:10px 12px;font-size:11px;color:var(--bear);line-height:1.6}
 .po-req-ready{background:linear-gradient(135deg,var(--bull),#00A884);color:#04140F;border:none;font-weight:800;box-shadow:0 4px 18px var(--bull-glow)}
 .po-req-ready:hover{background:linear-gradient(135deg,#1ee3b6,var(--bull))}
@@ -2911,6 +2921,20 @@ Midnight Open $______"></textarea>
 <!-- TRANSACTIONS -->
 <div class="panel" id="p-trans">
 <div class="panel-inner">
+
+  <!-- Total P&L breakdown: real trading profit vs. real money withdrawn -->
+  <div class="tx-profit-strip">
+    <div class="tx-profit-tile funded">
+      <div class="tx-profit-l">Funded Profit <span class="tx-info" title="Real profit you made from your trades journal (gross trading P&L, before any withdrawals).">i</span></div>
+      <div class="tx-profit-v txt-pos" id="tx-funded-profit">$0</div>
+      <div class="tx-profit-c">Real profit from your trades journal</div>
+    </div>
+    <div class="tx-profit-tile withdrawn">
+      <div class="tx-profit-l">Withdrawal Profit <span class="tx-info" title="Real money you actually withdrew — after the 10% fee deduction. This is what reached your pocket.">i</span></div>
+      <div class="tx-profit-v" id="tx-wdl-profit" style="color:var(--gold2)">$0</div>
+      <div class="tx-profit-c">Withdrawn — after 10% deduction</div>
+    </div>
+  </div>
 
   <!-- 4 summary tiles -->
   <div class="sum-strip" id="transSummary">
@@ -7430,6 +7454,12 @@ function renderTransSummary(){
   el('tx-pay-c',byType('Payout').length+' payouts');
   el('tx-fee','$'+sum('Fee').toFixed(0));
   el('tx-fee-c',byType('Fee').length+' fees');
+  // Funded Profit = real trading P&L (from trades journal); Withdrawal Profit = net money withdrawn (after 10%)
+  const fundedProfit=state.trades.reduce((s,t)=>s+(parseFloat(t.pnl)||0),0);
+  const withdrawnNet=txs.filter(x=>x.type==='Withdrawal'||x.type==='Payout').reduce((s,x)=>s+Math.abs(parseFloat(x.amount)||0),0);
+  el('tx-funded-profit',(fundedProfit>=0?'+$':'−$')+Math.abs(fundedProfit).toFixed(0));
+  const fp=document.getElementById('tx-funded-profit'); if(fp)fp.style.color=fundedProfit>=0?'var(--bull)':'var(--bear)';
+  el('tx-wdl-profit','$'+withdrawnNet.toFixed(0));
 }
 
 // ============= NOTES =============
@@ -9925,6 +9955,12 @@ function renderPayoutModule(){
     <div class="po-stat"><div class="l">Daily Loss Limit</div><div class="v">${(acc.rules&&acc.rules.dll)?'$'+Number(acc.rules.dll).toLocaleString():'None'}</div><div class="c">Select Flex: none</div></div>
     <div class="po-stat"><div class="l">Total Profit Since Last Payout</div><div class="v ${cycleProfit>=0?'txt-pos':'txt-neg'}">${cycleProfit>=0?'+':''}$${Math.abs(cycleProfit).toFixed(0)}</div><div class="c">${s.lastPaid?('since '+s.lastPaid):'all-time'}</div></div>
     <div class="po-stat" style="display:flex;align-items:center;gap:12px"><div>${_ring(daysOff,daysPct>=100?'var(--bull)':'var(--gold)')}</div><div><div class="l">Trading Days</div><div class="v">${s.tradingDays}<span style="font-size:13px;color:var(--text3)"> / ${s.minWinDays}</span></div></div></div>
+  </div>
+
+  <!-- Funded Profit vs Withdrawal Profit (this account) -->
+  <div class="tx-profit-strip">
+    <div class="tx-profit-tile funded"><div class="tx-profit-l">Funded Profit</div><div class="tx-profit-v ${s.totalPnl>=0?'txt-pos':'txt-neg'}">${s.totalPnl>=0?'+$':'−$'}${Math.abs(s.totalPnl).toFixed(0)}</div><div class="tx-profit-c">Real trading P&amp;L on this account</div></div>
+    <div class="tx-profit-tile withdrawn"><div class="tx-profit-l">Withdrawal Profit</div><div class="tx-profit-v" style="color:var(--gold2)">$${state.transactions.filter(t=>String(t.accountId)===String(acc.id)&&(t.type==='Withdrawal'||t.type==='Payout')).reduce((a,t)=>a+Math.abs(parseFloat(t.amount)||0),0).toFixed(0)}</div><div class="tx-profit-c">Withdrawn — after 10% deduction</div></div>
   </div>
 
   <!-- 4. Payout Objectives -->
