@@ -915,9 +915,28 @@ button{font-family:'Inter',sans-serif}
 .po-stat .v{font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:-.03em;margin-top:3px;color:var(--text);font-variant-numeric:tabular-nums}
 .po-stat .c{font-size:9px;color:var(--text3);margin-top:3px;font-family:'JetBrains Mono',monospace}
 .po-status{font-size:9px;font-weight:700;padding:3px 9px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
-.po-status.paid{background:rgba(0,212,164,.14);color:var(--bull);border:1px solid rgba(0,212,164,.35)}
-.po-status.processing{background:rgba(245,166,35,.12);color:var(--gold2);border:1px solid var(--gold-border)}
+.po-status.paid,.po-status.sent{background:rgba(0,212,164,.14);color:var(--bull);border:1px solid rgba(0,212,164,.35)}
+.po-status.processing,.po-status.underreview{background:rgba(245,166,35,.12);color:var(--gold2);border:1px solid var(--gold-border)}
 .po-status.pending{background:rgba(255,255,255,.05);color:var(--text3);border:1px solid var(--border2)}
+.po-obj-row{display:flex;align-items:center;gap:14px}
+.po-obj-row .l{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em}
+.po-obj-row .v{font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:-.02em;color:var(--text);font-variant-numeric:tabular-nums;margin-top:2px}
+.po-obj-row .c{font-size:10px;color:var(--text3);margin-top:3px}
+/* Under-review banner + stepper */
+.po-review-warn{display:flex;align-items:flex-start;gap:12px;background:rgba(245,166,35,.08);border:1px solid var(--gold-border);border-radius:var(--r2);padding:12px 16px;margin-bottom:12px;color:var(--gold)}
+.po-review{display:flex;align-items:center;gap:24px;flex-wrap:wrap;background:linear-gradient(145deg,#0B1220,#080D18);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px;margin-bottom:14px}
+.po-review-amt{min-width:140px}
+.po-steps{display:flex;align-items:center;flex:1;min-width:240px;justify-content:center}
+.po-step{display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;flex:1;max-width:90px}
+.po-step .po-dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid var(--border2);color:var(--text3);background:var(--bg3)}
+.po-step .l{font-size:11px;color:var(--text3)}
+.po-step.done .po-dot{background:var(--bull);border-color:var(--bull);color:#04140F}
+.po-step.done .l,.po-step.active .l{color:var(--text)}
+.po-step.active .po-dot{border-color:var(--bull);color:var(--bull);box-shadow:0 0 10px var(--bull-glow)}
+.po-step:not(:first-child)::before{content:'';position:absolute;top:13px;right:50%;width:100%;height:2px;background:var(--border2);z-index:0}
+.po-step.done::before,.po-step.active::before{background:var(--bull)}
+.po-step .po-dot,.po-step .l{position:relative;z-index:1}
+.po-review-meta{min-width:200px;text-align:right;flex:1}
 .po-block{background:rgba(255,64,96,.08);border:1px solid rgba(255,64,96,.3);border-radius:var(--r);padding:10px 12px;font-size:11px;color:var(--bear);line-height:1.6}
 .po-req-ready{background:linear-gradient(135deg,var(--bull),#00A884);color:#04140F;border:none;font-weight:800;box-shadow:0 4px 18px var(--bull-glow)}
 .po-req-ready:hover{background:linear-gradient(135deg,#1ee3b6,var(--bull))}
@@ -9814,15 +9833,39 @@ function computePayoutState(acc){
   let peak=baseline, run=baseline; const series=[{date:baselineDate||allDates[0]||todayStr(),bal:baseline,floor:Math.min(baseline-dd,baseline+100)}];
   cycleDates.forEach(d=>{ run+=dpm[d]; peak=Math.max(peak,run); series.push({date:d,bal:run,floor:Math.min(peak-dd,baseline+100)}); });
   const floor=series.length?series[series.length-1].floor:(baseline-dd);
-  const maxWithdraw=Math.max(0,Math.min(FLEX_MAX_PCT*cyclePnl,cfg.payoutCap));
+  // Withdrawable = 50% of TOTAL profit (balance − deposit), capped at the tier max — matches Tradeify
+  const totalProfit=bal-deposit;
+  const maxWithdraw=Math.max(0,Math.min(FLEX_MAX_PCT*totalProfit,cfg.payoutCap));
   const isFunded=(acc.type==='Funded');
   const isFirstPayout=!baselineDate;
   const reasons=[];
   if(!isFunded) reasons.push('Only funded accounts can request a payout');
   if(winningDays<FLEX_MIN_WIN_DAYS) reasons.push(`${FLEX_MIN_WIN_DAYS-winningDays} more winning day(s) needed (≥ $${cfg.winThreshold}/day)`);
-  if(cycleProfit<=0) reasons.push('No profit since last payout');
+  if(totalProfit<=0) reasons.push('No profit to withdraw');
   if(bal<=floor) reasons.push('Balance is at/below the drawdown floor');
-  return {cfg,deposit,start:baseline,baseline,baselineDate,dd,bal,totalPnl,cyclePnl,cycleProfit,tradingDays,winningDays,minWinDays:FLEX_MIN_WIN_DAYS,floor,series,maxWithdraw,eligible:reasons.length===0,reasons,isFunded,isFirstPayout,dpm,allDates,lastPaid:baselineDate};
+  return {cfg,deposit,start:baseline,baseline,baselineDate,dd,bal,totalPnl,totalProfit,cyclePnl,cycleProfit,tradingDays,winningDays,minWinDays:FLEX_MIN_WIN_DAYS,floor,series,maxWithdraw,eligible:reasons.length===0,reasons,isFunded,isFirstPayout,dpm,allDates,lastPaid:baselineDate};
+}
+
+// Payout history for an account — derived from the payout/withdrawal transactions (the source of
+// truth). Transaction amount = NET received; gross = net / 90% (the 10% fee added back).
+function payoutHistoryFor(acc){
+  return state.transactions
+    .filter(t=>String(t.accountId)===String(acc.id)&&(t.type==='Payout'||t.type==='Withdrawal'))
+    .map(t=>{ const net=Math.abs(parseFloat(t.amount)||0); return {txId:t.id,date:t.date,gross:net/(FLEX_SPLIT/100),net,split:FLEX_SPLIT,status:t.status||'Paid'}; })
+    .sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+}
+// "Under review" banner (Tradeify style) shown while a payout request awaits approval
+function _payoutReviewBanner(acc){
+  const t=state.transactions.find(x=>String(x.accountId)===String(acc.id)&&x.status==='Under review');
+  if(!t) return '';
+  const net=Math.abs(parseFloat(t.amount)||0);
+  const days=Math.max(0,Math.round((Date.now()-new Date((t.date||todayStr())+'T00:00:00').getTime())/86400000));
+  const ago=days<=0?'today':(days+' day'+(days===1?'':'s')+' ago');
+  const id='FTDFY'+String(t.id).slice(-11);
+  return `<div class="po-review-warn"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg><div><div style="font-weight:800;color:var(--text);font-size:14px">Avoid trading until your payout is approved</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Any losses may cause your request to be declined. We approve most payouts within 1 hour.</div></div></div>
+  <div class="po-review"><div class="po-review-amt"><div style="font-size:26px;font-weight:800;font-family:'JetBrains Mono',monospace">$${net.toFixed(2)}</div><span class="po-status underreview">Under review</span><div style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:4px">${id}</div></div>
+    <div class="po-steps"><div class="po-step done"><span class="po-dot">✓</span><div class="l">Requested</div></div><div class="po-step active"><span class="po-dot">●</span><div class="l">Review</div></div><div class="po-step"><span class="po-dot"></span><div class="l">Sent</div></div></div>
+    <div class="po-review-meta"><div style="font-size:12px;color:var(--text)">Submitted ${ago}</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Reviews are usually approved within 60 minutes on weekdays.</div><button class="btn btn-sm" style="margin-top:8px" onclick="markPayoutSent('${t.id}')">Mark Sent</button></div></div>`;
 }
 
 function updateSbPayoutBtn(){
@@ -9844,9 +9887,15 @@ function renderPayoutModule(){
   const chg=s.bal-s.deposit;
   const winPct=Math.min(100,(s.winningDays/s.minWinDays)*100);
   const ringC=2*Math.PI*26, ringOff=ringC*(1-winPct/100);
+  const profitPct=Math.min(100,Math.max(0,s.totalProfit)/s.cfg.payoutCap*100);
+  const profitOff=ringC*(1-profitPct/100);
+  const daysPct=Math.min(100,(s.tradingDays/s.minWinDays)*100);
+  const daysOff=ringC*(1-daysPct/100);
   const ledger=_payoutLedger(acc,s);
-  const hist=payoutsForAccount(acc.id);
+  const hist=payoutHistoryFor(acc);
   const cycleProfit=s.cycleProfit;
+  // small ring helper
+  const _ring=(off,color)=>`<svg viewBox="0 0 64 64" width="40" height="40" style="flex-shrink:0"><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="7"/><circle cx="32" cy="32" r="26" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${ringC.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 32 32)" style="transition:stroke-dashoffset .5s"/></svg>`;
 
   body.innerHTML=`
   <!-- 1. Account header -->
@@ -9864,35 +9913,32 @@ function renderPayoutModule(){
       <button class="btn btn-sm" style="color:var(--bear);border-color:rgba(255,64,96,.25)" onclick="if(confirm('Delete this account? This cannot be undone.'))deleteAccount('${acc.id}')">Delete</button>
     </div>
   </div></div>
+  ${_payoutReviewBanner(acc)}
 
   <!-- 2. One Rule banner -->
   <div class="po-rule"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.42 0z"/></svg><div>One rule: <b>do not go below your $${s.floor.toFixed(0)} trailing max drawdown.</b> <span style="opacity:.75">Locks at $100 above starting balance — at EOD when reached, or immediately when a payout is requested, whichever comes first.</span></div></div>
 
   <!-- 3. Summary panel -->
   <div class="po-sum-grid">
-    <div class="po-stat"><div class="l">Balance</div><div class="v">$${s.bal.toFixed(0)}</div><div class="c ${chg>=0?'txt-pos':'txt-neg'}">${chg>=0?'+':''}$${Math.abs(chg).toFixed(0)} vs start</div></div>
-    <div class="po-stat"><div class="l">Trailing Max DD</div><div class="v" style="color:var(--bear)">$${s.floor.toFixed(0)}</div><div class="c">floor (approx)</div></div>
+    <div class="po-stat"><div class="l">Balance</div><div class="v">$${s.bal.toFixed(0)}</div><div class="c ${chg>=0?'txt-pos':'txt-neg'}">${chg>=0?'↑ +':'↓ '}$${Math.abs(chg).toFixed(0)}</div></div>
+    <div class="po-stat"><div class="l">Trailing Max Drawdown</div><div class="v" style="color:var(--bear)">$${s.floor.toFixed(0)}</div><div class="c">floor (approx)</div></div>
     <div class="po-stat"><div class="l">Daily Loss Limit</div><div class="v">${(acc.rules&&acc.rules.dll)?'$'+Number(acc.rules.dll).toLocaleString():'None'}</div><div class="c">Select Flex: none</div></div>
-    <div class="po-stat"><div class="l">Trading Days</div><div class="v">${s.tradingDays}<span style="font-size:13px;color:var(--text3)"> / ${s.minWinDays}</span></div><div class="c">this cycle</div></div>
-    <div class="po-stat"><div class="l">Profit Since Payout</div><div class="v ${cycleProfit>=0?'txt-pos':'txt-neg'}">${cycleProfit>=0?'+':''}$${Math.abs(cycleProfit).toFixed(0)}</div><div class="c">${s.lastPaid?('since '+s.lastPaid):'all-time'}</div></div>
+    <div class="po-stat"><div class="l">Total Profit Since Last Payout</div><div class="v ${cycleProfit>=0?'txt-pos':'txt-neg'}">${cycleProfit>=0?'+':''}$${Math.abs(cycleProfit).toFixed(0)}</div><div class="c">${s.lastPaid?('since '+s.lastPaid):'all-time'}</div></div>
+    <div class="po-stat" style="display:flex;align-items:center;gap:12px"><div>${_ring(daysOff,daysPct>=100?'var(--bull)':'var(--gold)')}</div><div><div class="l">Trading Days</div><div class="v">${s.tradingDays}<span style="font-size:13px;color:var(--text3)"> / ${s.minWinDays}</span></div></div></div>
   </div>
 
   <!-- 4. Payout Objectives -->
   <div class="card"><div class="card-head"><span class="card-tag t-g">Payout Objectives</span><div class="card-title">Select Flex eligibility</div></div>
-  <div class="card-body" style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">
-    <div style="position:relative;width:84px;height:84px;flex-shrink:0">
-      <svg viewBox="0 0 64 64" width="84" height="84"><circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="7"/><circle cx="32" cy="32" r="26" fill="none" stroke="${winPct>=100?'var(--bull)':'var(--gold)'}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${ringC.toFixed(1)}" stroke-dashoffset="${ringOff.toFixed(1)}" transform="rotate(-90 32 32)" style="transition:stroke-dashoffset .5s"/></svg>
-      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-size:20px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--text)">${s.winningDays}/${s.minWinDays}</div><div style="font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em">Win Days</div></div>
+  <div class="card-body">
+    <div class="po-obj-row">
+      <div>${_ring(profitOff,'var(--gold)')}</div>
+      <div><div class="l">Profit</div><div class="v">$${s.totalProfit.toFixed(0)}<span style="font-size:12px;color:var(--text3)"> / cap $${s.cfg.payoutCap.toLocaleString()}</span></div><div class="c">Withdrawable now: <b style="color:var(--bull)">$${s.maxWithdraw.toFixed(0)}</b> (50%)</div></div>
     </div>
-    <div style="flex:1;min-width:200px">
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:5px"><span>Profit progress</span><span>$${Math.max(0,cycleProfit).toFixed(0)} / cap $${s.cfg.payoutCap.toLocaleString()}</span></div>
-      <div class="pt-bar"><i style="width:${Math.min(100,Math.max(0,cycleProfit)/s.cfg.payoutCap*100).toFixed(0)}%"></i></div>
-      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-        ${s.eligible?'<span class="po-badge on">✓ Microscalping compliant</span>':'<span class="po-badge off">Objectives in progress</span>'}
-        <span class="pt-chip">Win day ≥ $${s.cfg.winThreshold}</span>
-        <span class="pt-chip">Split ${FLEX_SPLIT}/${100-FLEX_SPLIT}</span>
-      </div>
+    <div class="po-obj-row" style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px">
+      <div>${_ring(ringOff,winPct>=100?'var(--bull)':'var(--gold)')}</div>
+      <div><div class="l">Winning Days</div><div class="v">${s.winningDays}<span style="font-size:13px;color:var(--text3)"> / ${s.minWinDays}</span></div><div class="c">Days with at least $${s.cfg.winThreshold} profit.</div></div>
     </div>
+    <div style="margin-top:14px">${s.eligible?'<span class="po-badge on">✓ Microscalping compliant</span>':'<span class="po-badge off">Objectives in progress</span>'} <span class="pt-chip" style="margin-left:6px">Split ${FLEX_SPLIT}/${100-FLEX_SPLIT}</span></div>
   </div></div>
 
   <!-- 5. Balance vs Drawdown chart -->
@@ -9914,8 +9960,8 @@ function renderPayoutModule(){
 
   <!-- 8. Payout History -->
   <div class="card"><div class="card-head"><span class="card-tag t-g">Payout History</span><div class="card-title">Requests &amp; payments</div></div>
-  <div class="card-body" style="padding:0"><div class="tw"><table class="tbl"><thead><tr><th>Requested</th><th>Amount</th><th>Split</th><th>Status</th><th></th></tr></thead><tbody>
-    ${hist.length?hist.map(p=>`<tr><td class="mono">${(p.requestedAt||'').slice(0,10)}</td><td class="mono" style="font-weight:700">$${Number(p.amountRequested).toFixed(0)}</td><td class="mono">${p.splitApplied}/${100-p.splitApplied}</td><td><span class="po-status ${p.status.toLowerCase()}">${p.status}</span></td><td onclick="event.stopPropagation()">${p.status==='Processing'?`<button class="btn btn-sm" onclick="markPayoutPaid('${p.id}')">Mark Paid</button>`:''}</td></tr>`).join(''):'<tr><td colspan="5" class="empty">No payouts yet.</td></tr>'}
+  <div class="card-body" style="padding:0"><div class="tw"><table class="tbl"><thead><tr><th>Requested</th><th>Gross</th><th>Fee (10%)</th><th>Received</th><th>Split</th><th>Status</th><th></th></tr></thead><tbody>
+    ${hist.length?hist.map(p=>`<tr><td class="mono">${(p.date||'').slice(0,10)}</td><td class="mono" style="font-weight:700">$${p.gross.toFixed(2)}</td><td class="mono txt-neg">−$${(p.gross-p.net).toFixed(2)}</td><td class="mono txt-pos" style="font-weight:700">$${p.net.toFixed(2)}</td><td class="mono">${p.split}/${100-p.split}</td><td><span class="po-status ${(p.status||'').toLowerCase().replace(/\s+/g,'')}">${p.status}</span></td><td onclick="event.stopPropagation()">${p.status==='Under review'?`<button class="btn btn-sm" onclick="markPayoutSent('${p.txId}')">Mark Sent</button>`:''}</td></tr>`).join(''):'<tr><td colspan="7" class="empty">No payouts yet.</td></tr>'}
   </tbody></table></div></div></div>
 
   <!-- 9. Request Payout -->
@@ -9976,6 +10022,11 @@ function renderPayoutCalendar(acc,s){
   wrap.innerHTML=html+'</div>';
 }
 
+function _poUpdateBreakdown(){
+  const inp=document.getElementById('po-amt'); const out=document.getElementById('po-breakdown'); if(!inp||!out) return;
+  const gross=parseFloat(inp.value)||0, fee=gross*(1-FLEX_SPLIT/100), net=gross*(FLEX_SPLIT/100);
+  out.innerHTML=`Gross request <b>$${gross.toFixed(2)}</b> · 10% fee <span class="txt-neg">−$${fee.toFixed(2)}</span> · you receive <b class="txt-pos">$${net.toFixed(2)}</b>`;
+}
 function openPayoutRequest(){
   const acc=_payoutAccount(); if(!acc){flash('No account');return;}
   const s=computePayoutState(acc); const blocked=!s.eligible;
@@ -9985,35 +10036,40 @@ function openPayoutRequest(){
       <div class="po-stat"><div class="l">Winning Days</div><div class="v">${s.winningDays}/${s.minWinDays}</div><div class="c">≥ $${s.cfg.winThreshold}/day</div></div>
     </div>
     ${blocked?`<div class="po-block">Not eligible yet:<br>${s.reasons.map(r=>'• '+r).join('<br>')}</div>`:''}
-    <div class="form-row" style="margin-top:10px"><label class="form-label">Amount ($)</label><input id="po-amt" type="number" step="0.01" value="${s.maxWithdraw>0?s.maxWithdraw.toFixed(0):''}" ${blocked?'disabled':''}></div>
+    <div class="form-row" style="margin-top:10px"><label class="form-label">Request amount — gross ($)</label><input id="po-amt" type="number" step="0.01" oninput="_poUpdateBreakdown()" value="${s.maxWithdraw>0?s.maxWithdraw.toFixed(0):''}" ${blocked?'disabled':''}></div>
+    <div id="po-breakdown" style="font-size:11px;color:var(--text2);margin:2px 0 8px"></div>
     <div class="form-row"><label class="form-label">Payout Method</label><select id="po-method" ${blocked?'disabled':''}><option>Rise</option><option>Bank transfer</option></select></div>
-    <div style="font-size:10px;color:var(--text3);margin-top:8px">Split applied: ${FLEX_SPLIT}/${100-FLEX_SPLIT} — you keep ${FLEX_SPLIT}%.</div>
     <div class="modal-actions" style="margin-top:16px">
       <button class="btn" onclick="closeModal('payoutReqModal')">Cancel</button>
       <button class="btn btn-primary" ${blocked?'disabled style="opacity:.45;cursor:not-allowed"':''} onclick="submitPayoutRequest()">Submit Request</button>
     </div>`;
   document.getElementById('payoutReqModal').classList.add('show');
+  _poUpdateBreakdown();
 }
 function submitPayoutRequest(){
   const acc=_payoutAccount(); if(!acc)return;
   const s=computePayoutState(acc); if(!s.eligible){flash('Not eligible for payout');return;}
-  const amt=Math.min(parseFloat(document.getElementById('po-amt').value)||0,s.maxWithdraw);
-  if(amt<=0){flash('Enter a valid amount');return;}
-  const method=document.getElementById('po-method').value, now=new Date().toISOString(), id='po-'+Date.now();
-  const received=amt*(FLEX_SPLIT/100); // trader keeps 90%
-  // 1) Payout history record
-  const list=getPayoutsCache();
-  list.push({id,accountId:String(acc.id),amountRequested:amt,received,splitApplied:FLEX_SPLIT,status:'Processing',method,requestedAt:now,paidAt:null});
-  savePayoutsCache(list);
-  // 2) Deduct from the account NOW as a Withdrawal transaction. This single entry both reduces the
-  //    balance AND rolls the cycle — computePayoutState reads the latest payout/withdrawal txn as the
-  //    new baseline, so it persists in the main database via normal transaction sync.
+  const gross=Math.min(parseFloat(document.getElementById('po-amt').value)||0,s.maxWithdraw);
+  if(gross<=0){flash('Enter a valid amount');return;}
+  const method=document.getElementById('po-method').value, now=new Date().toISOString();
+  const net=+(gross*(FLEX_SPLIT/100)).toFixed(2);   // 10% fee deducted → you receive 90%
   const txId=Date.now();
-  state.transactions.unshift({id:txId,date:now.slice(0,10),type:'Withdrawal',accountId:String(acc.id),amount:amt,note:`Payout · ${method} · received $${received.toFixed(0)} (${FLEX_SPLIT}/${100-FLEX_SPLIT})`,firm:(acc.firm)||null});
+  // One Withdrawal transaction (NET deducted) is the source of truth: it reduces the balance, rolls
+  // the cycle (next baseline starts after this date), and shows in Payout History + Transactions.
+  const note=`Payout · ${method} · gross $${gross.toFixed(2)} − 10% fee = received $${net.toFixed(2)}`;
+  state.transactions.unshift({id:txId,date:now.slice(0,10),type:'Withdrawal',accountId:String(acc.id),amount:net,status:'Under review',note,firm:(acc.firm)||null});
   save();
-  if(_sb&&_sbUserId){ try{ _sb.from('payouts').insert({id,account_id:String(acc.id),user_id:_sbUserId,amount_requested:amt,split_applied:FLEX_SPLIT,status:'Processing',requested_at:now}).then(()=>{},()=>{}); }catch(e){} }
+  if(_sb&&_sbUserId){ try{ sbSyncRecord('transactions',{id:String(txId),user_id:_sbUserId,account_id:String(acc.id),date:now.slice(0,10),type:'Withdrawal',amount:net,note,status:'Under review',updated_at:now}); }catch(e){} }
   closeModal('payoutReqModal'); renderPayoutModule(); renderTransTable&&renderTransTable(); updateAllStats();
-  flash(`✓ Payout requested · $${amt.toFixed(0)} withdrawn (you receive $${received.toFixed(0)}) · next cycle from $${(s.bal-amt).toFixed(0)}`);
+  flash(`✓ Payout requested · gross $${gross.toFixed(0)} − 10% = you receive $${net.toFixed(0)} · under review`);
+}
+// Mark an under-review payout as Sent (paid out)
+function markPayoutSent(txId){
+  const t=state.transactions.find(x=>String(x.id)===String(txId)); if(!t)return;
+  if(!confirm('Mark this payout as Sent?'))return;
+  t.status='Sent'; save();
+  if(_sb&&_sbUserId){ try{ sbSyncRecord('transactions',{id:String(t.id),user_id:_sbUserId,account_id:t.accountId?String(t.accountId):null,date:t.date||null,type:t.type,amount:parseFloat(t.amount)||0,note:t.note||null,status:'Sent',updated_at:new Date().toISOString()}); }catch(e){} }
+  renderPayoutModule(); flash('✓ Payout marked Sent');
 }
 function markPayoutPaid(id){
   const list=getPayoutsCache(); const p=list.find(x=>x.id===id); if(!p)return;
