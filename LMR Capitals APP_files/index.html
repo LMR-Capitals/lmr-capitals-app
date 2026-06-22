@@ -2944,10 +2944,11 @@ Midnight Open $______"></textarea>
     <div class="sum-tile" style="border-top:2px solid var(--pur)"><div class="sum-tile-l">🏆 Payouts</div><div class="sum-tile-v" id="tx-pay" style="color:var(--pur)">$0</div><div class="sum-tile-c" id="tx-pay-c">0</div></div>
   </div>
 
-  <!-- Tab switcher -->
+  <!-- Tab switcher — three separate designated databases -->
   <div class="tabs" style="margin-bottom:12px">
     <button class="tab active" id="tx-tab-in" onclick="switchTransTab('in')">💰 Deposits &amp; Fees</button>
-    <button class="tab" id="tx-tab-out" onclick="switchTransTab('out')">📤 Withdrawals &amp; Payouts</button>
+    <button class="tab" id="tx-tab-payouts" onclick="switchTransTab('payouts')">🏆 Payouts</button>
+    <button class="tab" id="tx-tab-wdl" onclick="switchTransTab('wdl')">📤 Withdrawals</button>
   </div>
 
   <!-- DATABASE 1: Deposits + Fees -->
@@ -2963,7 +2964,6 @@ Midnight Open $______"></textarea>
         </div>
       </div>
       <div class="card-body" style="padding:0">
-        <!-- Scroll top mirror -->
         <div class="scroll-top-mirror" id="tx-in-scroll-top"><div style="height:1px"></div></div>
         <div class="tw" id="tx-in-tw"><table class="tbl">
           <thead><tr><th>Date</th><th>Type</th><th>Account</th><th>Amount</th><th>Note</th><th></th></tr></thead>
@@ -2973,30 +2973,48 @@ Midnight Open $______"></textarea>
     </div>
   </div>
 
-  <!-- DATABASE 2: Withdrawals + Payouts -->
-  <div id="tx-panel-out" style="display:none">
+  <!-- DATABASE 2: Payouts (gross — 50% of profit, the approved request) -->
+  <div id="tx-panel-payouts" style="display:none">
     <div class="card">
       <div class="card-head">
-        <span class="card-tag t-g">Withdrawals &amp; Payouts</span>
-        <div class="card-title">Money OUT / Earned</div>
+        <span class="card-tag t-g">Payouts</span>
+        <div class="card-title">Approved · gross (50% of profit)</div>
         <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
-          <span style="font-size:11px;color:var(--text3)">Total: <strong class="txt-neg" id="tx-out-total">$0</strong></span>
-          <button class="btn btn-primary btn-sm" onclick="openTransModalType('Withdrawal')">+ Withdrawal</button>
+          <span style="font-size:11px;color:var(--text3)">Total: <strong style="color:var(--pur)" id="tx-payouts-total">$0</strong></span>
           <button class="btn btn-sm" style="color:var(--pur)" onclick="openTransModalType('Payout')">+ Payout</button>
         </div>
       </div>
       <div class="card-body" style="padding:0">
-        <div class="scroll-top-mirror" id="tx-out-scroll-top"><div style="height:1px"></div></div>
-        <div class="tw" id="tx-out-tw"><table class="tbl">
-          <thead><tr><th>Date</th><th>Type</th><th>Account</th><th>Amount</th><th>Note</th><th></th></tr></thead>
-          <tbody id="transTableOut"><tr><td colspan="6" class="empty">No withdrawals or payouts yet.</td></tr></tbody>
+        <div class="tw"><table class="tbl">
+          <thead><tr><th>Date</th><th>Account</th><th>Gross</th><th>Note</th><th></th></tr></thead>
+          <tbody id="transTablePayouts"><tr><td colspan="5" class="empty">No payouts yet — request one from the Payout module.</td></tr></tbody>
+        </table></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATABASE 3: Withdrawals (net — after 10% fee = real banking profit) -->
+  <div id="tx-panel-wdl" style="display:none">
+    <div class="card">
+      <div class="card-head">
+        <span class="card-tag t-g">Withdrawals</span>
+        <div class="card-title">Real banking · net (after 10% fee)</div>
+        <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+          <span style="font-size:11px;color:var(--text3)">Total: <strong class="txt-pos" id="tx-wdl-total">$0</strong></span>
+          <button class="btn btn-sm" style="color:var(--bear)" onclick="openTransModalType('Withdrawal')">+ Withdrawal</button>
+        </div>
+      </div>
+      <div class="card-body" style="padding:0">
+        <div class="tw"><table class="tbl">
+          <thead><tr><th>Date</th><th>Account</th><th>Net received</th><th>Note</th><th></th></tr></thead>
+          <tbody id="transTableWdl"><tr><td colspan="5" class="empty">No withdrawals yet.</td></tr></tbody>
         </table></div>
       </div>
     </div>
   </div>
 
   <!-- Keep legacy transTable hidden for compatibility -->
-  <div style="display:none"><table><tbody id="transTable"></tbody></table></div>
+  <div style="display:none"><table><tbody id="transTable"></tbody></table><tbody id="transTableOut"></tbody></div>
 </div>
 </div>
 
@@ -7393,10 +7411,10 @@ function saveTrans(){
 let _txTab='in';
 function switchTransTab(tab){
   _txTab=tab;
-  document.getElementById('tx-panel-in').style.display=tab==='in'?'':'none';
-  document.getElementById('tx-panel-out').style.display=tab==='out'?'':'none';
-  document.getElementById('tx-tab-in').classList.toggle('active',tab==='in');
-  document.getElementById('tx-tab-out').classList.toggle('active',tab==='out');
+  const panels={in:'tx-panel-in',payouts:'tx-panel-payouts',wdl:'tx-panel-wdl'};
+  const tabs={in:'tx-tab-in',payouts:'tx-tab-payouts',wdl:'tx-tab-wdl'};
+  Object.entries(panels).forEach(([k,id])=>{const el=document.getElementById(id);if(el)el.style.display=k===tab?'':'none';});
+  Object.entries(tabs).forEach(([k,id])=>{const el=document.getElementById(id);if(el)el.classList.toggle('active',k===tab);});
 }
 function openTransModalType(type){
   openTransModal();
@@ -7415,31 +7433,39 @@ function _txRow(x){
     <td onclick="event.stopPropagation()"><button class="btn btn-sm btn-bear" onclick="deleteTransaction(${x.id})">✗</button></td>
   </tr>`;
 }
+// Compact row for the Payouts (gross) / Withdrawals (net) tables
+function _txRowOut(x,color){
+  const acc=state.accounts.find(a=>a.id==x.accountId);
+  return `<tr class="edit-row" onclick="openTransModal(${x.id})" title="Click to edit">
+    <td class="mono">${x.date||'—'}</td>
+    <td>${acc?acc.name:'-'}${(x.firm||(acc&&acc.firm))?` <span class="pt-chip" style="margin-left:4px">${x.firm||acc.firm}</span>`:''}</td>
+    <td class="mono" style="font-weight:700;color:${color}">$${Math.abs(parseFloat(x.amount)||0).toFixed(2)}</td>
+    <td>${x.note||'-'}</td>
+    <td onclick="event.stopPropagation()"><button class="btn btn-sm btn-bear" onclick="deleteTransaction(${x.id})">✗</button></td>
+  </tr>`;
+}
 function renderTransTable(){
   const sorted=[...state.transactions].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
-  // Tab IN: Deposits + Fees
+  // DB 1: Deposits + Fees
   const inTx=sorted.filter(x=>x.type==='Deposit'||x.type==='Fee');
   const wIn=document.getElementById('transTableIn');
   if(wIn)wIn.innerHTML=inTx.length?inTx.map(_txRow).join(''):'<tr><td colspan="6" class="empty">No deposits or fees yet.</td></tr>';
-  // Tab OUT: Withdrawals + Payouts
-  const outTx=sorted.filter(x=>x.type==='Withdrawal'||x.type==='Payout');
-  const wOut=document.getElementById('transTableOut');
-  if(wOut)wOut.innerHTML=outTx.length?outTx.map(_txRow).join(''):'<tr><td colspan="6" class="empty">No withdrawals or payouts yet.</td></tr>';
-  // Cumulative totals
-  const inSum=inTx.reduce((s,x)=>s+Math.abs(x.amount),0);
-  const outSum=outTx.reduce((s,x)=>s+Math.abs(x.amount),0);
-  const itEl=document.getElementById('tx-in-total');if(itEl)itEl.textContent='$'+inSum.toFixed(0);
-  const otEl=document.getElementById('tx-out-total');if(otEl)otEl.textContent='$'+outSum.toFixed(0);
-  // Wire scroll mirrors
-  ['tx-in','tx-out'].forEach(pfx=>{
-    const mirror=document.getElementById(pfx+'-scroll-top');
-    const tw=document.getElementById(pfx+'-tw');
-    if(!mirror||!tw)return;
-    const inner=mirror.querySelector('div');
-    if(inner)inner.style.width=tw.scrollWidth+'px';
-    mirror.onscroll=()=>{tw.scrollLeft=mirror.scrollLeft};
-    tw.onscroll=()=>{mirror.scrollLeft=tw.scrollLeft};
-  });
+  // DB 2: Payouts (gross)
+  const payTx=sorted.filter(x=>x.type==='Payout');
+  const wPay=document.getElementById('transTablePayouts');
+  if(wPay)wPay.innerHTML=payTx.length?payTx.map(x=>_txRowOut(x,'var(--pur)')).join(''):'<tr><td colspan="5" class="empty">No payouts yet — request one from the Payout module.</td></tr>';
+  // DB 3: Withdrawals (net — real banking)
+  const wdlTx=sorted.filter(x=>x.type==='Withdrawal');
+  const wWdl=document.getElementById('transTableWdl');
+  if(wWdl)wWdl.innerHTML=wdlTx.length?wdlTx.map(x=>_txRowOut(x,'var(--bull)')).join(''):'<tr><td colspan="5" class="empty">No withdrawals yet.</td></tr>';
+  // Totals
+  const setTot=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent='$'+v.toFixed(0);};
+  setTot('tx-in-total',inTx.reduce((s,x)=>s+Math.abs(x.amount),0));
+  setTot('tx-payouts-total',payTx.reduce((s,x)=>s+Math.abs(x.amount),0));
+  setTot('tx-wdl-total',wdlTx.reduce((s,x)=>s+Math.abs(x.amount),0));
+  // Scroll mirror (deposits tab only)
+  const mirror=document.getElementById('tx-in-scroll-top'), tw=document.getElementById('tx-in-tw');
+  if(mirror&&tw){const inner=mirror.querySelector('div');if(inner)inner.style.width=tw.scrollWidth+'px';mirror.onscroll=()=>{tw.scrollLeft=mirror.scrollLeft};tw.onscroll=()=>{mirror.scrollLeft=tw.scrollLeft};}
 }
 function renderTransSummary(){
   const txs=state.transactions;
@@ -7456,7 +7482,7 @@ function renderTransSummary(){
   el('tx-fee-c',byType('Fee').length+' fees');
   // Funded Profit = real trading P&L (from trades journal); Withdrawal Profit = net money withdrawn (after 10%)
   const fundedProfit=state.trades.reduce((s,t)=>s+(parseFloat(t.pnl)||0),0);
-  const withdrawnNet=txs.filter(x=>x.type==='Withdrawal'||x.type==='Payout').reduce((s,x)=>s+Math.abs(parseFloat(x.amount)||0),0);
+  const withdrawnNet=txs.filter(x=>x.type==='Withdrawal').reduce((s,x)=>s+Math.abs(parseFloat(x.amount)||0),0);
   el('tx-funded-profit',(fundedProfit>=0?'+$':'−$')+Math.abs(fundedProfit).toFixed(0));
   const fp=document.getElementById('tx-funded-profit'); if(fp)fp.style.color=fundedProfit>=0?'var(--bull)':'var(--bear)';
   el('tx-wdl-profit','$'+withdrawnNet.toFixed(0));
@@ -9769,7 +9795,7 @@ function updateAllStats(){
   // Transaction effects (payouts/withdrawals reduce, deposits add) — so Total P&L reflects real net
   const txEff = activeAccsArr.length ? state.transactions.filter(t=>activeIds.includes(String(t.accountId))).reduce((s,t)=>{
     const amt=Math.abs(parseFloat(t.amount)||0);
-    return s+((t.type==='Payout'||t.type==='Withdrawal'||t.type==='Fee')?-amt:(t.type==='Deposit'?amt:0));
+    return s+((t.type==='Withdrawal'||t.type==='Fee')?-amt:(t.type==='Deposit'?amt:0)); // Payout (gross) is informational; Withdrawal (net) is the real money out
   },0) : 0;
   const bal = activeAccsArr.length ? depSum+pnl+txEff : pnl;
   const wins= ts.filter(t=>t.win).length;
@@ -9840,7 +9866,7 @@ function computePayoutState(acc){
   // transaction effects on balance (payouts/withdrawals reduce it)
   const txEff=state.transactions.filter(t=>String(t.accountId)===String(acc.id)).reduce((s,t)=>{
     const amt=Math.abs(parseFloat(t.amount)||0);
-    return s+((t.type==='Payout'||t.type==='Withdrawal'||t.type==='Fee')?-amt:(t.type==='Deposit'?amt:0));
+    return s+((t.type==='Withdrawal'||t.type==='Fee')?-amt:(t.type==='Deposit'?amt:0)); // Payout (gross) is informational; Withdrawal (net) is the real money out
   },0);
   const bal=(acc.balance!=null&&acc.balance!=='')?parseFloat(acc.balance):(deposit+totalPnl+txEff);
   // Cycle reset is driven by EXISTING payout/withdrawal transactions: the most recent one starts a
@@ -9851,7 +9877,7 @@ function computePayoutState(acc){
   let baseline=deposit;
   if(baselineDate){
     allDates.filter(d=>d<=baselineDate).forEach(d=>baseline+=dpm[d]);
-    accTx.filter(t=>t.date&&t.date<=baselineDate).forEach(t=>{const a=Math.abs(parseFloat(t.amount)||0);baseline+=((t.type==='Payout'||t.type==='Withdrawal'||t.type==='Fee')?-a:(t.type==='Deposit'?a:0));});
+    accTx.filter(t=>t.date&&t.date<=baselineDate).forEach(t=>{const a=Math.abs(parseFloat(t.amount)||0);baseline+=((t.type==='Withdrawal'||t.type==='Fee')?-a:(t.type==='Deposit'?a:0));});
   }
   const cycleDates=allDates.filter(d=>!baselineDate||d>baselineDate);
   const cyclePnl=cycleDates.reduce((s,d)=>s+dpm[d],0);
@@ -9879,8 +9905,10 @@ function computePayoutState(acc){
 // Payout history for an account — derived from the payout/withdrawal transactions (the source of
 // truth). Transaction amount = NET received; gross = net / 90% (the 10% fee added back).
 function payoutHistoryFor(acc){
-  return state.transactions
-    .filter(t=>String(t.accountId)===String(acc.id)&&(t.type==='Payout'||t.type==='Withdrawal'))
+  // Prefer Payout (gross) records; fall back to legacy standalone Withdrawals (net → gross).
+  const pay=state.transactions.filter(t=>String(t.accountId)===String(acc.id)&&t.type==='Payout');
+  if(pay.length) return pay.map(t=>{ const gross=Math.abs(parseFloat(t.amount)||0); return {txId:t.id,date:t.date,gross,net:gross*(FLEX_SPLIT/100),split:FLEX_SPLIT,status:t.status||'Paid'}; }).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  return state.transactions.filter(t=>String(t.accountId)===String(acc.id)&&t.type==='Withdrawal')
     .map(t=>{ const net=Math.abs(parseFloat(t.amount)||0); return {txId:t.id,date:t.date,gross:net/(FLEX_SPLIT/100),net,split:FLEX_SPLIT,status:t.status||'Paid'}; })
     .sort((a,b)=>String(b.date).localeCompare(String(a.date)));
 }
@@ -9960,7 +9988,7 @@ function renderPayoutModule(){
   <!-- Funded Profit vs Withdrawal Profit (this account) -->
   <div class="tx-profit-strip">
     <div class="tx-profit-tile funded"><div class="tx-profit-l">Funded Profit</div><div class="tx-profit-v ${s.totalPnl>=0?'txt-pos':'txt-neg'}">${s.totalPnl>=0?'+$':'−$'}${Math.abs(s.totalPnl).toFixed(0)}</div><div class="tx-profit-c">Real trading P&amp;L on this account</div></div>
-    <div class="tx-profit-tile withdrawn"><div class="tx-profit-l">Withdrawal Profit</div><div class="tx-profit-v" style="color:var(--gold2)">$${state.transactions.filter(t=>String(t.accountId)===String(acc.id)&&(t.type==='Withdrawal'||t.type==='Payout')).reduce((a,t)=>a+Math.abs(parseFloat(t.amount)||0),0).toFixed(0)}</div><div class="tx-profit-c">Withdrawn — after 10% deduction</div></div>
+    <div class="tx-profit-tile withdrawn"><div class="tx-profit-l">Withdrawal Profit</div><div class="tx-profit-v" style="color:var(--gold2)">$${state.transactions.filter(t=>String(t.accountId)===String(acc.id)&&t.type==='Withdrawal').reduce((a,t)=>a+Math.abs(parseFloat(t.amount)||0),0).toFixed(0)}</div><div class="tx-profit-c">Withdrawn — after 10% deduction</div></div>
   </div>
 
   <!-- 4. Payout Objectives -->
@@ -10015,8 +10043,8 @@ function renderPayoutModule(){
 function _payoutLedger(acc,s){
   const rows=[{date:acc.date||s.allDates[0]||todayStr(),type:'Deposit',amount:s.deposit}];
   s.allDates.forEach(d=>rows.push({date:d,type:'Trade P&L',amount:s.dpm[d]}));
-  state.transactions.filter(t=>String(t.accountId)===String(acc.id)).forEach(t=>{
-    const out=(t.type==='Withdrawal'||t.type==='Payout'||t.type==='Fee');
+  state.transactions.filter(t=>String(t.accountId)===String(acc.id)&&t.type!=='Payout').forEach(t=>{
+    const out=(t.type==='Withdrawal'||t.type==='Fee');
     rows.push({date:t.date,type:t.type,amount:out?-Math.abs(parseFloat(t.amount)||0):Math.abs(parseFloat(t.amount)||0)});
   });
   rows.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
@@ -10087,25 +10115,36 @@ function submitPayoutRequest(){
   const s=computePayoutState(acc); if(!s.eligible){flash('Not eligible for payout');return;}
   const gross=Math.min(parseFloat(document.getElementById('po-amt').value)||0,s.maxWithdraw);
   if(gross<=0){flash('Enter a valid amount');return;}
-  const method=document.getElementById('po-method').value, now=new Date().toISOString();
+  const method=document.getElementById('po-method').value, now=new Date().toISOString(), date=now.slice(0,10);
   const net=+(gross*(FLEX_SPLIT/100)).toFixed(2);   // 10% fee deducted → you receive 90%
-  const txId=Date.now();
-  // One Withdrawal transaction (NET deducted) is the source of truth: it reduces the balance, rolls
-  // the cycle (next baseline starts after this date), and shows in Payout History + Transactions.
-  const note=`Payout · ${method} · gross $${gross.toFixed(2)} − 10% fee = received $${net.toFixed(2)}`;
-  state.transactions.unshift({id:txId,date:now.slice(0,10),type:'Withdrawal',accountId:String(acc.id),amount:net,status:'Under review',note,firm:(acc.firm)||null});
+  const firm=(acc.firm)||null;
+  // TWO separate records from one request:
+  //  • PAYOUT (gross, 50% of profit) → Payouts database (the approved request)
+  //  • WITHDRAWAL (net, after 10% fee) → Withdrawals database = real banking profit (reduces P&L)
+  const payId=Date.now(), wdlId=Date.now()+1;
+  state.transactions.unshift({id:payId,date,type:'Payout',accountId:String(acc.id),amount:gross,status:'Under review',note:`Payout request · 50% of profit · gross $${gross.toFixed(2)}`,firm});
+  state.transactions.unshift({id:wdlId,date,type:'Withdrawal',accountId:String(acc.id),amount:net,status:'Under review',note:`Withdrawal · ${method} · received $${net.toFixed(2)} (gross $${gross.toFixed(2)} − 10% fee)`,firm});
   save();
-  if(_sb&&_sbUserId){ try{ sbSyncRecord('transactions',{id:String(txId),user_id:_sbUserId,account_id:String(acc.id),date:now.slice(0,10),type:'Withdrawal',amount:net,note,status:'Under review',updated_at:now}); }catch(e){} }
+  if(_sb&&_sbUserId){ try{
+    sbSyncRecord('transactions',{id:String(payId),user_id:_sbUserId,account_id:String(acc.id),date,type:'Payout',amount:gross,note:`Payout request · 50% of profit · gross $${gross.toFixed(2)}`,status:'Under review',updated_at:now});
+    sbSyncRecord('transactions',{id:String(wdlId),user_id:_sbUserId,account_id:String(acc.id),date,type:'Withdrawal',amount:net,note:`Withdrawal · ${method} · received $${net.toFixed(2)} (gross $${gross.toFixed(2)} − 10% fee)`,status:'Under review',updated_at:now});
+  }catch(e){} }
   closeModal('payoutReqModal'); renderPayoutModule(); renderTransTable&&renderTransTable(); updateAllStats();
-  flash(`✓ Payout requested · gross $${gross.toFixed(0)} − 10% = you receive $${net.toFixed(0)} · under review`);
+  flash(`✓ Payout $${gross.toFixed(0)} → Payouts · Withdrawal $${net.toFixed(0)} (after 10%) → your bank`);
 }
 // Mark an under-review payout as Sent (paid out)
 function markPayoutSent(txId){
   const t=state.transactions.find(x=>String(x.id)===String(txId)); if(!t)return;
   if(!confirm('Mark this payout as Sent?'))return;
-  t.status='Sent'; save();
-  if(_sb&&_sbUserId){ try{ sbSyncRecord('transactions',{id:String(t.id),user_id:_sbUserId,account_id:t.accountId?String(t.accountId):null,date:t.date||null,type:t.type,amount:parseFloat(t.amount)||0,note:t.note||null,status:'Sent',updated_at:new Date().toISOString()}); }catch(e){} }
-  renderPayoutModule(); flash('✓ Payout marked Sent');
+  const now=new Date().toISOString();
+  // Mark both the Payout + Withdrawal of this event (same account + date) as Sent
+  state.transactions.forEach(x=>{
+    if(String(x.accountId)===String(t.accountId)&&x.date===t.date&&x.status==='Under review'&&(x.type==='Payout'||x.type==='Withdrawal')){
+      x.status='Sent';
+      if(_sb&&_sbUserId){ try{ sbSyncRecord('transactions',{id:String(x.id),user_id:_sbUserId,account_id:x.accountId?String(x.accountId):null,date:x.date||null,type:x.type,amount:parseFloat(x.amount)||0,note:x.note||null,status:'Sent',updated_at:now}); }catch(e){} }
+    }
+  });
+  save(); renderPayoutModule(); renderTransTable&&renderTransTable(); flash('✓ Payout marked Sent');
 }
 function markPayoutPaid(id){
   const list=getPayoutsCache(); const p=list.find(x=>x.id===id); if(!p)return;
