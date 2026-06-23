@@ -334,7 +334,11 @@ button{font-family:'Inter',sans-serif}
 .sb-logo{display:flex;align-items:center;gap:11px;font-weight:700;font-size:15px;letter-spacing:.01em}
 .sb-logo-icon{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#0B1421,#080D18);display:flex;align-items:center;justify-content:center;color:#000;font-weight:900;font-size:20px;border:1.5px solid rgba(245,166,35,.4);box-shadow:0 2px 16px rgba(245,166,35,.2)}
 .sb-status{font-size:9px;color:var(--text3);margin-top:4px;display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-weight:600}
-.sb-sec{font-size:10px;color:rgba(245,166,35,.6);text-transform:uppercase;letter-spacing:.14em;padding:14px 14px 4px;font-weight:700}
+.sb-sec{font-size:10px;color:rgba(245,166,35,.6);text-transform:uppercase;letter-spacing:.14em;padding:14px 14px 4px;font-weight:700;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;transition:color var(--t)}
+.sb-sec:hover{color:var(--gold)}
+.sb-sec-chev{font-size:9px;opacity:.6;transition:transform .2s}
+.sb-sec.collapsed .sb-sec-chev{transform:rotate(-90deg)}
+.sb-item.sec-hidden{display:none}
 .sb-item{display:flex;align-items:center;gap:9px;padding:8px 14px;border-radius:var(--r);font-size:13px;color:var(--text2);cursor:pointer;border-left:2px solid transparent;font-weight:500;transition:all var(--t);letter-spacing:.01em}
 .sb-item:hover{background:rgba(255,255,255,.04);color:var(--text)}
 .sb-item.active{background:linear-gradient(90deg,rgba(245,166,35,.12) 0%,rgba(245,166,35,.03) 100%);color:var(--gold2);border-left:3px solid var(--gold);padding-left:11px;font-weight:600}
@@ -856,7 +860,11 @@ button{font-family:'Inter',sans-serif}
 .acc-sw-item.active{background:rgba(245,166,35,.10)}
 .acc-sw-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0}
 .acc-sw-item.active .acc-sw-dot{background:var(--bull);box-shadow:0 0 6px var(--bull-glow)}
-.acc-sw-name{flex:1;min-width:0;font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acc-sw-name{flex:1;min-width:0;font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.acc-sw-name:hover{color:var(--gold)}
+.acc-sw-go{flex-shrink:0;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;border-radius:5px;color:var(--text3);font-size:15px;font-weight:700;cursor:pointer;transition:all var(--t)}
+.acc-sw-go:hover{background:var(--gold-bg);color:var(--gold)}
+.sb-payout-go{margin-left:auto;opacity:.7}
 .acc-sw-firm{font-size:9px;color:var(--text3);font-family:'JetBrains Mono',monospace}
 .acc-sw-foot{border-top:1px solid var(--border);margin-top:4px;padding-top:4px}
 .acc-sw-manage{display:block;width:100%;text-align:center;padding:7px;font-size:11px;font-weight:600;color:var(--gold);border-radius:var(--r);cursor:pointer;transition:background var(--t)}
@@ -1573,6 +1581,13 @@ select option[value="PM"] { color: #5BA8FF; }
 .ach-cover-handle{position:absolute;right:-6px;bottom:-6px;width:16px;height:16px;background:var(--gold);border:2px solid #05080F;border-radius:50%;cursor:nwse-resize}
 
 @media(max-width:600px){.ach-grid{grid-template-columns:1fr}}
+/* Merged Goals section */
+.ach-goals-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.ach-goal-card{background:linear-gradient(145deg,#0B1220,#080D18);border:1px solid var(--border);border-radius:var(--r2);padding:14px}
+.ach-goal-card.glow{animation:ml-pulseGlow 1.4s ease-out 2}
+.ach-goal-title{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ach-goal-foot{display:flex;align-items:center;gap:6px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+@media(max-width:600px){.ach-goals-grid{grid-template-columns:1fr}}
 
 /* Public landing track-record cards */
 .lp-track-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:22px}
@@ -2019,26 +2034,16 @@ select option[value="PM"] { color: #5BA8FF; }
     <button class="sb-item" data-panel="psychology"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 0 0-5.9.7A2.5 2.5 0 0 0 4 8.5 2.5 2.5 0 0 0 5.5 13 2.5 2.5 0 0 0 9 18a3 3 0 0 0 3 1 3 3 0 0 0 3-1 2.5 2.5 0 0 0 3.5-5A2.5 2.5 0 0 0 20 8.5a2.5 2.5 0 0 0-2.1-2.8A3 3 0 0 0 12 5Z"/><path d="M12 5v14"/></svg></span> LMR Psychology</button>
     <button class="sb-item" data-panel="observation"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span> LMR Observation</button>
     <button class="sb-item" data-panel="achievements"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></span> Achievements</button>
-    <button class="sb-item" data-panel="milestones"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg></span> Milestones</button>
     <div class="sb-sec">AI</div>
     <button class="sb-item" data-panel="ai-coach" style="background:linear-gradient(90deg,rgba(245,166,35,.08),transparent)"><span class="sb-icon" style="color:var(--gold)"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg></span> <span style="color:var(--gold);font-weight:700">AI Coach</span></button>
     <button class="sb-item" data-panel="reports"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span> Reports</button>
   </nav>
   
-  <!-- Achievements — key motivation, its own section -->
-  <div class="sb-ach" onclick="navTo('achievements')" title="Your funded passes, payouts & milestones">
-    <span class="sb-ach-ico"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></span>
-    <div class="sb-ach-main">
-      <div class="sb-ach-label">Achievements</div>
-      <div class="sb-ach-sub" id="sbAchSub">Funded passes · payouts</div>
-    </div>
-    <svg class="sb-ach-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-  </div>
-
-  <!-- Request Payout — separate gold section; turns GREEN when payout-eligible -->
-  <button class="sb-payout" id="sbPayoutBtn" onclick="navTo('payout')">
+  <!-- Request Payout — references the live Payout module; turns GREEN when payout-eligible -->
+  <button class="sb-payout" id="sbPayoutBtn" onclick="navTo('payout')" title="Open the Payout module — live payout settings & history">
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>
     <span id="sbPayoutLabel">Request Payout</span>
+    <svg class="sb-payout-go" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
   </button>
 
   <div class="sb-foot">
@@ -3362,6 +3367,39 @@ Midnight Open $______"></textarea>
     <div style="font-size:11px;margin-top:4px">Add your first funded pass or payout certificate.</div>
   </div>
 
+  <!-- ── Performance Goals (merged in from Milestones) ── -->
+  <div class="ach-goals-sec">
+    <div style="display:flex;align-items:center;gap:8px;margin:26px 0 8px;padding-top:18px;border-top:1px solid var(--border)">
+      <div style="font-size:15px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:7px">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+        Goals &amp; Milestones
+      </div>
+      <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="mlOpenForm()">+ Goal</button>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:14px">Track targets like win rate or R:R — the moon fills as you progress toward each goal.</div>
+
+    <form class="ml-form" id="ml-form" onsubmit="mlSaveGoal(event)" style="display:none">
+      <div class="ml-form-head"><span>New Goal</span><button type="button" class="ml-x" onclick="mlCloseForm()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+      <div class="ml-field"><label>Title</label><input id="ml-f-title" placeholder="e.g. Win rate above 55%" autocomplete="off"></div>
+      <div class="ml-row2">
+        <div class="ml-field"><label>Category</label><select id="ml-f-cat"><option value="performance">Performance Goal</option><option value="account">Account Milestone</option></select></div>
+        <div class="ml-field"><label>Unit</label><input id="ml-f-unit" placeholder="USD, %, R, accounts…" autocomplete="off"></div>
+      </div>
+      <div class="ml-row2">
+        <div class="ml-field"><label>Current value</label><input id="ml-f-cur" type="number" step="any" placeholder="0"></div>
+        <div class="ml-field"><label>Target value</label><input id="ml-f-tgt" type="number" step="any" placeholder="55"></div>
+      </div>
+      <div class="ml-field"><label>Target date</label><input id="ml-f-date" type="date"></div>
+      <div class="ml-form-actions">
+        <button type="button" class="ml-btn-ghost" onclick="mlCloseForm()">Cancel</button>
+        <button type="submit" class="ml-btn-gold">Save goal</button>
+      </div>
+    </form>
+
+    <div class="ach-goals-grid" id="ach-goals"></div>
+    <div id="ach-goals-empty" style="display:none;font-size:12px;color:var(--text3);padding:10px 0">No goals yet — add one to start tracking progress.</div>
+  </div>
+
 </div>
 </div>
 
@@ -3407,61 +3445,6 @@ Midnight Open $______"></textarea>
       <button class="btn btn-primary" onclick="saveAchievement()">Save Achievement</button>
     </div>
   </div>
-</div>
-
-<!-- ── ACHIEVEMENT TIMELINE (Milestones) ──────────────── -->
-<div class="panel" id="p-milestones">
-<div style="height:100%;overflow-y:auto;padding:26px 20px 60px">
-  <div class="ml-wrap">
-    <div class="ml-head">
-      <div class="ml-head-medal"></div>
-      <div>
-        <h1 class="ml-title">Achievement Timeline</h1>
-        <p class="ml-sub">LMR Capitals — certificates, account milestones &amp; performance goals</p>
-      </div>
-    </div>
-
-    <button class="ml-add-btn" id="ml-add-btn" onclick="mlOpenForm()">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> New Achievement
-    </button>
-
-    <!-- New-goal form (hidden until +New) -->
-    <form class="ml-form" id="ml-form" onsubmit="mlSaveGoal(event)" style="display:none">
-      <div class="ml-form-head"><span>New Achievement</span><button type="button" class="ml-x" onclick="mlCloseForm()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
-      <div class="ml-field"><label>Title</label><input id="ml-f-title" placeholder="e.g. Win rate above 55%" autocomplete="off"></div>
-      <div class="ml-row2">
-        <div class="ml-field"><label>Category</label><select id="ml-f-cat"><option value="performance">Performance Goal</option><option value="account">Account Milestone</option></select></div>
-        <div class="ml-field"><label>Unit</label><input id="ml-f-unit" placeholder="USD, %, R, accounts…" autocomplete="off"></div>
-      </div>
-      <div class="ml-row2">
-        <div class="ml-field"><label>Current value</label><input id="ml-f-cur" type="number" step="any" placeholder="0"></div>
-        <div class="ml-field"><label>Target value</label><input id="ml-f-tgt" type="number" step="any" placeholder="55"></div>
-      </div>
-      <div class="ml-field"><label>Target date</label><input id="ml-f-date" type="date"></div>
-      <div class="ml-form-actions">
-        <button type="button" class="ml-btn-ghost" onclick="mlCloseForm()">Cancel</button>
-        <button type="submit" class="ml-btn-gold">Save achievement</button>
-      </div>
-    </form>
-
-    <!-- Certificate gallery -->
-    <div class="ml-section-label"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg> Certificates</div>
-    <div class="ml-gallery scrollx" id="ml-gallery"></div>
-
-    <!-- Shared detail panel -->
-    <div class="ml-detail" id="ml-detail"></div>
-
-    <!-- Filter pills -->
-    <div class="ml-filters" id="ml-filters">
-      <button class="ml-pill active" data-f="all" onclick="mlFilter('all')">All</button>
-      <button class="ml-pill" data-f="account" onclick="mlFilter('account')">Account</button>
-      <button class="ml-pill" data-f="performance" onclick="mlFilter('performance')">Performance</button>
-    </div>
-
-    <!-- Horizontal timeline -->
-    <div class="ml-timeline-wrap"><div class="ml-timeline scrollx" id="ml-timeline"></div></div>
-  </div>
-</div>
 </div>
 
 <!-- ── PAYOUT MODULE PANEL (Tradeify Select Flex) ──────────────── -->
@@ -5665,7 +5648,7 @@ function filterReports(type, tabEl){
 }
 
 // ============= NAVIGATION =============
-const panels=['dash','today','cal','perf','monthly','weekly','daily','trades','accounts','trans','notes','terminology','psychology','observation','achievements','milestones','payout','ai-coach','reports'];
+const panels=['dash','today','cal','perf','monthly','weekly','daily','trades','accounts','trans','notes','terminology','psychology','observation','achievements','payout','ai-coach','reports'];
 const titles={
   dash:['Dashboard','Welcome back · Day '],
   today:['Today','Fill the chain · Day '],
@@ -5681,8 +5664,7 @@ const titles={
   terminology:['LMR Terminology','ICT concepts · PD Arrays · Models'],
   psychology:['LMR Psychology','Mindset · Discipline · Trade psychology'],
   observation:['LMR Observation','Market notes · Setups · Confluences'],
-  achievements:['Achievements','Funded passes · Payouts · Milestones'],
-  milestones:['Achievement Timeline','Certificates · account milestones · performance goals'],
+  achievements:['Achievements','Funded passes · Payouts · Goals & Milestones'],
   payout:['Payout','Funded account payout module'],
   'ai-coach':['AI Trading Coach','Your personal LMR AI coaching assistant'],
   reports:['Reports','AI-generated weekly performance reports'],
@@ -6124,7 +6106,6 @@ function navTo(p){
   if(p==='psychology')  setTimeout(()=>lmrSimpleLoad('psychology'),100);
   if(p==='observation') setTimeout(loadObservations,100);
   if(p==='achievements') setTimeout(loadAchievements,100);
-  if(p==='milestones') setTimeout(loadMilestones,60);
   if(p==='payout') setTimeout(renderPayoutModule,60);
   if(p==='ai-coach') { setTimeout(loadAndRenderAIHistory, 300); }
   if(p==='reports') loadAndRenderReports();
@@ -6133,6 +6114,22 @@ function navTo(p){
 document.querySelectorAll('.sb-item').forEach(b=>{
   b.onclick=()=>navTo(b.dataset.panel);
 });
+
+// Collapsible nav sections — click a section header to fold its items (saves vertical space)
+function setupCollapsibleNav(){
+  const nav=document.querySelector('.sb-nav'); if(!nav) return;
+  let collapsed; try{ collapsed=JSON.parse(localStorage.getItem('lmr_nav_collapsed')||'[]'); }catch(e){ collapsed=[]; }
+  nav.querySelectorAll('.sb-sec').forEach(sec=>{
+    if(sec.dataset.collapsible) return;
+    const label=sec.textContent.trim();
+    sec.dataset.collapsible='1'; sec.setAttribute('role','button'); sec.setAttribute('aria-label','Toggle '+label+' section');
+    const chev=document.createElement('span'); chev.className='sb-sec-chev'; chev.textContent='▾'; sec.appendChild(chev);
+    const apply=(isCol)=>{ sec.classList.toggle('collapsed',isCol); let el=sec.nextElementSibling; while(el && !el.classList.contains('sb-sec')){ if(el.classList.contains('sb-item')) el.classList.toggle('sec-hidden',isCol); el=el.nextElementSibling; } };
+    apply(collapsed.includes(label));
+    sec.onclick=()=>{ let list; try{ list=JSON.parse(localStorage.getItem('lmr_nav_collapsed')||'[]'); }catch(e){ list=[]; } const i=list.indexOf(label); const willCol=i<0; if(willCol)list.push(label); else list.splice(i,1); localStorage.setItem('lmr_nav_collapsed',JSON.stringify(list)); apply(willCol); };
+  });
+}
+setupCollapsibleNav();
 
 function toggleSidebar(){
   document.getElementById('sidebar').classList.toggle('open');
@@ -8871,6 +8868,8 @@ function saveAchCache(a){localStorage.setItem('lmr_achievements_v1',JSON.stringi
 async function loadAchievements(){
   _achEntries=getAchCache();
   renderAchFeed(); renderAchSummary();
+  if(typeof renderMilestones==='function') renderMilestones(); // goals (instant from cache)
+  if(typeof loadMilestones==='function') loadMilestones();     // goals (cloud sync + render)
   if(_sb&&_sbUserId){
     try{
       const {data,error}=await _sb.from('lmr_achievements').select('*').eq('user_id',_sbUserId).order('achieved_on',{ascending:false});
@@ -10240,31 +10239,39 @@ function deriveCertificates(){
 function getGoalsCache(){ try{return JSON.parse(localStorage.getItem('lmr_targets_v1')||'[]');}catch(e){return[];} }
 function saveGoalsCache(a){ localStorage.setItem('lmr_targets_v1',JSON.stringify(a)); }
 
+// Load goals (from Supabase targets, fallback local) and render the Goals section in Achievements
 async function loadMilestones(){
-  let goals=getGoalsCache();
   if(_sb&&_sbUserId){
     try{ const r=await _sb.from('targets').select('*').eq('user_id',_sbUserId).eq('kind','goal').order('created_at',{ascending:true});
-      if(!r.error&&r.data){ goals=r.data.map(g=>({id:g.id,kind:'goal',category:g.category,title:g.title,unit:g.unit,target_value:g.target_value,current_value:g.current_value,target_date:g.target_date,details:g.details||'Added manually.'})); saveGoalsCache(goals); }
+      if(!r.error&&r.data){ saveGoalsCache(r.data.map(g=>({id:g.id,kind:'goal',category:g.category,title:g.title,unit:g.unit,target_value:g.target_value,current_value:g.current_value,target_date:g.target_date,details:g.details||'Added manually.'}))); }
     }catch(e){}
   }
-  _mlItems=[...deriveCertificates(),...goals];
   renderMilestones();
 }
+// Render goal cards (moon-phase progress) into the merged Achievements panel
 function renderMilestones(){
-  const gallery=document.getElementById('ml-gallery'); if(!gallery) return;
-  const certs=_mlItems.filter(i=>i.kind==='certificate');
-  gallery.innerHTML=certs.map((c,i)=>{
-    const earned=mlIsAchieved(c), sel=_mlSelected===c.id;
-    return `<div class="ml-cert-card ${earned?'earned':'pending'} ${sel?'selected':''}" style="animation-delay:${(i*0.07).toFixed(2)}s" onclick="mlSelect('${c.id}')">
-      <div style="display:flex;justify-content:center;margin-bottom:10px">${mlMedalHTML(earned,44)}</div>
-      <div class="ml-cert-title">${_esc(c.title)}</div>
-      <div class="ml-cert-subtitle">${_esc(c.subtitle||'')}</div>
-      <div class="ml-cert-date" style="color:${earned?'var(--gold2)':'var(--text3)'}">${earned?'Verified '+mlFormatDate(c.date_achieved):'Target '+mlFormatDate(c.target_date)}</div>
+  const grid=document.getElementById('ach-goals'); if(!grid) return;
+  const empty=document.getElementById('ach-goals-empty');
+  const goals=getGoalsCache().slice().sort((a,b)=>mlSortKey(a).localeCompare(mlSortKey(b)));
+  if(!goals.length){ grid.innerHTML=''; if(empty)empty.style.display='block'; return; }
+  if(empty)empty.style.display='none';
+  grid.innerHTML=goals.map(g=>{
+    const status=mlGetStatus(g), meta=ML_STATUS[status], prog=g.target_value?g.current_value/g.target_value:0;
+    return `<div class="ach-goal-card ${_mlHighlight===g.id?'glow':''}">
+      <div style="display:flex;align-items:flex-start;gap:12px">
+        ${mlMoonHTML(prog,status,46)}
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;justify-content:space-between"><div class="ach-goal-title">${_esc(g.title)}</div><span class="ml-badge" style="color:${meta.color};background:${meta.bg}">${meta.label}</span></div>
+          <div class="ml-mono" style="font-size:12px;margin-top:5px">${mlFormatValue(g.current_value,g.unit)}<span style="color:var(--text3)"> / ${mlFormatValue(g.target_value,g.unit)}</span></div>
+          <div class="ml-prog" style="margin-top:6px"><i style="width:${Math.min(100,prog*100)}%;${status==='overdue'?'background:var(--bear)':''}"></i></div>
+        </div>
+      </div>
+      <div class="ach-goal-foot"><span class="ml-cal">${_mlIcon(_MLI.cal,11)}${mlDaysText(g,status)}</span><span style="flex:1"></span>
+        <button class="ach-icon-btn" onclick="mlEditGoal('${g.id}')" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+        <button class="ach-icon-btn danger" onclick="mlDeleteGoal('${g.id}')" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
+      </div>
     </div>`;
-  }).join('')+`<div class="ml-cert-add" onclick="mlOpenForm()">${_mlIcon('<path d="M12 5v14M5 12h14"/>',18,'currentColor')}<span>Add achievement</span></div>`;
-  renderMlDetail();
-  document.querySelectorAll('#ml-filters .ml-pill').forEach(p=>p.classList.toggle('active',p.dataset.f===_mlFilter));
-  renderMlTimeline();
+  }).join('');
 }
 function renderMlDetail(){
   const el=document.getElementById('ml-detail'); if(!el) return;
@@ -10298,20 +10305,19 @@ function mlSelect(id){ _mlSelected=(_mlSelected===id)?null:id; renderMilestones(
 function mlFilter(f){ _mlFilter=f; renderMilestones(); }
 function mlOpenForm(id){
   _mlEditId=id||null;
-  const g=id?_mlItems.find(i=>i.id===id):null;
+  const g=id?getGoalsCache().find(i=>i.id===id):null;
   document.getElementById('ml-f-title').value=g?g.title:'';
   document.getElementById('ml-f-cat').value=g?g.category:'performance';
   document.getElementById('ml-f-unit').value=g?(g.unit||''):'';
   document.getElementById('ml-f-cur').value=g?(g.current_value??''):'';
   document.getElementById('ml-f-tgt').value=g?(g.target_value??''):'';
   document.getElementById('ml-f-date').value=g?(g.target_date||''):'';
-  document.querySelector('#ml-form .ml-form-head span').textContent=id?'Edit Achievement':'New Achievement';
-  document.getElementById('ml-add-btn').style.display='none';
+  const head=document.querySelector('#ml-form .ml-form-head span'); if(head)head.textContent=id?'Edit Goal':'New Goal';
   const f=document.getElementById('ml-form'); f.style.display=''; f.scrollIntoView({behavior:'smooth',block:'center'});
   setTimeout(()=>document.getElementById('ml-f-title').focus(),60);
 }
 function mlEditGoal(id){ mlOpenForm(id); }
-function mlCloseForm(){ document.getElementById('ml-form').style.display='none'; document.getElementById('ml-add-btn').style.display=''; _mlEditId=null; }
+function mlCloseForm(){ const f=document.getElementById('ml-form'); if(f)f.style.display='none'; _mlEditId=null; }
 async function mlSaveGoal(e){
   if(e)e.preventDefault();
   const title=document.getElementById('ml-f-title').value.trim();
@@ -10335,7 +10341,7 @@ async function mlSaveGoal(e){
   _mlItems=[...deriveCertificates(),...getGoalsCache()];
   if(wasNew){ _mlHighlight=newId; setTimeout(()=>{ _mlHighlight=null; renderMilestones(); },2800); }
   renderMilestones();
-  flash('✓ Achievement saved');
+  flash('✓ Goal saved');
 }
 async function mlDeleteGoal(id){
   if(!confirm('Delete this goal?')) return;
@@ -10397,18 +10403,25 @@ function renderAccSwitcher(){
   const accs=state.accounts||[];
   const active=getActiveAccIds();
   sw.innerHTML =
-    `<div class="acc-sw-head">Active accounts (${active.length}) · combined P&amp;L</div>` +
+    `<div class="acc-sw-head">Tick to include in combined P&amp;L · tap a name for its own info</div>` +
     accs.map(a=>{
       const on=active.includes(String(a.id));
-      return `<div class="acc-sw-item ${on?'active':''}" onclick="toggleAccActive('${a.id}')">
-        <span class="acc-sw-check ${on?'on':''}">${on?'✓':''}</span>
-        <span class="acc-sw-name">${(a.name||'Account').replace(/</g,'&lt;')}</span>
+      return `<div class="acc-sw-item ${on?'active':''}">
+        <span class="acc-sw-check ${on?'on':''}" onclick="event.stopPropagation();toggleAccActive('${a.id}')" title="${on?'Included in combined P&L':'Add to combined P&L'}">${on?'✓':''}</span>
+        <span class="acc-sw-name" onclick="event.stopPropagation();openAccountInfo('${a.id}')">${(a.name||'Account').replace(/</g,'&lt;')}</span>
         <span class="acc-sw-firm">${(a.firm||a.type||'').replace(/</g,'&lt;')}</span>
+        <span class="acc-sw-go" onclick="event.stopPropagation();openAccountInfo('${a.id}')" title="Open this account's payout & info">›</span>
       </div>`;
     }).join('') +
     `<div class="acc-sw-foot">
        <div class="acc-sw-manage" onclick="document.getElementById('accQuick').classList.remove('open');navTo('accounts')">Manage accounts</div>
      </div>`;
+}
+// Open a specific account's own Payout/info module (its per-account "database")
+function openAccountInfo(id){
+  _payoutAccId=String(id);
+  const aq=document.getElementById('accQuick'); if(aq)aq.classList.remove('open');
+  navTo('payout');
 }
 
 // Quick transaction init from the active (primary) account — pre-fills a payout
