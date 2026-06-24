@@ -1550,6 +1550,9 @@ select option[value="PM"] { color: #5BA8FF; }
 .ach-card-img{position:relative;aspect-ratio:16/10;background:#05080F;overflow:hidden}
 .ach-card-img img{width:100%;height:100%;object-fit:cover;display:block}
 .ach-badge{position:absolute;top:10px;left:10px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:4px 9px;border-radius:99px;background:rgba(5,8,15,.8);backdrop-filter:blur(6px);border:1px solid var(--gold-border);color:var(--gold2)}
+.ach-auto-medal{display:flex;align-items:center;justify-content:center;height:100%;background:radial-gradient(120% 90% at 50% 30%,rgba(245,166,35,.16),transparent 65%)}
+.ach-auto-medal>svg{width:54px;height:54px;border-radius:50%;padding:11px;background:radial-gradient(circle at 35% 35%,var(--gold2),#B98A3D);box-shadow:0 0 18px 2px rgba(245,166,35,.4)}
+.ach-auto-tag{position:absolute;top:10px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:800;letter-spacing:.12em;padding:3px 8px;border-radius:99px;background:rgba(0,212,164,.16);border:1px solid rgba(0,212,164,.4);color:var(--bull)}
 .ach-pub-pill{position:absolute;top:10px;right:10px;font-size:9px;font-weight:700;padding:4px 8px;border-radius:99px;display:flex;align-items:center;gap:4px;backdrop-filter:blur(6px)}
 .ach-pub-pill.on{background:rgba(0,212,164,.15);border:1px solid rgba(0,212,164,.4);color:var(--bull)}
 .ach-pub-pill.off{background:rgba(5,8,15,.7);border:1px solid var(--border2);color:var(--text3)}
@@ -7175,6 +7178,7 @@ function saveAccount(){
   // Cloud: base columns only (extended fields persist locally until the accounts migration is run)
   sbSyncRecord('accounts',{id:String(a.id),user_id:_sbUserId,name:a.name,type:a.type,status:a.status,date:a.date||null,deposit:parseFloat(a.deposit)||0});
   closeModal('accModal');renderAccountTable();updateAllStats();
+  if(a.type==='Funded'&&a.status!=='Blown'&&typeof syncAutoAchievements==='function'&&syncAutoAchievements()){ flash('🏆 Funded Pass added to Achievements'); }
 }
 // Auto-fill the transaction's prop firm from the chosen account
 function xmFillFirm(){
@@ -8867,19 +8871,62 @@ function saveAchCache(a){localStorage.setItem('lmr_achievements_v1',JSON.stringi
 
 async function loadAchievements(){
   _achEntries=getAchCache();
-  renderAchFeed(); renderAchSummary();
-  if(typeof renderMilestones==='function') renderMilestones(); // goals (instant from cache)
-  if(typeof loadMilestones==='function') loadMilestones();     // goals (cloud sync + render)
   if(_sb&&_sbUserId){
     try{
       const {data,error}=await _sb.from('lmr_achievements').select('*').eq('user_id',_sbUserId).order('achieved_on',{ascending:false});
-      if(!error&&data){ _achEntries=data; saveAchCache(_achEntries); renderAchFeed(); renderAchSummary(); }
+      if(!error&&data){ _achEntries=data; saveAchCache(_achEntries); }
     }catch(e){/* table may not exist yet — local cache is the source of truth */}
   }
+  syncAutoAchievements(); // auto-grant Funded Pass / Funded Payout from accounts + payouts
+  renderAchFeed(); renderAchSummary();
+  if(typeof renderMilestones==='function') renderMilestones(); // goals (instant from cache)
+  if(typeof loadMilestones==='function') loadMilestones();     // goals (cloud sync + render)
 }
 
 function _achSorted(){
   return [..._achEntries].sort((a,b)=>String(b.achieved_on||b.created_at||'').localeCompare(String(a.achieved_on||a.created_at||'')));
+}
+
+// AUTOMATION — auto-grant a "Funded Pass" achievement for each funded account, and a
+// "Funded Payout" for each payout event. Deterministic ids → no duplicates on re-run.
+// Returns true if any new record was added (caller persists + re-renders).
+function syncAutoAchievements(){
+  if(!Array.isArray(_achEntries)) _achEntries=getAchCache();
+  const now=new Date().toISOString(), today=now.slice(0,10);
+  // Build the set of auto records that SHOULD exist from current accounts + payout events
+  const desired={};
+  (state.accounts||[]).filter(a=>a.type==='Funded'&&a.status!=='Blown').forEach(a=>{
+    const pnl=state.trades.filter(t=>String(t.accountId)===String(a.id)).reduce((s,t)=>s+(parseFloat(t.pnl)||0),0);
+    desired['auto-funded-'+a.id]={id:'auto-funded-'+a.id,user_id:_sbUserId||null,title:'Funded Account Passed',category:'Funded Pass',firm:a.firm||null,
+      amount:null,achieved_on:a.date||today,caption:(a.name||'Account')+(pnl?(' · $'+pnl.toFixed(0)+' P&L'):''),image:null,is_public:false,source:'system',auto:true,created_at:now,updated_at:now};
+  });
+  const events={};
+  (state.transactions||[]).filter(t=>t.type==='Payout'||t.type==='Withdrawal').forEach(t=>{
+    const key=String(t.accountId)+'_'+(t.date||today);
+    if(!events[key]) events[key]={accountId:t.accountId,date:t.date||today,gross:0,net:0};
+    const amt=Math.abs(parseFloat(t.amount)||0);
+    if(t.type==='Payout') events[key].gross=amt; else events[key].net=amt;
+  });
+  Object.entries(events).forEach(([key,ev])=>{
+    const acc=state.accounts.find(a=>String(a.id)===String(ev.accountId));
+    const amount=ev.gross||(ev.net?ev.net/0.9:0);
+    desired['auto-payout-'+key]={id:'auto-payout-'+key,user_id:_sbUserId||null,title:'Funded Payout',category:'Payout',firm:(acc&&acc.firm)||null,
+      amount:Math.round(amount*100)/100,achieved_on:ev.date,caption:(acc?acc.name:'Account')+' payout'+(ev.net?(' · received $'+ev.net.toFixed(0)):''),image:null,is_public:false,source:'system',auto:true,created_at:now,updated_at:now};
+  });
+  let changed=false;
+  // 1) Prune stale auto entries (account/payout no longer exists) — keep user-edited ones that are still valid
+  const before=_achEntries.length;
+  _achEntries=_achEntries.filter(a=>{ const isAuto=a.auto||String(a.id).startsWith('auto-'); return !isAuto || desired[a.id]; });
+  if(_achEntries.length!==before) changed=true;
+  // 2) Add any missing desired entries (don't overwrite existing — preserves user edits like added images)
+  const have=new Set(_achEntries.map(a=>a.id));
+  const added=Object.values(desired).filter(e=>!have.has(e.id));
+  if(added.length){ _achEntries=[...added,..._achEntries]; changed=true; }
+  if(changed){
+    saveAchCache(_achEntries);
+    if(_sb&&_sbUserId&&added.length){ try{ _sb.from('lmr_achievements').upsert(added.map(a=>({id:a.id,user_id:_sbUserId,title:a.title,category:a.category,firm:a.firm,amount:a.amount,achieved_on:a.achieved_on,caption:a.caption,image:a.image,is_public:a.is_public,created_at:a.created_at,updated_at:a.updated_at})),{onConflict:'id'}).then(()=>{},()=>{}); }catch(e){} }
+  }
+  return added.length>0;
 }
 
 function updateSbAch(){
@@ -8915,13 +8962,16 @@ function renderAchFeed(){
   if(!list.length){ feed.innerHTML=''; if(empty)empty.style.display='block'; return; }
   if(empty)empty.style.display='none';
   feed.innerHTML=list.map(a=>{
+    const isAuto=a.auto||String(a.id).startsWith('auto-');
     const meta=[]; if(a.firm)meta.push(a.firm); if(a.achieved_on)meta.push(a.achieved_on);
     const amt=a.amount?`<div class="ach-card-amount">$${Number(a.amount).toLocaleString()}</div>`:'';
-    const img=a.image?`<img src="${a.image}" alt="${(a.title||'').replace(/"/g,'')}">`:`<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:11px">No image</div>`;
+    const medal=`<div class="ach-auto-medal"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#0B0C10" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg></div>`;
+    const img=a.image?`<img src="${a.image}" alt="${(a.title||'').replace(/"/g,'')}">`:(isAuto?medal:`<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:11px">No image</div>`);
     return `<div class="ach-card">
       <div class="ach-card-img">
         ${img}
         <span class="ach-badge">${a.category||'Achievement'}</span>
+        ${isAuto?'<span class="ach-auto-tag">AUTO</span>':''}
         <span class="ach-pub-pill ${a.is_public?'on':'off'}" onclick="toggleAchPublic('${a.id}')" title="${a.is_public?'Visible on your landing page — click to hide':'Hidden — click to show on landing page'}">${a.is_public?'● LIVE':'○ Private'}</span>
       </div>
       <div class="ach-card-body">
@@ -8933,8 +8983,8 @@ function renderAchFeed(){
       <div class="ach-card-foot">
         ${shareButtonsHTML('shareAchievement',"'"+a.id+"'")}
         <span class="spacer"></span>
-        <button class="ach-icon-btn" onclick="openAchModal('${a.id}')" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-        <button class="ach-icon-btn danger" onclick="deleteAchievement('${a.id}')" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
+        <button class="ach-icon-btn" onclick="openAchModal('${a.id}')" title="${isAuto?'Add the real certificate image / publish':'Edit'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+        ${isAuto?'':`<button class="ach-icon-btn danger" onclick="deleteAchievement('${a.id}')" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>`}
       </div>
     </div>`;
   }).join('');
@@ -10129,6 +10179,7 @@ function submitPayoutRequest(){
     sbSyncRecord('transactions',{id:String(wdlId),user_id:_sbUserId,account_id:String(acc.id),date,type:'Withdrawal',amount:net,note:`Withdrawal · ${method} · received $${net.toFixed(2)} (gross $${gross.toFixed(2)} − 10% fee)`,status:'Under review',updated_at:now});
   }catch(e){} }
   closeModal('payoutReqModal'); renderPayoutModule(); renderTransTable&&renderTransTable(); updateAllStats();
+  if(typeof syncAutoAchievements==='function') syncAutoAchievements(); // auto-grant Funded Payout achievement
   flash(`✓ Payout $${gross.toFixed(0)} → Payouts · Withdrawal $${net.toFixed(0)} (after 10%) → your bank`);
 }
 // Mark an under-review payout as Sent (paid out)
