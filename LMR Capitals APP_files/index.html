@@ -1796,6 +1796,116 @@ select option[value="PM"] { color: #5BA8FF; }
 .ml-fade-l{left:0;background:linear-gradient(to right,var(--bg),transparent)}
 .ml-fade-r{right:0;background:linear-gradient(to left,var(--bg),transparent)}
 .ml-empty{color:var(--text3);font-size:14px;padding:20px 0}
+
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN SYSTEM v5 — CHAMPAGNE RESKIN (visual layer only)
+   Evolved brand: warm graphite ink replaces navy, champagne gold
+   replaces amber, cream text replaces blue-tinted, Space Grotesk
+   display type, softer radii + glass depth. Loaded last so it
+   re-themes every component; ZERO logic or layout changes.
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  /* Warm graphite ink (was deep navy) */
+  --bg:#0A0B0F;--bg2:#0E1016;--bg3:#13161E;--bg4:#1A1E28;--bg5:#222734;
+  /* Borders — a touch warmer */
+  --border:rgba(240,235,220,.07);--border2:rgba(240,235,220,.12);--border3:rgba(240,235,220,.20);
+  /* Cream text hierarchy (was blue-tinted) */
+  --text:#F2EFE8;--text2:#A9AEB9;--text3:#666C79;
+  /* Champagne gold (was amber) */
+  --gold:#E9B44C;--gold2:#F5D68A;--gold3:#C98F2B;
+  --gold-glow:rgba(233,180,76,.25);--gold-border:rgba(233,180,76,.32);
+  --gold-strip:rgba(233,180,76,.15);--gold-bg:rgba(233,180,76,.09);
+  /* Bull / Bear — slightly softened */
+  --bull:#3ED598;--bull-bg:rgba(62,213,152,.09);--bull-glow:rgba(62,213,152,.25);
+  --bear:#FF5C7A;--bear-bg:rgba(255,92,122,.09);--bear-glow:rgba(255,92,122,.25);
+  /* Softer radii */
+  --r:9px;--r2:14px;--r3:20px;
+}
+/* Ambient canvas: warm gold breath instead of blue */
+body{
+  background:radial-gradient(ellipse 130% 55% at 60% -5%,rgba(233,180,76,.075) 0%,var(--bg) 55%) fixed,
+             radial-gradient(ellipse 80% 40% at 10% 95%,rgba(233,180,76,.03) 0%,transparent 60%);
+}
+.app{background:linear-gradient(165deg,#0B0C11 0%,#0E1016 45%,#0B0D12 75%,#090A0E 100%)}
+.app::before{background:radial-gradient(ellipse 900px 650px at 12% 45%,rgba(233,180,76,.05) 0%,transparent 70%)}
+
+/* Display type: Space Grotesk for headings & hero numbers */
+h1,h2,h3,.tb-title,.panel-title,.page-title,.card-title,.modal-title,.sb-logo,
+.tile-v,.sb-pnl-v,.sb-day-v,.mc-stat-v{font-family:'Space Grotesk','Inter',sans-serif}
+.tb-title{letter-spacing:-.035em}
+
+/* Sidebar — pill nav, champagne active state, no hard left border */
+.sidebar{background:linear-gradient(180deg,#0E1016 0%,#0C0E13 100%)}
+.sb-item{border-left:none;border-radius:10px;padding:8px 11px;transition:background var(--t),color var(--t)}
+.sb-item.active{
+  background:linear-gradient(90deg,rgba(233,180,76,.16),rgba(233,180,76,.05));
+  border-left:none;box-shadow:inset 0 0 0 1px rgba(233,180,76,.28);color:var(--gold);
+}
+.sb-logo-icon{border-radius:8px;box-shadow:0 0 14px var(--gold-glow)}
+.sb-day{background:linear-gradient(135deg,rgba(233,180,76,.14),rgba(233,180,76,.04));border:1px solid var(--gold-border);border-radius:12px}
+.sb-foot{background:rgba(233,180,76,.03)}
+
+/* Inputs — rounder, focus ring instead of bare border swap */
+input,textarea,select{border-radius:10px;padding:8px 12px;transition:border-color var(--t),box-shadow var(--t)}
+input:focus,textarea:focus,select:focus{border-color:var(--gold-border);box-shadow:0 0 0 3px rgba(233,180,76,.15)}
+
+/* Cards & tiles — glass surface, deeper elevation */
+.card,.tile{
+  background:linear-gradient(180deg,rgba(255,255,255,.025) 0%,rgba(255,255,255,0) 60%),var(--bg2);
+  border-radius:var(--r2);
+}
+.card{box-shadow:0 1px 2px rgba(0,0,0,.35),0 12px 36px rgba(0,0,0,.28)}
+.card:hover{border-color:rgba(233,180,76,.32);box-shadow:0 8px 36px rgba(233,180,76,.09),0 2px 10px rgba(0,0,0,.4)}
+
+/* Buttons — champagne primary, lifted hover */
+.btn{border-radius:10px}
+.btn-primary{background:linear-gradient(135deg,#F0C666,#D89B2D);box-shadow:0 4px 16px rgba(233,180,76,.22)}
+.btn-primary:hover{box-shadow:0 6px 22px rgba(233,180,76,.32)}
+
+/* Modals — larger radius, stronger glass */
+.modal,.modal-box,.modal-content{border-radius:var(--r3)}
+
+/* Scrollbars — slim & warm */
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:rgba(240,235,220,.14);border-radius:99px;border:2px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:rgba(233,180,76,.35);border:2px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-track{background:transparent}
+
+/* Light mode — keep its own neutrals, only evolve the gold accents */
+body.light-mode{
+  --bg:#F2F0EA;--bg2:#FFFFFF;--bg3:#F6F4EF;--bg4:#E9E6DE;
+  --border:rgba(30,25,10,.09);--border2:rgba(30,25,10,.14);
+  --text:#17171B;--text2:#5A5E68;--text3:#9B9FA8;
+}
+
+/* ── Landing page: champagne accent sweep (hardcoded ambers → new gold) ── */
+#landingPage{background:#0A0B0F}
+.lp-nav{background:rgba(10,11,15,.78);border-bottom-color:rgba(233,180,76,.12)}
+.lp-nav-brand b,.lp-nav-links a:hover,.lp-hero h1 .lp-gold,.lp-section-tag,
+.lp-legal-links a,.lp-ind-note a{color:var(--gold)}
+.lp-hero{background:radial-gradient(ellipse at 50% -10%,rgba(233,180,76,.13),transparent 60%),linear-gradient(180deg,#0A0B0F 0%,#10131B 100%)}
+.lp-hero h1 .lp-gold{text-shadow:0 0 40px rgba(233,180,76,.35)}
+.lp-eyebrow{background:rgba(233,180,76,.09);border-color:rgba(233,180,76,.28);color:var(--gold)}
+.lp-nav-cta,.lp-btn-primary,.lp-ind-cta.gold{background:linear-gradient(135deg,#F0C666,#D89B2D);box-shadow:0 6px 26px rgba(233,180,76,.28)}
+.lp-btn-secondary{border-color:rgba(233,180,76,.38);color:var(--gold)}
+.lp-btn-secondary:hover{background:rgba(233,180,76,.09);border-color:rgba(233,180,76,.6)}
+.lp-card,.lp-ind-card{background:linear-gradient(180deg,#10131B 0%,#0C0E14 100%);border-radius:18px}
+.lp-card:hover,.lp-ind-card:hover{border-color:rgba(233,180,76,.32)}
+.lp-card-icon,.lp-ind-icon{background:linear-gradient(135deg,rgba(233,180,76,.18),rgba(233,180,76,.06));border-color:rgba(233,180,76,.28)}
+.lp-card-icon svg,.lp-ind-icon svg{stroke:var(--gold)}
+.lp-method-num{color:var(--gold)}
+.lp-ind-badge.soon{background:rgba(233,180,76,.1);border-color:rgba(233,180,76,.35);color:var(--gold)}
+.lp-ind-feats li::before{color:var(--gold)}
+.lp-social a{background:rgba(233,180,76,.09);border-color:rgba(233,180,76,.22);color:var(--gold)}
+.lp-social a:hover{background:rgba(233,180,76,.17);border-color:rgba(233,180,76,.4)}
+.lp-footer span{color:rgba(233,180,76,.6)}
+.lp-cta-section{background:linear-gradient(180deg,#10131B 0%,#0A0B0F 100%);border-top-color:rgba(233,180,76,.1)}
+#landingPage h1,#landingPage h2,#landingPage h3,.lp-ind-title h3{font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;letter-spacing:-.025em}
+
+/* Reduced motion — quiet every reskin transition */
+@media (prefers-reduced-motion:reduce){
+  .card,.tile,.sb-item,.btn,input,textarea,select{transition:none!important}
+}
 </style>
 </head>
 <body>
@@ -5905,7 +6015,7 @@ function toggleAlertMin(){
 const REPORT_TYPES={
   full:   {label:'⚡ Full Review',   prompt:'comprehensive analysis of EVERYTHING — trade patterns, psychology, models, sessions, emotional patterns, HTF discipline, and a clear 5-day focus plan. Use sections with headers.'},
   trade:  {label:'📊 Trade Analysis',prompt:'deep analysis of trade setups, models used, entry quality, HTF discipline, session timing, R:R management. What setups to prioritise and which to reduce.'},
-  psych:  {label:'🧠 Psychology',    prompt:'emotional patterns, revenge trading, discipline issues, mindset observations. Specific rules the trader needs to implement based on their emotional trading data.'},
+  psych:  {label:'🧠 Psychology',    prompt:'psychology review driven primarily by the trader\'s own per-trade FEEDBACK notes (see the TRADE FEEDBACK section). Measure their mindset WEEK-BY-WEEK and then OVERALL: recurring emotional patterns, revenge/FOMO/hesitation tendencies, how their feedback tone differs on wins vs losses, whether the SAME mistakes repeat across weeks, and clear week-over-week improvement or regression. Quote their actual feedback back to them. Finish with 3-5 specific enforceable rules and an overall psychology trend (improving / flat / slipping).'},
   weekly: {label:'📅 Weekly Review', prompt:'this week performance vs objectives, what worked, what failed, and a specific plan for the coming 5 sessions. Reference day-of-week patterns.'},
   monthly:{label:'📈 Monthly Review',prompt:'monthly arc — equity curve, drawdown, win rate trend, best/worst periods, model performance evolution. What changed and what must change next month.'},
 };
@@ -5924,9 +6034,11 @@ async function generateAndSaveAIReport(type='full'){
   const origText=btn?.textContent;
   if(btn){btn.disabled=true;btn.textContent='Generating…';}
   
-  const ctx=buildTradingContext();
+  let ctx=buildTradingContext();
+  // Psychology / Full / Weekly reports also get the weekly + overall TRADE FEEDBACK digest.
+  if(type==='psych'||type==='full'||type==='weekly'){ ctx += '\n\n'+buildFeedbackDigest(); }
   const ts=state.trades||[];
-  
+
   const result=await callClaude([{role:'user',content:`You are an expert LMR trading performance coach. Generate a detailed ${t.prompt}. Be tactical, specific, reference actual data from the trader. Structure with bold section headers. 400-550 words.\n\nTrader Data:\n${ctx}`}],'haiku');
   
   if(!result){ if(btn){btn.disabled=false;btn.textContent=origText;} return null; }
@@ -9893,8 +10005,22 @@ let _obsEntries = [];
 let _obsCurrentId = null;
 let _obsSaveTimer = null;
 
-function getObsEntriesCache(){ return JSON.parse(localStorage.getItem('lmr_obs_entries_v2')||'[]'); }
-function saveObsEntriesCache(entries){ localStorage.setItem('lmr_obs_entries_v2',JSON.stringify(entries)); }
+function getObsEntriesCache(){ try{ return JSON.parse(localStorage.getItem('lmr_obs_entries_v2')||'[]'); }catch(e){ return []; } }
+// A "light" copy with base64 <img> data stripped — so the localStorage cache stays under quota.
+// The FULL content (with images) always lives in Supabase, which is the source of truth.
+function _obsLightEntry(e){
+  if(!e||!e.content||e.content.indexOf('data:image')<0) return e;
+  return {...e, content:e.content.replace(/src\s*=\s*"data:image[^"]*"/g,'src="" data-img="cloud"'), _imgStripped:true};
+}
+// Quota-safe cache write: never throws. On overflow it stores a light copy (images stripped) so a
+// localStorage limit can NEVER block or lose the real save. Mirrors the state-blob fix used elsewhere.
+function saveObsEntriesCache(entries){
+  try{ localStorage.setItem('lmr_obs_entries_v2', JSON.stringify(entries||[])); return true; }
+  catch(err){
+    try{ localStorage.setItem('lmr_obs_entries_v2', JSON.stringify((entries||[]).map(_obsLightEntry))); return true; }
+    catch(e2){ try{ localStorage.removeItem('lmr_obs_entries_v2'); }catch(e3){} return false; }
+  }
+}
 
 // Pasted screenshots arrive as raw clipboard image data — compress them and embed as a
 // self-contained data URL (like trade screenshots) instead of leaving an external image
@@ -9942,16 +10068,27 @@ function applyObsGrid(el){
 }
 
 async function loadObservations(){
-  let entries=[];
+  let cloud=[];
   if(_sb&&_sbUserId){
     try{
       const{data,error}=await _sb.from('lmr_observations').select('*').eq('user_id',_sbUserId).order('created_at',{ascending:false});
-      if(!error&&data) entries=data;
+      if(!error&&data) cloud=data;
     }catch(e){ console.warn('[LMR] Observations load error:',e.message); }
   }
-  if(!entries.length) entries=getObsEntriesCache();
+  // Merge cloud (source of truth) with the local cache by id — so a post whose cloud save previously
+  // FAILED (and only exists in the cache) is never dropped when the cloud list loads without it.
+  const cache=getObsEntriesCache();
+  const byId={}; cloud.forEach(e=>{ byId[e.id]=e; });
+  const cloudIds=new Set(cloud.map(e=>e.id));
+  const recover=[];
+  cache.forEach(e=>{ if(!byId[e.id]){ byId[e.id]=e; if(!e._imgStripped && e.content) recover.push(e); } });
+  const entries=Object.values(byId).sort((a,b)=>String(b.created_at||b.updated_at||'').localeCompare(String(a.created_at||a.updated_at||'')));
   _obsEntries=entries;
   saveObsEntriesCache(entries);
+  // Best-effort: push cache-only posts (with real images, not stripped) back up to the cloud.
+  if(_sb&&_sbUserId&&recover.length){
+    for(const e of recover){ try{ await _sb.from('lmr_observations').upsert({id:e.id,user_id:_sbUserId,title:e.title||'',content:e.content||'',created_at:e.created_at||new Date().toISOString(),updated_at:e.updated_at||new Date().toISOString()},{onConflict:'id'}); }catch(err){} }
+  }
   if(entries.length) openObsEntry(entries[0].id);
   else await obsNewEntry();
 }
@@ -10012,17 +10149,21 @@ async function obsSaveEntry(){
 
   const idx=_obsEntries.findIndex(e=>e.id===_obsCurrentId);
   if(idx>=0){ _obsEntries[idx]={..._obsEntries[idx],title,content,updated_at}; }
-  saveObsEntriesCache(_obsEntries);
 
+  // Cloud is the source of truth and holds the full images — save it FIRST so a localStorage quota
+  // problem can never lose the post (the old order let the cache write throw before this ran).
+  let cloudOk=null;
   if(_sb&&_sbUserId){
     try{
-      await _sb.from('lmr_observations').upsert({id:_obsCurrentId,user_id:_sbUserId,title,content,updated_at},{onConflict:'id'});
-      setStatus('observation-status','✓ Saved','saved');
-    }catch(e){ setStatus('observation-status','Save failed',''); }
-  } else {
-    setStatus('observation-status','✓ Saved locally','saved');
+      const {error}=await _sb.from('lmr_observations').upsert({id:_obsCurrentId,user_id:_sbUserId,title,content,updated_at},{onConflict:'id'});
+      cloudOk=!error; if(idx>=0) _obsEntries[idx]._imgStripped=false;
+    }catch(e){ cloudOk=false; }
   }
-  setTimeout(()=>setStatus('observation-status','Auto-saves',''),1500);
+  saveObsEntriesCache(_obsEntries); // quota-safe — cannot throw
+  if(cloudOk===false) setStatus('observation-status','⚠ Cloud save failed — kept locally, will retry','');
+  else if(cloudOk) setStatus('observation-status','✓ Saved','saved');
+  else setStatus('observation-status','✓ Saved locally','saved');
+  setTimeout(()=>setStatus('observation-status','Auto-saves',''),2200);
 }
 
 async function obsDeleteEntry(){
@@ -10081,6 +10222,24 @@ function saveAchCache(a){
     localStorage.setItem('lmr_achievements_v1',JSON.stringify(light)); }
   catch(e){ try{localStorage.removeItem('lmr_achievements_v1');}catch(_){ } }
 }
+// Tombstones — auto achievements the user has manually deleted. The auto-grant must never
+// re-add these (otherwise a deleted card respawns on the next sync). Local-first, then synced
+// to the lmr_ach_suppressions table so a delete on one device applies on every device.
+function getAchSuppressed(){ try{ return new Set(JSON.parse(localStorage.getItem('lmr_ach_suppressed_v1')||'[]')); }catch(e){ return new Set(); } }
+function _saveAchSuppressed(set){ try{ localStorage.setItem('lmr_ach_suppressed_v1',JSON.stringify([...set])); }catch(e){} }
+function addAchSuppressed(id){
+  const s=getAchSuppressed(); s.add(String(id)); _saveAchSuppressed(s);
+  if(_sb&&_sbUserId){ try{ _sb.from('lmr_ach_suppressions').upsert({id:String(id),user_id:_sbUserId},{onConflict:'user_id,id'}).then(()=>{},()=>{}); }catch(e){} }
+}
+// Pull cloud tombstones and merge into the local set (union). Call BEFORE syncAutoAchievements
+// so a card deleted on another device is not re-granted here. Falls back silently if unmigrated.
+async function loadAchSuppressed(){
+  if(!(_sb&&_sbUserId)) return;
+  try{
+    const {data,error}=await _sb.from('lmr_ach_suppressions').select('id').eq('user_id',_sbUserId);
+    if(!error&&Array.isArray(data)){ const s=getAchSuppressed(); data.forEach(r=>s.add(String(r.id))); _saveAchSuppressed(s); }
+  }catch(e){/* table not migrated yet — local tombstones still work */}
+}
 
 async function loadAchievements(){
   _achEntries=getAchCache();
@@ -10090,6 +10249,7 @@ async function loadAchievements(){
       if(!error&&data){ _achEntries=data; saveAchCache(_achEntries); }
     }catch(e){/* table may not exist yet — local cache is the source of truth */}
   }
+  await loadAchSuppressed();  // merge cloud delete-tombstones BEFORE the auto-grant runs
   syncAutoAchievements(); // auto-grant Funded Pass / Funded Payout from accounts + payouts
   renderAchFeed(); renderAchSummary();
   if(typeof renderMilestones==='function') renderMilestones(); // goals (instant from cache)
@@ -10108,7 +10268,7 @@ function syncAutoAchievements(){
   const now=new Date().toISOString(), today=now.slice(0,10);
   // Build the set of auto records that SHOULD exist from current accounts + payout events
   const desired={};
-  (state.accounts||[]).filter(a=>a.type==='Funded'&&a.status!=='Blown').forEach(a=>{
+  (state.accounts||[]).filter(a=>a.type==='Funded').forEach(a=>{  // once Funded = passed; a later 'Blown' never revokes the trophy
     const pnl=state.trades.filter(t=>String(t.accountId)===String(a.id)).reduce((s,t)=>s+(parseFloat(t.pnl)||0),0);
     desired['auto-funded-'+a.id]={id:'auto-funded-'+a.id,user_id:_sbUserId||null,title:'Funded Account Passed',category:'Funded Pass',firm:a.firm||null,
       amount:null,achieved_on:a.date||today,caption:(a.name||'Account')+(pnl?(' · $'+pnl.toFixed(0)+' P&L'):''),image:null,is_public:false,source:'system',auto:true,created_at:now,updated_at:now};
@@ -10127,22 +10287,17 @@ function syncAutoAchievements(){
     desired['auto-payout-'+key]={id:'auto-payout-'+key,user_id:_sbUserId||null,title:'Funded Payout',category:'Payout',firm:(acc&&acc.firm)||null,
       amount:Math.round(ev.gross*100)/100,achieved_on:ev.date,caption:(acc?acc.name:'Account')+' payout',image:null,is_public:false,source:'system',auto:true,created_at:now,updated_at:now};
   });
-  let changed=false;
-  // 1) Prune stale auto entries (account/payout no longer exists, e.g. withdrawal-derived ghosts)
-  //    — keep user-edited ones that are still valid. Collect removed AUTO ids so we can also
-  //    delete them from the cloud (otherwise loadAchievements re-pulls them on the next reload).
-  const before=_achEntries.length;
-  const removedAuto=_achEntries.filter(a=>{ const isAuto=a.auto||String(a.id).startsWith('auto-'); return isAuto && !desired[a.id]; }).map(a=>a.id);
-  _achEntries=_achEntries.filter(a=>{ const isAuto=a.auto||String(a.id).startsWith('auto-'); return !isAuto || desired[a.id]; });
-  if(_achEntries.length!==before) changed=true;
-  // 2) Add any missing desired entries (don't overwrite existing — preserves user edits like added images)
+  // WRITE-ONCE: auto achievements are a permanent track record. We only ADD missing ones —
+  // never prune or delete. A blown/closed/removed account (or a not-yet-loaded state.accounts
+  // during a failed/aborted cloud pull) can therefore no longer wipe an earned pass. Manual
+  // deletes are honoured via the suppression tombstones so a deleted card doesn't respawn here.
+  const suppressed=getAchSuppressed();
   const have=new Set(_achEntries.map(a=>a.id));
-  const added=Object.values(desired).filter(e=>!have.has(e.id));
-  if(added.length){ _achEntries=[...added,..._achEntries]; changed=true; }
-  if(changed){
+  const added=Object.values(desired).filter(e=>!have.has(e.id)&&!suppressed.has(String(e.id)));
+  if(added.length){
+    _achEntries=[...added,..._achEntries];
     saveAchCache(_achEntries);
-    if(_sb&&_sbUserId&&removedAuto.length){ try{ _sb.from('lmr_achievements').delete().in('id',removedAuto).eq('user_id',_sbUserId).then(()=>{},()=>{}); }catch(e){} }
-    if(_sb&&_sbUserId&&added.length){ try{ _sb.from('lmr_achievements').upsert(added.map(a=>({id:a.id,user_id:_sbUserId,title:a.title,category:a.category,firm:a.firm,amount:a.amount,achieved_on:a.achieved_on,caption:a.caption,image:a.image,is_public:a.is_public,created_at:a.created_at,updated_at:a.updated_at})),{onConflict:'id'}).then(()=>{},()=>{}); }catch(e){} }
+    if(_sb&&_sbUserId){ try{ _sb.from('lmr_achievements').upsert(added.map(a=>({id:a.id,user_id:_sbUserId,title:a.title,category:a.category,firm:a.firm,amount:a.amount,achieved_on:a.achieved_on,caption:a.caption,image:a.image,is_public:a.is_public,created_at:a.created_at,updated_at:a.updated_at})),{onConflict:'id'}).then(()=>{},()=>{}); }catch(e){} }
   }
   return added.length>0;
 }
@@ -10202,7 +10357,7 @@ function renderAchFeed(){
         ${shareButtonsHTML('shareAchievement',"'"+a.id+"'")}
         <span class="spacer"></span>
         <button class="ach-icon-btn" onclick="openAchModal('${a.id}')" title="${isAuto?'Add the real certificate image / publish':'Edit'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-        ${isAuto?'':`<button class="ach-icon-btn danger" onclick="deleteAchievement('${a.id}')" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>`}
+        <button class="ach-icon-btn danger" onclick="deleteAchievement('${a.id}')" title="${isAuto?'Remove trophy':'Delete'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
       </div>
     </div>`;
   }).join('');
@@ -10328,8 +10483,10 @@ async function saveAchievement(){
 }
 
 async function deleteAchievement(id){
-  if(!confirm('Delete this achievement?')) return;
+  const isAuto=String(id).startsWith('auto-');
+  if(!confirm(isAuto?'Remove this auto trophy? It will stay removed and won’t come back on its own.':'Delete this achievement?')) return;
   _achEntries=_achEntries.filter(x=>x.id!==id);
+  if(isAuto) addAchSuppressed(id);   // tombstone: keep the auto-grant from re-adding it
   saveAchCache(_achEntries); renderAchFeed(); renderAchSummary();
   if(_sb&&_sbUserId){ try{ await _sb.from('lmr_achievements').delete().eq('id',id).eq('user_id',_sbUserId); }catch(e){} }
 }
@@ -13165,6 +13322,23 @@ const AI_MODEL = 'claude-haiku-4-5';
 
 function getAIKey(){ return state.profile?.anthropicKey||''; }
 
+// Aggregate the trader's own per-trade FEEDBACK notes into a WEEKLY + OVERALL psychology signal.
+// This is the primary input for the Psychology AI report (measures mindset week-by-week and overall).
+function buildFeedbackDigest(){
+  const fb=(state.trades||[]).filter(t=>t.feedback&&String(t.feedback).trim());
+  if(!fb.length) return 'TRADE FEEDBACK: (none logged yet — the trader has not written feedback on any trades, so psychology must be inferred from emotions/journal only.)';
+  const byWeek={};
+  fb.forEach(t=>{ const d=(t.date||'').slice(0,10); const wk=(typeof getWeeklyKeyForDate==='function'&&getWeeklyKeyForDate(d))||(d.slice(0,7)+'-W?'); (byWeek[wk]=byWeek[wk]||[]).push(t); });
+  const wins=fb.filter(t=>parseFloat(t.pnl)>0).length, losses=fb.filter(t=>parseFloat(t.pnl)<0).length;
+  const weeks=Object.keys(byWeek).sort().reverse().slice(0,8);
+  const blocks=weeks.map(wk=>{
+    const list=byWeek[wk].slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    const wp=list.reduce((s,t)=>s+(parseFloat(t.pnl)||0),0);
+    const lines=list.map(t=>{ const p=parseFloat(t.pnl)||0; return `  · ${(t.date||'').slice(5)} ${p>=0?'WIN':'LOSS'} ${p>=0?'+$':'-$'}${Math.abs(p).toFixed(0)}${(t.emotions&&t.emotions.length)?' ['+t.emotions.join(',')+']':''}: "${String(t.feedback).replace(/\s+/g,' ').trim().slice(0,240)}"`; }).join('\n');
+    return `WEEK ${wk} — ${list.length} feedback note(s), net ${wp>=0?'+':''}$${wp.toFixed(0)}:\n${lines}`;
+  }).join('\n\n');
+  return `TRADE FEEDBACK — WEEKLY (newest first) [${fb.length} notes overall · ${wins} on wins / ${losses} on losses]:\n${blocks}`;
+}
 function buildTradingContext(){
   const trades = [...state.trades].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,50);
   const wins = trades.filter(t=>t.pnl>0).length;
@@ -13184,7 +13358,7 @@ function buildTradingContext(){
     .slice(0,10)
     .map(n=>`- [D${n.dayCount||'?'}] ${(n.text||n.title||'').slice(0,120)}`).join('\n');
   const recentTrades = trades.slice(0,10).map(t=>
-    `- ${t.date} ${t.market} ${t.position} [${(t.models||[]).join('+')}] P&L:${t.pnl>=0?'+':''}$${t.pnl} RR:${t.rr} HTF:${t.htf||'?'} Emotion:${(t.emotions||[]).join(',')}`
+    `- ${t.date} ${t.market} ${t.position} [${(t.models||[]).join('+')}] P&L:${t.pnl>=0?'+':''}$${t.pnl} RR:${t.rr} HTF:${t.htf||'?'} Emotion:${(t.emotions||[]).join(',')}${t.feedback?` Feedback:"${String(t.feedback).replace(/\s+/g,' ').trim().slice(0,120)}"`:''}`
   ).join('\n');
   return `TRADER PROFILE:
 Total Trades: ${trades.length} | Win Rate: ${wr}% (${wins}W/${losses}L) | Net P&L: $${totalPnl.toFixed(0)} | Avg RR: ${avgRRVal}
