@@ -2187,7 +2187,10 @@ body.light-mode{
       if(active!==prevActive){ fire(links[active].querySelector('.lc-flash'),'go'); prevActive=active; }
     }
     function onScroll(){ if(!ticking){ ticking=true; requestAnimationFrame(render); } }
-    window.addEventListener('scroll',onScroll,{passive:true});
+    // The landing scrolls inside #landingPage (position:fixed; overflow-y:auto),
+    // not the window — listen on that container, falling back to window (standalone file).
+    var scroller=scope.closest('#landingPage');
+    (scroller||window).addEventListener('scroll',onScroll,{passive:true});
     window.addEventListener('resize',render);
     render();
   })();
