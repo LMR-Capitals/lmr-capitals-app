@@ -1998,6 +1998,209 @@ body.light-mode{
     </div>
   </section>
 
+  <!-- ══════════ THE CHAIN — sideways scroll-through molten chain (self-contained, scoped) ══════════ -->
+  <style id="lmrchain-style">
+  #lmrChain{--lc-text:#EDF2FF;--lc-text2:#7A9AC0;--lc-text3:#3A5270;--lc-gold:#F5A623;--lc-gold2:#FFD166;--lc-bull:#00D4A4;--lc-lava1:#FFE39A;--lc-lava2:#FF9A2E;position:relative}
+  #lmrChain .lc-scroll{position:relative;height:560vh}
+  #lmrChain .lc-sticky{position:sticky;top:0;height:100vh;overflow:hidden;
+    background:radial-gradient(120% 60% at 50% 120%,rgba(255,110,25,.16),transparent 55%),radial-gradient(ellipse at 50% -10%,rgba(91,143,255,.08),transparent 55%),linear-gradient(180deg,#050A16 0%,#0A0E1A 55%,#160a08 100%)}
+  #lmrChain .lc-vignette{position:absolute;inset:0;z-index:7;pointer-events:none;box-shadow:inset 0 0 240px 70px rgba(1,2,6,.9)}
+  #lmrChain .lc-env{position:absolute;inset:0;z-index:0;pointer-events:none}
+  #lmrChain .lc-bokeh{position:absolute;border-radius:50%;filter:blur(15px)}
+  #lmrChain .lc-bokeh.b1{width:70px;height:70px;left:11%;top:24%;background:radial-gradient(circle,#3f6fff,transparent 70%);opacity:.5}
+  #lmrChain .lc-bokeh.b2{width:50px;height:50px;right:14%;top:30%;background:radial-gradient(circle,#ff3b57,transparent 70%);opacity:.4}
+  #lmrChain .lc-bokeh.b3{width:44px;height:44px;left:24%;bottom:22%;background:radial-gradient(circle,#3fe0ff,transparent 70%);opacity:.32}
+  #lmrChain .lc-grid{position:absolute;inset:-14% 0;opacity:.22;background-image:linear-gradient(rgba(122,154,192,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(122,154,192,.05) 1px,transparent 1px);background-size:64px 64px}
+  #lmrChain .lc-embers{position:absolute;inset:0;z-index:6;pointer-events:none;overflow:hidden}
+  #lmrChain .lc-ember{position:absolute;bottom:-10px;width:4px;height:4px;border-radius:50%;background:#FFC65A;box-shadow:0 0 8px 2px rgba(255,170,60,.8);opacity:0;--dx:16px;animation:lc_rise 6s linear infinite}
+  @keyframes lc_rise{0%{opacity:0;transform:translateY(0)}8%{opacity:.9}100%{opacity:0;transform:translateY(-70vh) translateX(var(--dx))}}
+  #lmrChain .lc-tag{position:absolute;top:34px;left:50%;transform:translateX(-50%);z-index:8;text-align:center;width:92%}
+  #lmrChain .lc-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--lc-gold);padding:6px 14px;border:1px solid rgba(245,166,35,.3);border-radius:20px;background:rgba(245,166,35,.06)}
+  #lmrChain .lc-pip{width:6px;height:6px;border-radius:50%;background:var(--lc-gold);box-shadow:0 0 10px var(--lc-gold);animation:lc_pip 2s infinite}
+  @keyframes lc_pip{50%{opacity:.35}}
+  #lmrChain .lc-tag h2{margin-top:10px;font-size:clamp(20px,3.6vw,34px);font-weight:800;letter-spacing:-.02em;color:var(--lc-text)}
+  #lmrChain .lc-tag h2 .g{color:var(--lc-gold);text-shadow:0 0 40px rgba(255,150,40,.55)}
+  #lmrChain .lc-rail{position:absolute;left:50%;transform:translateX(-50%);bottom:26px;z-index:8;display:flex;gap:12px;align-items:center}
+  #lmrChain .lc-step{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--lc-text3);text-transform:uppercase}
+  #lmrChain .lc-step .lc-dot{width:9px;height:9px;border-radius:50%;background:rgba(122,154,192,.25);transition:.3s}
+  #lmrChain .lc-step.active .lc-dot{background:var(--lc-gold);box-shadow:0 0 12px var(--lc-gold);transform:scale(1.35)}
+  #lmrChain .lc-step.active{color:var(--lc-gold)}
+  #lmrChain .lc-step.done .lc-dot{background:var(--lc-gold)} #lmrChain .lc-step.done{color:var(--lc-text2)}
+  /* horizontal strip; scroll drives translateX */
+  #lmrChain .lc-lift{position:absolute;left:0;top:0;height:100%;z-index:4;transform:translateX(0);will-change:transform}
+  #lmrChain .lc-link{position:absolute;top:50%;transform:translateY(-50%)} /* left set inline (x position) */
+  /* interlock depth: alternating up/down links thread over-and-under each other; active on top */
+  #lmrChain .lc-link.up{z-index:1}#lmrChain .lc-link.down{z-index:2}#lmrChain .lc-link.active{z-index:5}
+  /* molten connector thread running through every link so it reads as ONE chain */
+  #lmrChain .lc-thread{position:absolute;top:50%;left:-30px;width:660px;height:9px;transform:translateY(-50%);z-index:0;border-radius:9px;background:linear-gradient(90deg,#5a0c02,#E23A08,#FF8A1E,#FFE08A,#FF8A1E,#E23A08,#5a0c02);background-size:200% 100%;box-shadow:0 0 20px 2px rgba(255,140,40,.55);opacity:.5;animation:lc_thread 5s linear infinite}
+  @keyframes lc_thread{to{background-position:200% 0}}
+  #lmrChain .lc-wrap{position:relative;display:block;transition:transform .35s ease}
+  #lmrChain .lc-wrap::before{content:"";position:absolute;inset:-20px;border-radius:46%;z-index:-1;filter:blur(9px);opacity:0;transition:opacity .4s;background:radial-gradient(closest-side,rgba(255,120,30,.55),rgba(255,60,0,.15),transparent 78%)}
+  #lmrChain .lc-svg{display:block;filter:grayscale(.55) brightness(.5);transition:filter .45s}
+  #lmrChain .lc-link.wait{opacity:.5}
+  #lmrChain .lc-link.active{opacity:1}
+  #lmrChain .lc-link.active .lc-wrap{transform:scale(1.06)}
+  #lmrChain .lc-link.active .lc-wrap::before{opacity:1;animation:lc_halo 2.6s ease-in-out infinite}
+  @keyframes lc_halo{50%{opacity:.7;transform:scale(1.07)}}
+  #lmrChain .lc-link.active .lc-svg{filter:grayscale(0) brightness(1);animation:lc_flicker 2.6s ease-in-out infinite}
+  @keyframes lc_flicker{0%,100%{filter:drop-shadow(0 0 14px rgba(255,110,20,.9)) drop-shadow(0 0 34px rgba(255,55,0,.5))}50%{filter:drop-shadow(0 0 22px rgba(255,160,50,1)) drop-shadow(0 0 46px rgba(255,80,10,.6))}}
+  #lmrChain .lc-link.done{opacity:.95} #lmrChain .lc-link.done .lc-svg{filter:grayscale(.42) brightness(.72) sepia(.28) saturate(1.1)} /* cooled but still warm ember, not flat grey */
+  #lmrChain .lc-flash{position:absolute;inset:-30px;border-radius:50%;z-index:2;pointer-events:none;opacity:0;background:radial-gradient(circle,rgba(255,244,210,.95),rgba(255,150,40,.4) 40%,transparent 66%)}
+  #lmrChain .lc-flash.go{animation:lc_flash .55s ease-out}
+  @keyframes lc_flash{0%{opacity:.95;transform:scale(.45)}100%{opacity:0;transform:scale(1.5)}}
+  #lmrChain .lc-ring{position:absolute;top:50%;left:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;border:2px solid rgba(255,205,90,.95);z-index:2;pointer-events:none;opacity:0}
+  #lmrChain .lc-ring.go{animation:lc_ring .7s ease-out}
+  @keyframes lc_ring{0%{opacity:.9;transform:scale(.4)}100%{opacity:0;transform:scale(3)}}
+  #lmrChain .lc-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);z-index:3;display:flex;align-items:center;gap:5px;font-size:10px;font-weight:800;letter-spacing:.06em;color:#0a0f1a;background:linear-gradient(180deg,#FFE39A,#F5A623);border-radius:20px;padding:4px 9px;box-shadow:0 4px 14px rgba(0,0,0,.5);opacity:0;transition:opacity .35s,transform .35s}
+  #lmrChain .lc-link.done .lc-badge{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  #lmrChain .lc-drips{position:absolute;left:0;right:0;bottom:6px;height:120px;pointer-events:none;z-index:1;opacity:0;transition:opacity .3s}
+  #lmrChain .lc-link.active .lc-drips{opacity:1}
+  #lmrChain .lc-drop{position:absolute;top:0;width:10px;height:15px;transform-origin:top center;opacity:0;border-radius:50% 50% 50% 50%/58% 58% 44% 44%;background:radial-gradient(circle at 50% 32%,#FFF3C0 0%,#FFB13C 42%,#FF7A1E 66%,#C21A06 100%);box-shadow:0 0 12px 2px rgba(255,140,40,.9);animation:lc_lavafall 3.4s ease-in infinite}
+  #lmrChain .lc-drop:nth-child(1){left:38%}#lmrChain .lc-drop:nth-child(2){left:52%;animation-delay:1.1s;animation-duration:3.9s}#lmrChain .lc-drop:nth-child(3){left:64%;animation-delay:2.1s;animation-duration:3.1s}
+  @keyframes lc_lavafall{0%{opacity:0;transform:translateY(0) scaleY(.35)}10%{opacity:1}26%{transform:translateY(13px) scaleY(1.7)}42%{transform:translateY(30px) scaleY(1)}100%{opacity:0;transform:translateY(112px) scaleY(1.15)}}
+  /* cards sit ABOVE (up) or BELOW (down) the link, centered horizontally */
+  #lmrChain .lc-cardpos{position:absolute;left:50%;transform:translateX(-50%)}
+  #lmrChain .lc-link.up .lc-cardpos{bottom:100%;margin-bottom:30px}
+  #lmrChain .lc-link.down .lc-cardpos{top:100%;margin-top:30px}
+  #lmrChain .lc-card{position:relative;width:280px;background:linear-gradient(180deg,rgba(20,15,20,.97),rgba(12,8,12,.97));border:1px solid rgba(255,140,50,.22);border-radius:16px;padding:15px;backdrop-filter:blur(6px);box-shadow:0 22px 54px rgba(0,0,0,.6),0 8px 30px rgba(255,100,25,.16);opacity:0;transform:translateY(6px) scale(.97);transition:opacity .4s,transform .4s}
+  #lmrChain .lc-link.active .lc-card{opacity:1;transform:translateY(0) scale(1)}
+  #lmrChain .lc-card::after{content:"";position:absolute;left:50%;width:2px;height:30px;background:linear-gradient(180deg,var(--lc-gold),transparent);transform:translateX(-50%)}
+  #lmrChain .lc-link.up .lc-card::after{top:100%}
+  #lmrChain .lc-link.down .lc-card::after{bottom:100%;background:linear-gradient(0deg,var(--lc-gold),transparent)}
+  #lmrChain .lc-molten{position:absolute;left:12px;right:12px;bottom:-1px;height:4px;border-radius:4px;background:linear-gradient(90deg,transparent,var(--lc-lava2),var(--lc-lava1),var(--lc-lava2),transparent);box-shadow:0 0 20px 3px rgba(255,140,40,.7)}
+  #lmrChain .lc-card .lc-ctop{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  #lmrChain .lc-ic{width:34px;height:34px;flex:0 0 34px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(255,140,40,.14);border:1px solid rgba(255,150,60,.4);color:#FFC24A}
+  #lmrChain .lc-ic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  #lmrChain .lc-num{font-family:ui-monospace,Menlo,monospace;font-size:10px;font-weight:700;color:var(--lc-gold);letter-spacing:.1em}
+  #lmrChain .lc-card h3{font-size:19px;font-weight:800;letter-spacing:-.01em;line-height:1.1;color:var(--lc-text)}
+  #lmrChain .lc-term{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.05em;color:var(--lc-bull);background:rgba(0,212,164,.08);border:1px solid rgba(0,212,164,.25);border-radius:6px;padding:2px 7px;margin-bottom:7px}
+  #lmrChain .lc-card p{font-size:12px;line-height:1.5;color:var(--lc-text2);margin-bottom:9px}
+  #lmrChain .lc-metric{display:flex;align-items:center;gap:8px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:var(--lc-text);background:rgba(255,255,255,.04);border:1px solid rgba(255,150,60,.16);border-radius:8px;padding:6px 9px}
+  #lmrChain .lc-metric b{color:var(--lc-gold2);font-weight:700}#lmrChain .lc-metric .lab{color:var(--lc-text3)}
+  #lmrChain .lc-feeds{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,150,60,.14);font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.04em;color:var(--lc-text3)}
+  #lmrChain .lc-feeds b{color:var(--lc-gold)}
+  #lmrChain .lc-hint{position:absolute;bottom:58px;left:50%;transform:translateX(-50%);z-index:8;font-size:11px;color:var(--lc-text3);letter-spacing:.1em;animation:lc_bob 1.8s ease-in-out infinite}
+  @keyframes lc_bob{50%{transform:translateX(-50%) translateY(6px);opacity:.6}}
+  @media(max-width:900px){#lmrChain .lc-card{width:220px;padding:12px}#lmrChain .lc-card h3{font-size:16px}#lmrChain .lc-step span{display:none}}
+  @media(prefers-reduced-motion:reduce){#lmrChain .lc-ember,#lmrChain .lc-pip,#lmrChain .lc-wrap::before,#lmrChain .lc-svg{animation:none!important}}
+  </style>
+
+  <section id="lmrChain" aria-label="The LMR Chain — Monthly to Trade">
+    <div class="lc-scroll" id="lcScroll">
+      <div class="lc-sticky">
+        <div class="lc-env"><div class="lc-bokeh b1"></div><div class="lc-bokeh b2"></div><div class="lc-bokeh b3"></div><div class="lc-grid"></div></div>
+        <div class="lc-embers" id="lcEmbers"></div>
+        <div class="lc-tag"><span class="lc-eyebrow"><span class="lc-pip"></span>The LMR Methodology</span><h2>Across <span class="g">The Chain</span> — Monthly to Trade</h2></div>
+
+        <div class="lc-lift" id="lcLift">
+          <div class="lc-thread"></div>
+          <div class="lc-link deco wait" style="left:-110px"><div class="lc-wrap"><svg class="lc-svg" width="160" height="160" viewBox="0 0 180 180"><use href="#lcLinkH"/></svg></div></div>
+
+          <div class="lc-link up" data-i="0" style="left:0px">
+            <div class="lc-wrap"><svg class="lc-svg" width="160" height="160" viewBox="0 0 180 180"><use href="#lcLinkV"/></svg><div class="lc-flash"></div><div class="lc-ring"></div><div class="lc-badge">✓ Completed</div><div class="lc-drips"><span class="lc-drop"></span><span class="lc-drop"></span><span class="lc-drop"></span></div></div>
+            <div class="lc-cardpos"><div class="lc-card"><div class="lc-ctop"><span class="lc-ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg></span><div><div class="lc-num">01 · TOP OF CHAIN</div><h3>Monthly</h3></div></div><span class="lc-term">STS / LTS BIAS</span><p>The macro anchor. The quarterly shift and market profile set the one directional bias every link below must respect.</p><div class="lc-metric"><span class="lab">BIAS</span> <b>LONG · LTS</b> <span class="lab">·</span> Trending</div><div class="lc-feeds">forges → <b>the Weekly link</b></div><div class="lc-molten"></div></div></div>
+          </div>
+
+          <div class="lc-link down" data-i="1" style="left:110px">
+            <div class="lc-wrap"><svg class="lc-svg" width="160" height="160" viewBox="0 0 180 180"><use href="#lcLinkH"/></svg><div class="lc-flash"></div><div class="lc-ring"></div><div class="lc-badge">✓ Completed</div><div class="lc-drips"><span class="lc-drop"></span><span class="lc-drop"></span><span class="lc-drop"></span></div></div>
+            <div class="lc-cardpos"><div class="lc-card"><div class="lc-ctop"><span class="lc-ic"><svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></span><div><div class="lc-num">02 · INHERITS MONTHLY</div><h3>Weekly</h3></div></div><span class="lc-term">MMBM / MMSM</span><p>The month's bias becomes a weekly Market-Maker model — Buy or Sell — that maps how price should deliver across the week.</p><div class="lc-metric"><span class="lab">MODEL</span> <b>MMBM</b> <span class="lab">· draw</span> Weekly high</div><div class="lc-feeds">forges → <b>the Daily link</b></div><div class="lc-molten"></div></div></div>
+          </div>
+
+          <div class="lc-link up" data-i="2" style="left:220px">
+            <div class="lc-wrap"><svg class="lc-svg" width="160" height="160" viewBox="0 0 180 180"><use href="#lcLinkV"/></svg><div class="lc-flash"></div><div class="lc-ring"></div><div class="lc-badge">✓ Completed</div><div class="lc-drips"><span class="lc-drop"></span><span class="lc-drop"></span><span class="lc-drop"></span></div></div>
+            <div class="lc-cardpos"><div class="lc-card"><div class="lc-ctop"><span class="lc-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></span><div><div class="lc-num">03 · INHERITS WEEKLY</div><h3>Daily</h3></div></div><span class="lc-term">HTF POI</span><p>Each day opens with a bias drawn from the week and the higher-timeframe points of interest price is being drawn toward.</p><div class="lc-metric"><span class="lab">POI</span> <b>NWOG / +OB</b> <span class="lab">·</span> Bullish</div><div class="lc-feeds">forges → <b>the Session link</b></div><div class="lc-molten"></div></div></div>
+          </div>
+
+          <div class="lc-link down" data-i="3" style="left:330px">
+            <div class="lc-wrap"><svg class="lc-svg" width="160" height="160" viewBox="0 0 180 180"><use href="#lcLinkH"/></svg><div class="lc-flash"></div><div class="lc-ring"></div><div class="lc-badge">✓ Completed</div><div class="lc-drips"><span class="lc-drop"></span><span class="lc-drop"></span><span class="lc-drop"></span></div></div>
+            <div class="lc-cardpos"><div class="lc-card"><div class="lc-ctop"><span class="lc-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg></span><div><div class="lc-num">04 · INHERITS DAILY</div><h3>Sessions</h3></div></div><span class="lc-term">LONDON / NY · AMD</span><p>London and New York are each profiled — Accumulation, Manipulation, Distribution — anticipating the move before it happens.</p><div class="lc-metric"><span class="lab">NY</span> <b>MANIP → DIST</b> <span class="lab">· win</span> 09:50</div><div class="lc-feeds">forges → <b>the Trade link</b></div><div class="lc-molten"></div></div></div>
+          </div>
+
+          <div class="lc-link up" data-i="4" style="left:440px">
+            <div class="lc-wrap"><svg class="lc-svg" width="160" height="160" viewBox="0 0 180 180"><use href="#lcLinkV"/></svg><div class="lc-flash"></div><div class="lc-ring"></div><div class="lc-badge">✓ Completed</div><div class="lc-drips"><span class="lc-drop"></span><span class="lc-drop"></span><span class="lc-drop"></span></div></div>
+            <div class="lc-cardpos"><div class="lc-card"><div class="lc-ctop"><span class="lc-ic"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 5-6"/></svg></span><div><div class="lc-num">05 · THE PAYOFF</div><h3>Trade</h3></div></div><span class="lc-term">EXECUTION · REVIEW</span><p>Only now is the trade taken — model, confirmations, emotions and result logged. The chain is intact end to end.</p><div class="lc-metric"><span class="lab">RESULT</span> <b>+2.4R</b> <span class="lab">·</span> logged ✓</div><div class="lc-feeds">logged → <b>the LMR journal</b></div><div class="lc-molten"></div></div></div>
+          </div>
+
+          <div class="lc-link deco wait" style="left:550px"><div class="lc-wrap"><svg class="lc-svg" width="160" height="160" viewBox="0 0 180 180"><use href="#lcLinkH"/></svg></div></div>
+        </div>
+
+        <div class="lc-rail" id="lcRail">
+          <div class="lc-step"><span class="lc-dot"></span><span>Monthly</span></div>
+          <div class="lc-step"><span class="lc-dot"></span><span>Weekly</span></div>
+          <div class="lc-step"><span class="lc-dot"></span><span>Daily</span></div>
+          <div class="lc-step"><span class="lc-dot"></span><span>Sessions</span></div>
+          <div class="lc-step"><span class="lc-dot"></span><span>Trade</span></div>
+        </div>
+        <div class="lc-hint">↓ scroll — the chain moves sideways →</div>
+        <div class="lc-vignette"></div>
+      </div>
+    </div>
+
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+      <linearGradient id="lcMolten" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7d0f02"/><stop offset=".16" stop-color="#E23A08"/><stop offset=".36" stop-color="#FF8A1E"/><stop offset=".5" stop-color="#FFE08A"/><stop offset=".64" stop-color="#FF8A1E"/><stop offset=".84" stop-color="#E23A08"/><stop offset="1" stop-color="#7d0f02"/></linearGradient>
+      <linearGradient id="lcMoltenH" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7d0f02"/><stop offset=".16" stop-color="#E23A08"/><stop offset=".36" stop-color="#FF8A1E"/><stop offset=".5" stop-color="#FFE08A"/><stop offset=".64" stop-color="#FF8A1E"/><stop offset=".84" stop-color="#E23A08"/><stop offset="1" stop-color="#7d0f02"/></linearGradient>
+      <linearGradient id="lcCore" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF7A1E" stop-opacity="0"/><stop offset=".4" stop-color="#FFC24A"/><stop offset=".5" stop-color="#FFF8E0"/><stop offset=".6" stop-color="#FFC24A"/><stop offset="1" stop-color="#FF7A1E" stop-opacity="0"/></linearGradient>
+      <linearGradient id="lcCoreH" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FF7A1E" stop-opacity="0"/><stop offset=".4" stop-color="#FFC24A"/><stop offset=".5" stop-color="#FFF8E0"/><stop offset=".6" stop-color="#FFC24A"/><stop offset="1" stop-color="#FF7A1E" stop-opacity="0"/></linearGradient>
+      <g id="lcNut"><polygon points="0,-8 7,-4 7,4 0,8 -7,4 -7,-4" fill="#2a1105" stroke="#FF8A2E" stroke-width="1.4" opacity=".85"/><circle r="3" fill="#180a03"/></g>
+      <!-- vertical capsule link -->
+      <g id="lcLinkV">
+        <rect x="44" y="14" width="92" height="152" rx="46" fill="none" stroke="url(#lcMolten)" stroke-width="26"/>
+        <rect x="44" y="14" width="92" height="152" rx="46" fill="none" stroke="url(#lcCore)" stroke-width="10" opacity=".92"/>
+        <rect x="44" y="14" width="92" height="152" rx="46" fill="none" stroke="#FFF6D8" stroke-width="2.4" opacity=".4"/>
+        <use href="#lcNut" transform="translate(90,40)"/><use href="#lcNut" transform="translate(90,140)"/>
+      </g>
+      <!-- horizontal capsule link -->
+      <g id="lcLinkH">
+        <rect x="14" y="44" width="152" height="92" rx="46" fill="none" stroke="url(#lcMoltenH)" stroke-width="26"/>
+        <rect x="14" y="44" width="152" height="92" rx="46" fill="none" stroke="url(#lcCoreH)" stroke-width="10" opacity=".92"/>
+        <rect x="14" y="44" width="152" height="92" rx="46" fill="none" stroke="#FFF6D8" stroke-width="2.4" opacity=".4"/>
+        <use href="#lcNut" transform="translate(40,90)"/><use href="#lcNut" transform="translate(140,90)"/>
+      </g>
+    </defs></svg>
+  </section>
+
+  <script>
+  (function(){
+    var scope=document.getElementById('lmrChain'); if(!scope) return;
+    var wrap=document.getElementById('lcScroll'), lift=document.getElementById('lcLift'),
+        emb=document.getElementById('lcEmbers'),
+        links=[].slice.call(scope.querySelectorAll('.lc-link[data-i]')),
+        steps=[].slice.call(scope.querySelectorAll('#lcRail .lc-step'));
+    var N=links.length, centers=links.map(function(l){return parseFloat(l.style.left)+80;}); // link x-centers
+    var prevActive=-1, prevDone=links.map(function(){return false;}), ticking=false;
+
+    for(var k=0;k<16;k++){ var e=document.createElement('span'); e.className='lc-ember';
+      e.style.left=(Math.random()*100)+'%'; e.style.animationDuration=(4+Math.random()*4)+'s';
+      e.style.animationDelay=(Math.random()*6)+'s'; e.style.setProperty('--dx',(Math.random()*40-20)+'px'); emb.appendChild(e); }
+
+    function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+    function fire(el,cls){ if(!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+    function render(){
+      ticking=false;
+      var vw=window.innerWidth, vh=window.innerHeight, r=wrap.getBoundingClientRect();
+      var p=clamp(-r.top/(wrap.offsetHeight-vh),0,1);
+      var pos=centers[0]+(centers[N-1]-centers[0])*p;   // x of the active link
+      lift.style.transform='translateX('+(vw*0.5-pos).toFixed(1)+'px)';   // slide chain so active sits at center
+      var active=clamp(Math.round(p*(N-1)),0,N-1);
+      for(var i=0;i<N;i++){
+        var l=links[i]; l.classList.remove('active','done','wait');
+        var done=i<active, act=i===active;
+        l.classList.add(done?'done':(act?'active':'wait'));
+        var s=steps[i]; s.classList.remove('active','done'); s.classList.add(done?'done':(act?'active':''));
+        if(done&&!prevDone[i]) fire(l.querySelector('.lc-ring'),'go');
+        prevDone[i]=done;
+      }
+      if(active!==prevActive){ fire(links[active].querySelector('.lc-flash'),'go'); prevActive=active; }
+    }
+    function onScroll(){ if(!ticking){ ticking=true; requestAnimationFrame(render); } }
+    var scroller=scope.closest('#landingPage');
+    (scroller||window).addEventListener('scroll',onScroll,{passive:true});
+    window.addEventListener('resize',render);
+    render();
+  })();
+  </script>
+  <!-- ══════════ /THE CHAIN ══════════ -->
+
   <!-- How We Do It -->
   <section class="lp-section reveal" id="lp-how">
     <div class="lp-section-tag">How We Do It</div>
@@ -4188,6 +4391,33 @@ Midnight Open $______"></textarea>
       <button class="btn btn-sm" onclick="tradovateSyncTrades()" id="tradovate-sync-btn" style="display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg> Sync Trades Now</button>
     </div>
     <div id="tradovate-sync-status" style="font-size:11px;color:var(--text2)"></div>
+
+    <hr class="div">
+    <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
+      Automated Broker Fills (Webhook)
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:10px;line-height:1.55">Fills from the <b style="color:var(--text2)">NinjaTrader 8 AddOn</b> (or the Tradovate relay) arrive here as <b style="color:var(--text2)">draft trades</b> — pre-filled with the objective data (symbol, direction, qty, price, time). You complete the ICT fields (model, session, confirmations, emotions) to confirm each one.</div>
+    <div class="form-row" style="margin-bottom:8px">
+      <label class="form-label">Webhook URL</label>
+      <div style="display:flex;gap:6px">
+        <input type="text" id="broker-webhook-url" class="form-input" readonly style="flex:1;font-family:'JetBrains Mono',monospace;font-size:10px">
+        <button class="btn btn-sm" onclick="copyBrokerField('broker-webhook-url')" title="Copy">Copy</button>
+      </div>
+    </div>
+    <div class="form-row" style="margin-bottom:10px">
+      <label class="form-label">Your user id</label>
+      <div style="display:flex;gap:6px">
+        <input type="text" id="broker-user-id" class="form-input" readonly style="flex:1;font-family:'JetBrains Mono',monospace;font-size:10px" placeholder="Sign in to see your id">
+        <button class="btn btn-sm" onclick="copyBrokerField('broker-user-id')" title="Copy">Copy</button>
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:10px">Paste both into your NinjaTrader <code>LMRBrokerSync.config</code> (with your webhook secret). The secret is set server-side on the Supabase Edge Function.</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px">
+      <div style="font-size:11px;font-weight:700;color:var(--text)">Pending Trades <span id="pending-trades-count" class="tag tg-gold" style="font-size:9px;padding:1px 6px;display:none">0</span></div>
+      <button class="btn btn-sm" onclick="loadPendingBrokerTrades()" id="pending-refresh-btn" style="display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg> Refresh</button>
+    </div>
+    <div id="pending-trades-list" style="font-size:11px;color:var(--text2)">Sign in and click Refresh to load pending broker fills.</div>
 
     <hr class="div">
     <div class="sp-section-title">Export</div>
@@ -7500,6 +7730,7 @@ function saveTrade(){
     },{category:'trades'});
   }
   sbSyncRecord('trades',_mapTrade(t,_sbUserId)); // instant cloud sync
+  if(typeof _confirmBrokerDraftIfPending==='function') _confirmBrokerDraftIfPending(t); // finalize a broker draft if we were confirming one
   // Copier: sync a new LEADER trade to connected followers (each from its creation date forward),
   // then refresh the cockpit. The Trade Log de-dupes to one row; the Daily page shows it per-account.
   // A MANUAL per-account add (_tmManualAdd) is intentionally NOT mirrored — it stays on that account only.
@@ -10980,6 +11211,7 @@ function renderIntegrationSettings(){
   const tu=document.getElementById('tradovate-username'); if(tu) tu.value=ig.tradovate.username||'';
   const tc=document.getElementById('tradovate-cid'); if(tc) tc.value=ig.tradovate.cid||'';
   const xt=document.getElementById('x-api-token'); if(xt) xt.value=ig.x.apiToken||'';
+  if(typeof populateBrokerWebhookFields==='function') populateBrokerWebhookFields();
   const statusEl=document.getElementById('tradovate-status');
   if(statusEl){
     if(ig.tradovate.accessToken){
@@ -11199,6 +11431,108 @@ async function tradovateSyncTrades(){
   }finally{
     if(btn)btn.disabled=false;
   }
+}
+
+// ── AUTOMATED BROKER FILLS: pending-trades queue (webhook → draft → confirm) ──
+// Rows land in `trades` with status='unconfirmed' via the broker-webhook Edge
+// Function. Here we list them, let the user complete the ICT fields in the normal
+// Trade modal, then flip the placeholder to a confirmed journal trade.
+let _pendingConfirmId=null;      // db id of the placeholder being confirmed
+let _pendingCache={};            // id → pending row (for prefill on click)
+
+function brokerWebhookUrl(){ return SB_URL+'/functions/v1/broker-webhook'; }
+
+function populateBrokerWebhookFields(){
+  const url=document.getElementById('broker-webhook-url'); if(url) url.value=brokerWebhookUrl();
+  const uid=document.getElementById('broker-user-id'); if(uid) uid.value=_sbUserId||'';
+}
+
+function copyBrokerField(id){
+  const el=document.getElementById(id); if(!el||!el.value){ flash('Nothing to copy yet'); return; }
+  const done=()=>flash('✓ Copied');
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(el.value).then(done).catch(()=>{el.select();document.execCommand('copy');done();}); }
+  else { el.select(); document.execCommand('copy'); done(); }
+}
+
+async function loadPendingBrokerTrades(){
+  const list=document.getElementById('pending-trades-list');
+  const badge=document.getElementById('pending-trades-count');
+  const btn=document.getElementById('pending-refresh-btn');
+  populateBrokerWebhookFields();
+  if(!_sb||!_sbUserId){ if(list) list.innerHTML='<span style="color:var(--text3)">Sign in to load pending broker fills.</span>'; return; }
+  if(btn) btn.disabled=true;
+  if(list) list.innerHTML='<span style="color:var(--text3)">Loading…</span>';
+  try{
+    const {data,error}=await _sb.from('trades')
+      .select('id,broker,symbol,direction,quantity,entry_price,filled_at,order_id,account_id')
+      .eq('user_id',_sbUserId).eq('status','unconfirmed')
+      .order('filled_at',{ascending:false}).limit(200);
+    if(error) throw error;
+    _pendingCache={};
+    (data||[]).forEach(r=>{_pendingCache[r.id]=r;});
+    renderPendingBrokerTrades(data||[]);
+    if(badge){ badge.textContent=String((data||[]).length); badge.style.display=(data||[]).length?'':'none'; }
+  }catch(e){
+    if(list) list.innerHTML='<span style="color:var(--bear)">✗ '+(e.message||'Failed to load')+'</span>';
+  }finally{ if(btn) btn.disabled=false; }
+}
+
+function renderPendingBrokerTrades(rows){
+  const list=document.getElementById('pending-trades-list'); if(!list) return;
+  if(!rows.length){ list.innerHTML='<span style="color:var(--text3)">No pending broker fills — you\'re all caught up.</span>'; return; }
+  const esc=s=>String(s==null?'':s).replace(/[<>&]/g,m=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[m]));
+  list.innerHTML=rows.map(r=>{
+    const when=r.filled_at?new Date(r.filled_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+    const dir=(r.direction||'').toLowerCase()==='short'?'bear':'bull';
+    return `<div style="display:flex;align-items:center;gap:9px;padding:8px 10px;background:var(--bg3);border-radius:8px;margin-bottom:5px">
+      <span class="tag tg-${dir}" style="font-size:9px;padding:1px 6px">${esc((r.direction||'?').toUpperCase())}</span>
+      <span style="font-size:12px;font-weight:700;min-width:44px">${esc(r.symbol)||'—'}</span>
+      <span style="font-size:11px;color:var(--text3)">${esc(r.quantity)}@${esc(r.entry_price)}</span>
+      <span style="font-size:10px;color:var(--text3);flex:1">${when} · ${esc(r.broker||'')}</span>
+      <button class="btn btn-sm btn-primary" style="font-size:10px" onclick="completePendingTrade('${esc(r.id)}')">Complete</button>
+      <button class="btn btn-sm" style="font-size:10px" onclick="dismissPendingTrade('${esc(r.id)}')">Dismiss</button>
+    </div>`;
+  }).join('');
+}
+
+// Open the normal Trade modal pre-filled with the broker's objective data; the ICT
+// chips stay empty for manual entry. On save we flip the placeholder to confirmed.
+function completePendingTrade(id){
+  const r=_pendingCache[id]; if(!r){ flash('Reload the pending list'); return; }
+  _pendingConfirmId=id;
+  openTradeModal(null); // new-trade mode → all ICT chips cleared
+  const set=(el,v)=>{const n=document.getElementById(el); if(n) n.value=v;};
+  if(r.filled_at){
+    const d=new Date(r.filled_at);
+    set('tm-date', d.toISOString().slice(0,10));
+    set('tm-open-time', d.toTimeString().slice(0,5));
+  }
+  set('tm-market', r.symbol||'');
+  set('tm-pos', (r.direction||'').toLowerCase()==='short'?'Short':'Long');
+  set('tm-lots', r.quantity!=null?r.quantity:'');
+  // Try to map the broker account to a local account by its stored broker login #.
+  const match=(state.accounts||[]).find(a=>a.accountNo&&r.account_id&&String(a.accountNo)===String(r.account_id));
+  if(match) set('tm-acc', String(match.id));
+  set('tm-fb', 'Imported from '+(r.broker||'broker')+(r.order_id?(' (order '+r.order_id+')'):'')+' — complete the ICT fields.');
+}
+
+// Called at the tail of saveTrade(): finalize a confirmed broker draft.
+function _confirmBrokerDraftIfPending(newTrade){
+  if(!_pendingConfirmId) return;
+  const placeholderId=_pendingConfirmId; _pendingConfirmId=null;
+  // The saved trade got a fresh id + status defaults to 'confirmed'. Remove the
+  // original unconfirmed placeholder row so it doesn't linger in the queue.
+  try{ sbDeleteRecord('trades',String(placeholderId)); }catch(e){}
+  delete _pendingCache[placeholderId];
+  if(document.getElementById('pending-trades-list')) loadPendingBrokerTrades();
+}
+
+async function dismissPendingTrade(id){
+  if(!confirm('Dismiss this pending fill? It will be removed from the queue.')) return;
+  try{ await sbDeleteRecord('trades',String(id)); }catch(e){}
+  delete _pendingCache[id];
+  flash('✓ Dismissed');
+  loadPendingBrokerTrades();
 }
 
 // ============= MISC =============
