@@ -4190,6 +4190,33 @@ Midnight Open $______"></textarea>
     <div id="tradovate-sync-status" style="font-size:11px;color:var(--text2)"></div>
 
     <hr class="div">
+    <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
+      Automated Broker Fills (Webhook)
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:10px;line-height:1.55">Fills from the <b style="color:var(--text2)">NinjaTrader 8 AddOn</b> (or the Tradovate relay) arrive here as <b style="color:var(--text2)">draft trades</b> — pre-filled with the objective data (symbol, direction, qty, price, time). You complete the ICT fields (model, session, confirmations, emotions) to confirm each one.</div>
+    <div class="form-row" style="margin-bottom:8px">
+      <label class="form-label">Webhook URL</label>
+      <div style="display:flex;gap:6px">
+        <input type="text" id="broker-webhook-url" class="form-input" readonly style="flex:1;font-family:'JetBrains Mono',monospace;font-size:10px">
+        <button class="btn btn-sm" onclick="copyBrokerField('broker-webhook-url')" title="Copy">Copy</button>
+      </div>
+    </div>
+    <div class="form-row" style="margin-bottom:10px">
+      <label class="form-label">Your user id</label>
+      <div style="display:flex;gap:6px">
+        <input type="text" id="broker-user-id" class="form-input" readonly style="flex:1;font-family:'JetBrains Mono',monospace;font-size:10px" placeholder="Sign in to see your id">
+        <button class="btn btn-sm" onclick="copyBrokerField('broker-user-id')" title="Copy">Copy</button>
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:10px">Paste both into your NinjaTrader <code>LMRBrokerSync.config</code> (with your webhook secret). The secret is set server-side on the Supabase Edge Function.</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px">
+      <div style="font-size:11px;font-weight:700;color:var(--text)">Pending Trades <span id="pending-trades-count" class="tag tg-gold" style="font-size:9px;padding:1px 6px;display:none">0</span></div>
+      <button class="btn btn-sm" onclick="loadPendingBrokerTrades()" id="pending-refresh-btn" style="display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg> Refresh</button>
+    </div>
+    <div id="pending-trades-list" style="font-size:11px;color:var(--text2)">Sign in and click Refresh to load pending broker fills.</div>
+
+    <hr class="div">
     <div class="sp-section-title">Export</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-sm btn-primary" onclick="exportTradesCSV()">&#11015; Export Trades CSV</button>
@@ -7500,6 +7527,7 @@ function saveTrade(){
     },{category:'trades'});
   }
   sbSyncRecord('trades',_mapTrade(t,_sbUserId)); // instant cloud sync
+  if(typeof _confirmBrokerDraftIfPending==='function') _confirmBrokerDraftIfPending(t); // finalize a broker draft if we were confirming one
   // Copier: sync a new LEADER trade to connected followers (each from its creation date forward),
   // then refresh the cockpit. The Trade Log de-dupes to one row; the Daily page shows it per-account.
   // A MANUAL per-account add (_tmManualAdd) is intentionally NOT mirrored — it stays on that account only.
@@ -10980,6 +11008,7 @@ function renderIntegrationSettings(){
   const tu=document.getElementById('tradovate-username'); if(tu) tu.value=ig.tradovate.username||'';
   const tc=document.getElementById('tradovate-cid'); if(tc) tc.value=ig.tradovate.cid||'';
   const xt=document.getElementById('x-api-token'); if(xt) xt.value=ig.x.apiToken||'';
+  if(typeof populateBrokerWebhookFields==='function') populateBrokerWebhookFields();
   const statusEl=document.getElementById('tradovate-status');
   if(statusEl){
     if(ig.tradovate.accessToken){
@@ -11199,6 +11228,108 @@ async function tradovateSyncTrades(){
   }finally{
     if(btn)btn.disabled=false;
   }
+}
+
+// ── AUTOMATED BROKER FILLS: pending-trades queue (webhook → draft → confirm) ──
+// Rows land in `trades` with status='unconfirmed' via the broker-webhook Edge
+// Function. Here we list them, let the user complete the ICT fields in the normal
+// Trade modal, then flip the placeholder to a confirmed journal trade.
+let _pendingConfirmId=null;      // db id of the placeholder being confirmed
+let _pendingCache={};            // id → pending row (for prefill on click)
+
+function brokerWebhookUrl(){ return SB_URL+'/functions/v1/broker-webhook'; }
+
+function populateBrokerWebhookFields(){
+  const url=document.getElementById('broker-webhook-url'); if(url) url.value=brokerWebhookUrl();
+  const uid=document.getElementById('broker-user-id'); if(uid) uid.value=_sbUserId||'';
+}
+
+function copyBrokerField(id){
+  const el=document.getElementById(id); if(!el||!el.value){ flash('Nothing to copy yet'); return; }
+  const done=()=>flash('✓ Copied');
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(el.value).then(done).catch(()=>{el.select();document.execCommand('copy');done();}); }
+  else { el.select(); document.execCommand('copy'); done(); }
+}
+
+async function loadPendingBrokerTrades(){
+  const list=document.getElementById('pending-trades-list');
+  const badge=document.getElementById('pending-trades-count');
+  const btn=document.getElementById('pending-refresh-btn');
+  populateBrokerWebhookFields();
+  if(!_sb||!_sbUserId){ if(list) list.innerHTML='<span style="color:var(--text3)">Sign in to load pending broker fills.</span>'; return; }
+  if(btn) btn.disabled=true;
+  if(list) list.innerHTML='<span style="color:var(--text3)">Loading…</span>';
+  try{
+    const {data,error}=await _sb.from('trades')
+      .select('id,broker,symbol,direction,quantity,entry_price,filled_at,order_id,account_id')
+      .eq('user_id',_sbUserId).eq('status','unconfirmed')
+      .order('filled_at',{ascending:false}).limit(200);
+    if(error) throw error;
+    _pendingCache={};
+    (data||[]).forEach(r=>{_pendingCache[r.id]=r;});
+    renderPendingBrokerTrades(data||[]);
+    if(badge){ badge.textContent=String((data||[]).length); badge.style.display=(data||[]).length?'':'none'; }
+  }catch(e){
+    if(list) list.innerHTML='<span style="color:var(--bear)">✗ '+(e.message||'Failed to load')+'</span>';
+  }finally{ if(btn) btn.disabled=false; }
+}
+
+function renderPendingBrokerTrades(rows){
+  const list=document.getElementById('pending-trades-list'); if(!list) return;
+  if(!rows.length){ list.innerHTML='<span style="color:var(--text3)">No pending broker fills — you\'re all caught up.</span>'; return; }
+  const esc=s=>String(s==null?'':s).replace(/[<>&]/g,m=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[m]));
+  list.innerHTML=rows.map(r=>{
+    const when=r.filled_at?new Date(r.filled_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+    const dir=(r.direction||'').toLowerCase()==='short'?'bear':'bull';
+    return `<div style="display:flex;align-items:center;gap:9px;padding:8px 10px;background:var(--bg3);border-radius:8px;margin-bottom:5px">
+      <span class="tag tg-${dir}" style="font-size:9px;padding:1px 6px">${esc((r.direction||'?').toUpperCase())}</span>
+      <span style="font-size:12px;font-weight:700;min-width:44px">${esc(r.symbol)||'—'}</span>
+      <span style="font-size:11px;color:var(--text3)">${esc(r.quantity)}@${esc(r.entry_price)}</span>
+      <span style="font-size:10px;color:var(--text3);flex:1">${when} · ${esc(r.broker||'')}</span>
+      <button class="btn btn-sm btn-primary" style="font-size:10px" onclick="completePendingTrade('${esc(r.id)}')">Complete</button>
+      <button class="btn btn-sm" style="font-size:10px" onclick="dismissPendingTrade('${esc(r.id)}')">Dismiss</button>
+    </div>`;
+  }).join('');
+}
+
+// Open the normal Trade modal pre-filled with the broker's objective data; the ICT
+// chips stay empty for manual entry. On save we flip the placeholder to confirmed.
+function completePendingTrade(id){
+  const r=_pendingCache[id]; if(!r){ flash('Reload the pending list'); return; }
+  _pendingConfirmId=id;
+  openTradeModal(null); // new-trade mode → all ICT chips cleared
+  const set=(el,v)=>{const n=document.getElementById(el); if(n) n.value=v;};
+  if(r.filled_at){
+    const d=new Date(r.filled_at);
+    set('tm-date', d.toISOString().slice(0,10));
+    set('tm-open-time', d.toTimeString().slice(0,5));
+  }
+  set('tm-market', r.symbol||'');
+  set('tm-pos', (r.direction||'').toLowerCase()==='short'?'Short':'Long');
+  set('tm-lots', r.quantity!=null?r.quantity:'');
+  // Try to map the broker account to a local account by its stored broker login #.
+  const match=(state.accounts||[]).find(a=>a.accountNo&&r.account_id&&String(a.accountNo)===String(r.account_id));
+  if(match) set('tm-acc', String(match.id));
+  set('tm-fb', 'Imported from '+(r.broker||'broker')+(r.order_id?(' (order '+r.order_id+')'):'')+' — complete the ICT fields.');
+}
+
+// Called at the tail of saveTrade(): finalize a confirmed broker draft.
+function _confirmBrokerDraftIfPending(newTrade){
+  if(!_pendingConfirmId) return;
+  const placeholderId=_pendingConfirmId; _pendingConfirmId=null;
+  // The saved trade got a fresh id + status defaults to 'confirmed'. Remove the
+  // original unconfirmed placeholder row so it doesn't linger in the queue.
+  try{ sbDeleteRecord('trades',String(placeholderId)); }catch(e){}
+  delete _pendingCache[placeholderId];
+  if(document.getElementById('pending-trades-list')) loadPendingBrokerTrades();
+}
+
+async function dismissPendingTrade(id){
+  if(!confirm('Dismiss this pending fill? It will be removed from the queue.')) return;
+  try{ await sbDeleteRecord('trades',String(id)); }catch(e){}
+  delete _pendingCache[id];
+  flash('✓ Dismissed');
+  loadPendingBrokerTrades();
 }
 
 // ============= MISC =============

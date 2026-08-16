@@ -1,0 +1,17 @@
+# LMR Capitals — NinjaTrader 8 broker sync config
+# Copy this file to:  Documents\NinjaTrader 8\LMRBrokerSync.config
+# (remove the ".example"), fill in your three values, then restart NinjaTrader.
+#
+# Lines starting with # are ignored. Format is key=value, one per line.
+
+# Your LMR Capitals user id. Find it in the app:
+#   Settings → Integrations → Automated Broker Fills → "Your user id" (Copy).
+userId=00000000-0000-0000-0000-000000000000
+
+# The shared webhook secret. Must match BROKER_WEBHOOK_SECRET set on the
+# Supabase Edge Function (supabase secrets set BROKER_WEBHOOK_SECRET=...).
+webhookSecret=replace-with-your-long-random-secret
+
+# The deployed Edge Function URL:
+#   https://<your-project-ref>.supabase.co/functions/v1/broker-webhook
+webhookUrl=https://agrvylclhvxyevsmmexf.supabase.co/functions/v1/broker-webhook
