@@ -2029,6 +2029,11 @@ body.light-mode{
   /* horizontal strip; scroll drives translateX */
   #lmrChain .lc-lift{position:absolute;left:0;top:0;height:100%;z-index:4;transform:translateX(0);will-change:transform}
   #lmrChain .lc-link{position:absolute;top:50%;transform:translateY(-50%)} /* left set inline (x position) */
+  /* interlock depth: alternating up/down links thread over-and-under each other; active on top */
+  #lmrChain .lc-link.up{z-index:1}#lmrChain .lc-link.down{z-index:2}#lmrChain .lc-link.active{z-index:5}
+  /* molten connector thread running through every link so it reads as ONE chain */
+  #lmrChain .lc-thread{position:absolute;top:50%;left:-30px;width:660px;height:9px;transform:translateY(-50%);z-index:0;border-radius:9px;background:linear-gradient(90deg,#5a0c02,#E23A08,#FF8A1E,#FFE08A,#FF8A1E,#E23A08,#5a0c02);background-size:200% 100%;box-shadow:0 0 20px 2px rgba(255,140,40,.55);opacity:.5;animation:lc_thread 5s linear infinite}
+  @keyframes lc_thread{to{background-position:200% 0}}
   #lmrChain .lc-wrap{position:relative;display:block;transition:transform .35s ease}
   #lmrChain .lc-wrap::before{content:"";position:absolute;inset:-20px;border-radius:46%;z-index:-1;filter:blur(9px);opacity:0;transition:opacity .4s;background:radial-gradient(closest-side,rgba(255,120,30,.55),rgba(255,60,0,.15),transparent 78%)}
   #lmrChain .lc-svg{display:block;filter:grayscale(.55) brightness(.5);transition:filter .45s}
@@ -2039,7 +2044,7 @@ body.light-mode{
   @keyframes lc_halo{50%{opacity:.7;transform:scale(1.07)}}
   #lmrChain .lc-link.active .lc-svg{filter:grayscale(0) brightness(1);animation:lc_flicker 2.6s ease-in-out infinite}
   @keyframes lc_flicker{0%,100%{filter:drop-shadow(0 0 14px rgba(255,110,20,.9)) drop-shadow(0 0 34px rgba(255,55,0,.5))}50%{filter:drop-shadow(0 0 22px rgba(255,160,50,1)) drop-shadow(0 0 46px rgba(255,80,10,.6))}}
-  #lmrChain .lc-link.done{opacity:.92} #lmrChain .lc-link.done .lc-svg{filter:grayscale(.7) brightness(.62)}
+  #lmrChain .lc-link.done{opacity:.95} #lmrChain .lc-link.done .lc-svg{filter:grayscale(.42) brightness(.72) sepia(.28) saturate(1.1)} /* cooled but still warm ember, not flat grey */
   #lmrChain .lc-flash{position:absolute;inset:-30px;border-radius:50%;z-index:2;pointer-events:none;opacity:0;background:radial-gradient(circle,rgba(255,244,210,.95),rgba(255,150,40,.4) 40%,transparent 66%)}
   #lmrChain .lc-flash.go{animation:lc_flash .55s ease-out}
   @keyframes lc_flash{0%{opacity:.95;transform:scale(.45)}100%{opacity:0;transform:scale(1.5)}}
@@ -2088,6 +2093,7 @@ body.light-mode{
         <div class="lc-tag"><span class="lc-eyebrow"><span class="lc-pip"></span>The LMR Methodology</span><h2>Across <span class="g">The Chain</span> — Monthly to Trade</h2></div>
 
         <div class="lc-lift" id="lcLift">
+          <div class="lc-thread"></div>
           <div class="lc-link deco wait" style="left:-110px"><div class="lc-wrap"><svg class="lc-svg" width="160" height="160" viewBox="0 0 180 180"><use href="#lcLinkH"/></svg></div></div>
 
           <div class="lc-link up" data-i="0" style="left:0px">
@@ -2187,8 +2193,6 @@ body.light-mode{
       if(active!==prevActive){ fire(links[active].querySelector('.lc-flash'),'go'); prevActive=active; }
     }
     function onScroll(){ if(!ticking){ ticking=true; requestAnimationFrame(render); } }
-    // The landing scrolls inside #landingPage (position:fixed; overflow-y:auto),
-    // not the window — listen on that container, falling back to window (standalone file).
     var scroller=scope.closest('#landingPage');
     (scroller||window).addEventListener('scroll',onScroll,{passive:true});
     window.addEventListener('resize',render);
