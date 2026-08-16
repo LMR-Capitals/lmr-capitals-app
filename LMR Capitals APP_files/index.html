@@ -1998,7 +1998,7 @@ body.light-mode{
     </div>
   </section>
 
-  <!-- ══════════ THE CHAIN — scroll-through molten chain (self-contained, scoped) ══════════ -->
+  <!-- ══════════ THE CHAIN — sideways scroll-through molten chain (self-contained, scoped) ══════════ -->
   <style id="lmrchain-style">
   #lmrChain{--lc-text:#EDF2FF;--lc-text2:#7A9AC0;--lc-text3:#3A5270;--lc-gold:#F5A623;--lc-gold2:#FFD166;--lc-bull:#00D4A4;--lc-lava1:#FFE39A;--lc-lava2:#FF9A2E;position:relative}
   #lmrChain .lc-scroll{position:relative;height:560vh}
@@ -2008,8 +2008,8 @@ body.light-mode{
   #lmrChain .lc-env{position:absolute;inset:0;z-index:0;pointer-events:none}
   #lmrChain .lc-bokeh{position:absolute;border-radius:50%;filter:blur(15px)}
   #lmrChain .lc-bokeh.b1{width:70px;height:70px;left:11%;top:24%;background:radial-gradient(circle,#3f6fff,transparent 70%);opacity:.5}
-  #lmrChain .lc-bokeh.b2{width:50px;height:50px;right:14%;top:36%;background:radial-gradient(circle,#ff3b57,transparent 70%);opacity:.4}
-  #lmrChain .lc-bokeh.b3{width:44px;height:44px;left:20%;bottom:24%;background:radial-gradient(circle,#3fe0ff,transparent 70%);opacity:.32}
+  #lmrChain .lc-bokeh.b2{width:50px;height:50px;right:14%;top:30%;background:radial-gradient(circle,#ff3b57,transparent 70%);opacity:.4}
+  #lmrChain .lc-bokeh.b3{width:44px;height:44px;left:24%;bottom:22%;background:radial-gradient(circle,#3fe0ff,transparent 70%);opacity:.32}
   #lmrChain .lc-grid{position:absolute;inset:-14% 0;opacity:.22;background-image:linear-gradient(rgba(122,154,192,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(122,154,192,.05) 1px,transparent 1px);background-size:64px 64px}
   #lmrChain .lc-embers{position:absolute;inset:0;z-index:6;pointer-events:none;overflow:hidden}
   #lmrChain .lc-ember{position:absolute;bottom:-10px;width:4px;height:4px;border-radius:50%;background:#FFC65A;box-shadow:0 0 8px 2px rgba(255,170,60,.8);opacity:0;--dx:16px;animation:lc_rise 6s linear infinite}
@@ -2026,10 +2026,11 @@ body.light-mode{
   #lmrChain .lc-step.active .lc-dot{background:var(--lc-gold);box-shadow:0 0 12px var(--lc-gold);transform:scale(1.35)}
   #lmrChain .lc-step.active{color:var(--lc-gold)}
   #lmrChain .lc-step.done .lc-dot{background:var(--lc-gold)} #lmrChain .lc-step.done{color:var(--lc-text2)}
-  #lmrChain .lc-lift{position:absolute;left:50%;top:0;z-index:4;transform:translate(-50%,0);will-change:transform}
-  #lmrChain .lc-link{position:absolute;left:50%;transform:translateX(-50%);transition:opacity .4s}
+  /* horizontal strip; scroll drives translateX */
+  #lmrChain .lc-lift{position:absolute;left:0;top:0;height:100%;z-index:4;transform:translateX(0);will-change:transform}
+  #lmrChain .lc-link{position:absolute;top:50%;transform:translateY(-50%)} /* left set inline (x position) */
   #lmrChain .lc-wrap{position:relative;display:block;transition:transform .35s ease}
-  #lmrChain .lc-wrap::before{content:"";position:absolute;inset:-22px;border-radius:46%;z-index:-1;filter:blur(9px);opacity:0;transition:opacity .4s;background:radial-gradient(closest-side,rgba(255,120,30,.55),rgba(255,60,0,.15),transparent 78%)}
+  #lmrChain .lc-wrap::before{content:"";position:absolute;inset:-20px;border-radius:46%;z-index:-1;filter:blur(9px);opacity:0;transition:opacity .4s;background:radial-gradient(closest-side,rgba(255,120,30,.55),rgba(255,60,0,.15),transparent 78%)}
   #lmrChain .lc-svg{display:block;filter:grayscale(.55) brightness(.5);transition:filter .45s}
   #lmrChain .lc-link.wait{opacity:.5}
   #lmrChain .lc-link.active{opacity:1}
@@ -2039,7 +2040,7 @@ body.light-mode{
   #lmrChain .lc-link.active .lc-svg{filter:grayscale(0) brightness(1);animation:lc_flicker 2.6s ease-in-out infinite}
   @keyframes lc_flicker{0%,100%{filter:drop-shadow(0 0 14px rgba(255,110,20,.9)) drop-shadow(0 0 34px rgba(255,55,0,.5))}50%{filter:drop-shadow(0 0 22px rgba(255,160,50,1)) drop-shadow(0 0 46px rgba(255,80,10,.6))}}
   #lmrChain .lc-link.done{opacity:.92} #lmrChain .lc-link.done .lc-svg{filter:grayscale(.7) brightness(.62)}
-  #lmrChain .lc-flash{position:absolute;inset:-34px;border-radius:50%;z-index:2;pointer-events:none;opacity:0;background:radial-gradient(circle,rgba(255,244,210,.95),rgba(255,150,40,.4) 40%,transparent 66%)}
+  #lmrChain .lc-flash{position:absolute;inset:-30px;border-radius:50%;z-index:2;pointer-events:none;opacity:0;background:radial-gradient(circle,rgba(255,244,210,.95),rgba(255,150,40,.4) 40%,transparent 66%)}
   #lmrChain .lc-flash.go{animation:lc_flash .55s ease-out}
   @keyframes lc_flash{0%{opacity:.95;transform:scale(.45)}100%{opacity:0;transform:scale(1.5)}}
   #lmrChain .lc-ring{position:absolute;top:50%;left:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;border:2px solid rgba(255,205,90,.95);z-index:2;pointer-events:none;opacity:0}
@@ -2047,33 +2048,35 @@ body.light-mode{
   @keyframes lc_ring{0%{opacity:.9;transform:scale(.4)}100%{opacity:0;transform:scale(3)}}
   #lmrChain .lc-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);z-index:3;display:flex;align-items:center;gap:5px;font-size:10px;font-weight:800;letter-spacing:.06em;color:#0a0f1a;background:linear-gradient(180deg,#FFE39A,#F5A623);border-radius:20px;padding:4px 9px;box-shadow:0 4px 14px rgba(0,0,0,.5);opacity:0;transition:opacity .35s,transform .35s}
   #lmrChain .lc-link.done .lc-badge{opacity:1;transform:translate(-50%,-50%) scale(1)}
-  #lmrChain .lc-drips{position:absolute;left:0;right:0;bottom:8px;height:120px;pointer-events:none;z-index:1;opacity:0;transition:opacity .3s}
+  #lmrChain .lc-drips{position:absolute;left:0;right:0;bottom:6px;height:120px;pointer-events:none;z-index:1;opacity:0;transition:opacity .3s}
   #lmrChain .lc-link.active .lc-drips{opacity:1}
   #lmrChain .lc-drop{position:absolute;top:0;width:10px;height:15px;transform-origin:top center;opacity:0;border-radius:50% 50% 50% 50%/58% 58% 44% 44%;background:radial-gradient(circle at 50% 32%,#FFF3C0 0%,#FFB13C 42%,#FF7A1E 66%,#C21A06 100%);box-shadow:0 0 12px 2px rgba(255,140,40,.9);animation:lc_lavafall 3.4s ease-in infinite}
-  #lmrChain .lc-drop:nth-child(1){left:36%}#lmrChain .lc-drop:nth-child(2){left:50%;animation-delay:1.1s;animation-duration:3.9s}#lmrChain .lc-drop:nth-child(3){left:64%;animation-delay:2.1s;animation-duration:3.1s}
+  #lmrChain .lc-drop:nth-child(1){left:38%}#lmrChain .lc-drop:nth-child(2){left:52%;animation-delay:1.1s;animation-duration:3.9s}#lmrChain .lc-drop:nth-child(3){left:64%;animation-delay:2.1s;animation-duration:3.1s}
   @keyframes lc_lavafall{0%{opacity:0;transform:translateY(0) scaleY(.35)}10%{opacity:1}26%{transform:translateY(13px) scaleY(1.7)}42%{transform:translateY(30px) scaleY(1)}100%{opacity:0;transform:translateY(112px) scaleY(1.15)}}
-  #lmrChain .lc-cardpos{position:absolute;top:50%;transform:translateY(-50%)}
-  #lmrChain .lc-link.right .lc-cardpos{left:100%}#lmrChain .lc-link.left .lc-cardpos{right:100%}
-  #lmrChain .lc-card{position:relative;width:300px;background:linear-gradient(180deg,rgba(20,15,20,.97),rgba(12,8,12,.97));border:1px solid rgba(255,140,50,.22);border-radius:16px;padding:16px;backdrop-filter:blur(6px);box-shadow:0 22px 54px rgba(0,0,0,.6),0 8px 30px rgba(255,100,25,.16);opacity:0;transform:translateY(6px) scale(.97);transition:opacity .4s,transform .4s}
+  /* cards sit ABOVE (up) or BELOW (down) the link, centered horizontally */
+  #lmrChain .lc-cardpos{position:absolute;left:50%;transform:translateX(-50%)}
+  #lmrChain .lc-link.up .lc-cardpos{bottom:100%;margin-bottom:30px}
+  #lmrChain .lc-link.down .lc-cardpos{top:100%;margin-top:30px}
+  #lmrChain .lc-card{position:relative;width:280px;background:linear-gradient(180deg,rgba(20,15,20,.97),rgba(12,8,12,.97));border:1px solid rgba(255,140,50,.22);border-radius:16px;padding:15px;backdrop-filter:blur(6px);box-shadow:0 22px 54px rgba(0,0,0,.6),0 8px 30px rgba(255,100,25,.16);opacity:0;transform:translateY(6px) scale(.97);transition:opacity .4s,transform .4s}
   #lmrChain .lc-link.active .lc-card{opacity:1;transform:translateY(0) scale(1)}
-  #lmrChain .lc-link.right .lc-card{margin-left:34px}#lmrChain .lc-link.left .lc-card{margin-right:34px}
-  #lmrChain .lc-card::after{content:"";position:absolute;top:50%;width:34px;height:2px;background:linear-gradient(90deg,var(--lc-gold),transparent)}
-  #lmrChain .lc-link.right .lc-card::after{left:-34px}#lmrChain .lc-link.left .lc-card::after{right:-34px;background:linear-gradient(90deg,transparent,var(--lc-gold))}
+  #lmrChain .lc-card::after{content:"";position:absolute;left:50%;width:2px;height:30px;background:linear-gradient(180deg,var(--lc-gold),transparent);transform:translateX(-50%)}
+  #lmrChain .lc-link.up .lc-card::after{top:100%}
+  #lmrChain .lc-link.down .lc-card::after{bottom:100%;background:linear-gradient(0deg,var(--lc-gold),transparent)}
   #lmrChain .lc-molten{position:absolute;left:12px;right:12px;bottom:-1px;height:4px;border-radius:4px;background:linear-gradient(90deg,transparent,var(--lc-lava2),var(--lc-lava1),var(--lc-lava2),transparent);box-shadow:0 0 20px 3px rgba(255,140,40,.7)}
-  #lmrChain .lc-card .lc-ctop{display:flex;align-items:center;gap:10px;margin-bottom:9px}
-  #lmrChain .lc-ic{width:36px;height:36px;flex:0 0 36px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(255,140,40,.14);border:1px solid rgba(255,150,60,.4);color:#FFC24A}
-  #lmrChain .lc-ic svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-  #lmrChain .lc-num{font-family:ui-monospace,Menlo,monospace;font-size:10px;font-weight:700;color:var(--lc-gold);letter-spacing:.12em}
-  #lmrChain .lc-card h3{font-size:21px;font-weight:800;letter-spacing:-.01em;line-height:1.1;color:var(--lc-text)}
-  #lmrChain .lc-term{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.05em;color:var(--lc-bull);background:rgba(0,212,164,.08);border:1px solid rgba(0,212,164,.25);border-radius:6px;padding:2px 7px;margin-bottom:8px}
-  #lmrChain .lc-card p{font-size:12.5px;line-height:1.55;color:var(--lc-text2);margin-bottom:10px}
-  #lmrChain .lc-metric{display:flex;align-items:center;gap:8px;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--lc-text);background:rgba(255,255,255,.04);border:1px solid rgba(255,150,60,.16);border-radius:8px;padding:7px 9px}
+  #lmrChain .lc-card .lc-ctop{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  #lmrChain .lc-ic{width:34px;height:34px;flex:0 0 34px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(255,140,40,.14);border:1px solid rgba(255,150,60,.4);color:#FFC24A}
+  #lmrChain .lc-ic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  #lmrChain .lc-num{font-family:ui-monospace,Menlo,monospace;font-size:10px;font-weight:700;color:var(--lc-gold);letter-spacing:.1em}
+  #lmrChain .lc-card h3{font-size:19px;font-weight:800;letter-spacing:-.01em;line-height:1.1;color:var(--lc-text)}
+  #lmrChain .lc-term{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.05em;color:var(--lc-bull);background:rgba(0,212,164,.08);border:1px solid rgba(0,212,164,.25);border-radius:6px;padding:2px 7px;margin-bottom:7px}
+  #lmrChain .lc-card p{font-size:12px;line-height:1.5;color:var(--lc-text2);margin-bottom:9px}
+  #lmrChain .lc-metric{display:flex;align-items:center;gap:8px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:var(--lc-text);background:rgba(255,255,255,.04);border:1px solid rgba(255,150,60,.16);border-radius:8px;padding:6px 9px}
   #lmrChain .lc-metric b{color:var(--lc-gold2);font-weight:700}#lmrChain .lc-metric .lab{color:var(--lc-text3)}
-  #lmrChain .lc-feeds{margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,150,60,.14);font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.04em;color:var(--lc-text3)}
+  #lmrChain .lc-feeds{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,150,60,.14);font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.04em;color:var(--lc-text3)}
   #lmrChain .lc-feeds b{color:var(--lc-gold)}
-  #lmrChain .lc-hint{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);z-index:8;font-size:11px;color:var(--lc-text3);letter-spacing:.1em;animation:lc_bob 1.8s ease-in-out infinite}
+  #lmrChain .lc-hint{position:absolute;bottom:58px;left:50%;transform:translateX(-50%);z-index:8;font-size:11px;color:var(--lc-text3);letter-spacing:.1em;animation:lc_bob 1.8s ease-in-out infinite}
   @keyframes lc_bob{50%{transform:translateX(-50%) translateY(6px);opacity:.6}}
-  @media(max-width:900px){#lmrChain .lc-card{width:210px;padding:12px}#lmrChain .lc-card h3{font-size:16px}#lmrChain .lc-card p{font-size:11px}#lmrChain .lc-step span{display:none}}
+  @media(max-width:900px){#lmrChain .lc-card{width:220px;padding:12px}#lmrChain .lc-card h3{font-size:16px}#lmrChain .lc-step span{display:none}}
   @media(prefers-reduced-motion:reduce){#lmrChain .lc-ember,#lmrChain .lc-pip,#lmrChain .lc-wrap::before,#lmrChain .lc-svg{animation:none!important}}
   </style>
 
@@ -2082,37 +2085,37 @@ body.light-mode{
       <div class="lc-sticky">
         <div class="lc-env"><div class="lc-bokeh b1"></div><div class="lc-bokeh b2"></div><div class="lc-bokeh b3"></div><div class="lc-grid"></div></div>
         <div class="lc-embers" id="lcEmbers"></div>
-        <div class="lc-tag"><span class="lc-eyebrow"><span class="lc-pip"></span>The LMR Methodology</span><h2>Down <span class="g">The Chain</span> — one link at a time</h2></div>
+        <div class="lc-tag"><span class="lc-eyebrow"><span class="lc-pip"></span>The LMR Methodology</span><h2>Across <span class="g">The Chain</span> — Monthly to Trade</h2></div>
 
         <div class="lc-lift" id="lcLift">
-          <div class="lc-link deco wait" style="top:-118px"><div class="lc-wrap"><svg class="lc-svg" width="146" height="176" viewBox="0 0 146 176"><use href="#lcLinkNarrow"/></svg></div></div>
+          <div class="lc-link deco wait" style="left:-110px"><div class="lc-wrap"><svg class="lc-svg" width="160" height="160" viewBox="0 0 180 180"><use href="#lcLinkH"/></svg></div></div>
 
-          <div class="lc-link right" data-i="0" style="top:0px">
-            <div class="lc-wrap"><svg class="lc-svg" width="146" height="176" viewBox="0 0 146 176"><use href="#lcLinkWide"/></svg><div class="lc-flash"></div><div class="lc-ring"></div><div class="lc-badge">✓ Completed</div><div class="lc-drips"><span class="lc-drop"></span><span class="lc-drop"></span><span class="lc-drop"></span></div></div>
+          <div class="lc-link up" data-i="0" style="left:0px">
+            <div class="lc-wrap"><svg class="lc-svg" width="160" height="160" viewBox="0 0 180 180"><use href="#lcLinkV"/></svg><div class="lc-flash"></div><div class="lc-ring"></div><div class="lc-badge">✓ Completed</div><div class="lc-drips"><span class="lc-drop"></span><span class="lc-drop"></span><span class="lc-drop"></span></div></div>
             <div class="lc-cardpos"><div class="lc-card"><div class="lc-ctop"><span class="lc-ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg></span><div><div class="lc-num">01 · TOP OF CHAIN</div><h3>Monthly</h3></div></div><span class="lc-term">STS / LTS BIAS</span><p>The macro anchor. The quarterly shift and market profile set the one directional bias every link below must respect.</p><div class="lc-metric"><span class="lab">BIAS</span> <b>LONG · LTS</b> <span class="lab">·</span> Trending</div><div class="lc-feeds">forges → <b>the Weekly link</b></div><div class="lc-molten"></div></div></div>
           </div>
 
-          <div class="lc-link left" data-i="1" style="top:118px">
-            <div class="lc-wrap"><svg class="lc-svg" width="146" height="176" viewBox="0 0 146 176"><use href="#lcLinkNarrow"/></svg><div class="lc-flash"></div><div class="lc-ring"></div><div class="lc-badge">✓ Completed</div><div class="lc-drips"><span class="lc-drop"></span><span class="lc-drop"></span><span class="lc-drop"></span></div></div>
+          <div class="lc-link down" data-i="1" style="left:110px">
+            <div class="lc-wrap"><svg class="lc-svg" width="160" height="160" viewBox="0 0 180 180"><use href="#lcLinkH"/></svg><div class="lc-flash"></div><div class="lc-ring"></div><div class="lc-badge">✓ Completed</div><div class="lc-drips"><span class="lc-drop"></span><span class="lc-drop"></span><span class="lc-drop"></span></div></div>
             <div class="lc-cardpos"><div class="lc-card"><div class="lc-ctop"><span class="lc-ic"><svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></span><div><div class="lc-num">02 · INHERITS MONTHLY</div><h3>Weekly</h3></div></div><span class="lc-term">MMBM / MMSM</span><p>The month's bias becomes a weekly Market-Maker model — Buy or Sell — that maps how price should deliver across the week.</p><div class="lc-metric"><span class="lab">MODEL</span> <b>MMBM</b> <span class="lab">· draw</span> Weekly high</div><div class="lc-feeds">forges → <b>the Daily link</b></div><div class="lc-molten"></div></div></div>
           </div>
 
-          <div class="lc-link right" data-i="2" style="top:236px">
-            <div class="lc-wrap"><svg class="lc-svg" width="146" height="176" viewBox="0 0 146 176"><use href="#lcLinkWide"/></svg><div class="lc-flash"></div><div class="lc-ring"></div><div class="lc-badge">✓ Completed</div><div class="lc-drips"><span class="lc-drop"></span><span class="lc-drop"></span><span class="lc-drop"></span></div></div>
+          <div class="lc-link up" data-i="2" style="left:220px">
+            <div class="lc-wrap"><svg class="lc-svg" width="160" height="160" viewBox="0 0 180 180"><use href="#lcLinkV"/></svg><div class="lc-flash"></div><div class="lc-ring"></div><div class="lc-badge">✓ Completed</div><div class="lc-drips"><span class="lc-drop"></span><span class="lc-drop"></span><span class="lc-drop"></span></div></div>
             <div class="lc-cardpos"><div class="lc-card"><div class="lc-ctop"><span class="lc-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></span><div><div class="lc-num">03 · INHERITS WEEKLY</div><h3>Daily</h3></div></div><span class="lc-term">HTF POI</span><p>Each day opens with a bias drawn from the week and the higher-timeframe points of interest price is being drawn toward.</p><div class="lc-metric"><span class="lab">POI</span> <b>NWOG / +OB</b> <span class="lab">·</span> Bullish</div><div class="lc-feeds">forges → <b>the Session link</b></div><div class="lc-molten"></div></div></div>
           </div>
 
-          <div class="lc-link left" data-i="3" style="top:354px">
-            <div class="lc-wrap"><svg class="lc-svg" width="146" height="176" viewBox="0 0 146 176"><use href="#lcLinkNarrow"/></svg><div class="lc-flash"></div><div class="lc-ring"></div><div class="lc-badge">✓ Completed</div><div class="lc-drips"><span class="lc-drop"></span><span class="lc-drop"></span><span class="lc-drop"></span></div></div>
+          <div class="lc-link down" data-i="3" style="left:330px">
+            <div class="lc-wrap"><svg class="lc-svg" width="160" height="160" viewBox="0 0 180 180"><use href="#lcLinkH"/></svg><div class="lc-flash"></div><div class="lc-ring"></div><div class="lc-badge">✓ Completed</div><div class="lc-drips"><span class="lc-drop"></span><span class="lc-drop"></span><span class="lc-drop"></span></div></div>
             <div class="lc-cardpos"><div class="lc-card"><div class="lc-ctop"><span class="lc-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg></span><div><div class="lc-num">04 · INHERITS DAILY</div><h3>Sessions</h3></div></div><span class="lc-term">LONDON / NY · AMD</span><p>London and New York are each profiled — Accumulation, Manipulation, Distribution — anticipating the move before it happens.</p><div class="lc-metric"><span class="lab">NY</span> <b>MANIP → DIST</b> <span class="lab">· win</span> 09:50</div><div class="lc-feeds">forges → <b>the Trade link</b></div><div class="lc-molten"></div></div></div>
           </div>
 
-          <div class="lc-link right" data-i="4" style="top:472px">
-            <div class="lc-wrap"><svg class="lc-svg" width="146" height="176" viewBox="0 0 146 176"><use href="#lcLinkWide"/></svg><div class="lc-flash"></div><div class="lc-ring"></div><div class="lc-badge">✓ Completed</div><div class="lc-drips"><span class="lc-drop"></span><span class="lc-drop"></span><span class="lc-drop"></span></div></div>
+          <div class="lc-link up" data-i="4" style="left:440px">
+            <div class="lc-wrap"><svg class="lc-svg" width="160" height="160" viewBox="0 0 180 180"><use href="#lcLinkV"/></svg><div class="lc-flash"></div><div class="lc-ring"></div><div class="lc-badge">✓ Completed</div><div class="lc-drips"><span class="lc-drop"></span><span class="lc-drop"></span><span class="lc-drop"></span></div></div>
             <div class="lc-cardpos"><div class="lc-card"><div class="lc-ctop"><span class="lc-ic"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 5-6"/></svg></span><div><div class="lc-num">05 · THE PAYOFF</div><h3>Trade</h3></div></div><span class="lc-term">EXECUTION · REVIEW</span><p>Only now is the trade taken — model, confirmations, emotions and result logged. The chain is intact end to end.</p><div class="lc-metric"><span class="lab">RESULT</span> <b>+2.4R</b> <span class="lab">·</span> logged ✓</div><div class="lc-feeds">logged → <b>the LMR journal</b></div><div class="lc-molten"></div></div></div>
           </div>
 
-          <div class="lc-link deco wait" style="top:590px"><div class="lc-wrap"><svg class="lc-svg" width="146" height="176" viewBox="0 0 146 176"><use href="#lcLinkNarrow"/></svg></div></div>
+          <div class="lc-link deco wait" style="left:550px"><div class="lc-wrap"><svg class="lc-svg" width="160" height="160" viewBox="0 0 180 180"><use href="#lcLinkH"/></svg></div></div>
         </div>
 
         <div class="lc-rail" id="lcRail">
@@ -2122,26 +2125,30 @@ body.light-mode{
           <div class="lc-step"><span class="lc-dot"></span><span>Sessions</span></div>
           <div class="lc-step"><span class="lc-dot"></span><span>Trade</span></div>
         </div>
-        <div class="lc-hint">↓ scroll down the chain ↓</div>
+        <div class="lc-hint">↓ scroll — the chain moves sideways →</div>
         <div class="lc-vignette"></div>
       </div>
     </div>
 
     <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
       <linearGradient id="lcMolten" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7d0f02"/><stop offset=".16" stop-color="#E23A08"/><stop offset=".36" stop-color="#FF8A1E"/><stop offset=".5" stop-color="#FFE08A"/><stop offset=".64" stop-color="#FF8A1E"/><stop offset=".84" stop-color="#E23A08"/><stop offset="1" stop-color="#7d0f02"/></linearGradient>
+      <linearGradient id="lcMoltenH" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7d0f02"/><stop offset=".16" stop-color="#E23A08"/><stop offset=".36" stop-color="#FF8A1E"/><stop offset=".5" stop-color="#FFE08A"/><stop offset=".64" stop-color="#FF8A1E"/><stop offset=".84" stop-color="#E23A08"/><stop offset="1" stop-color="#7d0f02"/></linearGradient>
       <linearGradient id="lcCore" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF7A1E" stop-opacity="0"/><stop offset=".4" stop-color="#FFC24A"/><stop offset=".5" stop-color="#FFF8E0"/><stop offset=".6" stop-color="#FFC24A"/><stop offset="1" stop-color="#FF7A1E" stop-opacity="0"/></linearGradient>
+      <linearGradient id="lcCoreH" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FF7A1E" stop-opacity="0"/><stop offset=".4" stop-color="#FFC24A"/><stop offset=".5" stop-color="#FFF8E0"/><stop offset=".6" stop-color="#FFC24A"/><stop offset="1" stop-color="#FF7A1E" stop-opacity="0"/></linearGradient>
       <g id="lcNut"><polygon points="0,-8 7,-4 7,4 0,8 -7,4 -7,-4" fill="#2a1105" stroke="#FF8A2E" stroke-width="1.4" opacity=".85"/><circle r="3" fill="#180a03"/></g>
-      <g id="lcLinkWide">
-        <rect x="26" y="14" width="94" height="148" rx="47" fill="none" stroke="url(#lcMolten)" stroke-width="27"/>
-        <rect x="26" y="14" width="94" height="148" rx="47" fill="none" stroke="url(#lcCore)" stroke-width="11" opacity=".92"/>
-        <rect x="26" y="14" width="94" height="148" rx="47" fill="none" stroke="#FFF6D8" stroke-width="2.5" opacity=".42"/>
-        <use href="#lcNut" transform="translate(38,88)"/><use href="#lcNut" transform="translate(108,88)"/>
+      <!-- vertical capsule link -->
+      <g id="lcLinkV">
+        <rect x="44" y="14" width="92" height="152" rx="46" fill="none" stroke="url(#lcMolten)" stroke-width="26"/>
+        <rect x="44" y="14" width="92" height="152" rx="46" fill="none" stroke="url(#lcCore)" stroke-width="10" opacity=".92"/>
+        <rect x="44" y="14" width="92" height="152" rx="46" fill="none" stroke="#FFF6D8" stroke-width="2.4" opacity=".4"/>
+        <use href="#lcNut" transform="translate(90,40)"/><use href="#lcNut" transform="translate(90,140)"/>
       </g>
-      <g id="lcLinkNarrow">
-        <rect x="50" y="8" width="46" height="160" rx="23" fill="none" stroke="url(#lcMolten)" stroke-width="24"/>
-        <rect x="50" y="8" width="46" height="160" rx="23" fill="none" stroke="url(#lcCore)" stroke-width="10" opacity=".92"/>
-        <rect x="50" y="8" width="46" height="160" rx="23" fill="none" stroke="#FFF6D8" stroke-width="2.5" opacity=".38"/>
-        <use href="#lcNut" transform="translate(73,30)"/><use href="#lcNut" transform="translate(73,146)"/>
+      <!-- horizontal capsule link -->
+      <g id="lcLinkH">
+        <rect x="14" y="44" width="152" height="92" rx="46" fill="none" stroke="url(#lcMoltenH)" stroke-width="26"/>
+        <rect x="14" y="44" width="152" height="92" rx="46" fill="none" stroke="url(#lcCoreH)" stroke-width="10" opacity=".92"/>
+        <rect x="14" y="44" width="152" height="92" rx="46" fill="none" stroke="#FFF6D8" stroke-width="2.4" opacity=".4"/>
+        <use href="#lcNut" transform="translate(40,90)"/><use href="#lcNut" transform="translate(140,90)"/>
       </g>
     </defs></svg>
   </section>
@@ -2153,7 +2160,7 @@ body.light-mode{
         emb=document.getElementById('lcEmbers'),
         links=[].slice.call(scope.querySelectorAll('.lc-link[data-i]')),
         steps=[].slice.call(scope.querySelectorAll('#lcRail .lc-step'));
-    var N=links.length, centers=links.map(function(l){return parseFloat(l.style.top)+88;});
+    var N=links.length, centers=links.map(function(l){return parseFloat(l.style.left)+80;}); // link x-centers
     var prevActive=-1, prevDone=links.map(function(){return false;}), ticking=false;
 
     for(var k=0;k<16;k++){ var e=document.createElement('span'); e.className='lc-ember';
@@ -2164,10 +2171,10 @@ body.light-mode{
     function fire(el,cls){ if(!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
     function render(){
       ticking=false;
-      var vh=window.innerHeight, r=wrap.getBoundingClientRect();
+      var vw=window.innerWidth, vh=window.innerHeight, r=wrap.getBoundingClientRect();
       var p=clamp(-r.top/(wrap.offsetHeight-vh),0,1);
-      var pos=centers[0]+(centers[N-1]-centers[0])*p;
-      lift.style.transform='translate(-50%,'+(vh*0.52-pos).toFixed(1)+'px)';
+      var pos=centers[0]+(centers[N-1]-centers[0])*p;   // x of the active link
+      lift.style.transform='translateX('+(vw*0.5-pos).toFixed(1)+'px)';   // slide chain so active sits at center
       var active=clamp(Math.round(p*(N-1)),0,N-1);
       for(var i=0;i<N;i++){
         var l=links[i]; l.classList.remove('active','done','wait');
