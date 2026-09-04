@@ -1,0 +1,117 @@
+//@version=6
+// ─────────────────────────────────────────────────────────────────────────────
+// LMR Capitals — Monthly Key Reference (Floating Panel)
+// ─────────────────────────────────────────────────────────────────────────────
+// A single indicator that floats on the RIGHT side of the chart (not on the
+// price scale) and lists the key higher-timeframe reference points:
+//
+//   • Last 3 completed MONTHS  → Name of month, High, Low, Open, Close/Settle, EQ
+//   • Previous month EQ         → the (High + Low) / 2 equilibrium, highlighted
+//   • Last 3 completed WEEKS    → High, Low, Open, Close/Settle, EQ  (PW = prior weeks)
+//
+// Settlement = the period's official close on TradingView data, so Close and
+// Settle are the SAME value — they are MERGED into one "Settle" column.
+//
+// Values are pulled with request.security(..., lookahead = barmerge.lookahead_off)
+// using completed-bar offsets ([1],[2],[3]) so the numbers are pin-point accurate
+// and non-repainting. Works on every chart timeframe from 1 second up to 1 Month.
+// ─────────────────────────────────────────────────────────────────────────────
+indicator("LMR — Monthly Key Reference", shorttitle = "LMR Key Ref", overlay = true, max_labels_count = 500)
+
+// ── Inputs ───────────────────────────────────────────────────────────────────
+grpP = "Panel"
+posInput = input.string("Middle Right", "Panel position", options = ["Top Right", "Middle Right", "Bottom Right"], group = grpP, tooltip = "Floats on the right edge of the chart, away from the price scale.")
+txtSize  = input.string("Normal", "Text size", options = ["Tiny", "Small", "Normal", "Large"], group = grpP)
+showWeeks = input.bool(true, "Show weekly section (PW)", group = grpP)
+
+grpC = "Colors"
+cBg    = input.color(color.new(#0b0f14, 8),  "Panel background", group = grpC)
+cHead  = input.color(#c8a24a,                "Header background", group = grpC)     // LMR gold
+cHeadT = input.color(#0b0f14,                "Header text",       group = grpC)
+cText  = input.color(#e6edf3,                "Cell text",         group = grpC)
+cUp    = input.color(#26a69a,                "Up (Close ≥ Open)", group = grpC)
+cDn    = input.color(#ef5350,                "Down (Close < Open)", group = grpC)
+cEQ    = input.color(#c8a24a,                "EQ highlight",      group = grpC)
+cBorder = input.color(color.new(#c8a24a, 60), "Border", group = grpC)
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+_pos       = posInput == "Top Right" ? position.top_right : posInput == "Bottom Right" ? position.bottom_right : position.middle_right
+_tsize     = txtSize == "Tiny" ? size.tiny : txtSize == "Small" ? size.small : txtSize == "Large" ? size.large : size.normal
+
+// Price formatted to the instrument's tick size (pin-point accurate), na-safe.
+f_px(float v) => na(v) ? "—" : str.tostring(v, format.mintick)
+
+// Month short-name from a bar's time (chart/exchange timezone aware).
+monthNames = array.from("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+f_monthLbl(int t) =>
+    na(t) ? "—" : array.get(monthNames, month(t, syminfo.timezone) - 1) + " '" + str.tostring(year(t, syminfo.timezone) % 100)
+f_weekLbl(int t) =>
+    na(t) ? "—" : str.format_time(t, "dd MMM", syminfo.timezone)
+
+// One completed higher-timeframe bar at offset _i (1 = most recent CLOSED bar).
+// Returns [open, high, low, close, time]. lookahead_off + closed offset = no repaint.
+f_htf(simple string _tf, simple int _i) =>
+    request.security(syminfo.tickerid, _tf, [open[_i], high[_i], low[_i], close[_i], time[_i]], lookahead = barmerge.lookahead_off)
+
+// ── Data: last 3 completed months and weeks ─────────────────────────────────
+[mo1, mh1, ml1, mc1, mt1] = f_htf("1M", 1)
+[mo2, mh2, ml2, mc2, mt2] = f_htf("1M", 2)
+[mo3, mh3, ml3, mc3, mt3] = f_htf("1M", 3)
+
+[wo1, wh1, wl1, wc1, wt1] = f_htf("1W", 1)
+[wo2, wh2, wl2, wc2, wt2] = f_htf("1W", 2)
+[wo3, wh3, wl3, wc3, wt3] = f_htf("1W", 3)
+
+f_eq(float h, float l) => na(h) or na(l) ? na : math.avg(h, l)
+
+// ── Table ────────────────────────────────────────────────────────────────────
+var table panel = table.new(_pos, 6, 12, bgcolor = cBg, border_color = cBorder, border_width = 1, frame_color = cBorder, frame_width = 1)
+
+f_header(int row, string c0) =>
+    table.cell(panel, 0, row, c0,        text_color = cHeadT, bgcolor = cHead, text_size = _tsize, text_halign = text.align_left)
+    table.cell(panel, 1, row, "Open",    text_color = cHeadT, bgcolor = cHead, text_size = _tsize)
+    table.cell(panel, 2, row, "High",    text_color = cHeadT, bgcolor = cHead, text_size = _tsize)
+    table.cell(panel, 3, row, "Low",     text_color = cHeadT, bgcolor = cHead, text_size = _tsize)
+    table.cell(panel, 4, row, "Settle",  text_color = cHeadT, bgcolor = cHead, text_size = _tsize)
+    table.cell(panel, 5, row, "EQ",      text_color = cHeadT, bgcolor = cHead, text_size = _tsize)
+
+// One data row: label + O / H / L / Close(=Settle, merged) / EQ.
+f_row(int row, string lbl, float o, float h, float l, float c) =>
+    dirCol = na(c) or na(o) ? cText : c >= o ? cUp : cDn
+    table.cell(panel, 0, row, lbl,       text_color = cText,  bgcolor = cBg, text_size = _tsize, text_halign = text.align_left)
+    table.cell(panel, 1, row, f_px(o),   text_color = cText,  bgcolor = cBg, text_size = _tsize)
+    table.cell(panel, 2, row, f_px(h),   text_color = cUp,    bgcolor = cBg, text_size = _tsize)
+    table.cell(panel, 3, row, f_px(l),   text_color = cDn,    bgcolor = cBg, text_size = _tsize)
+    table.cell(panel, 4, row, f_px(c),   text_color = dirCol, bgcolor = cBg, text_size = _tsize)
+    table.cell(panel, 5, row, f_px(f_eq(h, l)), text_color = cEQ, bgcolor = cBg, text_size = _tsize)
+
+if barstate.islast
+    // Title
+    table.cell(panel, 0, 0, "🔑 LMR KEY REFERENCE", text_color = cHeadT, bgcolor = cHead, text_size = _tsize, text_halign = text.align_left)
+    table.cell(panel, 1, 0, "", bgcolor = cHead)
+    table.cell(panel, 2, 0, "", bgcolor = cHead)
+    table.cell(panel, 3, 0, "", bgcolor = cHead)
+    table.cell(panel, 4, 0, "", bgcolor = cHead)
+    table.cell(panel, 5, 0, "Ⓜ", text_color = cHeadT, bgcolor = cHead, text_size = _tsize)
+
+    // Monthly section (last 3 completed months, newest first)
+    f_header(1, "Month")
+    f_row(2, f_monthLbl(mt1), mo1, mh1, ml1, mc1)
+    f_row(3, f_monthLbl(mt2), mo2, mh2, ml2, mc2)
+    f_row(4, f_monthLbl(mt3), mo3, mh3, ml3, mc3)
+
+    // Previous-month EQ — highlighted key reference
+    eqPrev = f_eq(mh1, ml1)
+    table.cell(panel, 0, 5, "◆ Prev Month EQ", text_color = cHeadT, bgcolor = cEQ, text_size = _tsize, text_halign = text.align_left)
+    table.cell(panel, 1, 5, "", bgcolor = cEQ)
+    table.cell(panel, 2, 5, "", bgcolor = cEQ)
+    table.cell(panel, 3, 5, "", bgcolor = cEQ)
+    table.cell(panel, 4, 5, "", bgcolor = cEQ)
+    table.cell(panel, 5, 5, f_px(eqPrev), text_color = cHeadT, bgcolor = cEQ, text_size = _tsize)
+
+    // Weekly section (PW = last 3 completed weeks, newest first)
+    if showWeeks
+        f_header(6, "Week")
+        f_row(7, f_weekLbl(wt1), wo1, wh1, wl1, wc1)
+        f_row(8, f_weekLbl(wt2), wo2, wh2, wl2, wc2)
+        f_row(9, f_weekLbl(wt3), wo3, wh3, wl3, wc3)
