@@ -1906,6 +1906,7 @@ body.light-mode{
    server-side; this just keeps the UI honest). Revealed by body.is-admin. */
 body:not(.is-admin) #ach-toggle-all,
 body:not(.is-admin) #ach-public-row,
+body:not(.is-admin) #set-tab-users,
 body:not(.is-admin) .ach-pub-pill{display:none!important}
 
 /* Reduced motion — quiet every reskin transition */
@@ -3548,6 +3549,18 @@ Midnight Open $______"></textarea>
 </div>
 
 <!-- Request Payout modal -->
+<!-- Admin: Users & Access (free-access management; admin only) -->
+<div class="modal-bg" id="adminUsersModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head"><div class="modal-title">Users &amp; Access</div><button class="close" onclick="closeModal('adminUsersModal')">×</button></div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:10px">Search a user by email and grant or revoke <b>free access</b>. This is app access only — not admin rights.</div>
+      <input id="adminUserSearch" oninput="adminSearchUsersDebounced()" placeholder="Search email…" class="form-input" style="width:100%;margin-bottom:12px">
+      <div id="adminUsersList" style="max-height:50vh;overflow-y:auto;border:1px solid var(--border);border-radius:10px"></div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="payoutReqModal">
   <div class="modal" style="max-width:480px">
     <div class="modal-head"><div class="modal-title">Request Payout</div><button class="close" onclick="closeModal('payoutReqModal')">×</button></div>
@@ -3579,6 +3592,7 @@ Midnight Open $______"></textarea>
     <button class="set-tab" data-stab="data" onclick="switchSetTab('data')" style="flex:1;padding:9px 4px;font-size:11px;font-weight:600;color:var(--text2);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s">Data</button>
     <button class="set-tab" data-stab="cloud" onclick="switchSetTab('cloud')" style="flex:1;padding:9px 4px;font-size:11px;font-weight:600;color:var(--text2);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s">Cloud</button>
     <button class="set-tab" data-stab="ai" onclick="switchSetTab('ai')" style="flex:1;padding:9px 4px;font-size:11px;font-weight:600;color:var(--gold);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s">✦ AI</button>
+    <button id="set-tab-users" class="set-tab" onclick="openAdminUsers()" style="flex:1;padding:9px 4px;font-size:11px;font-weight:600;color:var(--text2);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s">Users</button>
   </div>
 
   <!-- ── PROFILE TAB ── -->
@@ -12652,6 +12666,46 @@ async function startCheckout(plan){
     if(data&&data.url){ location.href=data.url; return; }
     throw new Error((data&&data.error)||'Could not start checkout.');
   }catch(e){ if(msg) msg.textContent='Could not start checkout: '+(e.message||e); }
+}
+
+// ── ADMIN: Users & Access (grant/revoke free access) ─────────────────────
+async function openAdminUsers(){
+  if(!document.body.classList.contains('is-admin')) return;
+  document.getElementById('adminUsersModal').classList.add('show');
+  adminSearchUsers();
+}
+let _adminSearchT;
+function adminSearchUsersDebounced(){ clearTimeout(_adminSearchT); _adminSearchT=setTimeout(adminSearchUsers,250); }
+async function adminSearchUsers(){
+  const q=(document.getElementById('adminUserSearch')?.value||'').trim();
+  const box=document.getElementById('adminUsersList');
+  if(box) box.innerHTML='<div style="color:var(--text3);padding:14px">Loading…</div>';
+  try{
+    const {data,error}=await _sb.rpc('admin_list_users',{search:q});
+    if(error) throw error;
+    adminRenderUsers(data||[]);
+  }catch(e){ if(box) box.innerHTML='<div style="color:var(--bear);padding:14px">'+(e.message||e)+'</div>'; }
+}
+function adminRenderUsers(rows){
+  const box=document.getElementById('adminUsersList'); if(!box) return;
+  if(!rows.length){ box.innerHTML='<div style="color:var(--text3);padding:14px">No users found.</div>'; return; }
+  box.innerHTML=rows.map(function(r){
+    const status=r.comp?'Free access':(r.sub_status?('Subscription: '+r.sub_status):(r.entitled?'Entitled':'No access'));
+    const color=r.entitled?'var(--bull)':'var(--text3)';
+    const btn=r.comp
+      ? '<button onclick="adminRevoke(\''+r.user_id+'\')" style="background:rgba(239,83,80,.12);color:var(--bear);border:1px solid rgba(239,83,80,.3);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap">Revoke free</button>'
+      : '<button onclick="adminGrant(\''+r.user_id+'\')" style="background:var(--gold);color:#0a0b0f;border:none;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap">Grant free</button>';
+    const email=(r.email||'').replace(/</g,'&lt;');
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border)"><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis">'+email+'</div><div style="font-size:11px;color:'+color+'">'+status+'</div></div>'+btn+'</div>';
+  }).join('');
+}
+async function adminGrant(uid){
+  try{ const {error}=await _sb.rpc('admin_grant_comp',{target:uid,note:null}); if(error) throw error; adminSearchUsers(); }
+  catch(e){ alert('Grant failed: '+(e.message||e)); }
+}
+async function adminRevoke(uid){
+  try{ const {error}=await _sb.rpc('admin_revoke_comp',{target:uid}); if(error) throw error; adminSearchUsers(); }
+  catch(e){ alert('Revoke failed: '+(e.message||e)); }
 }
 
 async function lgUnlock(user){
