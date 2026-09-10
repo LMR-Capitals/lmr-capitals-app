@@ -2008,6 +2008,33 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
 
 </div>
 
+<!-- ── SUBSCRIBE GATE (shown after login when the account is not entitled) ── -->
+<div id="subscribeGate" style="position:fixed;inset:0;z-index:9997;display:none;overflow-y:auto;background:var(--bg,#05080F);color:var(--text,#EDF2FF);font-family:'Plus Jakarta Sans',system-ui,sans-serif">
+  <div style="max-width:820px;margin:0 auto;padding:56px 20px 80px;text-align:center">
+    <img src="/icons/lmr-icon.png" alt="" style="width:44px;height:44px;margin-bottom:18px">
+    <h1 style="font-size:30px;font-weight:800;margin:0 0 10px;letter-spacing:-.02em">Unlock LMR Capitals</h1>
+    <p style="color:var(--text3,#8b93a7);font-size:15px;margin:0 0 6px">Start with a <b style="color:var(--gold,#E9B44C)">7-day free trial</b> — cancel anytime.</p>
+    <div id="subscribe-email" style="color:var(--text3,#8b93a7);font-size:12px;margin-bottom:30px"></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;max-width:620px;margin:0 auto 24px">
+      <div style="background:var(--bg2,#0e131d);border:1px solid var(--border,#20283a);border-radius:16px;padding:26px 22px;text-align:left">
+        <div style="font-size:12px;font-weight:700;color:var(--text3,#8b93a7);text-transform:uppercase;letter-spacing:.05em">Monthly</div>
+        <div style="font-size:34px;font-weight:800;margin:6px 0 2px">$25<span style="font-size:14px;color:var(--text3,#8b93a7);font-weight:600">/mo</span></div>
+        <div style="font-size:12px;color:var(--text3,#8b93a7);margin-bottom:18px">Billed monthly after your trial.</div>
+        <button onclick="startCheckout('monthly')" style="width:100%;background:var(--gold,#E9B44C);color:#0a0b0f;font-weight:800;border:none;padding:12px;border-radius:10px;cursor:pointer;font-size:14px">Start free trial</button>
+      </div>
+      <div style="background:var(--bg2,#0e131d);border:1px solid var(--gold-border,rgba(233,180,76,.35));border-radius:16px;padding:26px 22px;text-align:left;position:relative">
+        <div style="position:absolute;top:-11px;right:16px;background:var(--gold,#E9B44C);color:#0a0b0f;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px">SAVE 10%</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text3,#8b93a7);text-transform:uppercase;letter-spacing:.05em">Yearly</div>
+        <div style="font-size:34px;font-weight:800;margin:6px 0 2px">$270<span style="font-size:14px;color:var(--text3,#8b93a7);font-weight:600">/yr</span></div>
+        <div style="font-size:12px;color:var(--text3,#8b93a7);margin-bottom:18px">Just $22.50/mo — 2 months free.</div>
+        <button onclick="startCheckout('yearly')" style="width:100%;background:var(--gold,#E9B44C);color:#0a0b0f;font-weight:800;border:none;padding:12px;border-radius:10px;cursor:pointer;font-size:14px">Start free trial</button>
+      </div>
+    </div>
+    <div id="subscribe-msg" style="color:var(--bear,#ef5350);font-size:13px;min-height:18px;margin-bottom:8px"></div>
+    <a onclick="sbDoSignOut()" style="color:var(--text3,#8b93a7);font-size:13px;cursor:pointer;text-decoration:underline">Sign out</a>
+  </div>
+</div>
+
 <div class="app" id="mainApp" style="display:none">
 
 <aside class="sidebar" id="sidebar">
@@ -12591,12 +12618,56 @@ async function _checkAdmin(uid){
   }catch(e){ document.body.classList.remove('is-admin'); }
 }
 
+// ── PAYWALL: entitlement + subscribe gate ─────────────────────────────────
+// Entitled = admin OR active/trialing Stripe subscription OR admin-granted comp
+// access. This client check drives the UI; the real enforcement is the RLS
+// lockdown on the data tables (fail-closed on the server). So we fail OPEN here
+// on any error — never trap a user behind a broken check when the server guards.
+async function _checkEntitled(uid){
+  try{
+    if(!_sb) return true;
+    const [adm,comp,sub] = await Promise.all([
+      _sb.from('admins').select('user_id').eq('user_id',uid).maybeSingle(),
+      _sb.from('comp_access').select('user_id').eq('user_id',uid).maybeSingle(),
+      _sb.from('subscriptions').select('status').eq('user_id',uid).maybeSingle(),
+    ]);
+    if(adm.data || comp.data) return true;
+    const s=sub.data&&sub.data.status;
+    return s==='active' || s==='trialing';
+  }catch(e){ return true; }
+}
+function _showSubscribeGate(user){
+  document.getElementById('loginGate').classList.add('hidden');
+  document.getElementById('mainApp').style.display='none';
+  const em=document.getElementById('subscribe-email');
+  if(em) em.textContent='Signed in as '+((user&&user.email)||'');
+  const g=document.getElementById('subscribeGate');
+  if(g) g.style.display='block';
+}
+async function startCheckout(plan){
+  const msg=document.getElementById('subscribe-msg'); if(msg) msg.textContent='Opening secure checkout…';
+  try{
+    const {data,error}=await _sb.functions.invoke('create-checkout',{body:{plan:plan}});
+    if(error) throw error;
+    if(data&&data.url){ location.href=data.url; return; }
+    throw new Error((data&&data.error)||'Could not start checkout.');
+  }catch(e){ if(msg) msg.textContent='Could not start checkout: '+(e.message||e); }
+}
+
 async function lgUnlock(user){
   // Hide gate + landing page (mainApp stays hidden until re-rendered below
   // with THIS account's own data — see _switchUserStore)
   document.getElementById('loginGate').classList.add('hidden');
   const lp=document.getElementById('landingPage');
   if(lp)lp.classList.add('hidden');
+  // ── Paywall gate: only entitled accounts may enter the app ──
+  _checkAdmin(user.id);
+  let _ent = await _checkEntitled(user.id);
+  if(!_ent && /[?&]checkout=success/.test(location.search)){
+    // Just back from Stripe — the webhook can lag a few seconds; poll briefly.
+    for(let i=0;i<6 && !_ent;i++){ await new Promise(r=>setTimeout(r,2000)); _ent=await _checkEntitled(user.id); }
+  }
+  if(!_ent){ _showSubscribeGate(user); return; }
   // Switch to this account's isolated local data BEFORE anything renders or
   // syncs — guarantees a different account's cached data is never shown to,
   // or pushed into, this account.
