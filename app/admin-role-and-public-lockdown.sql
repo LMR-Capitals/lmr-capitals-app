@@ -69,8 +69,11 @@ create policy "own_achievements_all" on public.lmr_achievements
 -- 4) ADVISOR CLEANUP ──────────────────────────────────────────────────────────
 -- rls_auto_enable() is an event-trigger helper (auto-enables RLS on new public
 -- tables). It should never be called directly via the REST RPC endpoint, so
--- revoke EXECUTE from the anon/authenticated API roles. The event trigger itself
--- keeps working (event triggers run regardless of these grants).
+-- revoke EXECUTE from the exposed API roles. Postgres grants function EXECUTE to
+-- PUBLIC by default, so revoke from PUBLIC (revoking only anon/authenticated
+-- leaves the PUBLIC grant in place). The event trigger itself keeps working
+-- (event triggers run regardless of these grants).
+revoke execute on function public.rls_auto_enable() from public;
 revoke execute on function public.rls_auto_enable() from anon, authenticated;
 
 -- ─────────────────────────────────────────────────────────────────────────────

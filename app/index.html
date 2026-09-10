@@ -1902,6 +1902,12 @@ body.light-mode{
 .lp-cta-section{background:linear-gradient(180deg,#10131B 0%,#0A0B0F 100%);border-top-color:rgba(233,180,76,.1)}
 #landingPage h1,#landingPage h2,#landingPage h3,.lp-ind-title h3{font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;letter-spacing:-.025em}
 
+/* Admin-only publish controls — hidden for non-admins (RLS also enforces this
+   server-side; this just keeps the UI honest). Revealed by body.is-admin. */
+body:not(.is-admin) #ach-toggle-all,
+body:not(.is-admin) #ach-public-row,
+body:not(.is-admin) .ach-pub-pill{display:none!important}
+
 /* Reduced motion — quiet every reskin transition */
 @media (prefers-reduced-motion:reduce){
   .card,.tile,.sb-item,.btn,input,textarea,select{transition:none!important}
@@ -3855,7 +3861,7 @@ Midnight Open $______"></textarea>
         </div>
       </div>
 
-      <div style="display:flex;align-items:center;gap:10px;margin-top:14px;padding:10px 12px;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:var(--r)">
+      <div id="ach-public-row" style="display:flex;align-items:center;gap:10px;margin-top:14px;padding:10px 12px;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:var(--r)">
         <label class="ach-switch"><input type="checkbox" id="ach-public"><span class="ach-slider"></span></label>
         <div><div style="font-size:12px;font-weight:700;color:var(--text)">Show on landing page</div><div style="font-size:10px;color:var(--text3)">Publish this to your public lmrcapitals.com track record</div></div>
       </div>
@@ -12929,10 +12935,22 @@ function enterApp(){
   document.getElementById('loginGate').classList.remove('hidden');
 }
 function showLanding(){
+  document.body.classList.remove('is-admin');
   document.getElementById('loginGate').classList.add('hidden');
   const lp=document.getElementById('landingPage');
   if(lp)lp.classList.remove('hidden');
   try{ loadPublicAchievements(); }catch(e){}
+}
+
+// Admin detection: an account is admin iff it's listed in public.admins
+// (RLS-checked). Toggles body.is-admin, which reveals the publish controls
+// (default hidden). Publishing is also enforced server-side by RLS.
+async function _checkAdmin(uid){
+  try{
+    if(!_sb||!uid){ document.body.classList.remove('is-admin'); return; }
+    const { data } = await _sb.from('admins').select('user_id').eq('user_id',uid).maybeSingle();
+    document.body.classList.toggle('is-admin', !!data);
+  }catch(e){ document.body.classList.remove('is-admin'); }
 }
 
 async function lgUnlock(user){
@@ -12951,6 +12969,7 @@ async function lgUnlock(user){
   // Wire Supabase sync
   _sbSyncEnabled=true;
   _sbUserId=user.id;
+  _checkAdmin(user.id);
   // Save session timestamp for timeout tracking
   localStorage.setItem(SESSION_KEY, Date.now().toString());
   // Update signed-in email display in Settings App tab
