@@ -13,6 +13,42 @@ Do it in two ordered phases (your instruction: *arrange GitHub first, then deplo
 - **Phase A — Arrange the repo** (organize, dedupe, modular `app/`, split sections).
 - **Phase B — Package & ship** (Tauri wrapper, installers, signing, release CI).
 
+## 1a. Architecture: admin vs. user portals (multi-tenant)
+
+Intended model:
+- **Admin portal** — `admin@lmrcapitals.com` signs in and manages the business,
+  including the public content shown on the landing page (Track Record).
+- **User portals** — every other account gets the same app with its **own
+  isolated data**. No user can see another user's data.
+- **Landing page** is fed by the **admin's public data** (the "Proven Track
+  Record" comes from achievements the admin marks public).
+
+What the code/DB do **today** (verified from `app/*.sql` + `index.html`):
+- ✅ **Per-user isolation is real and server-enforced.** Every table
+  (`trades`, `daily`, `weekly`, `monthly`, `accounts`, `transactions`, `notes`,
+  `journal`, `lmr_achievements`, …) has `user_id default auth.uid()` and RLS
+  policies `auth.uid() = user_id`. Client-side `_switchUserStore()` is a
+  convenience on top; the DB is the real boundary.
+- ✅ Landing reads public achievements: `lmr_achievements` where `is_public=true`.
+- ⚠️ **No admin role exists.** The app treats every account the same; there is
+  no admin portal vs. user portal split yet.
+- 🔴 **Security gap:** the public-read policy exposes **any** user's
+  `is_public=true` rows, and any signed-in user can set `is_public=true` on
+  their own achievements. So today **any registered user could publish to the
+  public landing page**, and the landing shows public rows from all users, not
+  only the admin.
+
+Required to match the intent (all server-enforced, never client-only):
+1. **An admin role** — an `admins` table or a `profiles.is_admin` flag, seeded
+   with the admin's `auth.uid()`. Admin status is checked in **RLS policies**,
+   not by a client-side email/password check (client checks are cosmetic and
+   trivially bypassed).
+2. **Restrict public landing data to the admin** — the public-read policy (and
+   the landing query) should only expose achievements owned by an admin.
+3. **Admin-only publish** — only an admin may set `is_public=true`.
+4. The login gate routes to the **admin portal** or **user portal** by role, but
+   the portals differ only in UI; every privileged action is still gated by RLS.
+
 ## 2. Chosen stack
 
 | Layer | Choice | Why |
