@@ -78,10 +78,16 @@ Deno.serve(async (req) => {
     if (uErr || !user) return json({ error: 'unauthorized' }, 401);
 
     const { plan } = await req.json().catch(() => ({ plan: 'monthly' }));
-    const priceId = plan === 'yearly'
-      ? Deno.env.get('STRIPE_PRICE_YEARLY')
-      : Deno.env.get('STRIPE_PRICE_MONTHLY');
-    if (!priceId) return json({ error: 'price not configured (STRIPE_PRICE_MONTHLY / STRIPE_PRICE_YEARLY missing)' }, 500);
+    // Price IDs are NOT secret. Use the env secret only when it is a well-formed
+    // price id, otherwise fall back to the known LMR Capitals live price ids —
+    // this makes checkout robust against a mistyped STRIPE_PRICE_* secret.
+    const pickPrice = (envKey: string, fallback: string) => {
+      const v = (Deno.env.get(envKey) ?? '').replace(/[^\x21-\x7E]/g, '');
+      return /^price_[A-Za-z0-9]+$/.test(v) ? v : fallback;
+    };
+    const cleanPrice = plan === 'yearly'
+      ? pickPrice('STRIPE_PRICE_YEARLY', 'price_1UEPLOBgi40jMsdm6LlsT3Hr')
+      : pickPrice('STRIPE_PRICE_MONTHLY', 'price_1UEPM2Bgi40jMsdmzaWUy7Vg');
 
     // Reuse the user's existing Stripe customer if we already have one.
     const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
@@ -102,7 +108,7 @@ Deno.serve(async (req) => {
       'mode': 'subscription',
       'customer': customerId!,
       'client_reference_id': user.id,
-      'line_items[0][price]': priceId,
+      'line_items[0][price]': cleanPrice,
       'line_items[0][quantity]': '1',
       'subscription_data[trial_period_days]': '7',
       'subscription_data[metadata][user_id]': user.id,
