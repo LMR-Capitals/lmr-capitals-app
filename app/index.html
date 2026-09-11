@@ -2036,6 +2036,29 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
   </div>
 </div>
 
+<!-- Admin hub: shown only to admins right after sign-in — choose which surface to open. -->
+<div id="adminHub" style="position:fixed;inset:0;z-index:9998;display:none;overflow-y:auto;background:var(--bg,#05080F);color:var(--text,#EDF2FF);font-family:'Plus Jakarta Sans',system-ui,sans-serif">
+  <div style="max-width:760px;margin:0 auto;padding:60px 20px 80px;text-align:center">
+    <img src="/icons/lmr-icon.png" alt="" style="width:44px;height:44px;margin-bottom:18px">
+    <h1 style="font-size:28px;font-weight:800;margin:0 0 8px;letter-spacing:-.02em">Welcome back, Admin</h1>
+    <p style="color:var(--text3,#8b93a7);font-size:14px;margin:0 0 4px">Choose where you want to go.</p>
+    <div id="adminhub-email" style="color:var(--text3,#8b93a7);font-size:12px;margin-bottom:30px"></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;max-width:640px;margin:0 auto">
+      <button onclick="adminOpenPortal()" style="background:var(--bg2,#0e131d);border:1px solid var(--gold-border,rgba(233,180,76,.35));border-radius:16px;padding:28px 22px;text-align:left;cursor:pointer;color:inherit;transition:border-color .15s" onmouseover="this.style.borderColor='var(--gold,#E9B44C)'" onmouseout="this.style.borderColor='rgba(233,180,76,.35)'">
+        <div style="font-size:26px;margin-bottom:10px">🛠️</div>
+        <div style="font-size:17px;font-weight:800;margin-bottom:6px">Admin Portal <span style="color:var(--gold,#E9B44C)">↗</span></div>
+        <div style="font-size:12.5px;color:var(--text3,#8b93a7);line-height:1.5">Web dashboard — business metrics, users &amp; free access, subscribers &amp; billing, and manage admins.</div>
+      </button>
+      <button onclick="adminEnterApp()" style="background:var(--bg2,#0e131d);border:1px solid var(--border,#20283a);border-radius:16px;padding:28px 22px;text-align:left;cursor:pointer;color:inherit;transition:border-color .15s" onmouseover="this.style.borderColor='var(--gold,#E9B44C)'" onmouseout="this.style.borderColor='var(--border,#20283a)'">
+        <div style="font-size:26px;margin-bottom:10px">📈</div>
+        <div style="font-size:17px;font-weight:800;margin-bottom:6px">Admin Application</div>
+        <div style="font-size:12.5px;color:var(--text3,#8b93a7);line-height:1.5">The full LMR Capitals trading journal — sessions, analysis, trades, knowledge, and your in-app admin controls.</div>
+      </button>
+    </div>
+    <div style="margin-top:26px"><a onclick="sbDoSignOut()" style="color:var(--text3,#8b93a7);font-size:13px;cursor:pointer;text-decoration:underline">Sign out</a></div>
+  </div>
+</div>
+
 <div class="app" id="mainApp" style="display:none">
 
 <aside class="sidebar" id="sidebar">
@@ -12272,8 +12295,11 @@ async function sbDoSignOut() {
   await _sb.auth.signOut();
   _sbSyncEnabled=false;_sbUserId=null;
   localStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem('lmr_admin_surface'); // next login shows the admin hub again
   updateRTIndicator('offline');
-  // Show login gate again
+  // Hide the admin hub + subscribe gate, show login gate again
+  const _ah=document.getElementById('adminHub'); if(_ah)_ah.style.display='none';
+  const _sg=document.getElementById('subscribeGate'); if(_sg)_sg.style.display='none';
   document.getElementById('loginGate').classList.remove('hidden');
   document.getElementById('mainApp').style.display='none';
   document.getElementById('lg-email').value='';
@@ -12658,6 +12684,22 @@ function _showSubscribeGate(user){
   const g=document.getElementById('subscribeGate');
   if(g) g.style.display='block';
 }
+// Admin hub (chooser shown to admins after login)
+function _showAdminHub(user){
+  document.getElementById('loginGate').classList.add('hidden');
+  document.getElementById('mainApp').style.display='none';
+  const sg=document.getElementById('subscribeGate'); if(sg) sg.style.display='none';
+  const em=document.getElementById('adminhub-email');
+  if(em) em.textContent='Signed in as '+((user&&user.email)||'');
+  const g=document.getElementById('adminHub'); if(g) g.style.display='block';
+}
+function adminOpenPortal(){ location.href='/admin'; }
+function adminEnterApp(){
+  sessionStorage.setItem('lmr_admin_surface','app'); // remember choice for this session
+  const g=document.getElementById('adminHub'); if(g) g.style.display='none';
+  const u=window._pendingAdminUser;
+  if(u) lgUnlock(u);
+}
 async function startCheckout(plan){
   const msg=document.getElementById('subscribe-msg'); if(msg) msg.textContent='Opening secure checkout…';
   try{
@@ -12714,8 +12756,16 @@ async function lgUnlock(user){
   document.getElementById('loginGate').classList.add('hidden');
   const lp=document.getElementById('landingPage');
   if(lp)lp.classList.add('hidden');
-  // ── Paywall gate: only entitled accounts may enter the app ──
+  // ── Admin hub: admins choose Portal vs Application after signing in.
+  //    (Skipped once they pick "Application" this session, so a refresh keeps
+  //    them in the app instead of bouncing back to the chooser.)
   _checkAdmin(user.id);
+  if(sessionStorage.getItem('lmr_admin_surface')!=='app'){
+    let _isAdm=false;
+    try{ if(_sb){ const {data}=await _sb.from('admins').select('user_id').eq('user_id',user.id).maybeSingle(); _isAdm=!!data; } }catch(e){}
+    if(_isAdm){ window._pendingAdminUser=user; _showAdminHub(user); return; }
+  }
+  // ── Paywall gate: only entitled accounts may enter the app ──
   let _ent = await _checkEntitled(user.id);
   if(!_ent && /[?&]checkout=success/.test(location.search)){
     // Just back from Stripe — the webhook can lag a few seconds; poll briefly.
