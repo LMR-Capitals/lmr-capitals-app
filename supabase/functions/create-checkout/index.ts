@@ -108,6 +108,10 @@ Deno.serve(async (req) => {
       'mode': 'subscription',
       'customer': customerId!,
       'client_reference_id': user.id,
+      // This account has Stripe Managed Payments on by default, which requires a
+      // product tax code. Disable it for this session so checkout works without
+      // per-product tax codes (the user can enable + configure tax codes later).
+      'managed_payments[enabled]': 'false',
       'line_items[0][price]': cleanPrice,
       'line_items[0][quantity]': '1',
       'subscription_data[trial_period_days]': '7',
