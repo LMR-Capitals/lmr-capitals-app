@@ -1,9 +1,22 @@
+# LMR Capitals — production deploy config (authoritative; overrides dashboard).
+# The app lives in app/ and is a Vite multi-page build (index.html + landing.html).
+# Static root-served assets (sw.js, manifest.json, chart.umd.min.js, icons/) live
+# in app/public/ and are flattened to the site root by `vite build` into app/dist.
 [build]
-  publish = "."
+  base = "app"
+  command = "npm ci && npm run build"
+  publish = "dist"
 
 # ── HTML — never cache (ensures updates deploy instantly) ──────────────────
 [[headers]]
   for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
+
+[[headers]]
+  for = "/landing.html"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
     Pragma = "no-cache"
