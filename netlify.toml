@@ -7,6 +7,12 @@
   command = "npm ci && npm run build"
   publish = "dist"
 
+# Clean URL for the standalone admin web portal: /admin serves admin.html.
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
+
 # ── HTML — never cache (ensures updates deploy instantly) ──────────────────
 [[headers]]
   for = "/index.html"

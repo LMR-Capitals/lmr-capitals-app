@@ -13,6 +13,7 @@ export default defineConfig({
       input: {
         main: resolve(import.meta.dirname, 'index.html'),
         landing: resolve(import.meta.dirname, 'landing.html'),
+        admin: resolve(import.meta.dirname, 'admin.html'),
       },
     },
   },
