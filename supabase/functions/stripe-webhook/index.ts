@@ -15,7 +15,11 @@
 import Stripe from 'npm:stripe@17';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
-const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '');
+// Fetch HTTP client is required in Deno's edge runtime (the default Node http
+// client fails with StripeConnectionError) — needed for subscriptions.retrieve.
+const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
+  httpClient: Stripe.createFetchHttpClient(),
+});
 const cryptoProvider = Stripe.createSubtleCryptoProvider();
 const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? '';
 

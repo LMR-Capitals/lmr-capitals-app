@@ -11,7 +11,12 @@
 import Stripe from 'npm:stripe@17';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
-const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '');
+// IMPORTANT: in Deno's edge runtime the Stripe SDK must use the Fetch HTTP
+// client — the default Node http client cannot open connections here and every
+// API call fails with StripeConnectionError.
+const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
+  httpClient: Stripe.createFetchHttpClient(),
+});
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
