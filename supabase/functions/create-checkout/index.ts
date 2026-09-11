@@ -14,7 +14,10 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
-const STRIPE_KEY = Deno.env.get('STRIPE_SECRET_KEY') ?? '';
+// Strip any non–visible-ASCII characters (a trailing newline, space, or hidden
+// copy-paste character in the stored secret makes the Authorization header an
+// invalid ByteString and every Stripe call fails).
+const STRIPE_KEY = (Deno.env.get('STRIPE_SECRET_KEY') ?? '').replace(/[^\x21-\x7E]/g, '');
 const STRIPE_API = 'https://api.stripe.com/v1';
 
 const cors = {

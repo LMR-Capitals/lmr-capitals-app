@@ -15,13 +15,16 @@
 import Stripe from 'npm:stripe@17';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
+// Strip non–visible-ASCII chars from the secrets (a stray newline/space in the
+// stored value breaks the Authorization header / signature check).
+const clean = (s: string | undefined) => (s ?? '').replace(/[^\x21-\x7E]/g, '');
 // Fetch HTTP client is required in Deno's edge runtime (the default Node http
 // client fails with StripeConnectionError) — needed for subscriptions.retrieve.
-const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
+const stripe = new Stripe(clean(Deno.env.get('STRIPE_SECRET_KEY')), {
   httpClient: Stripe.createFetchHttpClient(),
 });
 const cryptoProvider = Stripe.createSubtleCryptoProvider();
-const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? '';
+const webhookSecret = clean(Deno.env.get('STRIPE_WEBHOOK_SECRET'));
 
 const admin = createClient(
   Deno.env.get('SUPABASE_URL')!,
