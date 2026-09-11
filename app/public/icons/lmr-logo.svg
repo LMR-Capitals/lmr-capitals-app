@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFD166"/>
+      <stop offset="60%" stop-color="#F5A623"/>
+      <stop offset="100%" stop-color="#E8901A"/>
+    </linearGradient>
+  </defs>
+  <!--
+    Logo: geometric L-bracket mark
+    Outer L shape (vertical left bar + horizontal bottom bar)
+    with rectangular hollow cutouts (even-odd rule)
+  -->
+  <path fill-rule="evenodd" clip-rule="evenodd"
+    d="
+      M 7 7
+      L 34 7
+      L 34 73
+      L 93 73
+      L 93 86
+      L 7 86
+      Z
+      M 16 16
+      L 25 16
+      L 25 64
+      L 84 64
+      L 84 73
+      L 16 73
+      Z
+    "
+    fill="url(#g1)"
+  />
+</svg>
