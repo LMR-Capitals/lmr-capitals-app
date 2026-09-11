@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>LMR Capitals — Admin</title>
+<link rel="icon" href="/icons/favicon-32.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  :root{
+    --bg:#05080F; --bg2:#0B1220; --bg3:#0E1626; --card:#101a2b;
+    --border:#1c2942; --text:#EDF2FF; --text2:#9fb0cc; --text3:#6b7a95;
+    --gold:#E9B44C; --bull:#31d0aa; --bear:#ef5350; --blue:#4c8bf5;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(160deg,#05080F,#080D18 60%,#04070E);
+    color:var(--text);font-family:'Plus Jakarta Sans',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+  a{color:var(--gold)}
+  .wrap{max-width:1080px;margin:0 auto;padding:24px 18px 60px}
+  .btn{border:none;border-radius:9px;cursor:pointer;font-weight:700;font-size:13px;padding:10px 16px}
+  .btn-gold{background:var(--gold);color:#0a0b0f}
+  .btn-ghost{background:rgba(255,255,255,.05);color:var(--text2);border:1px solid var(--border)}
+  .btn-danger{background:rgba(239,83,80,.12);color:var(--bear);border:1px solid rgba(239,83,80,.35)}
+  .input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);
+    border-radius:10px;padding:11px 13px;font-size:14px;outline:none}
+  .input:focus{border-color:var(--gold)}
+  .muted{color:var(--text3);font-size:12px}
+  .hidden{display:none!important}
+
+  /* login / gate */
+  .center{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .authcard{width:100%;max-width:380px;background:var(--card);border:1px solid var(--border);
+    border-radius:16px;padding:26px}
+  .logo{font-weight:800;letter-spacing:.35em;font-size:20px;text-align:center;margin-bottom:4px}
+  .logo b{color:var(--gold)}
+
+  /* dashboard */
+  .top{display:flex;align-items:center;gap:12px;margin-bottom:22px;flex-wrap:wrap}
+  .top h1{font-size:19px;margin:0;font-weight:800}
+  .pill{font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;background:rgba(233,180,76,.14);color:var(--gold)}
+  .tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
+  .tile{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px}
+  .tile .v{font-size:24px;font-weight:800;line-height:1.1}
+  .tile .k{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+  .tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+  .tab{padding:8px 16px;border-radius:9px;background:none;border:1px solid var(--border);
+    color:var(--text2);font-weight:700;font-size:13px;cursor:pointer}
+  .tab.active{background:var(--gold);color:#0a0b0f;border-color:var(--gold)}
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+  .row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border)}
+  .row:last-child{border-bottom:none}
+  .row .grow{flex:1;min-width:0}
+  .row .em{font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row .sub{font-size:11px;margin-top:2px}
+  .badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em}
+  .b-free{background:rgba(76,139,245,.15);color:var(--blue)}
+  .b-active{background:rgba(49,208,170,.15);color:var(--bull)}
+  .b-trial{background:rgba(233,180,76,.15);color:var(--gold)}
+  .b-none{background:rgba(255,255,255,.06);color:var(--text3)}
+  .b-dead{background:rgba(239,83,80,.14);color:var(--bear)}
+  .searchbar{padding:12px 14px;border-bottom:1px solid var(--border)}
+  .empty{padding:20px 14px;color:var(--text3);font-size:13px;text-align:center}
+  .err{color:var(--bear);font-size:12px;margin-top:10px;min-height:16px}
+  .ok{color:var(--bull)}
+  @media(max-width:820px){ .tiles{grid-template-columns:repeat(2,1fr)} }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login" class="center">
+  <div class="authcard">
+    <div class="logo"><b>LMR</b> ADMIN</div>
+    <div class="muted" style="text-align:center;margin-bottom:20px">Restricted — administrators only</div>
+    <label class="muted">Email</label>
+    <input id="lg-email" class="input" type="email" autocomplete="username" style="margin:4px 0 12px">
+    <label class="muted">Password</label>
+    <input id="lg-pass" class="input" type="password" autocomplete="current-password" style="margin:4px 0 16px">
+    <button class="btn btn-gold" style="width:100%" onclick="doLogin()">Sign in</button>
+    <div id="lg-err" class="err"></div>
+  </div>
+</div>
+
+<!-- NOT AUTHORIZED -->
+<div id="denied" class="center hidden">
+  <div class="authcard" style="text-align:center">
+    <div class="logo"><b>LMR</b> ADMIN</div>
+    <div style="margin:18px 0;color:var(--bear);font-weight:700">Not an admin account</div>
+    <div class="muted" id="denied-who" style="margin-bottom:18px"></div>
+    <button class="btn btn-ghost" onclick="doLogout()">Sign out</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash" class="wrap hidden">
+  <div class="top">
+    <h1>LMR Capitals — Admin</h1>
+    <span class="pill">web portal</span>
+    <div style="flex:1"></div>
+    <span class="muted" id="who"></span>
+    <button class="btn btn-ghost" onclick="doLogout()">Sign out</button>
+  </div>
+
+  <div class="tiles" id="tiles">
+    <div class="tile"><div class="v" id="m-users">—</div><div class="k">Total users</div></div>
+    <div class="tile"><div class="v" id="m-active">—</div><div class="k">Active</div></div>
+    <div class="tile"><div class="v" id="m-trial">—</div><div class="k">Trialing</div></div>
+    <div class="tile"><div class="v" id="m-free">—</div><div class="k">Free access</div></div>
+    <div class="tile"><div class="v" id="m-mrr">—</div><div class="k">Est. MRR</div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="users" onclick="switchTab('users')">Users &amp; access</button>
+    <button class="tab" data-tab="subs" onclick="switchTab('subs')">Subscribers</button>
+    <button class="tab" data-tab="admins" onclick="switchTab('admins')">Admins</button>
+  </div>
+
+  <!-- USERS -->
+  <div id="tab-users" class="panel">
+    <div class="searchbar"><input id="u-search" class="input" placeholder="Search users by email…" oninput="debouncedUsers()"></div>
+    <div id="u-list"><div class="empty">Loading…</div></div>
+  </div>
+
+  <!-- SUBSCRIBERS -->
+  <div id="tab-subs" class="panel hidden">
+    <div class="searchbar"><input id="s-search" class="input" placeholder="Search subscribers by email…" oninput="debouncedSubs()"></div>
+    <div id="s-list"><div class="empty">Loading…</div></div>
+  </div>
+
+  <!-- ADMINS -->
+  <div id="tab-admins" class="panel hidden">
+    <div class="searchbar" style="display:flex;gap:8px">
+      <input id="a-email" class="input" placeholder="Promote by email (must have an account)…">
+      <button class="btn btn-gold" style="white-space:nowrap" onclick="addAdmin()">Add admin</button>
+    </div>
+    <div id="a-msg" class="err" style="padding:0 14px"></div>
+    <div id="a-list"><div class="empty">Loading…</div></div>
+  </div>
+</div>
+
+<script>
+const SB_URL = 'https://agrvylclhvxyevsmmexf.supabase.co';
+const SB_KEY = 'sb_publishable_vUhBxc3efVrs41yc9WZmAA_SnhBIrDh';
+let sb = null;
+const $ = (id) => document.getElementById(id);
+const show = (id) => { ['login','denied','dash'].forEach(x => $(x).classList.toggle('hidden', x !== id)); };
+
+function init(){
+  try { sb = window.supabase.createClient(SB_URL, SB_KEY); }
+  catch(e){ $('lg-err').textContent = 'Could not init auth.'; return; }
+  sb.auth.getUser().then(({data}) => { if (data && data.user) gate(data.user); else show('login'); });
+}
+
+async function doLogin(){
+  const email = $('lg-email').value.trim(), pass = $('lg-pass').value;
+  $('lg-err').textContent = '';
+  if(!email || !pass){ $('lg-err').textContent = 'Email and password required.'; return; }
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if(error){ $('lg-err').textContent = error.message; return; }
+  gate(data.user);
+}
+async function doLogout(){ await sb.auth.signOut(); show('login'); $('lg-email').value=''; $('lg-pass').value=''; }
+
+// Verify admin, then boot the dashboard.
+async function gate(user){
+  const { data: isAdmin, error } = await sb.rpc('is_admin');
+  if(error || !isAdmin){
+    $('denied-who').textContent = 'Signed in as ' + (user.email || '');
+    show('denied');
+    return;
+  }
+  $('who').textContent = user.email || '';
+  show('dash');
+  loadMetrics(); searchUsers(); // default tab
+}
+
+function money(cents){ return 'A$' + (cents/100).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0}); }
+
+async function loadMetrics(){
+  const { data, error } = await sb.rpc('admin_metrics');
+  if(error || !data || !data[0]) return;
+  const m = data[0];
+  $('m-users').textContent = m.total_users;
+  $('m-active').textContent = m.active;
+  $('m-trial').textContent = m.trialing;
+  $('m-free').textContent = m.comp;
+  $('m-mrr').textContent = money(m.mrr_cents) + '/mo';
+}
+
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === t));
+  ['users','subs','admins'].forEach(x => $('tab-' + x).classList.toggle('hidden', x !== t));
+  if(t==='subs') searchSubs();
+  if(t==='admins') loadAdmins();
+  if(t==='users') searchUsers();
+}
+
+/* ---- Users & access ---- */
+let _ut; function debouncedUsers(){ clearTimeout(_ut); _ut = setTimeout(searchUsers, 250); }
+async function searchUsers(){
+  const q = ($('u-search').value || '').trim();
+  const box = $('u-list'); box.innerHTML = '<div class="empty">Loading…</div>';
+  const { data, error } = await sb.rpc('admin_list_users', { search: q });
+  if(error){ box.innerHTML = '<div class="empty" style="color:var(--bear)">' + error.message + '</div>'; return; }
+  if(!data || !data.length){ box.innerHTML = '<div class="empty">No users found.</div>'; return; }
+  box.innerHTML = data.map(function(r){
+    let badge = '<span class="badge b-none">No access</span>';
+    if(r.comp) badge = '<span class="badge b-free">Free access</span>';
+    else if(r.sub_status === 'active') badge = '<span class="badge b-active">Active</span>';
+    else if(r.sub_status === 'trialing') badge = '<span class="badge b-trial">Trialing</span>';
+    else if(r.sub_status) badge = '<span class="badge b-dead">' + r.sub_status + '</span>';
+    const btn = r.comp
+      ? '<button class="btn btn-danger" onclick="revoke(\'' + r.user_id + '\')">Revoke free</button>'
+      : '<button class="btn btn-gold" onclick="grant(\'' + r.user_id + '\')">Grant free</button>';
+    return '<div class="row"><div class="grow"><div class="em">' + esc(r.email) + '</div>'
+      + '<div class="sub">' + badge + '</div></div>' + btn + '</div>';
+  }).join('');
+}
+async function grant(uid){ const { error } = await sb.rpc('admin_grant_comp', { target: uid, note: null });
+  if(error) return alert(error.message); searchUsers(); loadMetrics(); }
+async function revoke(uid){ const { error } = await sb.rpc('admin_revoke_comp', { target: uid });
+  if(error) return alert(error.message); searchUsers(); loadMetrics(); }
+
+/* ---- Subscribers ---- */
+let _st; function debouncedSubs(){ clearTimeout(_st); _st = setTimeout(searchSubs, 250); }
+async function searchSubs(){
+  const q = ($('s-search').value || '').trim();
+  const box = $('s-list'); box.innerHTML = '<div class="empty">Loading…</div>';
+  const { data, error } = await sb.rpc('admin_list_subscriptions', { search: q });
+  if(error){ box.innerHTML = '<div class="empty" style="color:var(--bear)">' + error.message + '</div>'; return; }
+  if(!data || !data.length){ box.innerHTML = '<div class="empty">No subscribers yet.</div>'; return; }
+  box.innerHTML = data.map(function(r){
+    let badge = '<span class="badge b-none">' + (r.status || '—') + '</span>';
+    if(r.status === 'active') badge = '<span class="badge b-active">Active</span>';
+    else if(r.status === 'trialing') badge = '<span class="badge b-trial">Trialing</span>';
+    else if(['canceled','past_due','unpaid','incomplete'].includes(r.status)) badge = '<span class="badge b-dead">' + r.status + '</span>';
+    const renew = r.current_period_end ? new Date(r.current_period_end).toLocaleDateString() : '—';
+    const cancels = r.cancel_at_period_end ? ' · cancels at period end' : '';
+    const canCancel = ['active','trialing','past_due'].includes(r.status);
+    const btn = canCancel
+      ? '<button class="btn btn-danger" onclick="cancelSub(\'' + r.user_id + '\',\'' + esc(r.email) + '\')">Cancel</button>'
+      : '';
+    return '<div class="row"><div class="grow"><div class="em">' + esc(r.email) + '</div>'
+      + '<div class="sub muted">' + (r.plan || '—') + ' · renews ' + renew + cancels + '</div></div>'
+      + badge + btn + '</div>';
+  }).join('');
+}
+async function cancelSub(uid, email){
+  if(!confirm('Cancel the subscription for ' + email + ' immediately? They lose access right away.')) return;
+  const { data, error } = await sb.functions.invoke('admin-cancel-subscription', { body: { user_id: uid } });
+  if(error || (data && data.error)){ alert('Cancel failed: ' + ((data && data.error) || error.message)); return; }
+  searchSubs(); loadMetrics();
+}
+
+/* ---- Admins ---- */
+async function loadAdmins(){
+  const box = $('a-list'); box.innerHTML = '<div class="empty">Loading…</div>';
+  const { data, error } = await sb.rpc('admin_list_admins');
+  if(error){ box.innerHTML = '<div class="empty" style="color:var(--bear)">' + error.message + '</div>'; return; }
+  box.innerHTML = (data || []).map(function(r){
+    return '<div class="row"><div class="grow"><div class="em">' + esc(r.email) + '</div>'
+      + '<div class="sub muted">admin since ' + new Date(r.added_at).toLocaleDateString() + '</div></div>'
+      + '<button class="btn btn-danger" onclick="removeAdmin(\'' + r.user_id + '\',\'' + esc(r.email) + '\')">Remove</button></div>';
+  }).join('');
+}
+async function addAdmin(){
+  const email = ($('a-email').value || '').trim();
+  $('a-msg').textContent = '';
+  if(!email) return;
+  const { error } = await sb.rpc('admin_add_admin', { target_email: email });
+  if(error){ $('a-msg').textContent = error.message; return; }
+  $('a-email').value = ''; $('a-msg').className = 'err ok'; $('a-msg').textContent = 'Added.';
+  loadAdmins();
+}
+async function removeAdmin(uid, email){
+  if(!confirm('Remove admin access for ' + email + '?')) return;
+  const { error } = await sb.rpc('admin_remove_admin', { target: uid });
+  if(error){ alert(error.message); return; }
+  loadAdmins();
+}
+
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+document.addEventListener('keydown', e => { if(e.key === 'Enter' && !$('login').classList.contains('hidden')) doLogin(); });
+init();
+</script>
+</body>
+</html>
