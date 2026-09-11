@@ -72,6 +72,11 @@ Deno.serve(async (req) => {
 
     return json({ url: session.url });
   } catch (e) {
-    return json({ error: (e as Error)?.message ?? String(e) }, 400);
+    // Log the full error so it shows up in the function logs for debugging.
+    const err = e as { message?: string; type?: string; code?: string; param?: string; statusCode?: number };
+    console.error('[create-checkout] failed:', JSON.stringify({
+      message: err?.message, type: err?.type, code: err?.code, param: err?.param, statusCode: err?.statusCode,
+    }));
+    return json({ error: err?.message ?? String(e), type: err?.type, code: err?.code }, 400);
   }
 });
