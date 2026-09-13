@@ -13,7 +13,7 @@ returns table (
 )
 language plpgsql security definer set search_path = public as $$
 begin
-  if not exists (select 1 from public.admins where user_id = auth.uid()) then
+  if not exists (select 1 from public.admins a where a.user_id = auth.uid()) then
     raise exception 'not authorized';
   end if;
   return query
@@ -67,7 +67,7 @@ create or replace function public.admin_list_admins()
 returns table (user_id uuid, email text, added_at timestamptz)
 language plpgsql security definer set search_path = public as $$
 begin
-  if not exists (select 1 from public.admins where user_id = auth.uid()) then
+  if not exists (select 1 from public.admins a where a.user_id = auth.uid()) then
     raise exception 'not authorized';
   end if;
   return query

@@ -73,7 +73,9 @@ security definer
 set search_path = public
 as $$
 begin
-  if not exists (select 1 from public.admins where user_id = auth.uid()) then
+  -- qualify admins.user_id: this fn RETURNS TABLE(user_id …), so a bare
+  -- user_id here is ambiguous against the output column.
+  if not exists (select 1 from public.admins a where a.user_id = auth.uid()) then
     raise exception 'not authorized';
   end if;
   return query
