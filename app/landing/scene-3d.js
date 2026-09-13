@@ -58,7 +58,11 @@ export function createScene(canvas) {
   scene.add(particles);
 
   // ── the Chain: a ring of interlocking torus links ────────────────────────
+  // Kept as a very subtle far-back ambient element; the FRAMED, foreground
+  // chain lives in the #method monitor (its own canvas). We push this one far
+  // back and dim it so it reads as depth, not a competing centrepiece.
   const chain = new THREE.Group();
+  chain.position.z = -14;
   scene.add(chain);
   const LINKS = 7;
   const links = [];
@@ -129,8 +133,8 @@ export function createScene(canvas) {
     for (let i = 0; i < links.length; i++) {
       const reveal = clamp01((cp - (i / links.length) * 0.6) / 0.3) * 0.7 + 0.3;
       const l = links[i];
-      l.material.opacity = reveal;
-      l.material.emissiveIntensity = 0.3 + reveal * 0.5;
+      l.material.opacity = reveal * 0.28;            // ambient/far — the framed chain is the star
+      l.material.emissiveIntensity = 0.2 + reveal * 0.25;
       if (l.userData.base) l.rotation.x = l.userData.base.x + Math.sin(t * 0.7 + i) * 0.05;
     }
 

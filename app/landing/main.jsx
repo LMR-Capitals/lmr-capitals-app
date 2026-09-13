@@ -7,6 +7,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createScene } from './scene-3d.js';
+import { createChainScene } from './chain-scene.js';
 
 const goApp = () => { window.location.href = '/'; };
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
@@ -69,6 +70,7 @@ function App() {
   const canvasRef = useRef(null);
   const sceneRef = useRef(null);
   const chainSecRef = useRef(null);
+  const monitorCanvasRef = useRef(null);
   const [activeStage, setActiveStage] = useState(0);
   const [card, setCard] = useState(null);
 
@@ -77,6 +79,14 @@ function App() {
     try { scene = createScene(canvasRef.current); } catch (e) { scene = null; }
     sceneRef.current = scene;
 
+    // Dedicated, framed chain inside the #method monitor.
+    let chainScene = null;
+    if (monitorCanvasRef.current) {
+      createChainScene(monitorCanvasRef.current, { count: 7 })
+        .then((s) => { chainScene = s; s.setMetal('gold'); s.setSpacing(1.15); s.setThickness(0.2); })
+        .catch(() => {});
+    }
+
     const calc = (el) => { if (!el) return 0; const vh = innerHeight; const r = el.getBoundingClientRect(); const total = r.height - vh; return total <= 0 ? (r.top < 0 ? 1 : 0) : clamp01(-r.top / total); };
     const onScroll = () => {
       const doc = document.documentElement;
@@ -84,6 +94,7 @@ function App() {
       scene && scene.setScroll(p);
       const cp = calc(chainSecRef.current);
       scene && scene.setChainProgress(cp);
+      chainScene && chainScene.setProgress(cp);
       setActiveStage(Math.max(0, Math.min(STAGES.length - 1, Math.floor(cp * STAGES.length - 1e-6))));
     };
     const onMouse = (e) => { scene && scene.setMouse((e.clientX / innerWidth) * 2 - 1, (e.clientY / innerHeight) * 2 - 1); };
@@ -98,7 +109,7 @@ function App() {
     }, { threshold: 0.4 });
     secs.forEach((s) => io.observe(s));
 
-    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); io.disconnect(); if (scene) scene.dispose(); };
+    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); io.disconnect(); if (scene) scene.dispose(); if (chainScene) chainScene.dispose(); };
   }, []);
 
   const S = 'clamp(20px,5vw,72px)';
@@ -160,7 +171,7 @@ function App() {
           <div className="chain-sticky">
             <div className="chain-copy">
               <span className="kick">How We Do It — The Chain</span>
-              <h2 className="h2 gold" style={{ minHeight: '2.4em' }}>{STAGES[activeStage].k}</h2>
+              <h2 className="h2 gold" style={{ minHeight: '2.2em' }}>{STAGES[activeStage].k}</h2>
               <p className="body">{STAGES[activeStage].c}</p>
               <div className="steps">
                 {STAGES.map((s, i) => (
@@ -171,6 +182,16 @@ function App() {
                 ))}
               </div>
               <p className="hint">Scroll — the chain assembles link by link ↓</p>
+            </div>
+            <div className="monitor">
+              <div className="screen">
+                <canvas ref={monitorCanvasRef} className="screen-canvas" />
+                <div className="scanlines" />
+                <div className="screenglow" />
+                <span className="screenlabel">THE CHAIN · LIVE</span>
+              </div>
+              <div className="stand" />
+              <div className="base" />
             </div>
           </div>
         </section>
@@ -340,8 +361,18 @@ a{color:var(--gold);text-decoration:none}
 .more{color:var(--gold2);font-size:13px;margin-top:6px}
 /* method / chain */
 .chain-sec{position:relative;height:360vh}
-.chain-sticky{position:sticky;top:0;height:100vh;display:flex;align-items:center;max-width:1180px;margin:0 auto;padding:0 clamp(20px,5vw,72px)}
-.chain-copy{max-width:min(560px,90%)}
+.chain-sticky{position:sticky;top:0;height:100vh;display:flex;align-items:center;justify-content:space-between;gap:clamp(24px,4vw,64px);max-width:1180px;margin:0 auto;padding:0 clamp(20px,5vw,72px)}
+.chain-copy{flex:1;max-width:520px}
+/* monitor that frames the 3D chain */
+.monitor{flex:1;max-width:620px;display:flex;flex-direction:column;align-items:center}
+.screen{position:relative;width:100%;aspect-ratio:16/10;background:#03060c;border:12px solid #0b0f16;border-radius:16px;overflow:hidden;box-shadow:0 40px 100px -30px rgba(0,0,0,.9),0 0 60px -10px rgba(245,166,35,.25),inset 0 0 60px rgba(0,0,0,.6)}
+.screen-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.scanlines{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 3px);mix-blend-mode:overlay}
+.screenglow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 90% at 50% 0%,rgba(245,166,35,.14),transparent 55%),radial-gradient(100% 100% at 50% 120%,rgba(42,92,255,.12),transparent 60%);box-shadow:inset 0 0 40px rgba(0,0,0,.5)}
+.screenlabel{position:absolute;top:10px;left:12px;font-size:10px;letter-spacing:.18em;color:rgba(245,166,35,.7);font-weight:700}
+.stand{width:14px;height:34px;background:linear-gradient(180deg,#0b0f16,#05070d);margin-top:-1px}
+.base{width:150px;height:12px;border-radius:0 0 10px 10px;background:linear-gradient(180deg,#0b0f16,#080b12);box-shadow:0 14px 30px -10px rgba(0,0,0,.8)}
+@media(max-width:900px){.chain-sticky{flex-direction:column;justify-content:center;gap:24px}.chain-copy{max-width:100%}.monitor{max-width:100%;width:100%}.screen{aspect-ratio:16/11}.steps{display:none}}
 .steps{display:flex;flex-direction:column;gap:2px;margin:26px 0 0;border-left:1px solid var(--border);padding-left:18px}
 .step{display:flex;align-items:center;gap:12px;padding:7px 0;opacity:.4;transition:opacity .3s,transform .3s}
 .step.on{opacity:1;transform:translateX(4px)}
