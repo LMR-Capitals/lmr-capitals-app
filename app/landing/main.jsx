@@ -7,10 +7,11 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createScene } from './scene-3d.js';
-import { createChainScene } from './chain-scene.js';
+import { createDeskScene } from './desk-scene.js';
 
 const goApp = () => { window.location.href = '/'; };
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
+const smooth = (e0, e1, x) => { const t = clamp01((x - e0) / (e1 - e0)); return t * t * (3 - 2 * t); };
 
 /* ── scroll-reveal ───────────────────────────────────────────────────────── */
 function Reveal({ children, className = '', style, delay = 0, as: Tag = 'div' }) {
@@ -70,8 +71,9 @@ function App() {
   const canvasRef = useRef(null);
   const sceneRef = useRef(null);
   const chainSecRef = useRef(null);
-  const monitorCanvasRef = useRef(null);
+  const deskCanvasRef = useRef(null);
   const [activeStage, setActiveStage] = useState(0);
+  const [mp, setMp] = useState(0);          // #method scroll progress 0..1
   const [card, setCard] = useState(null);
 
   useEffect(() => {
@@ -79,13 +81,10 @@ function App() {
     try { scene = createScene(canvasRef.current); } catch (e) { scene = null; }
     sceneRef.current = scene;
 
-    // Dedicated, framed chain inside the #method monitor.
-    let chainScene = null;
-    if (monitorCanvasRef.current) {
-      createChainScene(monitorCanvasRef.current, { count: 7 })
-        .then((s) => { chainScene = s; s.setMetal('gold'); s.setSpacing(1.15); s.setThickness(0.2); })
-        .catch(() => {});
-    }
+    // The cinematic desk + monitor. Camera flies into the screen; the Chain
+    // assembles "inside" it; then it pulls back out onto the desk.
+    let desk = null;
+    try { desk = createDeskScene(deskCanvasRef.current); } catch (e) { desk = null; }
 
     const calc = (el) => { if (!el) return 0; const vh = innerHeight; const r = el.getBoundingClientRect(); const total = r.height - vh; return total <= 0 ? (r.top < 0 ? 1 : 0) : clamp01(-r.top / total); };
     const onScroll = () => {
@@ -94,10 +93,17 @@ function App() {
       scene && scene.setScroll(p);
       const cp = calc(chainSecRef.current);
       scene && scene.setChainProgress(cp);
-      chainScene && chainScene.setProgress(cp);
-      setActiveStage(Math.max(0, Math.min(STAGES.length - 1, Math.floor(cp * STAGES.length - 1e-6))));
+      desk && desk.setProgress(cp);
+      setMp(cp);
+      // stages step through only during the "inside the screen" window (0.34 → 0.80)
+      const inside = clamp01((cp - 0.34) / (0.80 - 0.34));
+      setActiveStage(Math.max(0, Math.min(STAGES.length - 1, Math.floor(inside * STAGES.length - 1e-6))));
     };
-    const onMouse = (e) => { scene && scene.setMouse((e.clientX / innerWidth) * 2 - 1, (e.clientY / innerHeight) * 2 - 1); };
+    const onMouse = (e) => {
+      const mx = (e.clientX / innerWidth) * 2 - 1, my = (e.clientY / innerHeight) * 2 - 1;
+      scene && scene.setMouse(mx, my);
+      desk && desk.setMouse(mx, my);
+    };
     addEventListener('scroll', onScroll, { passive: true });
     addEventListener('mousemove', onMouse, { passive: true });
     onScroll();
@@ -109,8 +115,12 @@ function App() {
     }, { threshold: 0.4 });
     secs.forEach((s) => io.observe(s));
 
-    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); io.disconnect(); if (scene) scene.dispose(); if (chainScene) chainScene.dispose(); };
+    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); io.disconnect(); if (scene) scene.dispose(); if (desk) desk.dispose(); };
   }, []);
+
+  // overlay copy timing, synced to the camera choreography
+  const introOpacity = 1 - smooth(0.08, 0.22, mp);                       // fades as we fly in
+  const insideOpacity = smooth(0.32, 0.40, mp) * (1 - smooth(0.80, 0.90, mp)); // in while "inside"
 
   const S = 'clamp(20px,5vw,72px)';
   return (
@@ -166,11 +176,24 @@ function App() {
           </div>
         </section>
 
-        {/* METHOD — the Chain (drives the 3D) */}
-        <section id="method" ref={chainSecRef} className="chain-sec" data-scene="3">
-          <div className="chain-sticky">
-            <div className="chain-copy">
+        {/* METHOD — the Chain: camera flies INTO the trader's monitor, the
+            content plays inside the screen, then shrinks back onto the desk. */}
+        <section id="method" ref={chainSecRef} className="method-sec" data-scene="3">
+          <div className="method-sticky">
+            <canvas ref={deskCanvasRef} className="desk-canvas" />
+            <div className="method-veil" />
+
+            {/* establishing caption — visible on the wide desk shot, fades as we fly in */}
+            <div className="method-intro" style={{ opacity: introOpacity, pointerEvents: introOpacity < 0.1 ? 'none' : 'auto' }}>
               <span className="kick">How We Do It — The Chain</span>
+              <h2 className="h2">It All Runs From One Desk</h2>
+              <p className="body">Every session, every model, every lesson — organized end to end by one system. Step inside the screen.</p>
+              <p className="hint">Scroll — fly into the monitor ↓</p>
+            </div>
+
+            {/* inside-the-screen content — the 7 links of the chain, stepped by scroll */}
+            <div className="method-inside" style={{ opacity: insideOpacity, pointerEvents: insideOpacity < 0.1 ? 'none' : 'auto' }}>
+              <span className="kick">The Chain · Live</span>
               <h2 className="h2 gold" style={{ minHeight: '2.2em' }}>{STAGES[activeStage].k}</h2>
               <p className="body">{STAGES[activeStage].c}</p>
               <div className="steps">
@@ -181,17 +204,6 @@ function App() {
                   </div>
                 ))}
               </div>
-              <p className="hint">Scroll — the chain assembles link by link ↓</p>
-            </div>
-            <div className="monitor">
-              <div className="screen">
-                <canvas ref={monitorCanvasRef} className="screen-canvas" />
-                <div className="scanlines" />
-                <div className="screenglow" />
-                <span className="screenlabel">THE CHAIN · LIVE</span>
-              </div>
-              <div className="stand" />
-              <div className="base" />
             </div>
           </div>
         </section>
@@ -359,27 +371,28 @@ a{color:var(--gold);text-decoration:none}
 .card.tilt:hover{transform:translateY(-5px);border-color:rgba(245,166,35,.55);box-shadow:0 40px 90px -40px rgba(245,166,35,.4)}
 .cnum{font-weight:800;color:var(--gold);font-size:15px}
 .more{color:var(--gold2);font-size:13px;margin-top:6px}
-/* method / chain */
-.chain-sec{position:relative;height:360vh}
-.chain-sticky{position:sticky;top:0;height:100vh;display:flex;align-items:center;justify-content:space-between;gap:clamp(24px,4vw,64px);max-width:1180px;margin:0 auto;padding:0 clamp(20px,5vw,72px)}
-.chain-copy{flex:1;max-width:520px}
-/* monitor that frames the 3D chain */
-.monitor{flex:1;max-width:620px;display:flex;flex-direction:column;align-items:center}
-.screen{position:relative;width:100%;aspect-ratio:16/10;background:#03060c;border:12px solid #0b0f16;border-radius:16px;overflow:hidden;box-shadow:0 40px 100px -30px rgba(0,0,0,.9),0 0 60px -10px rgba(245,166,35,.25),inset 0 0 60px rgba(0,0,0,.6)}
-.screen-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-.scanlines{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 3px);mix-blend-mode:overlay}
-.screenglow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 90% at 50% 0%,rgba(245,166,35,.14),transparent 55%),radial-gradient(100% 100% at 50% 120%,rgba(42,92,255,.12),transparent 60%);box-shadow:inset 0 0 40px rgba(0,0,0,.5)}
-.screenlabel{position:absolute;top:10px;left:12px;font-size:10px;letter-spacing:.18em;color:rgba(245,166,35,.7);font-weight:700}
-.stand{width:14px;height:34px;background:linear-gradient(180deg,#0b0f16,#05070d);margin-top:-1px}
-.base{width:150px;height:12px;border-radius:0 0 10px 10px;background:linear-gradient(180deg,#0b0f16,#080b12);box-shadow:0 14px 30px -10px rgba(0,0,0,.8)}
-@media(max-width:900px){.chain-sticky{flex-direction:column;justify-content:center;gap:24px}.chain-copy{max-width:100%}.monitor{max-width:100%;width:100%}.screen{aspect-ratio:16/11}.steps{display:none}}
-.steps{display:flex;flex-direction:column;gap:2px;margin:26px 0 0;border-left:1px solid var(--border);padding-left:18px}
-.step{display:flex;align-items:center;gap:12px;padding:7px 0;opacity:.4;transition:opacity .3s,transform .3s}
-.step.on{opacity:1;transform:translateX(4px)}
+/* method / chain — cinematic desk + monitor */
+.method-sec{position:relative;height:520vh}
+.method-sticky{position:sticky;top:0;height:100vh;width:100%;overflow:hidden}
+.desk-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0}
+.method-veil{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 120% at 50% 45%,transparent 55%,rgba(4,6,12,.72) 100%)}
+/* establishing caption sits low-left over the wide desk shot */
+.method-intro{position:absolute;z-index:2;left:clamp(20px,6vw,90px);bottom:clamp(48px,10vh,120px);max-width:min(560px,80vw);transition:opacity .4s ease}
+.method-intro .hint{margin-top:18px}
+/* inside-the-screen content, centered as if projected on the display */
+.method-inside{position:absolute;z-index:2;top:50%;left:50%;transform:translate(-50%,-50%);width:min(760px,86vw);text-align:center;transition:opacity .5s ease}
+.method-inside .steps{margin:26px auto 0;max-width:520px;border-left:none;padding-left:0;flex-direction:row;flex-wrap:wrap;justify-content:center;gap:8px}
+.method-inside .step{border:1px solid var(--border);border-radius:999px;padding:7px 14px;background:rgba(10,16,28,.5);backdrop-filter:blur(8px)}
+.method-inside .step .stepk{font-size:12.5px}
+.method-inside .h2{text-shadow:0 2px 30px rgba(245,166,35,.35)}
+.steps{display:flex;gap:2px}
+.step{display:flex;align-items:center;gap:10px;opacity:.4;transition:opacity .3s,transform .3s,border-color .3s}
+.step.on{opacity:1;border-color:rgba(245,166,35,.5)}
 .step.on .stepk{color:var(--gold2)}
-.stepn{font-size:12px;font-weight:800;color:var(--gold);width:22px}
+.stepn{font-size:12px;font-weight:800;color:var(--gold)}
 .stepk{font-size:14.5px;font-weight:600;color:var(--text2)}
-.hint{font-size:12px;letter-spacing:.06em;color:var(--text3);margin-top:24px}
+.hint{font-size:12px;letter-spacing:.06em;color:var(--text3)}
+@media(max-width:780px){.method-inside .step .stepn{display:none}.method-intro{bottom:40px}}
 /* conviction */
 .tag{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:4px 12px;border-radius:999px;margin-bottom:16px}
 .tag.coral{background:rgba(240,112,90,.14);color:var(--coral)}
