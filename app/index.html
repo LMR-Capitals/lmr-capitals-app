@@ -12556,6 +12556,14 @@ async function lgSignIn(){
       throw new Error('Authentication succeeded but user object is missing — please refresh and try again.');
     }
 
+    // Admins are handed off to the premium /admin experience, which enforces
+    // two-factor auth and shows the Portal/Application hub. (Skip index.html's
+    // own basic 2FA UI for them — /admin owns the whole admin auth flow.)
+    try{
+      const{data:adm}=await sb.from('admins').select('user_id').eq('user_id',data.user.id).maybeSingle();
+      if(adm){ location.href='/admin'; return; }
+    }catch(admErr){ /* fall through to normal flow */ }
+
     // MFA check — in its own try-catch so it NEVER blocks a valid login
     try{
       const{data:mfaData}=await sb.auth.mfa.listFactors();
@@ -12756,14 +12764,21 @@ async function lgUnlock(user){
   document.getElementById('loginGate').classList.add('hidden');
   const lp=document.getElementById('landingPage');
   if(lp)lp.classList.add('hidden');
-  // ── Admin hub: admins choose Portal vs Application after signing in.
-  //    (Skipped once they pick "Application" this session, so a refresh keeps
-  //    them in the app instead of bouncing back to the chooser.)
+  // ── Admin gating: admins go through the premium /admin experience, which
+  //    ENFORCES two-factor auth and shows the Portal/Application hub. A plain
+  //    password login can never reach the app or hub without passing 2FA.
   _checkAdmin(user.id);
-  if(sessionStorage.getItem('lmr_admin_surface')!=='app'){
+  {
     let _isAdm=false;
     try{ if(_sb){ const {data}=await _sb.from('admins').select('user_id').eq('user_id',user.id).maybeSingle(); _isAdm=!!data; } }catch(e){}
-    if(_isAdm){ window._pendingAdminUser=user; _showAdminHub(user); return; }
+    if(_isAdm){
+      let _aal2=false;
+      try{ const {data:aal}=await _sb.auth.mfa.getAuthenticatorAssuranceLevel(); _aal2 = !!aal && aal.currentLevel==='aal2'; }catch(e){}
+      const choseApp = (function(){ try{ return sessionStorage.getItem('lmr_admin_surface')==='app'; }catch(e){ return false; } })();
+      // Not 2FA-verified, or hasn't chosen "Application" from the hub -> send to /admin.
+      if(!_aal2 || !choseApp){ location.href='/admin'; return; }
+      // 2FA-verified admin who chose "Application" in the hub -> fall through into the app.
+    }
   }
   // ── Paywall gate: only entitled accounts may enter the app ──
   let _ent = await _checkEntitled(user.id);
