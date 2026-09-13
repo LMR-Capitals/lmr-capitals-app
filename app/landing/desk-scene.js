@@ -53,6 +53,7 @@ export function createDeskScene(canvas) {
   key.shadow.camera.left = -8; key.shadow.camera.right = 8; key.shadow.camera.top = 8; key.shadow.camera.bottom = -8;
   scene.add(key);
   const rim = new THREE.DirectionalLight(0x3a6bff, 0.5); rim.position.set(-6, 3, -4); scene.add(rim);
+  scene.add(new THREE.HemisphereLight(0x8fa6cc, 0x0a0e17, 0.55)); // gives the iron links dimension
   // the glow the monitor itself throws onto the desk + bezel (warm gold)
   const screenLight = new THREE.PointLight(GOLD, 2.4, 9, 2.0);
   screenLight.position.set(SCREEN_CX, SCREEN_CY, SCREEN_CZ + 0.5);
@@ -112,21 +113,37 @@ export function createDeskScene(canvas) {
   screen.position.set(SCREEN_CX, SCREEN_CY, SCREEN_CZ + 0.005);
   monitor.add(screen);
 
-  // ── the Chain — lives on the screen surface, grows as we go "inside" ─────────
+  // ── the Chain — real interlocking industrial links ──────────────────────────
+  // Elongated iron links (rounded-rectangle loops, not O-rings), each threaded
+  // through the next and turned 90° so they truly interlock. Iron at rest; they
+  // catch the monitor's gold light and glow golden as the chain turns, and once
+  // every link is connected they pulse gold together.
   const chain = new THREE.Group();
   chain.position.set(SCREEN_CX, SCREEN_CY, SCREEN_CZ + 0.02);
+  chain.rotation.x = 0.42;                 // slight tilt so the interlock reads in 3D
+  chain.scale.setScalar(1.4);
   scene.add(chain);
+
   const LINKS = 7;
+  const LINK_A = 0.15;   // straight-section half-length (link "length")
+  const LINK_B = 0.11;   // end-cap radius (link "width")
+  const LINK_T = 0.042;  // iron thickness (tube radius)
+  const linkGeo = makeLinkGeometry(LINK_A, LINK_B, LINK_T);
+  // ring radius chosen so neighbouring links overlap by ~one cap → they interlock
+  const RING_R = (LINK_A + LINK_B + 0.02) / (2 * Math.sin(Math.PI / LINKS));
   const links = [];
-  const linkMat = () => new THREE.MeshStandardMaterial({ color: GOLD, emissive: GOLD, emissiveIntensity: 0.6, metalness: 0.95, roughness: 0.25, transparent: true, opacity: 0 });
-  const R = 0.66;
+  const linkMat = () => new THREE.MeshStandardMaterial({ color: 0x3d434c, emissive: GOLD, emissiveIntensity: 0, metalness: 0.85, roughness: 0.32, transparent: true, opacity: 0 });
   for (let i = 0; i < LINKS; i++) {
-    const geo = new THREE.TorusGeometry(0.19, 0.055, 18, 44);
-    const mesh = new THREE.Mesh(geo, linkMat());
-    const a = (i / LINKS) * Math.PI * 2;
-    mesh.position.set(Math.cos(a) * R, Math.sin(a) * R, 0);
-    mesh.rotation.set(i % 2 ? Math.PI / 2 : 0, 0, a + Math.PI / 2);
-    mesh.userData = { base: mesh.rotation.clone(), i };
+    const mesh = new THREE.Mesh(linkGeo, linkMat());
+    const th = (i / LINKS) * Math.PI * 2;
+    mesh.position.set(Math.cos(th) * RING_R, Math.sin(th) * RING_R, 0);
+    // long axis (local Y) → ring tangent; alternate links stand 90° to interlock
+    mesh.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), th);
+    if (i % 2) {
+      const T = new THREE.Vector3(-Math.sin(th), Math.cos(th), 0);
+      mesh.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(T, Math.PI / 2));
+    }
+    mesh.userData = { i };
     chain.add(mesh); links.push(mesh);
   }
 
@@ -185,16 +202,17 @@ export function createDeskScene(canvas) {
 
     // chain assembly across the "inside" window (0.34 → 0.80)
     const assemble = smooth(0.34, 0.80, p);
-    chain.rotation.z = t * 0.14 + assemble * 0.5;
+    const connected = smooth(0.72, 0.88, p);              // every link joined → glow together
+    chain.rotation.z = t * 0.14 + assemble * 0.5;         // the chain turns
+    const turn = 0.15 + Math.abs(Math.sin(t * 0.14 + assemble * 0.5)) * 0.12; // glow rises as it turns
+    const together = connected * (0.5 + 0.4 * Math.sin(t * 2.1)); // synchronized gold pulse
     for (let i = 0; i < links.length; i++) {
-      const reveal = clamp01((assemble - (i / links.length) * 0.6) / 0.28);
+      const reveal = clamp01((assemble - (i / links.length) * 0.62) / 0.26);
       const l = links[i];
-      const s = 0.25 + reveal * 0.75;
-      l.scale.setScalar(s);
+      l.scale.setScalar(0.4 + reveal * 0.6);
       l.material.opacity = reveal;
-      l.material.emissiveIntensity = 0.4 + reveal * 0.7;
-      const b = l.userData.base;
-      l.rotation.x = b.x + Math.sin(t * 0.8 + i) * 0.06;
+      // iron at rest → golden as each link reveals and the chain turns; all together once connected
+      l.material.emissiveIntensity = reveal * (turn + 0.2) + together;
     }
 
     // screen glow breathes; brighter while inside
@@ -221,6 +239,28 @@ export function createDeskScene(canvas) {
       renderer.dispose();
     },
   };
+}
+
+// A real industrial chain link: a rounded-rectangle ("stadium") loop swept with
+// a circular cross-section. Two straight sides + two semicircular caps — the
+// classic elongated link, not an O-ring. a = straight half-length, b = cap
+// radius, t = iron thickness.
+class LinkCurve extends THREE.Curve {
+  constructor(a, b) { super(); this.a = a; this.b = b; this.total = 4 * a + 2 * Math.PI * b; }
+  getPoint(u, target = new THREE.Vector3()) {
+    const { a, b, total } = this;
+    const s = u * total;
+    const s1 = 2 * a, s2 = s1 + Math.PI * b, s3 = s2 + 2 * a;
+    let x, y;
+    if (s < s1) { x = b; y = -a + s; }                                   // right straight ↑
+    else if (s < s2) { const f = (s - s1) / b; x = b * Math.cos(f); y = a + b * Math.sin(f); }   // top cap
+    else if (s < s3) { x = -b; y = a - (s - s2); }                       // left straight ↓
+    else { const f = (s - s3) / b; x = -b * Math.cos(f); y = -a - b * Math.sin(f); }             // bottom cap
+    return target.set(x, y, 0);
+  }
+}
+function makeLinkGeometry(a, b, t) {
+  return new THREE.TubeGeometry(new LinkCurve(a, b), 150, t, 14, true);
 }
 
 // A dark "display" texture: subtle grid, gold vignette, and a live label — so
