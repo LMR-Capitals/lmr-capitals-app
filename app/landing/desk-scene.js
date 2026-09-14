@@ -41,7 +41,7 @@ export function createDeskScene(canvas) {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  renderer.toneMappingExposure = 1.2;
 
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x04060c, 0.055);
@@ -58,7 +58,7 @@ export function createDeskScene(canvas) {
 
   // ── lighting ──────────────────────────────────────────────────────────────
   scene.add(new THREE.AmbientLight(0x2a3550, 0.55));
-  const key = new THREE.DirectionalLight(0xcfe0ff, 0.9);
+  const key = new THREE.DirectionalLight(0xfff2d6, 1.35);
   key.position.set(5, 8, 6); key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024); key.shadow.camera.near = 1; key.shadow.camera.far = 30;
   key.shadow.camera.left = -8; key.shadow.camera.right = 8; key.shadow.camera.top = 8; key.shadow.camera.bottom = -8;
@@ -144,7 +144,7 @@ export function createDeskScene(canvas) {
   const SPACING = LINK_A + LINK_B + 0.10;   // centre-to-centre → neighbours interlock without clumping
   const linkGeo = makeLinkGeometry(LINK_A, LINK_B, LINK_T);
   const links = [];
-  const linkMat = () => new THREE.MeshStandardMaterial({ color: 0x5b6069, emissive: GOLD, emissiveIntensity: 0, metalness: 1.0, roughness: 0.3, transparent: true, opacity: 0 });
+  const linkMat = () => new THREE.MeshStandardMaterial({ color: 0xC9922B, emissive: GOLD, emissiveIntensity: 0, metalness: 1.0, roughness: 0.17, transparent: true, opacity: 0 });
   const qFlat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI / 2); // long axis → X
   const qEdge = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2).multiply(qFlat); // +90° about run axis
   for (let i = 0; i < LINKS; i++) {
@@ -230,9 +230,10 @@ export function createDeskScene(canvas) {
       const focus = Math.max(0, 1 - Math.abs((stageF - 0.5) - i) / 0.85); // brightest at the active link
       l.material.opacity = reveal;
       l.position.y = (1 - reveal) * 0.16;                  // small drop-in, no distortion
-      l.scale.setScalar((0.92 + reveal * 0.08) * (1 + focus * 0.14)); // active link pops
-      // dim iron → gold at the active link, holds a warm glow once forged, all together at the end
-      l.material.emissiveIntensity = reveal * (0.05 + passed * 0.10) + focus * 0.55 + togetherPulse;
+      l.position.z = focus * 0.28;                         // active link steps toward the camera
+      l.scale.setScalar((0.9 + reveal * 0.1) * (1 + focus * 0.42)); // active link pops big
+      // polished gold; the active link glows brightest, all glow together at the end
+      l.material.emissiveIntensity = reveal * (0.04 + passed * 0.08) + focus * 0.45 + togetherPulse;
     }
 
     // screen glow breathes; brighter while inside

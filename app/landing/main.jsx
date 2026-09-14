@@ -197,6 +197,12 @@ function App() {
               <span className="chain-finale" style={{ opacity: insideOpacity }}>The Chain — Connected in Full Circle</span>
             )}
 
+            {/* thin gold connector line from the copy to the link (per the design) */}
+            <svg className="chain-connector" style={{ opacity: insideOpacity * 0.85 }} preserveAspectRatio="none" viewBox="0 0 100 100">
+              <path d="M1,72 L1,18 L99,18" fill="none" stroke="rgba(245,166,35,0.5)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+              <circle cx="99" cy="18" r="2.4" fill="#F5A623" vectorEffect="non-scaling-stroke" />
+            </svg>
+
             {/* inside-the-screen methodology — left copy block + dash-dots (per the design) */}
             <div className="method-inside" style={{ opacity: insideOpacity, pointerEvents: insideOpacity < 0.1 ? 'none' : 'auto' }}>
               <span className="kick">How We Do It — The Chain</span>
@@ -394,6 +400,8 @@ a{color:var(--gold);text-decoration:none}
 .chain-dots{display:flex;gap:10px;margin-top:28px}
 .cdot{width:14px;height:6px;border-radius:3px;background:rgba(245,166,35,.30);transition:all .35s cubic-bezier(.22,1,.36,1)}
 .cdot.on{width:28px;background:var(--gold);box-shadow:0 0 12px rgba(245,166,35,.7)}
+/* connector callout line from copy toward the link */
+.chain-connector{position:absolute;z-index:1;left:29%;top:34%;width:34%;height:22%;pointer-events:none;transition:opacity .5s ease}
 /* per-stage crossfade */
 .stagecard{animation:stageIn .55s cubic-bezier(.22,1,.36,1)}
 @keyframes stageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
