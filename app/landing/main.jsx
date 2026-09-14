@@ -36,13 +36,13 @@ const PILLARS = [
   { num: '03', title: 'Fund & Signal Management', copy: 'For clients seeking disciplined, rules-based exposure.', detail: "Managed accounts and trade signals built on the exact process documented in this journal — full transparency, no black boxes, no strategy you can't see reasoned through in real time." },
 ];
 const STAGES = [
-  { k: 'LMR Methodology', c: 'The master framework binding every link — the shared language, rules, and philosophy every other link inherits from.' },
-  { k: 'The Monthly Chain', c: 'Monthly analysis tracks the quarterly shift (STS/LTS bias) and market profile so every smaller decision stays aligned with the bigger picture.' },
-  { k: 'The Weekly Chain', c: 'Each week is mapped against the MMBM and MMSM models — the dominant profile and how price should deliver across the five sessions ahead.' },
-  { k: 'The Daily Chain', c: 'Each day opens with a bias, key HTF points of interest, and a session plan — and closes with a full review before the next link forms.' },
-  { k: 'Session Profiling', c: 'London and New York are each classified — Accumulation, Manipulation, Distribution, Reversal, Continuation — to anticipate the move before it happens.' },
+  { k: 'LMR Methodology', c: 'The master framework binding every link — the shared language, rules, and philosophy that every other card in the chain inherits from.' },
+  { k: 'The Monthly Chain', c: 'Monthly analysis tracks the broader quarterly shift (STS/LTS bias) and market profile — trending, retracing, consolidating, or manipulative — to keep every smaller decision aligned with the bigger picture.' },
+  { k: 'The Weekly Chain', c: 'Every week is mapped against the MMBM and MMSM weekly models, identifying the dominant profile and how price is expected to deliver across the five sessions ahead.' },
+  { k: 'The Daily Chain', c: 'Each day begins with a defined bias, key HTF points of interest, and a session plan — then closes with a full review of execution, P&L, and lessons before the next link forms.' },
+  { k: 'Session Profiling', c: 'London and New York sessions are each classified — Accumulation, Manipulation, Distribution, Rebalance/Reversal, Retracement/Continuation — to anticipate how price should move before it moves.' },
   { k: 'The Trade', c: 'Every trade is tagged with its model, session, emotion, and outcome — the link every other link exists to set up cleanly.' },
-  { k: 'Discipline & Journaling', c: 'The final link that closes the loop — honest review feeds straight back into the methodology, and the chain begins again.' },
+  { k: 'Discipline & Journaling', c: 'The final link that closes the loop — daily review and honest logging feed straight back into the methodology, starting the chain again.' },
 ];
 const BEFORE = ['Hesitation before every entry', 'Self-doubt after every stop-out', 'Discipline that has to be forced', 'Reacting to headlines and noise', '"Am I right about this?"'];
 const AFTER = ['Alignment across every timeframe', 'Thesis stays intact through the drawdown', 'Patience has a reason, not just willpower', 'Anchored to structure, not sentiment', '"Is the chain confirming?"'];
@@ -192,24 +192,21 @@ function App() {
               <p className="hint">Scroll — fly into the monitor ↓</p>
             </div>
 
-            {/* inside-the-screen content — one stage per forged link, crossfading */}
+            {/* finale line, inside the screen, when the chain is complete */}
+            {activeStage === STAGES.length - 1 && journeyProgress > 0.94 && (
+              <span className="chain-finale" style={{ opacity: insideOpacity }}>The Chain — Connected in Full Circle</span>
+            )}
+
+            {/* inside-the-screen methodology — left copy block + dash-dots (per the design) */}
             <div className="method-inside" style={{ opacity: insideOpacity, pointerEvents: insideOpacity < 0.1 ? 'none' : 'auto' }}>
-              <div className="method-progress">
-                <span className="pcount">{String(activeStage + 1).padStart(2, '0')} <em>/ {String(STAGES.length).padStart(2, '0')}</em></span>
-                <span className="ptrack"><span className="pfill" style={{ width: `${(journeyProgress * 100).toFixed(1)}%` }} /></span>
-                <span className="plabel">The Chain · Live</span>
-              </div>
+              <span className="kick">How We Do It — The Chain</span>
               <div className="stagecard" key={activeStage}>
-                <span className="kick">Link {String(activeStage + 1).padStart(2, '0')} — The Chain</span>
                 <h2 className="h2 gold">{STAGES[activeStage].k}</h2>
                 <p className="body">{STAGES[activeStage].c}</p>
               </div>
-              <div className="steps">
+              <div className="chain-dots">
                 {STAGES.map((s, i) => (
-                  <div key={i} className={'step' + (i === activeStage ? ' on' : (i < activeStage ? ' done' : ''))}>
-                    <span className="stepn">{String(i + 1).padStart(2, '0')}</span>
-                    <span className="stepk">{s.k}</span>
-                  </div>
+                  <span key={i} className={'cdot' + (i === activeStage ? ' on' : '')} title={s.k} />
                 ))}
               </div>
             </div>
@@ -388,26 +385,21 @@ a{color:var(--gold);text-decoration:none}
 .method-intro{position:absolute;z-index:2;left:clamp(20px,6vw,90px);bottom:clamp(48px,10vh,120px);max-width:min(560px,80vw);transition:opacity .4s ease}
 .method-intro .hint{margin-top:18px}
 /* inside-the-screen content — a caption bar along the bottom so the chain (upper/centre) stays clear */
-.method-inside{position:absolute;z-index:2;left:50%;bottom:16vh;transform:translateX(-50%);width:min(760px,74vw);text-align:center;transition:opacity .5s ease}
-.method-inside .kick{margin-bottom:8px}
-.method-inside .h2{font-size:clamp(22px,2.6vw,34px);margin-bottom:10px}
-.method-inside .body{margin:0 auto;max-width:56ch;font-size:clamp(13px,1.1vw,15px)}
-.method-inside .steps{margin:16px auto 0;max-width:600px;border-left:none;padding-left:0;flex-direction:row;flex-wrap:wrap;justify-content:center;gap:7px}
-.method-inside .step{padding:5px 11px}
-.method-inside .step .stepk{font-size:11.5px}
+/* methodology copy — left-aligned, vertically centred inside the screen (per the design) */
+.method-inside{position:absolute;z-index:2;top:50%;left:13.5%;transform:translateY(-50%);width:min(400px,37vw);text-align:left;transition:opacity .5s ease}
+.method-inside .kick{margin-bottom:14px}
+.method-inside .h2{font-size:clamp(22px,2.4vw,34px);line-height:1.15;margin-bottom:16px;color:var(--gold2);text-shadow:0 0 28px rgba(122,81,17,.65)}
+.method-inside .body{margin:0;max-width:52ch;font-size:clamp(13px,1.05vw,15px);line-height:1.7}
+/* dash-dots progress: active dot grows */
+.chain-dots{display:flex;gap:10px;margin-top:28px}
+.cdot{width:14px;height:6px;border-radius:3px;background:rgba(245,166,35,.30);transition:all .35s cubic-bezier(.22,1,.36,1)}
+.cdot.on{width:28px;background:var(--gold);box-shadow:0 0 12px rgba(245,166,35,.7)}
 /* per-stage crossfade */
 .stagecard{animation:stageIn .55s cubic-bezier(.22,1,.36,1)}
 @keyframes stageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-/* progress indicator */
-.method-progress{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:16px;font-weight:800}
-.pcount{font-size:14px;color:var(--gold2);letter-spacing:.04em}
-.pcount em{color:var(--text3);font-style:normal;font-weight:700}
-.ptrack{position:relative;width:min(280px,40vw);height:3px;border-radius:2px;background:rgba(130,150,190,.22);overflow:hidden}
-.pfill{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:2px;transition:width .4s cubic-bezier(.22,1,.36,1);box-shadow:0 0 12px rgba(245,166,35,.6)}
-.plabel{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:rgba(245,166,35,.7)}
-.step.done{opacity:.72}
-.step.done .stepk{color:var(--gold)}
-@media(max-width:780px){.plabel{display:none}}
+/* finale line, centred near the top of the screen */
+.chain-finale{position:absolute;z-index:2;top:12%;left:50%;transform:translateX(-50%);font-size:13px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;color:var(--gold2);text-shadow:0 0 24px rgba(245,166,35,.6);transition:opacity .5s ease;white-space:nowrap}
+@media(max-width:780px){.method-inside{left:8%;width:70vw}}
 .method-inside .step{border:1px solid var(--border);border-radius:999px;padding:7px 14px;background:rgba(10,16,28,.5);backdrop-filter:blur(8px)}
 .method-inside .step .stepk{font-size:12.5px}
 .method-inside .h2{text-shadow:0 2px 30px rgba(245,166,35,.35)}

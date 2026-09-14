@@ -130,10 +130,11 @@ export function createDeskScene(canvas) {
   // and turned 90° so they truly interlock. Forged iron (reflecting the studio
   // env); they warm to gold as the chain turns and, once every link is
   // connected, pulse gold together.
-  const CHAIN_CY = SCREEN_CY + 0.30;       // upper half of the screen — leaves the lower half for the caption
+  const CHAIN_CX = SCREEN_CX + 0.55;       // sits to the right; the copy block owns the left of the screen
+  const CHAIN_CY = SCREEN_CY + 0.12;       // roughly centred vertically
   const chain = new THREE.Group();
-  chain.position.set(SCREEN_CX, CHAIN_CY, SCREEN_CZ + 0.02);
-  chain.scale.setScalar(0.78);             // whole 7-link chain fits inside the screen bounds
+  chain.position.set(CHAIN_CX, CHAIN_CY, SCREEN_CZ + 0.02);
+  chain.scale.setScalar(0.72);             // whole 7-link chain fits inside the right of the screen
   scene.add(chain);
 
   const LINKS = 7;
@@ -220,7 +221,7 @@ export function createDeskScene(canvas) {
     // GLOW travels down it instead, link by link.
     chain.rotation.x = 0.18 + Math.sin(t * 0.35) * 0.02;
     chain.rotation.y = 0.13 + Math.sin(t * 0.45) * 0.04;
-    chain.position.x = SCREEN_CX;
+    chain.position.x = CHAIN_CX;
     const togetherPulse = connected * (0.15 + 0.15 * (0.5 + 0.5 * Math.sin(t * 2.0)));
     for (let i = 0; i < links.length; i++) {
       const l = links[i];
