@@ -16,6 +16,10 @@
 
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 
 const GOLD = 0xF5A623;
 const GOLD2 = 0xFFD166;
@@ -184,10 +188,21 @@ export function createDeskScene(canvas) {
   const state = { p: 0, mx: 0, my: 0 };
   let mxE = 0, myE = 0;
 
+  // ── bloom post-processing (for the "Connected in Full Circle" finale glow) ──
+  let composer = null, bloom = null;
+  try {
+    composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.2, 0.6, 0.82);
+    composer.addPass(bloom);
+    composer.addPass(new OutputPass());
+  } catch (e) { composer = null; }
+
   function resize() {
     const w = window.innerWidth, h = window.innerHeight;
     renderer.setSize(w, h, false);
     camera.aspect = w / h; camera.updateProjectionMatrix();
+    if (composer) composer.setSize(w, h);
   }
   resize();
   window.addEventListener('resize', resize);
@@ -219,8 +234,8 @@ export function createDeskScene(canvas) {
     const connected = smooth(LINKS - 0.6, LINKS - 0.02, stageF); // all glow together at the finale
     // shallow 3/4 view; whole chain fixed and fully inside the screen (no panning),
     // no per-link forge — the GLOW travels down it link by link.
-    chain.rotation.x = 0.36 + Math.sin(t * 0.35) * 0.02;
-    chain.rotation.y = 0.36 + Math.sin(t * 0.45) * 0.03;  // 3/4 top view so every link reads as a full loop (no edge-on hooks)
+    chain.rotation.x = 0.34 + Math.sin(t * 0.35) * 0.02;
+    chain.rotation.y = 0.46 + Math.sin(t * 0.45) * 0.03;  // stronger 3/4 so even end links show their loop (no edge-on hooks)
     chain.position.x = CHAIN_CX;
     const togetherPulse = connected * (0.15 + 0.15 * (0.5 + 0.5 * Math.sin(t * 2.0)));
     const activeF = stageF - 0.5;                           // continuous active-link index
@@ -238,7 +253,9 @@ export function createDeskScene(canvas) {
     // screen glow breathes; brighter while inside
     screenLight.intensity = 1.1 + 0.8 * smooth(0.10, 0.18, p) + Math.sin(t * 1.3) * 0.1;
 
-    renderer.render(scene, camera);
+    // bloom: subtle throughout, blooms up as the chain connects in full circle
+    if (bloom) bloom.strength = 0.18 + connected * 1.15 + togetherPulse * 0.3;
+    if (composer) composer.render(); else renderer.render(scene, camera);
     raf = requestAnimationFrame(frame);
   }
   raf = requestAnimationFrame(frame);
@@ -270,6 +287,7 @@ export function createDeskScene(canvas) {
       window.removeEventListener('resize', resize);
       document.removeEventListener('visibilitychange', onVis);
       scene.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) { const m = o.material; (Array.isArray(m) ? m : [m]).forEach((mm) => { if (mm.map) mm.map.dispose(); mm.dispose(); }); } });
+      if (composer) composer.dispose();
       renderer.dispose();
     },
   };
