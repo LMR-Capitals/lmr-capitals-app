@@ -130,9 +130,10 @@ export function createDeskScene(canvas) {
   // and turned 90° so they truly interlock. Forged iron (reflecting the studio
   // env); they warm to gold as the chain turns and, once every link is
   // connected, pulse gold together.
-  const CHAIN_CY = SCREEN_CY + 0.22;       // sit a touch high so the caption clears it
+  const CHAIN_CY = SCREEN_CY + 0.06;       // centred on the screen
   const chain = new THREE.Group();
   chain.position.set(SCREEN_CX, CHAIN_CY, SCREEN_CZ + 0.02);
+  chain.scale.setScalar(0.9);              // sits comfortably inside the screen bounds
   scene.add(chain);
 
   const LINKS = 7;
@@ -161,7 +162,7 @@ export function createDeskScene(canvas) {
   const K = {
     est: { pos: [2.5, 1.75, 5.4], look: [0, 0.12, SCREEN_CZ], fov: 47 },  // wide establishing
     pre: { pos: [0.9, 1.05, 3.2], look: [0, 0.55, SCREEN_CZ], fov: 45 },  // approaching, straightening
-    in: { pos: [SCREEN_CX, CHAIN_CY - 0.04, SCREEN_CZ + fillD], look: [SCREEN_CX, CHAIN_CY - 0.04, SCREEN_CZ], fov: 42 }, // inside the screen, centred on the chain
+    in: { pos: [SCREEN_CX, SCREEN_CY + 0.10, SCREEN_CZ + 3.75], look: [SCREEN_CX, SCREEN_CY, SCREEN_CZ], fov: 40 }, // monitor framed — the chain sits inside the screen, bezel visible
     out: { pos: [-1.9, 1.5, 5.0], look: [0, 0.2, SCREEN_CZ], fov: 47 },   // pulled back, new angle → hands off to Conviction
   };
 
@@ -210,10 +211,10 @@ export function createDeskScene(canvas) {
     // chain assembly across the "inside" window (0.34 → 0.80)
     const assemble = smooth(0.34, 0.80, p);
     const connected = smooth(0.74, 0.90, p);             // every link joined → glow together
-    // hold a fixed 3/4 view so BOTH link orientations show their loop (never edge-on
-    // bars), with only a gentle breathing sway
-    chain.rotation.x = 0.34 + Math.sin(t * 0.35) * 0.03;
-    chain.rotation.y = 0.30 + Math.sin(t * 0.45) * 0.10;
+    // a gentle 3/4 view so both link orientations show their loop, kept shallow so
+    // the chain hugs the display plane and reads as content inside the monitor
+    chain.rotation.x = 0.22 + Math.sin(t * 0.35) * 0.025;
+    chain.rotation.y = 0.18 + Math.sin(t * 0.45) * 0.07;
     const turnGlow = (0.5 + 0.5 * Math.sin(t * 0.6)) * 0.14;  // warms to gold as it breathes
     const together = connected * (0.12 + 0.12 * (0.5 + 0.5 * Math.sin(t * 2.0))); // synchronized pulse
     for (let i = 0; i < links.length; i++) {
