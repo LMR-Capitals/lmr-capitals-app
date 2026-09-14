@@ -130,11 +130,11 @@ export function createDeskScene(canvas) {
   // and turned 90° so they truly interlock. Forged iron (reflecting the studio
   // env); they warm to gold as the chain turns and, once every link is
   // connected, pulse gold together.
-  const CHAIN_CX = SCREEN_CX + 0.62;       // sits to the right; the copy block owns the left of the screen
+  const CHAIN_CX = SCREEN_CX + 0.72;       // sits to the right; the copy block owns the left of the screen
   const CHAIN_CY = SCREEN_CY + 0.12;       // roughly centred vertically
   const chain = new THREE.Group();
   chain.position.set(CHAIN_CX, CHAIN_CY, SCREEN_CZ + 0.02);
-  chain.scale.setScalar(0.66);             // whole 7-link chain fits inside the right of the screen
+  chain.scale.setScalar(0.60);             // whole 7-link chain fits inside the right of the screen, clear of the copy
   scene.add(chain);
 
   const LINKS = 7;
@@ -219,8 +219,8 @@ export function createDeskScene(canvas) {
     const connected = smooth(LINKS - 0.6, LINKS - 0.02, stageF); // all glow together at the finale
     // shallow 3/4 view; whole chain fixed and fully inside the screen (no panning),
     // no per-link forge — the GLOW travels down it link by link.
-    chain.rotation.x = 0.18 + Math.sin(t * 0.35) * 0.02;
-    chain.rotation.y = 0.13 + Math.sin(t * 0.45) * 0.04;
+    chain.rotation.x = 0.36 + Math.sin(t * 0.35) * 0.02;
+    chain.rotation.y = 0.36 + Math.sin(t * 0.45) * 0.03;  // 3/4 top view so every link reads as a full loop (no edge-on hooks)
     chain.position.x = CHAIN_CX;
     const togetherPulse = connected * (0.15 + 0.15 * (0.5 + 0.5 * Math.sin(t * 2.0)));
     const activeF = stageF - 0.5;                           // continuous active-link index
@@ -246,9 +246,23 @@ export function createDeskScene(canvas) {
   function onVis() { if (document.hidden) { if (raf) cancelAnimationFrame(raf); raf = 0; } else if (!raf && !disposed) { raf = requestAnimationFrame(frame); } }
   document.addEventListener('visibilitychange', onVis);
 
+  // Project the monitor screen's rectangle to CSS pixels so the HTML overlay can
+  // lock to it (consistent placement on any display, not fixed viewport %).
+  function getScreenRect() {
+    const w = window.innerWidth, h = window.innerHeight;
+    const proj = (x, y) => {
+      const v = new THREE.Vector3(x, y, SCREEN_CZ + 0.005).project(camera);
+      return { x: (v.x * 0.5 + 0.5) * w, y: (-v.y * 0.5 + 0.5) * h };
+    };
+    const tl = proj(SCREEN_CX - SCREEN_W / 2, SCREEN_CY + SCREEN_H / 2);
+    const br = proj(SCREEN_CX + SCREEN_W / 2, SCREEN_CY - SCREEN_H / 2);
+    return { x: tl.x, y: tl.y, w: br.x - tl.x, h: br.y - tl.y };
+  }
+
   return {
     setProgress(p) { state.p = clamp01(p); },
     setMouse(x, y) { state.mx = x; state.my = y; },
+    getScreenRect,
     resize,
     dispose() {
       disposed = true;

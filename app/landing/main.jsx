@@ -74,6 +74,7 @@ function App() {
   const deskCanvasRef = useRef(null);
   const [activeStage, setActiveStage] = useState(0);
   const [mp, setMp] = useState(0);          // #method scroll progress 0..1
+  const [screenRect, setScreenRect] = useState(null); // monitor screen rect in CSS px
   const [card, setCard] = useState(null);
 
   useEffect(() => {
@@ -95,10 +96,16 @@ function App() {
       scene && scene.setChainProgress(cp);
       desk && desk.setProgress(cp);
       setMp(cp);
+      // lock the overlay to the monitor screen's actual projected rectangle
+      if (desk && desk.getScreenRect) { const r = desk.getScreenRect(); if (r && r.w > 0) setScreenRect(r); }
       // the 7-stage in-monitor journey runs across 0.16 → 0.86
       const inside = clamp01((cp - 0.16) / (0.86 - 0.16));
       setActiveStage(Math.max(0, Math.min(STAGES.length - 1, Math.floor(inside * STAGES.length - 1e-6))));
     };
+    const onResize = () => { if (desk && desk.getScreenRect) { const r = desk.getScreenRect(); if (r && r.w > 0) setScreenRect(r); } };
+    addEventListener('resize', onResize);
+    // the rect depends on the rendered camera; sample a couple of frames after mount
+    const t0 = setTimeout(onResize, 120), t1 = setTimeout(onResize, 500);
     const onMouse = (e) => {
       const mx = (e.clientX / innerWidth) * 2 - 1, my = (e.clientY / innerHeight) * 2 - 1;
       scene && scene.setMouse(mx, my);
@@ -115,13 +122,18 @@ function App() {
     }, { threshold: 0.4 });
     secs.forEach((s) => io.observe(s));
 
-    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); io.disconnect(); if (scene) scene.dispose(); if (desk) desk.dispose(); };
+    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); removeEventListener('resize', onResize); clearTimeout(t0); clearTimeout(t1); io.disconnect(); if (scene) scene.dispose(); if (desk) desk.dispose(); };
   }, []);
 
   // overlay copy timing, synced to the camera choreography
   const introOpacity = 1 - smooth(0.04, 0.13, mp);                       // fades as we fly in
   const insideOpacity = smooth(0.15, 0.20, mp) * (1 - smooth(0.88, 0.95, mp)); // in across the journey
   const journeyProgress = clamp01((mp - 0.16) / (0.86 - 0.16));          // 0..1 through the 7 stages
+  // overlay elements locked to the monitor screen rectangle (falls back to CSS % if unknown)
+  const R = screenRect;
+  const copyPos = R ? { left: R.x + R.w * 0.05, top: R.y + R.h * 0.52, width: R.w * 0.34, transform: 'translateY(-50%)' } : null;
+  const connPos = R ? { left: R.x + R.w * 0.26, top: R.y + R.h * 0.30, width: R.w * 0.32, height: R.h * 0.24 } : null;
+  const finalePos = R ? { left: R.x + R.w * 0.5, top: R.y + R.h * 0.07, transform: 'translateX(-50%)' } : null;
 
   const S = 'clamp(20px,5vw,72px)';
   return (
@@ -194,17 +206,17 @@ function App() {
 
             {/* finale line, inside the screen, when the chain is complete */}
             {activeStage === STAGES.length - 1 && journeyProgress > 0.94 && (
-              <span className="chain-finale" style={{ opacity: insideOpacity }}>The Chain — Connected in Full Circle</span>
+              <span className="chain-finale" style={{ opacity: insideOpacity, ...(finalePos || {}) }}>The Chain — Connected in Full Circle</span>
             )}
 
             {/* thin gold connector line from the copy to the link (per the design) */}
-            <svg className="chain-connector" style={{ opacity: insideOpacity * 0.85 }} preserveAspectRatio="none" viewBox="0 0 100 100">
+            <svg className="chain-connector" style={{ opacity: insideOpacity * 0.85, ...(connPos || {}) }} preserveAspectRatio="none" viewBox="0 0 100 100">
               <path d="M1,72 L1,18 L99,18" fill="none" stroke="rgba(245,166,35,0.5)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
               <circle cx="99" cy="18" r="2.4" fill="#F5A623" vectorEffect="non-scaling-stroke" />
             </svg>
 
             {/* inside-the-screen methodology — left copy block + dash-dots (per the design) */}
-            <div className="method-inside" style={{ opacity: insideOpacity, pointerEvents: insideOpacity < 0.1 ? 'none' : 'auto' }}>
+            <div className="method-inside" style={{ opacity: insideOpacity, pointerEvents: insideOpacity < 0.1 ? 'none' : 'auto', ...(copyPos || {}) }}>
               <span className="kick">How We Do It — The Chain</span>
               <div className="stagecard" key={activeStage}>
                 <h2 className="h2 gold">{STAGES[activeStage].k}</h2>
