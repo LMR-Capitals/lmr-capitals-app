@@ -388,10 +388,13 @@ a{color:var(--gold);text-decoration:none}
 .method-intro{position:absolute;z-index:2;left:clamp(20px,6vw,90px);bottom:clamp(48px,10vh,120px);max-width:min(560px,80vw);transition:opacity .4s ease}
 .method-intro .hint{margin-top:18px}
 /* inside-the-screen content — a caption bar along the bottom so the chain (upper/centre) stays clear */
-.method-inside{position:absolute;z-index:2;left:50%;bottom:5vh;transform:translateX(-50%);width:min(900px,92vw);text-align:center;transition:opacity .5s ease}
-.method-inside .h2{font-size:clamp(24px,3vw,38px)}
-.method-inside .body{margin:0 auto;max-width:60ch}
-.method-inside .steps{margin:20px auto 0;max-width:640px;border-left:none;padding-left:0;flex-direction:row;flex-wrap:wrap;justify-content:center;gap:8px}
+.method-inside{position:absolute;z-index:2;left:50%;bottom:16vh;transform:translateX(-50%);width:min(760px,74vw);text-align:center;transition:opacity .5s ease}
+.method-inside .kick{margin-bottom:8px}
+.method-inside .h2{font-size:clamp(22px,2.6vw,34px);margin-bottom:10px}
+.method-inside .body{margin:0 auto;max-width:56ch;font-size:clamp(13px,1.1vw,15px)}
+.method-inside .steps{margin:16px auto 0;max-width:600px;border-left:none;padding-left:0;flex-direction:row;flex-wrap:wrap;justify-content:center;gap:7px}
+.method-inside .step{padding:5px 11px}
+.method-inside .step .stepk{font-size:11.5px}
 /* per-stage crossfade */
 .stagecard{animation:stageIn .55s cubic-bezier(.22,1,.36,1)}
 @keyframes stageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}

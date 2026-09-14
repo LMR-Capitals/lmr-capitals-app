@@ -130,10 +130,10 @@ export function createDeskScene(canvas) {
   // and turned 90° so they truly interlock. Forged iron (reflecting the studio
   // env); they warm to gold as the chain turns and, once every link is
   // connected, pulse gold together.
-  const CHAIN_CY = SCREEN_CY + 0.06;       // centred on the screen
+  const CHAIN_CY = SCREEN_CY + 0.30;       // upper half of the screen — leaves the lower half for the caption
   const chain = new THREE.Group();
   chain.position.set(SCREEN_CX, CHAIN_CY, SCREEN_CZ + 0.02);
-  chain.scale.setScalar(0.9);              // sits comfortably inside the screen bounds
+  chain.scale.setScalar(0.78);             // whole 7-link chain fits inside the screen bounds
   scene.add(chain);
 
   const LINKS = 7;
@@ -215,13 +215,12 @@ export function createDeskScene(canvas) {
     const jp = clamp01((p - 0.16) / 0.70);                 // 0..1 across the 7-stage journey
     const stageF = jp * LINKS;                              // 0..7 continuous
     const connected = smooth(LINKS - 0.6, LINKS - 0.02, stageF); // all glow together at the finale
-    // shallow 3/4 view so both orientations read; kept hugging the display plane
-    chain.rotation.x = 0.20 + Math.sin(t * 0.35) * 0.02;
-    chain.rotation.y = 0.16 + Math.sin(t * 0.45) * 0.05;
-    // gentle pan so the active link stays near centre without losing the whole chain
-    const activeCenter = Math.max(0, Math.min(LINKS - 1, stageF - 0.5));
-    const targetX = SCREEN_CX - (activeCenter - (LINKS - 1) / 2) * SPACING * chain.scale.x * 0.4;
-    chain.position.x += (targetX - chain.position.x) * 0.08;
+    // shallow 3/4 view so both orientations read; kept hugging the display plane.
+    // The whole chain stays fixed and fully inside the screen (no panning) — the
+    // GLOW travels down it instead, link by link.
+    chain.rotation.x = 0.18 + Math.sin(t * 0.35) * 0.02;
+    chain.rotation.y = 0.13 + Math.sin(t * 0.45) * 0.04;
+    chain.position.x = SCREEN_CX;
     const togetherPulse = connected * (0.15 + 0.15 * (0.5 + 0.5 * Math.sin(t * 2.0)));
     for (let i = 0; i < links.length; i++) {
       const l = links[i];
