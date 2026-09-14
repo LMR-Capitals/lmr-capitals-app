@@ -15,6 +15,7 @@
 // Never throws to the caller (returns a no-op shim on WebGL failure).
 
 import * as THREE from 'three';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 const GOLD = 0xF5A623;
 const GOLD2 = 0xFFD166;
@@ -39,9 +40,19 @@ export function createDeskScene(canvas) {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
 
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x04060c, 0.055);
+
+  // Procedural studio environment — gives every metal surface something real to
+  // reflect (no downloaded HDRI needed). This is what makes the iron read as
+  // forged metal instead of flat plastic.
+  try {
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  } catch (e) { /* env is a nicety; scene still renders without it */ }
 
   const camera = new THREE.PerspectiveCamera(46, 1, 0.1, 120);
 
@@ -55,7 +66,7 @@ export function createDeskScene(canvas) {
   const rim = new THREE.DirectionalLight(0x3a6bff, 0.5); rim.position.set(-6, 3, -4); scene.add(rim);
   scene.add(new THREE.HemisphereLight(0x8fa6cc, 0x0a0e17, 0.55)); // gives the iron links dimension
   // the glow the monitor itself throws onto the desk + bezel (warm gold)
-  const screenLight = new THREE.PointLight(GOLD, 2.4, 9, 2.0);
+  const screenLight = new THREE.PointLight(GOLD, 1.5, 9, 2.0);
   screenLight.position.set(SCREEN_CX, SCREEN_CY, SCREEN_CZ + 0.5);
   scene.add(screenLight);
 
@@ -113,48 +124,44 @@ export function createDeskScene(canvas) {
   screen.position.set(SCREEN_CX, SCREEN_CY, SCREEN_CZ + 0.005);
   monitor.add(screen);
 
-  // ── the Chain — real interlocking industrial links ──────────────────────────
-  // Elongated iron links (rounded-rectangle loops, not O-rings), each threaded
-  // through the next and turned 90° so they truly interlock. Iron at rest; they
-  // catch the monitor's gold light and glow golden as the chain turns, and once
-  // every link is connected they pulse gold together.
+  // ── the Chain — a clean straight run of real interlocking iron links ─────────
+  // Seven elongated links (rounded-rectangle loops, not O-rings) laid left→right
+  // — one per stage of the methodology. Each is threaded through its neighbour
+  // and turned 90° so they truly interlock. Forged iron (reflecting the studio
+  // env); they warm to gold as the chain turns and, once every link is
+  // connected, pulse gold together.
+  const CHAIN_CY = SCREEN_CY + 0.22;       // sit a touch high so the caption clears it
   const chain = new THREE.Group();
-  chain.position.set(SCREEN_CX, SCREEN_CY, SCREEN_CZ + 0.02);
-  chain.rotation.x = 0.42;                 // slight tilt so the interlock reads in 3D
-  chain.scale.setScalar(1.4);
+  chain.position.set(SCREEN_CX, CHAIN_CY, SCREEN_CZ + 0.02);
   scene.add(chain);
 
   const LINKS = 7;
-  const LINK_A = 0.15;   // straight-section half-length (link "length")
-  const LINK_B = 0.11;   // end-cap radius (link "width")
-  const LINK_T = 0.042;  // iron thickness (tube radius)
+  const LINK_A = 0.16;    // straight-section half-length (link "length")
+  const LINK_B = 0.12;    // end-cap radius (link "width")
+  const LINK_T = 0.06;    // iron thickness (tube radius) — chunky forged stock
+  const SPACING = LINK_A + LINK_B + 0.10;   // centre-to-centre → neighbours interlock without clumping
   const linkGeo = makeLinkGeometry(LINK_A, LINK_B, LINK_T);
-  // ring radius chosen so neighbouring links overlap by ~one cap → they interlock
-  const RING_R = (LINK_A + LINK_B + 0.02) / (2 * Math.sin(Math.PI / LINKS));
   const links = [];
-  const linkMat = () => new THREE.MeshStandardMaterial({ color: 0x3d434c, emissive: GOLD, emissiveIntensity: 0, metalness: 0.85, roughness: 0.32, transparent: true, opacity: 0 });
+  const linkMat = () => new THREE.MeshStandardMaterial({ color: 0x5b6069, emissive: GOLD, emissiveIntensity: 0, metalness: 1.0, roughness: 0.3, transparent: true, opacity: 0 });
+  const qFlat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -Math.PI / 2); // long axis → X
+  const qEdge = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2).multiply(qFlat); // +90° about run axis
   for (let i = 0; i < LINKS; i++) {
     const mesh = new THREE.Mesh(linkGeo, linkMat());
-    const th = (i / LINKS) * Math.PI * 2;
-    mesh.position.set(Math.cos(th) * RING_R, Math.sin(th) * RING_R, 0);
-    // long axis (local Y) → ring tangent; alternate links stand 90° to interlock
-    mesh.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), th);
-    if (i % 2) {
-      const T = new THREE.Vector3(-Math.sin(th), Math.cos(th), 0);
-      mesh.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(T, Math.PI / 2));
-    }
-    mesh.userData = { i };
+    mesh.castShadow = true;
+    mesh.position.set((i - (LINKS - 1) / 2) * SPACING, 0, 0);
+    mesh.quaternion.copy(i % 2 ? qEdge : qFlat);
+    mesh.userData = { i, baseQ: (i % 2 ? qEdge : qFlat).clone() };
     chain.add(mesh); links.push(mesh);
   }
 
   // ── camera keyframes ─────────────────────────────────────────────────────────
   // fill distance so the screen height fills the frame with a small margin
   const vfov = (camera.fov * Math.PI) / 180;
-  const fillD = (SCREEN_H * 0.62) / Math.tan(vfov / 2);
+  const fillD = (SCREEN_H * 0.74) / Math.tan(vfov / 2);   // a little breathing room around the chain
   const K = {
     est: { pos: [2.5, 1.75, 5.4], look: [0, 0.12, SCREEN_CZ], fov: 47 },  // wide establishing
     pre: { pos: [0.9, 1.05, 3.2], look: [0, 0.55, SCREEN_CZ], fov: 45 },  // approaching, straightening
-    in: { pos: [SCREEN_CX, SCREEN_CY, SCREEN_CZ + fillD], look: [SCREEN_CX, SCREEN_CY, SCREEN_CZ], fov: 42 }, // inside the screen
+    in: { pos: [SCREEN_CX, CHAIN_CY - 0.04, SCREEN_CZ + fillD], look: [SCREEN_CX, CHAIN_CY - 0.04, SCREEN_CZ], fov: 42 }, // inside the screen, centred on the chain
     out: { pos: [-1.9, 1.5, 5.0], look: [0, 0.2, SCREEN_CZ], fov: 47 },   // pulled back, new angle → hands off to Conviction
   };
 
@@ -202,21 +209,26 @@ export function createDeskScene(canvas) {
 
     // chain assembly across the "inside" window (0.34 → 0.80)
     const assemble = smooth(0.34, 0.80, p);
-    const connected = smooth(0.72, 0.88, p);              // every link joined → glow together
-    chain.rotation.z = t * 0.14 + assemble * 0.5;         // the chain turns
-    const turn = 0.15 + Math.abs(Math.sin(t * 0.14 + assemble * 0.5)) * 0.12; // glow rises as it turns
-    const together = connected * (0.5 + 0.4 * Math.sin(t * 2.1)); // synchronized gold pulse
+    const connected = smooth(0.74, 0.90, p);             // every link joined → glow together
+    // hold a fixed 3/4 view so BOTH link orientations show their loop (never edge-on
+    // bars), with only a gentle breathing sway
+    chain.rotation.x = 0.34 + Math.sin(t * 0.35) * 0.03;
+    chain.rotation.y = 0.30 + Math.sin(t * 0.45) * 0.10;
+    const turnGlow = (0.5 + 0.5 * Math.sin(t * 0.6)) * 0.14;  // warms to gold as it breathes
+    const together = connected * (0.12 + 0.12 * (0.5 + 0.5 * Math.sin(t * 2.0))); // synchronized pulse
     for (let i = 0; i < links.length; i++) {
-      const reveal = clamp01((assemble - (i / links.length) * 0.62) / 0.26);
+      const reveal = clamp01((assemble - (i / links.length) * 0.6) / 0.22);
       const l = links[i];
-      l.scale.setScalar(0.4 + reveal * 0.6);
+      // reveal without distortion: fade + a small drop into place, near full scale
       l.material.opacity = reveal;
-      // iron at rest → golden as each link reveals and the chain turns; all together once connected
-      l.material.emissiveIntensity = reveal * (turn + 0.2) + together;
+      l.position.y = (1 - reveal) * 0.18;
+      l.scale.setScalar(0.92 + reveal * 0.08);
+      // forged iron (reflects env) warming gold as it turns; all glow together once connected
+      l.material.emissiveIntensity = reveal * (0.06 + turnGlow) + together;
     }
 
     // screen glow breathes; brighter while inside
-    screenLight.intensity = 1.8 + 1.4 * smooth(0.20, 0.44, p) + Math.sin(t * 1.3) * 0.12;
+    screenLight.intensity = 1.1 + 0.8 * smooth(0.20, 0.44, p) + Math.sin(t * 1.3) * 0.1;
 
     renderer.render(scene, camera);
     raf = requestAnimationFrame(frame);

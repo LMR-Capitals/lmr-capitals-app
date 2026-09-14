@@ -379,9 +379,11 @@ a{color:var(--gold);text-decoration:none}
 /* establishing caption sits low-left over the wide desk shot */
 .method-intro{position:absolute;z-index:2;left:clamp(20px,6vw,90px);bottom:clamp(48px,10vh,120px);max-width:min(560px,80vw);transition:opacity .4s ease}
 .method-intro .hint{margin-top:18px}
-/* inside-the-screen content, centered as if projected on the display */
-.method-inside{position:absolute;z-index:2;top:50%;left:50%;transform:translate(-50%,-50%);width:min(760px,86vw);text-align:center;transition:opacity .5s ease}
-.method-inside .steps{margin:26px auto 0;max-width:520px;border-left:none;padding-left:0;flex-direction:row;flex-wrap:wrap;justify-content:center;gap:8px}
+/* inside-the-screen content — a caption bar along the bottom so the chain (upper/centre) stays clear */
+.method-inside{position:absolute;z-index:2;left:50%;bottom:5vh;transform:translateX(-50%);width:min(900px,92vw);text-align:center;transition:opacity .5s ease}
+.method-inside .h2{font-size:clamp(24px,3vw,38px)}
+.method-inside .body{margin:0 auto;max-width:60ch}
+.method-inside .steps{margin:20px auto 0;max-width:640px;border-left:none;padding-left:0;flex-direction:row;flex-wrap:wrap;justify-content:center;gap:8px}
 .method-inside .step{border:1px solid var(--border);border-radius:999px;padding:7px 14px;background:rgba(10,16,28,.5);backdrop-filter:blur(8px)}
 .method-inside .step .stepk{font-size:12.5px}
 .method-inside .h2{text-shadow:0 2px 30px rgba(245,166,35,.35)}
