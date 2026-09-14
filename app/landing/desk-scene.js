@@ -168,10 +168,10 @@ export function createDeskScene(canvas) {
 
   function camAt(p) {
     let A, B, t;
-    if (p < 0.30) { A = K.est; B = K.pre; t = easeInOut(p / 0.30); }
-    else if (p < 0.42) { A = K.pre; B = K.in; t = easeInOut((p - 0.30) / 0.12); }
-    else if (p < 0.78) { A = K.in; B = K.in; t = 0; }               // hold inside
-    else { A = K.in; B = K.out; t = easeInOut((p - 0.78) / 0.22); }
+    if (p < 0.10) { A = K.est; B = K.pre; t = easeInOut(p / 0.10); }
+    else if (p < 0.16) { A = K.pre; B = K.in; t = easeInOut((p - 0.10) / 0.06); }
+    else if (p < 0.86) { A = K.in; B = K.in; t = 0; }               // hold framed on the monitor for the journey
+    else { A = K.in; B = K.out; t = easeInOut((p - 0.86) / 0.14); }
     return {
       px: lerp(A.pos[0], B.pos[0], t), py: lerp(A.pos[1], B.pos[1], t), pz: lerp(A.pos[2], B.pos[2], t),
       lx: lerp(A.look[0], B.look[0], t), ly: lerp(A.look[1], B.look[1], t), lz: lerp(A.look[2], B.look[2], t),
@@ -208,28 +208,35 @@ export function createDeskScene(canvas) {
     camera.lookAt(c.lx, c.ly, c.lz);
     if (Math.abs(camera.fov - c.fov) > 0.01) { camera.fov = c.fov; camera.updateProjectionMatrix(); }
 
-    // chain assembly across the "inside" window (0.34 → 0.80)
-    const assemble = smooth(0.34, 0.80, p);
-    const connected = smooth(0.74, 0.90, p);             // every link joined → glow together
-    // a gentle 3/4 view so both link orientations show their loop, kept shallow so
-    // the chain hugs the display plane and reads as content inside the monitor
-    chain.rotation.x = 0.22 + Math.sin(t * 0.35) * 0.025;
-    chain.rotation.y = 0.18 + Math.sin(t * 0.45) * 0.07;
-    const turnGlow = (0.5 + 0.5 * Math.sin(t * 0.6)) * 0.14;  // warms to gold as it breathes
-    const together = connected * (0.12 + 0.12 * (0.5 + 0.5 * Math.sin(t * 2.0))); // synchronized pulse
+    // ── in-monitor methodology journey ───────────────────────────────────────
+    // Focus travels down the chain, forging one link per stage; the active link
+    // pops + glows gold, forged links stay lit, upcoming links wait as dim iron.
+    // At the end every link glows together, then the camera pulls back out.
+    const jp = clamp01((p - 0.16) / 0.70);                 // 0..1 across the 7-stage journey
+    const stageF = jp * LINKS;                              // 0..7 continuous
+    const connected = smooth(LINKS - 0.6, LINKS - 0.02, stageF); // all glow together at the finale
+    // shallow 3/4 view so both orientations read; kept hugging the display plane
+    chain.rotation.x = 0.20 + Math.sin(t * 0.35) * 0.02;
+    chain.rotation.y = 0.16 + Math.sin(t * 0.45) * 0.05;
+    // gentle pan so the active link stays near centre without losing the whole chain
+    const activeCenter = Math.max(0, Math.min(LINKS - 1, stageF - 0.5));
+    const targetX = SCREEN_CX - (activeCenter - (LINKS - 1) / 2) * SPACING * chain.scale.x * 0.4;
+    chain.position.x += (targetX - chain.position.x) * 0.08;
+    const togetherPulse = connected * (0.15 + 0.15 * (0.5 + 0.5 * Math.sin(t * 2.0)));
     for (let i = 0; i < links.length; i++) {
-      const reveal = clamp01((assemble - (i / links.length) * 0.6) / 0.22);
       const l = links[i];
-      // reveal without distortion: fade + a small drop into place, near full scale
+      const reveal = clamp01((stageF - i + 0.9) / 0.9);    // forges in as focus reaches it
+      const passed = clamp01(stageF - (i + 0.5));          // stays lit once forged
+      const focus = Math.max(0, 1 - Math.abs((stageF - 0.5) - i) / 0.85); // brightest at the active link
       l.material.opacity = reveal;
-      l.position.y = (1 - reveal) * 0.18;
-      l.scale.setScalar(0.92 + reveal * 0.08);
-      // forged iron (reflects env) warming gold as it turns; all glow together once connected
-      l.material.emissiveIntensity = reveal * (0.06 + turnGlow) + together;
+      l.position.y = (1 - reveal) * 0.16;                  // small drop-in, no distortion
+      l.scale.setScalar((0.92 + reveal * 0.08) * (1 + focus * 0.14)); // active link pops
+      // dim iron → gold at the active link, holds a warm glow once forged, all together at the end
+      l.material.emissiveIntensity = reveal * (0.05 + passed * 0.10) + focus * 0.55 + togetherPulse;
     }
 
     // screen glow breathes; brighter while inside
-    screenLight.intensity = 1.1 + 0.8 * smooth(0.20, 0.44, p) + Math.sin(t * 1.3) * 0.1;
+    screenLight.intensity = 1.1 + 0.8 * smooth(0.10, 0.18, p) + Math.sin(t * 1.3) * 0.1;
 
     renderer.render(scene, camera);
     raf = requestAnimationFrame(frame);

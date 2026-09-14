@@ -95,8 +95,8 @@ function App() {
       scene && scene.setChainProgress(cp);
       desk && desk.setProgress(cp);
       setMp(cp);
-      // stages step through only during the "inside the screen" window (0.34 → 0.80)
-      const inside = clamp01((cp - 0.34) / (0.80 - 0.34));
+      // the 7-stage in-monitor journey runs across 0.16 → 0.86
+      const inside = clamp01((cp - 0.16) / (0.86 - 0.16));
       setActiveStage(Math.max(0, Math.min(STAGES.length - 1, Math.floor(inside * STAGES.length - 1e-6))));
     };
     const onMouse = (e) => {
@@ -119,8 +119,9 @@ function App() {
   }, []);
 
   // overlay copy timing, synced to the camera choreography
-  const introOpacity = 1 - smooth(0.08, 0.22, mp);                       // fades as we fly in
-  const insideOpacity = smooth(0.32, 0.40, mp) * (1 - smooth(0.80, 0.90, mp)); // in while "inside"
+  const introOpacity = 1 - smooth(0.04, 0.13, mp);                       // fades as we fly in
+  const insideOpacity = smooth(0.15, 0.20, mp) * (1 - smooth(0.88, 0.95, mp)); // in across the journey
+  const journeyProgress = clamp01((mp - 0.16) / (0.86 - 0.16));          // 0..1 through the 7 stages
 
   const S = 'clamp(20px,5vw,72px)';
   return (
@@ -191,14 +192,21 @@ function App() {
               <p className="hint">Scroll — fly into the monitor ↓</p>
             </div>
 
-            {/* inside-the-screen content — the 7 links of the chain, stepped by scroll */}
+            {/* inside-the-screen content — one stage per forged link, crossfading */}
             <div className="method-inside" style={{ opacity: insideOpacity, pointerEvents: insideOpacity < 0.1 ? 'none' : 'auto' }}>
-              <span className="kick">The Chain · Live</span>
-              <h2 className="h2 gold" style={{ minHeight: '2.2em' }}>{STAGES[activeStage].k}</h2>
-              <p className="body">{STAGES[activeStage].c}</p>
+              <div className="method-progress">
+                <span className="pcount">{String(activeStage + 1).padStart(2, '0')} <em>/ {String(STAGES.length).padStart(2, '0')}</em></span>
+                <span className="ptrack"><span className="pfill" style={{ width: `${(journeyProgress * 100).toFixed(1)}%` }} /></span>
+                <span className="plabel">The Chain · Live</span>
+              </div>
+              <div className="stagecard" key={activeStage}>
+                <span className="kick">Link {String(activeStage + 1).padStart(2, '0')} — The Chain</span>
+                <h2 className="h2 gold">{STAGES[activeStage].k}</h2>
+                <p className="body">{STAGES[activeStage].c}</p>
+              </div>
               <div className="steps">
                 {STAGES.map((s, i) => (
-                  <div key={i} className={'step' + (i === activeStage ? ' on' : '')}>
+                  <div key={i} className={'step' + (i === activeStage ? ' on' : (i < activeStage ? ' done' : ''))}>
                     <span className="stepn">{String(i + 1).padStart(2, '0')}</span>
                     <span className="stepk">{s.k}</span>
                   </div>
@@ -372,7 +380,7 @@ a{color:var(--gold);text-decoration:none}
 .cnum{font-weight:800;color:var(--gold);font-size:15px}
 .more{color:var(--gold2);font-size:13px;margin-top:6px}
 /* method / chain — cinematic desk + monitor */
-.method-sec{position:relative;height:520vh}
+.method-sec{position:relative;height:840vh}
 .method-sticky{position:sticky;top:0;height:100vh;width:100%;overflow:hidden}
 .desk-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0}
 .method-veil{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 120% at 50% 45%,transparent 55%,rgba(4,6,12,.72) 100%)}
@@ -384,6 +392,19 @@ a{color:var(--gold);text-decoration:none}
 .method-inside .h2{font-size:clamp(24px,3vw,38px)}
 .method-inside .body{margin:0 auto;max-width:60ch}
 .method-inside .steps{margin:20px auto 0;max-width:640px;border-left:none;padding-left:0;flex-direction:row;flex-wrap:wrap;justify-content:center;gap:8px}
+/* per-stage crossfade */
+.stagecard{animation:stageIn .55s cubic-bezier(.22,1,.36,1)}
+@keyframes stageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+/* progress indicator */
+.method-progress{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:16px;font-weight:800}
+.pcount{font-size:14px;color:var(--gold2);letter-spacing:.04em}
+.pcount em{color:var(--text3);font-style:normal;font-weight:700}
+.ptrack{position:relative;width:min(280px,40vw);height:3px;border-radius:2px;background:rgba(130,150,190,.22);overflow:hidden}
+.pfill{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:2px;transition:width .4s cubic-bezier(.22,1,.36,1);box-shadow:0 0 12px rgba(245,166,35,.6)}
+.plabel{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:rgba(245,166,35,.7)}
+.step.done{opacity:.72}
+.step.done .stepk{color:var(--gold)}
+@media(max-width:780px){.plabel{display:none}}
 .method-inside .step{border:1px solid var(--border);border-radius:999px;padding:7px 14px;background:rgba(10,16,28,.5);backdrop-filter:blur(8px)}
 .method-inside .step .stepk{font-size:12.5px}
 .method-inside .h2{text-shadow:0 2px 30px rgba(245,166,35,.35)}
