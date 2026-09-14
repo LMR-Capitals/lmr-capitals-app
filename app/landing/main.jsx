@@ -63,6 +63,40 @@ const SOCIAL = [
   { label: 'Email', href: 'mailto:admin@lmrcapitals.com', d: 'M3 6l9 7 9-7', rect3: true },
 ];
 
+/* ── "Five Markets Align → Conviction" — the new model for the Conviction act ─ */
+const MARKETS = [
+  { k: 'NQ', a0: -46 }, { k: 'ES', a0: 30 }, { k: 'YM', a0: -20 }, { k: 'DXY', a0: 54 }, { k: 'GOLD', a0: -36 },
+];
+function FiveMarkets({ align }) {
+  const locked = Math.round(clamp01(align) * MARKETS.length);
+  return (
+    <div className="fm">
+      <div className="fm-line" style={{ opacity: align, transform: `scaleX(${0.2 + align * 0.8})` }} />
+      <div className="fm-row">
+        {MARKETS.map((m, i) => {
+          const on = i < locked;
+          const ang = m.a0 * (1 - clamp01((align - i * 0.06) / 0.7)); // staggered snap to vertical
+          return (
+            <div key={i} className={'fm-mkt' + (on ? ' on' : '')}>
+              <span className="fm-k">{m.k}</span>
+              <svg className="fm-arrow" viewBox="0 0 40 84" style={{ transform: `rotate(${ang}deg)` }}>
+                <line x1="20" y1="78" x2="20" y2="16" stroke="currentColor" strokeWidth="6" strokeLinecap="round" />
+                <path d="M7 30 L20 9 L33 30" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className="fm-dot" />
+            </div>
+          );
+        })}
+      </div>
+      <div className="fm-readout">
+        <span className="fm-count">{locked} / {MARKETS.length}</span>
+        <span className="fm-lbl">{locked >= MARKETS.length ? 'MARKETS ALIGNED' : 'CONFIRMING…'}</span>
+      </div>
+      <div className="fm-meter"><span style={{ width: `${align * 100}%` }} /></div>
+    </div>
+  );
+}
+
 function Placeholder({ label, style }) {
   return <div data-image-slot={label} style={{ width: '100%', height: '100%', minHeight: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,rgba(20,30,50,.6),rgba(6,11,20,.6))', color: '#3c4b66', fontSize: 10.5, letterSpacing: '.08em', textTransform: 'uppercase', textAlign: 'center', padding: 14, lineHeight: 1.5, border: '1px dashed rgba(120,140,180,.18)', borderRadius: 10, ...style }}>{label}</div>;
 }
@@ -72,8 +106,10 @@ function App() {
   const sceneRef = useRef(null);
   const chainSecRef = useRef(null);
   const deskCanvasRef = useRef(null);
+  const convRef = useRef(null);
   const [activeStage, setActiveStage] = useState(0);
   const [mp, setMp] = useState(0);          // #method scroll progress 0..1
+  const [convP, setConvP] = useState(0);    // conviction scroll progress 0..1
   const [screenRect, setScreenRect] = useState(null); // monitor screen rect in CSS px
   const [card, setCard] = useState(null);
 
@@ -101,6 +137,7 @@ function App() {
       // the 7-stage in-monitor journey runs across 0.16 → 0.86
       const inside = clamp01((cp - 0.16) / (0.86 - 0.16));
       setActiveStage(Math.max(0, Math.min(STAGES.length - 1, Math.floor(inside * STAGES.length - 1e-6))));
+      setConvP(calc(convRef.current));
     };
     const onResize = () => { if (desk && desk.getScreenRect) { const r = desk.getScreenRect(); if (r && r.w > 0) setScreenRect(r); } };
     addEventListener('resize', onResize);
@@ -231,13 +268,23 @@ function App() {
           </div>
         </section>
 
-        {/* CONVICTION */}
+        {/* CONVICTION — new model: five markets align → conviction (scroll-driven) */}
+        <section ref={convRef} className="conv-sec" data-scene="4">
+          <div className="conv-sticky">
+            <div className="conv-head">
+              <span className="kick">From Analysis to Conviction</span>
+              <h2 className="h2">The Chain Doesn't Just Predict the Market.<br />It <span className="gold">Rewires the Trader</span>.</h2>
+              <p className="body" style={{ maxWidth: '52ch', margin: '14px auto 0' }}>Five markets confirming one direction isn't a signal — it's permission to act without doubt.</p>
+            </div>
+            <FiveMarkets align={smooth(0.06, 0.74, convP)} />
+            <div className={'conv-stamp' + (smooth(0.06, 0.74, convP) > 0.99 ? ' on' : '')}>
+              <span>CONVICTION CONFIRMED</span>
+            </div>
+          </div>
+        </section>
+
+        {/* CONVICTION — before / after + edges + closing */}
         <section className="wrap" data-scene="4">
-          <Reveal style={{ textAlign: 'center', maxWidth: 820, margin: '0 auto' }}>
-            <span className="kick">From Analysis to Conviction</span>
-            <h2 className="h2">The Chain Doesn't Just Predict the Market. It Rewires the Trader.</h2>
-            <p className="body">Five markets confirming one direction isn't a signal — it's permission to act without doubt.</p>
-          </Reveal>
           <div className="grid2">
             <Reveal className="glass pad">
               <span className="tag coral">Before the Chain</span>
@@ -443,6 +490,30 @@ a{color:var(--gold);text-decoration:none}
 .closing{margin-top:34px;border-radius:26px;padding:clamp(34px,5vw,64px);text-align:center;background:linear-gradient(120deg,#b5811f,#d9ac3a 45%,#eccf6f)}
 .closing h2{color:#161208;font-size:clamp(24px,3.2vw,40px);margin-bottom:14px}
 .closing p{color:#4a3a12;font-size:16px;margin:0}
+/* conviction — new model: five markets align */
+.conv-sec{position:relative;height:300vh}
+.conv-sticky{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(24px,4vh,54px);max-width:1100px;margin:0 auto;padding:0 clamp(20px,5vw,72px);text-align:center}
+.conv-head .kick{margin-bottom:12px}
+.conv-head .h2{font-size:clamp(24px,3vw,42px)}
+.fm{width:100%;max-width:760px;position:relative}
+.fm-line{position:absolute;top:34px;left:8%;right:8%;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);transform-origin:center;box-shadow:0 0 16px rgba(245,166,35,.6);pointer-events:none}
+.fm-row{display:flex;justify-content:space-between;align-items:flex-end;gap:clamp(8px,2vw,26px)}
+.fm-mkt{flex:1;display:flex;flex-direction:column;align-items:center;gap:12px;color:#5b6b86;transition:color .4s ease}
+.fm-mkt.on{color:var(--gold2)}
+.fm-arrow{width:clamp(30px,5vw,46px);height:auto;transition:filter .4s ease;transform-origin:50% 78%}
+.fm-mkt.on .fm-arrow{filter:drop-shadow(0 0 10px rgba(245,166,35,.75))}
+.fm-k{font-size:13px;font-weight:800;letter-spacing:.08em}
+.fm-dot{width:9px;height:9px;border-radius:50%;background:currentColor;opacity:.5;transition:opacity .4s,box-shadow .4s}
+.fm-mkt.on .fm-dot{opacity:1;box-shadow:0 0 12px rgba(245,166,35,.9)}
+.fm-readout{display:flex;align-items:baseline;justify-content:center;gap:12px;margin-top:30px}
+.fm-count{font-size:clamp(26px,4vw,44px);font-weight:800;color:var(--gold);letter-spacing:.02em}
+.fm-lbl{font-size:12px;letter-spacing:.18em;font-weight:800;color:var(--text3)}
+.fm-meter{margin:16px auto 0;width:min(320px,60%);height:4px;border-radius:3px;background:rgba(130,150,190,.2);overflow:hidden}
+.fm-meter span{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));box-shadow:0 0 12px rgba(245,166,35,.7);border-radius:3px}
+.conv-stamp{opacity:0;transform:scale(.9);transition:opacity .5s ease,transform .5s cubic-bezier(.22,1,.36,1)}
+.conv-stamp.on{opacity:1;transform:scale(1)}
+.conv-stamp span{display:inline-block;font-size:clamp(14px,1.6vw,20px);font-weight:800;letter-spacing:.22em;color:#0a0b0f;background:linear-gradient(120deg,var(--gold2),var(--gold));padding:12px 26px;border-radius:999px;box-shadow:0 14px 40px -12px rgba(245,166,35,.8)}
+@media(max-width:640px){.fm-k{font-size:11px}.fm-lbl{display:none}}
 /* indicators */
 .ind{gap:14px}
 .shot{aspect-ratio:16/10;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
