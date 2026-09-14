@@ -392,7 +392,7 @@ a{color:var(--gold);text-decoration:none}
 .method-intro .hint{margin-top:18px}
 /* inside-the-screen content — a caption bar along the bottom so the chain (upper/centre) stays clear */
 /* methodology copy — left-aligned, vertically centred inside the screen (per the design) */
-.method-inside{position:absolute;z-index:2;top:50%;left:13.5%;transform:translateY(-50%);width:min(400px,37vw);text-align:left;transition:opacity .5s ease}
+.method-inside{position:absolute;z-index:2;top:50%;left:13%;transform:translateY(-50%);width:min(360px,32vw);text-align:left;transition:opacity .5s ease}
 .method-inside .kick{margin-bottom:14px}
 .method-inside .h2{font-size:clamp(22px,2.4vw,34px);line-height:1.15;margin-bottom:16px;color:var(--gold2);text-shadow:0 0 28px rgba(122,81,17,.65)}
 .method-inside .body{margin:0;max-width:52ch;font-size:clamp(13px,1.05vw,15px);line-height:1.7}
