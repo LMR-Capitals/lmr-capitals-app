@@ -130,11 +130,11 @@ export function createDeskScene(canvas) {
   // and turned 90° so they truly interlock. Forged iron (reflecting the studio
   // env); they warm to gold as the chain turns and, once every link is
   // connected, pulse gold together.
-  const CHAIN_CX = SCREEN_CX + 0.55;       // sits to the right; the copy block owns the left of the screen
+  const CHAIN_CX = SCREEN_CX + 0.62;       // sits to the right; the copy block owns the left of the screen
   const CHAIN_CY = SCREEN_CY + 0.12;       // roughly centred vertically
   const chain = new THREE.Group();
   chain.position.set(CHAIN_CX, CHAIN_CY, SCREEN_CZ + 0.02);
-  chain.scale.setScalar(0.72);             // whole 7-link chain fits inside the right of the screen
+  chain.scale.setScalar(0.66);             // whole 7-link chain fits inside the right of the screen
   scene.add(chain);
 
   const LINKS = 7;
@@ -215,25 +215,24 @@ export function createDeskScene(canvas) {
     // At the end every link glows together, then the camera pulls back out.
     const jp = clamp01((p - 0.16) / 0.70);                 // 0..1 across the 7-stage journey
     const stageF = jp * LINKS;                              // 0..7 continuous
+    const appear = smooth(0.15, 0.24, p);                  // whole chain fades in together and stays
     const connected = smooth(LINKS - 0.6, LINKS - 0.02, stageF); // all glow together at the finale
-    // shallow 3/4 view so both orientations read; kept hugging the display plane.
-    // The whole chain stays fixed and fully inside the screen (no panning) — the
-    // GLOW travels down it instead, link by link.
+    // shallow 3/4 view; whole chain fixed and fully inside the screen (no panning),
+    // no per-link forge — the GLOW travels down it link by link.
     chain.rotation.x = 0.18 + Math.sin(t * 0.35) * 0.02;
     chain.rotation.y = 0.13 + Math.sin(t * 0.45) * 0.04;
     chain.position.x = CHAIN_CX;
     const togetherPulse = connected * (0.15 + 0.15 * (0.5 + 0.5 * Math.sin(t * 2.0)));
+    const activeF = stageF - 0.5;                           // continuous active-link index
     for (let i = 0; i < links.length; i++) {
       const l = links[i];
-      const reveal = clamp01((stageF - i + 0.9) / 0.9);    // forges in as focus reaches it
-      const passed = clamp01(stageF - (i + 0.5));          // stays lit once forged
-      const focus = Math.max(0, 1 - Math.abs((stageF - 0.5) - i) / 0.85); // brightest at the active link
-      l.material.opacity = reveal;
-      l.position.y = (1 - reveal) * 0.16;                  // small drop-in, no distortion
-      l.position.z = focus * 0.28;                         // active link steps toward the camera
-      l.scale.setScalar((0.9 + reveal * 0.1) * (1 + focus * 0.42)); // active link pops big
+      const focus = Math.max(0, 1 - Math.abs(activeF - i) / 0.9); // brightest at the active link
+      l.material.opacity = appear;                         // every link present once inside
+      l.position.y = 0;
+      l.position.z = focus * 0.12;                         // active link steps slightly forward
+      l.scale.setScalar(0.98 + focus * 0.18);             // modest active pop — no lone giant link
       // polished gold; the active link glows brightest, all glow together at the end
-      l.material.emissiveIntensity = reveal * (0.04 + passed * 0.08) + focus * 0.45 + togetherPulse;
+      l.material.emissiveIntensity = appear * 0.05 + focus * 0.5 + togetherPulse;
     }
 
     // screen glow breathes; brighter while inside
