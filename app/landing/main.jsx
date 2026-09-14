@@ -63,6 +63,16 @@ const SOCIAL = [
   { label: 'Email', href: 'mailto:admin@lmrcapitals.com', d: 'M3 6l9 7 9-7', rect3: true },
 ];
 
+const PROOF = [
+  { n: '100%', k: 'Trades journaled in real time' },
+  { n: 'D → W → M', k: 'Daily, weekly & monthly reports' },
+  { n: 'Wins + Losses', k: 'Shown in full — never cherry-picked' },
+  { n: 'Public', k: 'The same ledger behind every result' },
+];
+function Check() {
+  return (<svg className="ck" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>);
+}
+
 /* ── "Five Markets Align → Conviction" — the new model for the Conviction act ─ */
 const MARKETS = [
   { k: 'NQ', a0: -46 }, { k: 'ES', a0: 30 }, { k: 'YM', a0: -20 }, { k: 'DXY', a0: 54 }, { k: 'GOLD', a0: -36 },
@@ -283,21 +293,29 @@ function App() {
           </div>
         </section>
 
-        {/* CONVICTION — before / after + edges + closing */}
+        {/* CONVICTION — before → after transformation + edges + closing */}
         <section className="wrap" data-scene="4">
-          <div className="grid2">
-            <Reveal className="glass pad">
+          <Reveal className="sec-head">
+            <span className="kick">The Rewiring</span>
+            <h2 className="h2">What Changes When the Chain Confirms</h2>
+          </Reveal>
+          <div className="ba">
+            <Reveal className="ba-col before">
               <span className="tag coral">Before the Chain</span>
               <ul className="list">{BEFORE.map((b, i) => <li key={i}>{b}</li>)}</ul>
             </Reveal>
-            <Reveal delay={0.1} className="glass pad">
+            <div className="ba-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </div>
+            <Reveal delay={0.1} className="ba-col after">
               <span className="tag teal">After the Chain</span>
               <ul className="list gold-list">{AFTER.map((b, i) => <li key={i}>{b}</li>)}</ul>
             </Reveal>
           </div>
-          <div className="grid3" style={{ marginTop: 24 }}>
+          <div className="grid3" style={{ marginTop: 28 }}>
             {EDGES.map((e, i) => (
-              <Reveal key={i} delay={i * 0.08} className="glass card">
+              <Reveal key={i} delay={i * 0.08} className="glass card edge">
+                <span className="edge-ic"><Check /></span>
                 <h3 className="h3 sm">{e.t}</h3>
                 <p className="body sm">{e.c}</p>
               </Reveal>
@@ -309,20 +327,25 @@ function App() {
           </Reveal>
         </section>
 
-        {/* INDICATORS */}
+        {/* INDICATORS — premium pricing cards */}
         <section id="indicators" className="wrap" data-scene="5">
-          <Reveal><span className="kick">The Toolkit</span><h2 className="h2">LMR Indicators for TradingView</h2>
-            <p className="body" style={{ maxWidth: '60ch' }}>The same tools I trade with every session — built in-house on the LMR methodology, so the chart shows exactly what the journal tracks.</p></Reveal>
+          <Reveal className="sec-head">
+            <span className="kick">The Toolkit</span>
+            <h2 className="h2">LMR Indicators for TradingView</h2>
+            <p className="body">The same tools I trade with every session — built in-house on the LMR methodology, so the chart shows exactly what the journal tracks.</p>
+          </Reveal>
           <div className="grid2">
             {INDICATORS.map((ind, i) => (
-              <Reveal key={i} delay={i * 0.08} className="glass card ind">
+              <Reveal key={i} delay={i * 0.08} className="glass price-card">
+                <div className="pc-top">
+                  <span className="pc-badge">Pine Script v6 · TradingView</span>
+                  <h3 className="h3">{ind.name}</h3>
+                  <p className="pc-tag">{ind.tagline}</p>
+                  <div className="pc-price"><span className="pc-amt">$40</span><span className="pc-per">/ month</span></div>
+                </div>
                 <div className="shot"><Placeholder label={ind.name + ' — TradingView screenshot'} /></div>
-                <p className="kick sm">Pine Script v6 · TradingView</p>
-                <h3 className="h3">{ind.name}</h3>
-                <p className="body sm" style={{ margin: 0, color: 'var(--text3)' }}>{ind.tagline}</p>
-                <p className="price">{ind.price}</p>
-                <p className="body sm">{ind.desc}</p>
-                <ul className="feat">{ind.features.map((f, j) => <li key={j}>{f}</li>)}</ul>
+                <p className="body sm pc-desc">{ind.desc}</p>
+                <ul className="feat">{ind.features.map((f, j) => <li key={j}><Check /><span>{f}</span></li>)}</ul>
                 <a className="btn btn-gold block" href={ind.mailto}>Get Access — $40/mo →</a>
                 <p className="fine">Invite-only access granted to your TradingView username after payment.</p>
               </Reveal>
@@ -330,10 +353,21 @@ function App() {
           </div>
         </section>
 
-        {/* TRACK RECORD */}
+        {/* TRACK RECORD — proof tiles + marquee */}
         <section className="wrap" data-scene="5">
-          <Reveal><span className="kick">Proven Track Record</span><h2 className="h2">Verified Funded Passes &amp; Payouts</h2>
-            <p className="body" style={{ maxWidth: '60ch' }}>Real results from the LMR Capitals methodology — funded challenges passed and payouts collected, documented transparently.</p></Reveal>
+          <Reveal className="sec-head">
+            <span className="kick">Proven Track Record</span>
+            <h2 className="h2">Documented, Not Cherry-Picked</h2>
+            <p className="body">Real results from the LMR Capitals methodology — funded challenges and payouts, logged transparently, wins and losses alike.</p>
+          </Reveal>
+          <div className="stat-row">
+            {PROOF.map((s, i) => (
+              <Reveal key={i} delay={i * 0.06} className="glass stat">
+                <span className="stat-n">{s.n}</span>
+                <span className="stat-k">{s.k}</span>
+              </Reveal>
+            ))}
+          </div>
           <div className="marquee">
             <div className="track">
               {Array.from({ length: 24 }).concat(Array.from({ length: 24 })).map((_, i) => (
@@ -343,18 +377,20 @@ function App() {
           </div>
         </section>
 
-        {/* CTA */}
+        {/* CTA — gold band */}
         <section className="wrap" data-scene="5">
-          <Reveal className="cta glass">
-            <h2 className="h2">See the System in Action</h2>
-            <p className="body" style={{ maxWidth: '52ch', margin: '0 auto 28px' }}>Sign in to view the live journal, methodology breakdowns, and performance reports — or create an account to get started.</p>
-            <button className="btn btn-gold big" onClick={goApp}>Sign In / Sign Up →</button>
+          <Reveal className="cta-band">
+            <span className="cta-kick">Start Today</span>
+            <h2>See the System in Action</h2>
+            <p>Sign in to view the live journal, methodology breakdowns, and performance reports — or start your free trial to get access.</p>
+            <button className="btn cta-btn" onClick={goApp}>Start Free Trial →</button>
+            <span className="cta-fine">7-day free trial · then $25/mo or $270/yr · cancel anytime</span>
           </Reveal>
         </section>
 
         {/* CONTACT + FOOTER */}
         <section id="contact" className="wrap" data-scene="5" style={{ textAlign: 'center' }}>
-          <Reveal>
+          <Reveal className="sec-head">
             <span className="kick">Get In Touch</span><h2 className="h2">Connect With LMR Capitals</h2>
             <p className="body">Follow along, join the community, or reach out directly.</p>
             <div className="socials">
@@ -514,6 +550,51 @@ a{color:var(--gold);text-decoration:none}
 .conv-stamp.on{opacity:1;transform:scale(1)}
 .conv-stamp span{display:inline-block;font-size:clamp(14px,1.6vw,20px);font-weight:800;letter-spacing:.22em;color:#0a0b0f;background:linear-gradient(120deg,var(--gold2),var(--gold));padding:12px 26px;border-radius:999px;box-shadow:0 14px 40px -12px rgba(245,166,35,.8)}
 @media(max-width:640px){.fm-k{font-size:11px}.fm-lbl{display:none}}
+/* ── cohesive lower-half redesign ─────────────────────────────────────────── */
+.sec-head{max-width:720px;margin:0 auto;text-align:center}
+.sec-head .kick{display:inline-block}
+.sec-head .body{margin:14px auto 0;max-width:58ch}
+/* before → after transformation */
+.ba{display:grid;grid-template-columns:1fr auto 1fr;gap:clamp(14px,2.4vw,30px);align-items:stretch;margin-top:36px}
+.ba-col{padding:clamp(24px,3vw,36px);border-radius:20px;background:var(--glass);border:1px solid var(--border);backdrop-filter:blur(18px)}
+.ba-col.before{border-color:rgba(240,112,90,.28)}
+.ba-col.after{border-color:rgba(245,166,35,.4);box-shadow:0 30px 80px -50px rgba(245,166,35,.5)}
+.ba-arrow{display:flex;align-items:center;justify-content:center;color:var(--gold);align-self:center}
+@media(max-width:760px){.ba{grid-template-columns:1fr}.ba-arrow{transform:rotate(90deg);padding:4px 0}}
+/* edges with check icon */
+.card.edge{gap:8px}
+.edge-ic{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:rgba(245,166,35,.14);color:var(--gold);margin-bottom:4px}
+/* feature lists with checks */
+.feat{list-style:none;padding:0}
+.feat li{display:flex;gap:10px;align-items:flex-start}
+.feat li .ck{color:var(--gold);flex:none;margin-top:3px}
+/* premium pricing cards */
+.price-card{padding:0;overflow:hidden;gap:0;display:flex;flex-direction:column;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.price-card:hover{transform:translateY(-6px);border-color:rgba(245,166,35,.5);box-shadow:0 44px 100px -50px rgba(245,166,35,.45)}
+.pc-top{padding:26px 26px 22px;background:linear-gradient(160deg,rgba(245,166,35,.12),rgba(20,30,50,.2));border-bottom:1px solid var(--border)}
+.pc-badge{display:inline-block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--gold2);background:rgba(245,166,35,.12);padding:5px 11px;border-radius:999px;margin-bottom:14px}
+.pc-tag{margin:6px 0 0;color:var(--text3);font-size:14px}
+.pc-price{display:flex;align-items:baseline;gap:8px;margin-top:16px}
+.pc-amt{font-size:38px;font-weight:800;color:var(--gold2);line-height:1}
+.pc-per{font-size:14px;color:var(--text3);font-weight:700}
+.price-card .shot{margin:22px 26px 0}
+.pc-desc{margin:18px 26px 0}
+.price-card .feat{margin:16px 26px 0;gap:9px;display:flex;flex-direction:column}
+.price-card .btn{margin:22px 26px 0}
+.price-card .fine{margin:12px 26px 26px}
+/* stat tiles */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:34px}
+.stat{padding:26px 22px;text-align:center;display:flex;flex-direction:column;gap:8px}
+.stat-n{font-size:clamp(22px,2.6vw,30px);font-weight:800;color:var(--gold2)}
+.stat-k{font-size:13.5px;color:var(--text2);line-height:1.5}
+/* CTA band */
+.cta-band{margin-top:10px;border-radius:28px;padding:clamp(40px,6vw,72px) clamp(24px,5vw,64px);text-align:center;background:linear-gradient(125deg,#b5811f,#d9ac3a 45%,#eccf6f);box-shadow:0 40px 110px -50px rgba(245,166,35,.7)}
+.cta-kick{display:inline-block;font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:800;color:#5a4410;margin-bottom:14px}
+.cta-band h2{color:#161208;font-size:clamp(26px,3.6vw,44px);margin:0 0 14px;font-weight:800}
+.cta-band p{color:#4a3a12;font-size:clamp(14px,1.3vw,17px);line-height:1.6;max-width:56ch;margin:0 auto 28px}
+.cta-btn{background:#151006;color:var(--gold2);padding:16px 32px;font-size:16px}
+.cta-btn:hover{background:#0a0b0f}
+.cta-fine{display:block;margin-top:18px;font-size:13px;color:#5a4410;font-weight:600}
 /* indicators */
 .ind{gap:14px}
 .shot{aspect-ratio:16/10;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
