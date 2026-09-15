@@ -456,12 +456,12 @@ function App() {
             {INDICATORS.map((ind, i) => (
               <Reveal key={i} delay={i * 0.08} className="glass price-card tilt3d">
                 <div className="pc-top">
+                  <span className="pc-num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
                   <span className="pc-badge">Pine Script v6 · TradingView</span>
-                  <h3 className="h3">{ind.name}</h3>
+                  <h3 className="pc-name">{ind.name}</h3>
                   <p className="pc-tag">{ind.tagline}</p>
                   <div className="pc-price"><span className="pc-amt">$40</span><span className="pc-per">/ month</span></div>
                 </div>
-                <div className="shot live"><MarketChart variant={i === 0 ? 'ict' : 'amd'} /><span className="live-dot">LIVE</span></div>
                 <p className="body sm pc-desc">{ind.desc}</p>
                 <ul className="feat">{ind.features.map((f, j) => <li key={j}><Check /><span>{f}</span></li>)}</ul>
                 <a className="btn btn-gold block" href={ind.mailto}>Get Access — $40/mo →</a>
@@ -471,27 +471,20 @@ function App() {
           </div>
         </section>
 
-        {/* TRACK RECORD — proof tiles + marquee */}
+        {/* TRACK RECORD — institutional trust tiles (type only) */}
         <section className="wrap" data-scene="5">
           <Reveal className="sec-head">
-            <span className="kick">Proven Track Record</span>
+            <span className="kick">How We Operate</span>
             <h2 className="h2">Documented, Not Cherry-Picked</h2>
-            <p className="body">Real results from the LMR Capitals methodology — funded challenges and payouts, logged transparently, wins and losses alike.</p>
+            <p className="body">Every result LMR Capitals shows is drawn from one transparent ledger — the same journal the methodology runs on, wins and losses alike.</p>
           </Reveal>
           <div className="stat-row">
             {PROOF.map((s, i) => (
-              <Reveal key={i} delay={i * 0.06} className="glass stat">
+              <Reveal key={i} delay={i * 0.06} className="glass stat tilt3d">
                 <span className="stat-n">{s.n}</span>
                 <span className="stat-k">{s.k}</span>
               </Reveal>
             ))}
-          </div>
-          <div className="marquee">
-            <div className="track">
-              {Array.from({ length: 24 }).concat(Array.from({ length: 24 })).map((_, i) => (
-                <figure key={i} className="cert grayscale"><Placeholder label="Funded pass / payout" /></figure>
-              ))}
-            </div>
           </div>
         </section>
 
@@ -695,7 +688,9 @@ a{color:var(--gold);text-decoration:none}
 .live-dot{position:absolute;top:9px;left:10px;font-size:9px;font-weight:800;letter-spacing:.14em;color:#25c9a8;display:flex;align-items:center;gap:5px}
 .live-dot:before{content:'';width:6px;height:6px;border-radius:50%;background:#25c9a8;box-shadow:0 0 8px #25c9a8;animation:pulse 1.4s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.pc-top{padding:26px 26px 22px;background:linear-gradient(160deg,rgba(245,166,35,.12),rgba(20,30,50,.2));border-bottom:1px solid var(--border)}
+.pc-top{position:relative;overflow:hidden;padding:30px 28px 24px;background:linear-gradient(160deg,rgba(245,166,35,.12),rgba(20,30,50,.2));border-bottom:1px solid var(--border)}
+.pc-num{position:absolute;top:10px;right:22px;font-size:96px;font-weight:800;line-height:1;color:rgba(245,166,35,.09);letter-spacing:-.04em;pointer-events:none}
+.pc-name{font-size:clamp(24px,2.7vw,34px);font-weight:800;margin:0;letter-spacing:-.02em;line-height:1.05}
 .pc-badge{display:inline-block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--gold2);background:rgba(245,166,35,.12);padding:5px 11px;border-radius:999px;margin-bottom:14px}
 .pc-tag{margin:6px 0 0;color:var(--text3);font-size:14px}
 .pc-price{display:flex;align-items:baseline;gap:8px;margin-top:16px}
