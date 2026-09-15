@@ -9,6 +9,7 @@ import { createRoot } from 'react-dom/client';
 import { createScene } from './scene-3d.js';
 import { createDeskScene } from './desk-scene.js';
 import { createTransformScene } from './transform-scene.js';
+import { createNotebookScene } from './notebook-scene.js';
 
 const goApp = () => { window.location.href = '/'; };
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
@@ -48,6 +49,13 @@ const STAGES = [
 const BEFORE = ['Hesitation before every entry', 'Self-doubt after every stop-out', 'Discipline that has to be forced', 'Reacting to headlines and noise', '"Am I right about this?"'];
 const AFTER = ['Alignment across every timeframe', 'Thesis stays intact through the drawdown', 'Patience has a reason, not just willpower', 'Anchored to structure, not sentiment', '"Is the chain confirming?"'];
 const CHAOS_WORDS = ['Hesitation', 'Self-doubt', 'Overtrading', 'Revenge trades', 'FOMO', 'No plan', 'Chasing noise', 'Forced entries'];
+const PLAYBOOK = [
+  'Wait for the chain. No confirmation, no trade.',
+  'Trade the plan — never the feeling.',
+  'Log every trade, and the emotion behind it.',
+  'When the chain breaks, exit. No story.',
+  'Review, don’t react. Repeat what works.',
+];
 const SHIFTS = [
   { n: '01', k: 'Organization', c: 'Every trade has a place — logged, tagged, and reviewed. The screen stops being noise and becomes a system you can read.' },
   { n: '02', k: 'Discipline', c: 'Patience stops being willpower. When the chain hasn’t confirmed, there is simply nothing to do — and that’s the edge.' },
@@ -231,6 +239,7 @@ function App() {
   const deskCanvasRef = useRef(null);
   const convRef = useRef(null);
   const transformCanvasRef = useRef(null);
+  const bookCanvasRef = useRef(null);
   const [activeStage, setActiveStage] = useState(0);
   const [mp, setMp] = useState(0);          // #method scroll progress 0..1
   const [convP, setConvP] = useState(0);    // conviction scroll progress 0..1
@@ -248,6 +257,8 @@ function App() {
     try { desk = createDeskScene(deskCanvasRef.current); } catch (e) { desk = null; }
     let transform = null;
     try { transform = createTransformScene(transformCanvasRef.current, { words: CHAOS_WORDS }); } catch (e) { transform = null; }
+    let book = null;
+    try { book = createNotebookScene(bookCanvasRef.current, { title: 'THE PLAYBOOK', subtitle: 'What the chain asks of you.', keys: PLAYBOOK }); } catch (e) { book = null; }
 
     const calc = (el) => { if (!el) return 0; const vh = innerHeight; const r = el.getBoundingClientRect(); const total = r.height - vh; return total <= 0 ? (r.top < 0 ? 1 : 0) : clamp01(-r.top / total); };
     const onScroll = () => {
@@ -265,7 +276,8 @@ function App() {
       setActiveStage(Math.max(0, Math.min(STAGES.length - 1, Math.floor(inside * STAGES.length - 1e-6))));
       const cvp = calc(convRef.current);
       setConvP(cvp);
-      transform && transform.setProgress(clamp01(cvp / 0.36)); // reach the connected finale by 0.36, then hold
+      transform && transform.setProgress(clamp01(cvp / 0.17));                 // cards connect by 0.17, then hold
+      book && book.setProgress(clamp01((cvp - 0.36) / (0.58 - 0.36)));         // playbook writes over 0.36 → 0.58
     };
     const onResize = () => { if (desk && desk.getScreenRect) { const r = desk.getScreenRect(); if (r && r.w > 0) setScreenRect(r); } };
     addEventListener('resize', onResize);
@@ -287,7 +299,7 @@ function App() {
     }, { threshold: 0.4 });
     secs.forEach((s) => io.observe(s));
 
-    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); removeEventListener('resize', onResize); clearTimeout(t0); clearTimeout(t1); io.disconnect(); if (scene) scene.dispose(); if (desk) desk.dispose(); if (transform) transform.dispose(); };
+    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); removeEventListener('resize', onResize); clearTimeout(t0); clearTimeout(t1); io.disconnect(); if (scene) scene.dispose(); if (desk) desk.dispose(); if (transform) transform.dispose(); if (book) book.dispose(); };
   }, []);
 
   // 3D mouse-tilt on cards marked .tilt3d
@@ -313,13 +325,14 @@ function App() {
   const connPos = R ? { left: R.x + R.w * 0.26, top: R.y + R.h * 0.30, width: R.w * 0.32, height: R.h * 0.24 } : null;
   const finalePos = R ? { left: R.x + R.w * 0.5, top: R.y + R.h * 0.07, transform: 'translateX(-50%)' } : null;
   // conviction "transformation" act timing
-  const cvHead = 1 - smooth(0.22, 0.30, convP);                                  // phase A intro copy
-  const cvChaos = 1 - smooth(0.42, 0.52, convP);                                 // phase A scene (holds the connected finale, then fades)
-  const cvSplit = smooth(0.46, 0.54, convP) * (1 - smooth(0.66, 0.72, convP));   // phase B
-  const cvSplitP = clamp01((convP - 0.46) / (0.66 - 0.46));
-  const cvShifts = smooth(0.70, 0.76, convP) * (1 - smooth(0.92, 0.96, convP));  // phase C
-  const cvShiftIdx = Math.max(0, Math.min(SHIFTS.length - 1, Math.floor(clamp01((convP - 0.70) / (0.92 - 0.70)) * SHIFTS.length - 1e-6)));
-  const cvClose = smooth(0.93, 0.99, convP);                                     // closing
+  const cvHead = 1 - smooth(0.14, 0.20, convP);                                  // A: intro copy over the chaos
+  const cvChaos = 1 - smooth(0.26, 0.34, convP);                                 // A: 3D chain-cards (connect, hold, fade)
+  const cvBook = smooth(0.30, 0.38, convP) * (1 - smooth(0.58, 0.64, convP));    // Act 2: the notebook / playbook
+  const cvSplit = smooth(0.60, 0.66, convP) * (1 - smooth(0.78, 0.83, convP));   // B: the rewiring
+  const cvSplitP = clamp01((convP - 0.60) / (0.78 - 0.60));
+  const cvShifts = smooth(0.82, 0.87, convP) * (1 - smooth(0.94, 0.965, convP)); // C: the four shifts
+  const cvShiftIdx = Math.max(0, Math.min(SHIFTS.length - 1, Math.floor(clamp01((convP - 0.82) / (0.94 - 0.82)) * SHIFTS.length - 1e-6)));
+  const cvClose = smooth(0.95, 0.99, convP);                                     // closing
 
   const S = 'clamp(20px,5vw,72px)';
   return (
@@ -427,6 +440,9 @@ function App() {
               <h2 className="h2">The Chain Doesn't Just Predict the Market.<br />It <span className="gold">Rewires the Trader</span>.</h2>
               <p className="body" style={{ maxWidth: '46ch', margin: '14px auto 0' }}>Before the chain, the screen is noise. Watch it reorganize.</p>
             </div>
+
+            {/* Act 2 — the notebook: the playbook writes itself onto the page */}
+            <canvas ref={bookCanvasRef} className="tf-canvas tf-book" style={{ opacity: cvBook }} />
 
             {/* Phase B — before → after transformation */}
             <div className="tf-split" style={{ opacity: cvSplit, pointerEvents: 'none' }}>
@@ -681,7 +697,7 @@ a{color:var(--gold);text-decoration:none}
 .conv-stamp span{display:inline-block;font-size:clamp(14px,1.6vw,20px);font-weight:800;letter-spacing:.22em;color:#0a0b0f;background:linear-gradient(120deg,var(--gold2),var(--gold));padding:12px 26px;border-radius:999px;box-shadow:0 14px 40px -12px rgba(245,166,35,.8)}
 @media(max-width:640px){.fm-k{font-size:11px}.fm-lbl{display:none}}
 /* ── CONVICTION — cinematic "Transformation" act ──────────────────────────── */
-.tf-sec{position:relative;height:560vh}
+.tf-sec{position:relative;height:780vh}
 .tf-sticky{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .tf-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:1;display:block}
 /* phase A — intro copy over the canvas */
