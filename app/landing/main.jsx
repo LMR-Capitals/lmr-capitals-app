@@ -73,6 +73,111 @@ function Check() {
   return (<svg className="ck" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>);
 }
 
+/* Realistic animated candlestick chart with LMR indicator overlays.
+   variant 'ict'  → session boxes, level lines, equilibrium, live BIAS panel.
+   variant 'amd'  → Accumulation / Manipulation / Distribution phase blocks. */
+function MarketChart({ variant = 'ict' }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const canvas = ref.current; if (!canvas) return;
+    const ctx = canvas.getContext('2d'); if (!ctx) return;
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+    const N = 46;
+    let seed = variant === 'ict' ? 20240137 : 90247711;
+    const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+    // build a believable up-biased random walk (AMD variant dips then rallies)
+    const candles = []; let price = 100;
+    for (let i = 0; i < N; i++) {
+      let bias = 0.06;
+      if (variant === 'amd') bias = i < N * 0.32 ? 0.02 : i < N * 0.5 ? -0.34 : 0.4; // accum, manip (dip), distrib (rally)
+      const drift = (rnd() - 0.5 + bias) * 1.7;
+      const o = price, c = Math.max(60, o + drift);
+      const hi = Math.max(o, c) + rnd() * 1.2, lo = Math.min(o, c) - rnd() * 1.2;
+      candles.push({ o, c, hi, lo }); price = c;
+    }
+    const lo = Math.min(...candles.map(c => c.lo)), hi = Math.max(...candles.map(c => c.hi));
+    let raf = 0, disposed = false, started = false, t0 = 0;
+    function resize() { const w = canvas.clientWidth || 560, h = canvas.clientHeight || 340; canvas.width = w * DPR; canvas.height = h * DPR; ctx.setTransform(DPR, 0, 0, DPR, 0, 0); }
+    resize();
+    const io = new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting && !started) { started = true; t0 = performance.now(); } }), { threshold: 0.2 });
+    io.observe(canvas);
+    const GREEN = '#25c9a8', RED = '#f0705a', GOLD = '#F5A623', GRID = 'rgba(120,140,180,.08)';
+    function draw(now) {
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      ctx.clearRect(0, 0, w, h);
+      const padX = 12, padTop = 16, padBot = 16, chartH = h - padTop - padBot;
+      const yOf = v => padTop + (hi - v) / (hi - lo) * chartH;
+      const step = (w - padX * 2) / N, bw = Math.max(2, step * 0.56);
+      // grid
+      ctx.strokeStyle = GRID; ctx.lineWidth = 1;
+      for (let g = 0; g <= 4; g++) { const y = padTop + (chartH / 4) * g; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+      const t = (now - t0) / 1000;
+      const prog = started ? Math.min(1, (now - t0) / 1700) : 0;
+      const shown = Math.floor(prog * N);
+      // ── overlays behind candles ──
+      if (variant === 'ict') {
+        // session bands
+        const bands = [[0.14, 0.30, 'LONDON'], [0.52, 0.74, 'NEW YORK']];
+        bands.forEach(([a, b, lbl], k) => {
+          const x1 = padX + a * (w - padX * 2), x2 = padX + b * (w - padX * 2);
+          ctx.fillStyle = k ? 'rgba(245,166,35,.07)' : 'rgba(58,107,255,.08)';
+          ctx.fillRect(x1, padTop, x2 - x1, chartH);
+          ctx.fillStyle = k ? 'rgba(245,166,35,.6)' : 'rgba(120,150,230,.7)';
+          ctx.font = '700 9px Archivo, sans-serif'; ctx.fillText(lbl, x1 + 4, padTop + 11);
+        });
+        // level lines (prev high / low) + equilibrium
+        ctx.setLineDash([4, 4]); ctx.lineWidth = 1;
+        [[hi - (hi - lo) * 0.12, 'rgba(240,112,90,.5)'], [lo + (hi - lo) * 0.12, 'rgba(37,201,168,.5)'], [(hi + lo) / 2, 'rgba(245,166,35,.45)']].forEach(([v, col]) => {
+          ctx.strokeStyle = col; ctx.beginPath(); ctx.moveTo(0, yOf(v)); ctx.lineTo(w, yOf(v)); ctx.stroke();
+        });
+        ctx.setLineDash([]);
+      } else {
+        const zones = [[0, 0.32, 'rgba(120,140,180,.08)', 'ACCUMULATION', 'rgba(160,180,210,.75)'], [0.32, 0.5, 'rgba(240,112,90,.10)', 'MANIPULATION', 'rgba(240,112,90,.8)'], [0.5, 1, 'rgba(37,201,168,.10)', 'DISTRIBUTION', 'rgba(37,201,168,.85)']];
+        zones.forEach(([a, b, col, lbl, tc]) => {
+          const x1 = padX + a * (w - padX * 2), x2 = padX + b * (w - padX * 2);
+          ctx.fillStyle = col; ctx.fillRect(x1, padTop, x2 - x1, chartH);
+          ctx.fillStyle = tc; ctx.font = '700 9px Archivo, sans-serif'; ctx.fillText(lbl, x1 + 5, padTop + 12);
+        });
+      }
+      // ── candles ──
+      for (let i = 0; i < N && i <= shown; i++) {
+        const c = candles[i]; const x = padX + i * step + step / 2; const up = c.c >= c.o;
+        let cc = c.c;
+        if (i === shown && i === N - 1) cc = c.o + (c.c - c.o) * (0.6 + 0.4 * Math.sin(t * 3)); // live flicker
+        ctx.strokeStyle = up ? GREEN : RED; ctx.fillStyle = up ? GREEN : RED; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(x, yOf(c.hi)); ctx.lineTo(x, yOf(c.lo)); ctx.stroke();
+        const yO = yOf(c.o), yC = yOf(cc); const top = Math.min(yO, yC), bh = Math.max(1.5, Math.abs(yC - yO));
+        ctx.fillRect(x - bw / 2, top, bw, bh);
+      }
+      // last price line + tag
+      if (shown >= 1) {
+        const last = candles[Math.min(shown, N - 1)]; const y = yOf(last.c);
+        ctx.strokeStyle = 'rgba(245,166,35,.55)'; ctx.setLineDash([2, 3]); ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); ctx.setLineDash([]);
+      }
+      // panel chip
+      ctx.fillStyle = 'rgba(8,12,20,.72)';
+      const pw = variant === 'ict' ? 96 : 104, ph = 30, px = w - pw - 8, py = 8;
+      roundRect(ctx, px, py, pw, ph, 6); ctx.fill();
+      ctx.strokeStyle = 'rgba(245,166,35,.35)'; ctx.lineWidth = 1; roundRect(ctx, px, py, pw, ph, 6); ctx.stroke();
+      if (variant === 'ict') {
+        ctx.fillStyle = 'rgba(174,185,204,.75)'; ctx.font = '700 8px Archivo, sans-serif'; ctx.fillText('BIAS', px + 8, py + 12);
+        ctx.fillStyle = GREEN; ctx.font = '800 12px Archivo, sans-serif'; ctx.fillText('▲ BULLISH', px + 8, py + 24);
+      } else {
+        const phase = shown < N * 0.32 ? ['ACCUM', 'rgba(174,185,204,.85)'] : shown < N * 0.5 ? ['MANIPULATION', RED] : ['DISTRIBUTION', GREEN];
+        ctx.fillStyle = 'rgba(174,185,204,.75)'; ctx.font = '700 8px Archivo, sans-serif'; ctx.fillText('PHASE', px + 8, py + 12);
+        ctx.fillStyle = phase[1]; ctx.font = '800 11px Archivo, sans-serif'; ctx.fillText(phase[0], px + 8, py + 24);
+      }
+      raf = requestAnimationFrame(draw);
+    }
+    raf = requestAnimationFrame(draw);
+    const onR = () => resize(); window.addEventListener('resize', onR);
+    return () => { disposed = true; cancelAnimationFrame(raf); io.disconnect(); window.removeEventListener('resize', onR); };
+  }, [variant]);
+  return <canvas ref={ref} className="mchart" />;
+}
+function roundRect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+
 /* ── "Five Markets Align → Conviction" — the new model for the Conviction act ─ */
 const MARKETS = [
   { k: 'NQ', a0: -46 }, { k: 'ES', a0: 30 }, { k: 'YM', a0: -20 }, { k: 'DXY', a0: 54 }, { k: 'GOLD', a0: -36 },
@@ -172,6 +277,19 @@ function App() {
     return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); removeEventListener('resize', onResize); clearTimeout(t0); clearTimeout(t1); io.disconnect(); if (scene) scene.dispose(); if (desk) desk.dispose(); };
   }, []);
 
+  // 3D mouse-tilt on cards marked .tilt3d
+  useEffect(() => {
+    const cards = Array.from(document.querySelectorAll('.tilt3d'));
+    const onMove = (e) => {
+      const c = e.currentTarget; const r = c.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - 0.5, py = (e.clientY - r.top) / r.height - 0.5;
+      c.style.transform = `perspective(900px) rotateX(${(-py * 6).toFixed(2)}deg) rotateY(${(px * 7).toFixed(2)}deg) translateY(-6px)`;
+    };
+    const onLeave = (e) => { e.currentTarget.style.transform = ''; };
+    cards.forEach((c) => { c.addEventListener('mousemove', onMove); c.addEventListener('mouseleave', onLeave); });
+    return () => cards.forEach((c) => { c.removeEventListener('mousemove', onMove); c.removeEventListener('mouseleave', onLeave); });
+  }, []);
+
   // overlay copy timing, synced to the camera choreography
   const introOpacity = 1 - smooth(0.04, 0.13, mp);                       // fades as we fly in
   const insideOpacity = smooth(0.15, 0.20, mp) * (1 - smooth(0.88, 0.95, mp)); // in across the journey
@@ -225,7 +343,7 @@ function App() {
           <div className="grid3">
             {PILLARS.map((p, i) => (
               <Reveal key={i} delay={i * 0.08}>
-                <button className="glass card tilt" onClick={() => setCard(p)}>
+                <button className="glass card tilt tilt3d" onClick={() => setCard(p)}>
                   <span className="cnum">{p.num}</span>
                   <h3 className="h3">{p.title}</h3>
                   <p className="body sm">{p.copy}</p>
@@ -314,7 +432,7 @@ function App() {
           </div>
           <div className="grid3" style={{ marginTop: 28 }}>
             {EDGES.map((e, i) => (
-              <Reveal key={i} delay={i * 0.08} className="glass card edge">
+              <Reveal key={i} delay={i * 0.08} className="glass card edge tilt3d">
                 <span className="edge-ic"><Check /></span>
                 <h3 className="h3 sm">{e.t}</h3>
                 <p className="body sm">{e.c}</p>
@@ -336,14 +454,14 @@ function App() {
           </Reveal>
           <div className="grid2">
             {INDICATORS.map((ind, i) => (
-              <Reveal key={i} delay={i * 0.08} className="glass price-card">
+              <Reveal key={i} delay={i * 0.08} className="glass price-card tilt3d">
                 <div className="pc-top">
                   <span className="pc-badge">Pine Script v6 · TradingView</span>
                   <h3 className="h3">{ind.name}</h3>
                   <p className="pc-tag">{ind.tagline}</p>
                   <div className="pc-price"><span className="pc-amt">$40</span><span className="pc-per">/ month</span></div>
                 </div>
-                <div className="shot"><Placeholder label={ind.name + ' — TradingView screenshot'} /></div>
+                <div className="shot live"><MarketChart variant={i === 0 ? 'ict' : 'amd'} /><span className="live-dot">LIVE</span></div>
                 <p className="body sm pc-desc">{ind.desc}</p>
                 <ul className="feat">{ind.features.map((f, j) => <li key={j}><Check /><span>{f}</span></li>)}</ul>
                 <a className="btn btn-gold block" href={ind.mailto}>Get Access — $40/mo →</a>
@@ -570,7 +688,13 @@ a{color:var(--gold);text-decoration:none}
 .feat li .ck{color:var(--gold);flex:none;margin-top:3px}
 /* premium pricing cards */
 .price-card{padding:0;overflow:hidden;gap:0;display:flex;flex-direction:column;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
-.price-card:hover{transform:translateY(-6px);border-color:rgba(245,166,35,.5);box-shadow:0 44px 100px -50px rgba(245,166,35,.45)}
+.price-card{transform-style:preserve-3d;will-change:transform;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.price-card:hover{border-color:rgba(245,166,35,.5);box-shadow:0 44px 100px -50px rgba(245,166,35,.45)}
+.mchart{width:100%;height:100%;display:block;background:radial-gradient(120% 90% at 50% 0%,#0a1120,#03060c)}
+.shot.live{position:relative}
+.live-dot{position:absolute;top:9px;left:10px;font-size:9px;font-weight:800;letter-spacing:.14em;color:#25c9a8;display:flex;align-items:center;gap:5px}
+.live-dot:before{content:'';width:6px;height:6px;border-radius:50%;background:#25c9a8;box-shadow:0 0 8px #25c9a8;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .pc-top{padding:26px 26px 22px;background:linear-gradient(160deg,rgba(245,166,35,.12),rgba(20,30,50,.2));border-bottom:1px solid var(--border)}
 .pc-badge{display:inline-block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--gold2);background:rgba(245,166,35,.12);padding:5px 11px;border-radius:999px;margin-bottom:14px}
 .pc-tag{margin:6px 0 0;color:var(--text3);font-size:14px}
