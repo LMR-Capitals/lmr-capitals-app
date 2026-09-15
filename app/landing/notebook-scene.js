@@ -130,10 +130,12 @@ export function createNotebookScene(canvas, opts = {}) {
   }
 
   let lastDraw = -1;
+  let writeFront = null; // {cx, cy} in canvas coords of the active writing tip, or null
   function drawPage(writeF) {
     // writeF: 0..keys.length continuous (how many keys written)
     const q = Math.round(writeF * 100);
     if (q === lastDraw) return; lastDraw = q; // avoid needless redraws
+    writeFront = null;
     drawStatic();
     for (let i = 0; i < keys.length; i++) {
       const y = KEY_Y0 + i * KEY_DY;
@@ -162,6 +164,7 @@ export function createNotebookScene(canvas, opts = {}) {
         pctx.save(); pctx.globalAlpha = 0.9; pctx.fillStyle = '#f5a623';
         pctx.shadowColor = '#f5a623'; pctx.shadowBlur = 18;
         pctx.beginPath(); pctx.arc(gx, y - 12, 5, 0, Math.PI * 2); pctx.fill(); pctx.restore();
+        writeFront = { cx: gx, cy: y - 12 };           // hand the pen tip its target
       }
     }
     pageTex.needsUpdate = true;
@@ -190,6 +193,15 @@ export function createNotebookScene(canvas, opts = {}) {
     root.position.y = -0.02 + Math.sin(t * 0.5) * 0.006;
     lamp.intensity = 14 + Math.sin(t * 1.4) * 1.2;
     drawPage(p * keys.length);
+    // drive the pen: tip follows the writing front, else eases back to rest
+    let tx, ty;
+    if (writeFront) {
+      tx = (writeFront.cx / CW - 0.5) * PW - 0.93;   // subtract the rotated tip offset
+      ty = (0.5 - writeFront.cy / CH) * PH + 0.42;
+    } else { tx = PW / 2 - 0.55; ty = -PH / 2 + 0.62; }
+    pen.position.x += (tx - pen.position.x) * 0.2;
+    pen.position.y += (ty - pen.position.y) * 0.2;
+    pen.position.z = 0.12;
     renderer.render(scene, camera);
     if (!disposed && inView && !document.hidden) raf = requestAnimationFrame(frame);
   }
