@@ -297,7 +297,7 @@ export function createDeskScene(canvas) {
 // a circular cross-section. Two straight sides + two semicircular caps — the
 // classic elongated link, not an O-ring. a = straight half-length, b = cap
 // radius, t = iron thickness.
-class LinkCurve extends THREE.Curve {
+export class LinkCurve extends THREE.Curve {
   constructor(a, b) { super(); this.a = a; this.b = b; this.total = 4 * a + 2 * Math.PI * b; }
   getPoint(u, target = new THREE.Vector3()) {
     const { a, b, total } = this;
@@ -311,7 +311,7 @@ class LinkCurve extends THREE.Curve {
     return target.set(x, y, 0);
   }
 }
-function makeLinkGeometry(a, b, t) {
+export function makeLinkGeometry(a, b, t) {
   return new THREE.TubeGeometry(new LinkCurve(a, b), 150, t, 14, true);
 }
 

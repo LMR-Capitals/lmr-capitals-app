@@ -265,7 +265,7 @@ function App() {
       setActiveStage(Math.max(0, Math.min(STAGES.length - 1, Math.floor(inside * STAGES.length - 1e-6))));
       const cvp = calc(convRef.current);
       setConvP(cvp);
-      transform && transform.setProgress(clamp01(cvp / 0.40));
+      transform && transform.setProgress(clamp01(cvp / 0.36)); // reach the connected finale by 0.36, then hold
     };
     const onResize = () => { if (desk && desk.getScreenRect) { const r = desk.getScreenRect(); if (r && r.w > 0) setScreenRect(r); } };
     addEventListener('resize', onResize);
@@ -314,9 +314,9 @@ function App() {
   const finalePos = R ? { left: R.x + R.w * 0.5, top: R.y + R.h * 0.07, transform: 'translateX(-50%)' } : null;
   // conviction "transformation" act timing
   const cvHead = 1 - smooth(0.22, 0.30, convP);                                  // phase A intro copy
-  const cvChaos = 1 - smooth(0.40, 0.50, convP);                                 // phase A canvas
-  const cvSplit = smooth(0.42, 0.50, convP) * (1 - smooth(0.64, 0.70, convP));   // phase B
-  const cvSplitP = clamp01((convP - 0.42) / (0.64 - 0.42));
+  const cvChaos = 1 - smooth(0.42, 0.52, convP);                                 // phase A scene (holds the connected finale, then fades)
+  const cvSplit = smooth(0.46, 0.54, convP) * (1 - smooth(0.66, 0.72, convP));   // phase B
+  const cvSplitP = clamp01((convP - 0.46) / (0.66 - 0.46));
   const cvShifts = smooth(0.70, 0.76, convP) * (1 - smooth(0.92, 0.96, convP));  // phase C
   const cvShiftIdx = Math.max(0, Math.min(SHIFTS.length - 1, Math.floor(clamp01((convP - 0.70) / (0.92 - 0.70)) * SHIFTS.length - 1e-6)));
   const cvClose = smooth(0.93, 0.99, convP);                                     // closing
