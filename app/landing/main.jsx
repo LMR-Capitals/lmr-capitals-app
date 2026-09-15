@@ -8,6 +8,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createScene } from './scene-3d.js';
 import { createDeskScene } from './desk-scene.js';
+import { createTransformScene } from './transform-scene.js';
 
 const goApp = () => { window.location.href = '/'; };
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
@@ -46,6 +47,13 @@ const STAGES = [
 ];
 const BEFORE = ['Hesitation before every entry', 'Self-doubt after every stop-out', 'Discipline that has to be forced', 'Reacting to headlines and noise', '"Am I right about this?"'];
 const AFTER = ['Alignment across every timeframe', 'Thesis stays intact through the drawdown', 'Patience has a reason, not just willpower', 'Anchored to structure, not sentiment', '"Is the chain confirming?"'];
+const CHAOS_WORDS = ['Hesitation', 'Self-doubt', 'Overtrading', 'Revenge trades', 'FOMO', 'No plan', 'Chasing noise', 'Forced entries'];
+const SHIFTS = [
+  { n: '01', k: 'Organization', c: 'Every trade has a place — logged, tagged, and reviewed. The screen stops being noise and becomes a system you can read.' },
+  { n: '02', k: 'Discipline', c: 'Patience stops being willpower. When the chain hasn’t confirmed, there is simply nothing to do — and that’s the edge.' },
+  { n: '03', k: 'Psychology', c: 'The thesis holds through the drawdown because it isn’t a feeling — it’s five markets you can point to. Fear loses its grip.' },
+  { n: '04', k: 'Purpose', c: 'You stop guessing and start executing a process. Every session has a reason, a plan, and a review. You trade a system, not a mood.' },
+];
 const EDGES = [
   { t: 'Leading, Not Lagging', c: "The chain confirms direction across markets before price commits — you're positioned ahead of the move, not reacting to it." },
   { t: 'Confluence Over Opinion', c: 'One market never decides a trade. Five markets agreeing removes opinion from the equation entirely.' },
@@ -222,6 +230,7 @@ function App() {
   const chainSecRef = useRef(null);
   const deskCanvasRef = useRef(null);
   const convRef = useRef(null);
+  const transformCanvasRef = useRef(null);
   const [activeStage, setActiveStage] = useState(0);
   const [mp, setMp] = useState(0);          // #method scroll progress 0..1
   const [convP, setConvP] = useState(0);    // conviction scroll progress 0..1
@@ -237,6 +246,8 @@ function App() {
     // assembles "inside" it; then it pulls back out onto the desk.
     let desk = null;
     try { desk = createDeskScene(deskCanvasRef.current); } catch (e) { desk = null; }
+    let transform = null;
+    try { transform = createTransformScene(transformCanvasRef.current, { words: CHAOS_WORDS }); } catch (e) { transform = null; }
 
     const calc = (el) => { if (!el) return 0; const vh = innerHeight; const r = el.getBoundingClientRect(); const total = r.height - vh; return total <= 0 ? (r.top < 0 ? 1 : 0) : clamp01(-r.top / total); };
     const onScroll = () => {
@@ -252,7 +263,9 @@ function App() {
       // the 7-stage in-monitor journey runs across 0.16 → 0.86
       const inside = clamp01((cp - 0.16) / (0.86 - 0.16));
       setActiveStage(Math.max(0, Math.min(STAGES.length - 1, Math.floor(inside * STAGES.length - 1e-6))));
-      setConvP(calc(convRef.current));
+      const cvp = calc(convRef.current);
+      setConvP(cvp);
+      transform && transform.setProgress(clamp01(cvp / 0.40));
     };
     const onResize = () => { if (desk && desk.getScreenRect) { const r = desk.getScreenRect(); if (r && r.w > 0) setScreenRect(r); } };
     addEventListener('resize', onResize);
@@ -274,7 +287,7 @@ function App() {
     }, { threshold: 0.4 });
     secs.forEach((s) => io.observe(s));
 
-    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); removeEventListener('resize', onResize); clearTimeout(t0); clearTimeout(t1); io.disconnect(); if (scene) scene.dispose(); if (desk) desk.dispose(); };
+    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); removeEventListener('resize', onResize); clearTimeout(t0); clearTimeout(t1); io.disconnect(); if (scene) scene.dispose(); if (desk) desk.dispose(); if (transform) transform.dispose(); };
   }, []);
 
   // 3D mouse-tilt on cards marked .tilt3d
@@ -299,6 +312,14 @@ function App() {
   const copyPos = R ? { left: R.x + R.w * 0.05, top: R.y + R.h * 0.52, width: R.w * 0.34, transform: 'translateY(-50%)' } : null;
   const connPos = R ? { left: R.x + R.w * 0.26, top: R.y + R.h * 0.30, width: R.w * 0.32, height: R.h * 0.24 } : null;
   const finalePos = R ? { left: R.x + R.w * 0.5, top: R.y + R.h * 0.07, transform: 'translateX(-50%)' } : null;
+  // conviction "transformation" act timing
+  const cvHead = 1 - smooth(0.22, 0.30, convP);                                  // phase A intro copy
+  const cvChaos = 1 - smooth(0.40, 0.50, convP);                                 // phase A canvas
+  const cvSplit = smooth(0.42, 0.50, convP) * (1 - smooth(0.64, 0.70, convP));   // phase B
+  const cvSplitP = clamp01((convP - 0.42) / (0.64 - 0.42));
+  const cvShifts = smooth(0.70, 0.76, convP) * (1 - smooth(0.92, 0.96, convP));  // phase C
+  const cvShiftIdx = Math.max(0, Math.min(SHIFTS.length - 1, Math.floor(clamp01((convP - 0.70) / (0.92 - 0.70)) * SHIFTS.length - 1e-6)));
+  const cvClose = smooth(0.93, 0.99, convP);                                     // closing
 
   const S = 'clamp(20px,5vw,72px)';
   return (
@@ -396,53 +417,51 @@ function App() {
           </div>
         </section>
 
-        {/* CONVICTION — new model: five markets align → conviction (scroll-driven) */}
-        <section ref={convRef} className="conv-sec" data-scene="4">
-          <div className="conv-sticky">
-            <div className="conv-head">
+        {/* CONVICTION — cinematic "Transformation" act (chaos→order, split, four shifts) */}
+        <section ref={convRef} className="tf-sec" data-scene="4">
+          <div className="tf-sticky">
+            {/* Phase A — chaos → order metamorphosis (canvas) */}
+            <canvas ref={transformCanvasRef} className="tf-canvas" style={{ opacity: cvChaos }} />
+            <div className="tf-head" style={{ opacity: cvHead, pointerEvents: 'none' }}>
               <span className="kick">From Analysis to Conviction</span>
               <h2 className="h2">The Chain Doesn't Just Predict the Market.<br />It <span className="gold">Rewires the Trader</span>.</h2>
-              <p className="body" style={{ maxWidth: '52ch', margin: '14px auto 0' }}>Five markets confirming one direction isn't a signal — it's permission to act without doubt.</p>
+              <p className="body" style={{ maxWidth: '46ch', margin: '14px auto 0' }}>Before the chain, the screen is noise. Watch it reorganize.</p>
             </div>
-            <FiveMarkets align={smooth(0.06, 0.74, convP)} />
-            <div className={'conv-stamp' + (smooth(0.06, 0.74, convP) > 0.99 ? ' on' : '')}>
-              <span>CONVICTION CONFIRMED</span>
-            </div>
-          </div>
-        </section>
 
-        {/* CONVICTION — before → after transformation + edges + closing */}
-        <section className="wrap" data-scene="4">
-          <Reveal className="sec-head">
-            <span className="kick">The Rewiring</span>
-            <h2 className="h2">What Changes When the Chain Confirms</h2>
-          </Reveal>
-          <div className="ba">
-            <Reveal className="ba-col before">
-              <span className="tag coral">Before the Chain</span>
-              <ul className="list">{BEFORE.map((b, i) => <li key={i}>{b}</li>)}</ul>
-            </Reveal>
-            <div className="ba-arrow" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            {/* Phase B — before → after transformation */}
+            <div className="tf-split" style={{ opacity: cvSplit, pointerEvents: 'none' }}>
+              <span className="kick">The Rewiring</span>
+              <div className="tf-rows">
+                {BEFORE.map((b, i) => {
+                  const rp = clamp01((cvSplitP - i * 0.11) / 0.4);
+                  return (
+                    <div className="tf-row" key={i}>
+                      <span className="tf-before" style={{ opacity: 1 - rp * 0.85, transform: `translateX(${-rp * 8}px)` }}>{b}</span>
+                      <span className="tf-arrow" style={{ opacity: rp }}>→</span>
+                      <span className="tf-after" style={{ opacity: rp, transform: `translateX(${(1 - rp) * 8}px)` }}>{AFTER[i]}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            <Reveal delay={0.1} className="ba-col after">
-              <span className="tag teal">After the Chain</span>
-              <ul className="list gold-list">{AFTER.map((b, i) => <li key={i}>{b}</li>)}</ul>
-            </Reveal>
+
+            {/* Phase C — the four shifts */}
+            <div className="tf-shift" style={{ opacity: cvShifts, pointerEvents: 'none' }}>
+              <div className="tf-shift-card" key={cvShiftIdx}>
+                <span className="tf-n">{SHIFTS[cvShiftIdx].n}</span>
+                <h2 className="tf-k">{SHIFTS[cvShiftIdx].k}</h2>
+                <p className="body">{SHIFTS[cvShiftIdx].c}</p>
+              </div>
+              <div className="tf-dots">
+                {SHIFTS.map((s, i) => <span key={i} className={'tf-dot' + (i === cvShiftIdx ? ' on' : '')} />)}
+              </div>
+            </div>
+
+            {/* Closing */}
+            <div className="tf-close" style={{ opacity: cvClose, pointerEvents: cvClose > 0.5 ? 'auto' : 'none' }}>
+              <h2>Conviction Isn't a Feeling. It's Five Markets Agreeing Before You Click the Trigger.</h2>
+            </div>
           </div>
-          <div className="grid3" style={{ marginTop: 28 }}>
-            {EDGES.map((e, i) => (
-              <Reveal key={i} delay={i * 0.08} className="glass card edge tilt3d">
-                <span className="edge-ic"><Check /></span>
-                <h3 className="h3 sm">{e.t}</h3>
-                <p className="body sm">{e.c}</p>
-              </Reveal>
-            ))}
-          </div>
-          <Reveal className="closing" delay={0.05}>
-            <h2>Conviction Isn't a Feeling. It's Five Markets Agreeing Before You Click the Trigger.</h2>
-            <p>This is what The Chain tracks before your finger ever hits the trigger.</p>
-          </Reveal>
         </section>
 
         {/* INDICATORS — premium pricing cards */}
@@ -661,6 +680,34 @@ a{color:var(--gold);text-decoration:none}
 .conv-stamp.on{opacity:1;transform:scale(1)}
 .conv-stamp span{display:inline-block;font-size:clamp(14px,1.6vw,20px);font-weight:800;letter-spacing:.22em;color:#0a0b0f;background:linear-gradient(120deg,var(--gold2),var(--gold));padding:12px 26px;border-radius:999px;box-shadow:0 14px 40px -12px rgba(245,166,35,.8)}
 @media(max-width:640px){.fm-k{font-size:11px}.fm-lbl{display:none}}
+/* ── CONVICTION — cinematic "Transformation" act ──────────────────────────── */
+.tf-sec{position:relative;height:560vh}
+.tf-sticky{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.tf-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:1;display:block}
+/* phase A — intro copy over the canvas */
+.tf-head{position:absolute;left:0;right:0;top:13vh;z-index:3;text-align:center;padding:0 clamp(20px,5vw,72px)}
+.tf-head .h2{font-size:clamp(26px,3.8vw,52px);max-width:22ch;margin:0 auto}
+/* phase B — before → after rewiring */
+.tf-split{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 clamp(20px,5vw,72px);background:radial-gradient(58% 52% at 50% 50%,rgba(5,7,13,.85),rgba(5,7,13,0) 76%)}
+.tf-rows{display:flex;flex-direction:column;gap:clamp(10px,1.6vh,18px);margin-top:30px;width:100%;max-width:860px}
+.tf-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:clamp(12px,3vw,40px)}
+.tf-before{text-align:right;font-size:clamp(13px,1.5vw,18px);font-weight:600;color:var(--coral)}
+.tf-arrow{font-size:clamp(16px,2vw,22px);font-weight:800;color:var(--gold);text-shadow:0 0 14px rgba(245,166,35,.6)}
+.tf-after{text-align:left;font-size:clamp(13px,1.5vw,18px);font-weight:700;color:var(--gold2)}
+/* phase C — the four shifts */
+.tf-shift{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 clamp(20px,5vw,72px);background:radial-gradient(56% 50% at 50% 50%,rgba(5,7,13,.86),rgba(5,7,13,0) 74%)}
+.tf-shift-card{position:relative;max-width:680px;animation:tfIn .6s cubic-bezier(.22,1,.36,1) both}
+.tf-n{position:absolute;top:50%;left:50%;transform:translate(-50%,-56%);font-size:clamp(150px,28vw,340px);font-weight:800;line-height:.8;letter-spacing:-.05em;color:rgba(245,166,35,.07);z-index:-1;pointer-events:none}
+.tf-k{font-size:clamp(42px,7.5vw,96px);font-weight:800;line-height:1;margin-bottom:18px;letter-spacing:-.02em;background:linear-gradient(120deg,var(--gold2),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+.tf-shift-card .body{max-width:50ch;margin:0 auto;font-size:clamp(15px,1.5vw,19px);color:var(--text2)}
+.tf-dots{display:flex;gap:12px;justify-content:center;margin-top:clamp(28px,5vh,52px)}
+.tf-dot{width:36px;height:4px;border-radius:3px;background:rgba(130,150,190,.24);transition:background .45s ease,box-shadow .45s ease}
+.tf-dot.on{background:linear-gradient(90deg,var(--gold2),var(--gold));box-shadow:0 0 14px rgba(245,166,35,.85)}
+/* closing */
+.tf-close{position:absolute;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;padding:0 clamp(20px,5vw,72px);background:radial-gradient(60% 55% at 50% 50%,rgba(5,7,13,.88),rgba(5,7,13,0) 78%)}
+.tf-close h2{max-width:17ch;text-align:center;font-size:clamp(28px,4.6vw,62px);line-height:1.12;background:linear-gradient(120deg,var(--gold2),var(--gold) 55%,#eccf6f);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 42px rgba(245,166,35,.28))}
+@keyframes tfIn{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:640px){.tf-head .h2{font-size:26px}.tf-before,.tf-after{font-size:12.5px}.tf-row{gap:12px}}
 /* ── cohesive lower-half redesign ─────────────────────────────────────────── */
 .sec-head{max-width:720px;margin:0 auto;text-align:center}
 .sec-head .kick{display:inline-block}
