@@ -6,6 +6,8 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
+import { AmberHalftone, EmberStorm, StreamConvergenceBackground, PerformanceGauges, WarpFieldBackground } from '@designcodeio/threeui';
+import '@designcodeio/threeui/style.css';
 import { createScene } from './scene-3d.js';
 import { createDeskScene } from './desk-scene.js';
 
@@ -396,16 +398,17 @@ function App() {
           </div>
         </section>
 
-        {/* CONVICTION — new model: five markets align → conviction (scroll-driven) */}
+        {/* CONVICTION — premium WebGL: converging streams behind the copy */}
         <section ref={convRef} className="conv-sec" data-scene="4">
           <div className="conv-sticky">
+            <div className="conv-bg"><StreamConvergenceBackground mode="dark" hue={0} saturation={0.95} brightness={1.1} opacity={1} speed={0.75} /></div>
+            <div className="conv-fade" />
             <div className="conv-head">
               <span className="kick">From Analysis to Conviction</span>
               <h2 className="h2">The Chain Doesn't Just Predict the Market.<br />It <span className="gold">Rewires the Trader</span>.</h2>
               <p className="body" style={{ maxWidth: '52ch', margin: '14px auto 0' }}>Five markets confirming one direction isn't a signal — it's permission to act without doubt.</p>
             </div>
-            <FiveMarkets align={smooth(0.06, 0.74, convP)} />
-            <div className={'conv-stamp' + (smooth(0.06, 0.74, convP) > 0.99 ? ' on' : '')}>
+            <div className={'conv-stamp' + (smooth(0.06, 0.74, convP) > 0.4 ? ' on' : '')}>
               <span>CONVICTION CONFIRMED</span>
             </div>
           </div>
@@ -445,8 +448,11 @@ function App() {
           </Reveal>
         </section>
 
-        {/* INDICATORS — premium pricing cards */}
-        <section id="indicators" className="wrap" data-scene="5">
+        {/* INDICATORS — premium pricing cards over a living gold field */}
+        <section id="indicators" className="fx-sec" data-scene="5">
+          <div className="fx-bg"><StreamConvergenceBackground mode="dark" hue={0} saturation={0.95} brightness={1.05} opacity={0.85} speed={0.5} /></div>
+          <div className="fx-fade" />
+          <div className="wrap fx-inner">
           <Reveal className="sec-head">
             <span className="kick">The Toolkit</span>
             <h2 className="h2">LMR Indicators for TradingView</h2>
@@ -468,6 +474,7 @@ function App() {
                 <p className="fine">Invite-only access granted to your TradingView username after payment.</p>
               </Reveal>
             ))}
+          </div>
           </div>
         </section>
 
@@ -639,7 +646,18 @@ a{color:var(--gold);text-decoration:none}
 .closing p{color:#4a3a12;font-size:16px;margin:0}
 /* conviction — new model: five markets align */
 .conv-sec{position:relative;height:300vh}
-.conv-sticky{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(24px,4vh,54px);max-width:1100px;margin:0 auto;padding:0 clamp(20px,5vw,72px);text-align:center}
+.conv-sticky{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(24px,4vh,54px);margin:0 auto;padding:0 clamp(20px,5vw,72px);text-align:center;overflow:hidden}
+.conv-bg{position:absolute;inset:0;z-index:0;filter:sepia(.92) saturate(2.4) hue-rotate(-14deg) brightness(1.02) contrast(1.05)}
+.conv-bg canvas{position:absolute!important;inset:0!important;width:100%!important;height:100%!important}
+.conv-fade{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(90% 70% at 50% 45%,rgba(5,8,15,.55) 0%,transparent 45%,rgba(5,8,15,.5) 100%)}
+/* section FX: premium gold WebGL field behind content */
+.fx-sec{position:relative;overflow:hidden}
+.fx-bg{position:absolute;inset:0;z-index:0;filter:sepia(.92) saturate(2.4) hue-rotate(-14deg) brightness(1) contrast(1.05);opacity:.6}
+.fx-bg canvas{position:absolute!important;inset:0!important;width:100%!important;height:100%!important}
+.fx-fade{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(100% 80% at 50% 40%,rgba(5,8,15,.62) 0%,rgba(5,8,15,.82) 100%)}
+.fx-inner{position:relative;z-index:2}
+.conv-head,.conv-stamp{position:relative;z-index:2}
+.conv-head{max-width:1000px}
 .conv-head .kick{margin-bottom:12px}
 .conv-head .h2{font-size:clamp(24px,3vw,42px)}
 .fm{width:100%;max-width:760px;position:relative}
