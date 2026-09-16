@@ -61,6 +61,14 @@ const TRADES = [
   { date: '03/18', sym: 'NQ', side: 'LONG', rr: '1.8R', pnl: '+$360', tag: 'MMSM', win: true },
 ];
 const TRADES_MESSY = { side: '—', rr: '—', pnl: '−$?', tag: ['no plan', 'revenge', 'FOMO', 'chased', 'no plan', 'tilt'] };
+// the trader's workspace: scattered worries (messy) → organised notes (clean)
+const DESK_NOTES = [
+  { bad: 'Self-doubt', good: 'Reviewed' },
+  { bad: 'FOMO', good: 'Waited for the setup' },
+  { bad: 'No plan', good: 'Plan written first' },
+  { bad: 'Revenge trade', good: 'Logged, moved on' },
+  { bad: '“Am I right?”', good: '“The chain confirms.”' },
+];
 const PLAYBOOK = [
   'Wait for the chain. No confirmation, no trade.',
   'Trade the plan — never the feeling.',
@@ -269,6 +277,7 @@ function App() {
   const deskCanvasRef = useRef(null);
   const convRef = useRef(null);
   const puzzleCanvasRef = useRef(null);
+  const deskChartRef = useRef(null);
   const cardCanvasRefs = useRef([]);
   const heroFocalRef = useRef(null);
   const indCanvasRefs = useRef([]);
@@ -289,8 +298,9 @@ function App() {
     // assembles "inside" it; then it pulls back out onto the desk.
     let desk = null;
     try { desk = createDeskScene(deskCanvasRef.current); } catch (e) { desk = null; }
-    let puzzle = null;
+    let puzzle = null, deskChart = null;
     try { puzzle = createPuzzle(puzzleCanvasRef.current); } catch (e) { puzzle = null; }
+    try { deskChart = createChart(deskChartRef.current, { kind: 'structure' }); } catch (e) { deskChart = null; }
     const cardCharts = cardCanvasRefs.current.map((c, i) => { try { return createChart(c, { kind: SHIFTS[i].chart }); } catch (e) { return null; } });
     let heroFocal = null;
     try { heroFocal = createHeroFocal(heroFocalRef.current); } catch (e) { heroFocal = null; }
@@ -315,6 +325,7 @@ function App() {
       setActiveStage(Math.max(0, Math.min(STAGES.length - 1, Math.floor(inside * STAGES.length - 1e-6))));
       const cvp = calc(convRef.current);
       setConvP(cvp);
+      deskChart && deskChart.setProgress(clamp01((cvp - 0.08) / (0.30 - 0.08))); // workspace "high hope" chart resolves
       puzzle && puzzle.setProgress(clamp01((cvp - 0.40) / (0.62 - 0.40)));      // rewiring: pieces align 0.40 → 0.62
       const cardsP = clamp01((cvp - 0.70) / (0.90 - 0.70));                     // four concept cards draw in
       cardCharts.forEach((ch, i) => ch && ch.setProgress(clamp01((cardsP - i * 0.10) / 0.55)));
@@ -349,7 +360,7 @@ function App() {
     // peripherals: smooth scroll, gold cursor, magnetic buttons, progress rail
     let periph = null; try { periph = initPeripherals(); } catch (e) { periph = null; }
 
-    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); removeEventListener('resize', onResize); clearTimeout(t0); clearTimeout(t1); io.disconnect(); navIo.disconnect(); if (periph) periph.dispose(); if (scene) scene.dispose(); if (desk) desk.dispose(); if (puzzle) puzzle.dispose(); cardCharts.forEach((c) => c && c.dispose()); if (heroFocal) heroFocal.dispose(); indCharts.forEach((c) => c && c.dispose()); if (trackCurve) trackCurve.dispose(); };
+    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); removeEventListener('resize', onResize); clearTimeout(t0); clearTimeout(t1); io.disconnect(); navIo.disconnect(); if (periph) periph.dispose(); if (scene) scene.dispose(); if (desk) desk.dispose(); if (puzzle) puzzle.dispose(); if (deskChart) deskChart.dispose(); cardCharts.forEach((c) => c && c.dispose()); if (heroFocal) heroFocal.dispose(); indCharts.forEach((c) => c && c.dispose()); if (trackCurve) trackCurve.dispose(); };
   }, []);
 
   // 3D mouse-tilt on cards marked .tilt3d
@@ -495,27 +506,28 @@ function App() {
               <p className="body" style={{ maxWidth: '48ch', margin: '14px auto 0' }}>He sits down to a messy table and a high hope. Watch him organise it.</p>
             </div>
 
-            {/* Beat 1 — the trader's table: unorganised → organised */}
-            <div className="tf-trades" style={{ opacity: cvTrades, pointerEvents: 'none' }}>
-              <span className="kick">Unorganised → Organised</span>
-              <div className="tt-wrap">
-                <div className="tt-head-row"><span>Date</span><span>Mkt</span><span>Side</span><span>R:R</span><span>P&amp;L</span><span>Setup</span></div>
-                {TRADES.map((t, i) => {
-                  const c = clamp01((cvTradesP * 1.3 - i * 0.10) / 0.5);        // staggered top → bottom
-                  const e = c * c * (3 - 2 * c);
-                  const mx = [-130, 95, -70, 150, -110, 80][i], my = [-16, 12, 18, -10, 14, -18][i], rot = [-5, 4, -3, 6, -4, 3][i];
-                  const clean = e >= 0.5;
-                  return (
-                    <div className="tt-row" key={i} style={{ transform: `translate(${(mx * (1 - e)).toFixed(1)}px, ${(my * (1 - e)).toFixed(1)}px) rotate(${(rot * (1 - e)).toFixed(2)}deg)`, opacity: 0.32 + 0.68 * e, borderColor: clean ? 'rgba(245,166,35,0.28)' : 'rgba(240,112,90,0.28)' }}>
-                      <span className="tt-date">{t.date}</span>
-                      <span className="tt-sym">{t.sym}</span>
-                      <span className="tt-side">{clean ? t.side : TRADES_MESSY.side}</span>
-                      <span className="tt-rr">{clean ? t.rr : TRADES_MESSY.rr}</span>
-                      <span className="tt-pnl" style={{ color: clean ? (t.win ? '#35d0a0' : 'var(--coral)') : 'var(--coral)' }}>{clean ? t.pnl : TRADES_MESSY.pnl}</span>
-                      <span className={'tt-tag' + (clean ? ' on' : '')}>{clean ? t.tag : TRADES_MESSY.tag[i]}</span>
-                    </div>
-                  );
-                })}
+            {/* Beat 1 — the trader's workspace: scattered worries → organised board + a rising "high hope" */}
+            <div className="tf-desk" style={{ opacity: cvTrades, pointerEvents: 'none' }}>
+              <span className="kick">His Workspace — Unorganised → Organised</span>
+              <div className="desk-wrap">
+                <div className="desk-notes">
+                  {DESK_NOTES.map((n, i) => {
+                    const c = clamp01((cvTradesP * 1.3 - i * 0.10) / 0.5);       // staggered snap-in
+                    const e = c * c * (3 - 2 * c);
+                    const clean = e >= 0.5;
+                    const mx = [-150, 130, -110, 160, -90][i], my = [-40, 26, 48, -24, 36][i], rot = [-9, 7, -6, 8, -5][i];
+                    return (
+                      <div className={'dn-note' + (clean ? ' clean' : '')} key={i} style={{ transform: `translate(${(mx * (1 - e)).toFixed(1)}px, ${(my * (1 - e)).toFixed(1)}px) rotate(${(rot * (1 - e)).toFixed(1)}deg)`, opacity: 0.4 + 0.6 * e }}>
+                        <span className="dn-mark">{clean ? '✓' : '!'}</span>
+                        <span>{clean ? n.good : n.bad}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="desk-chart-panel">
+                  <canvas ref={deskChartRef} className="desk-chart" aria-hidden="true" />
+                  <span className="desk-chart-cap">High hope — on plan.</span>
+                </div>
               </div>
             </div>
 
@@ -834,6 +846,18 @@ a{color:var(--gold);text-decoration:none}
 .tt-tag{justify-self:start;font-size:12px;font-weight:700;padding:4px 11px;border-radius:999px;background:rgba(240,112,90,.14);color:var(--coral)}
 .tt-tag.on{background:rgba(245,166,35,.15);color:var(--gold2)}
 @media(max-width:720px){.tt-head-row,.tt-row{grid-template-columns:.7fr .6fr .8fr 1fr;font-size:12px;padding:9px 12px}.tt-side,.tt-head-row span:nth-child(3){display:none}.tt-tag{grid-column:span 1}}
+/* the trader's workspace: worries → organised board + high-hope chart */
+.tf-desk{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 clamp(20px,5vw,72px);background:radial-gradient(72% 62% at 50% 50%,rgba(5,7,13,.82),rgba(5,7,13,0) 82%)}
+.desk-wrap{display:grid;grid-template-columns:1fr 1fr;gap:clamp(20px,4vw,56px);align-items:center;width:100%;max-width:1040px;margin-top:26px}
+.desk-notes{display:flex;flex-direction:column;gap:12px;align-items:stretch}
+.dn-note{display:flex;align-items:center;gap:11px;padding:13px 18px;border-radius:12px;font-weight:700;font-size:15px;text-align:left;background:rgba(240,112,90,.12);border:1px solid rgba(240,112,90,.3);color:var(--coral);will-change:transform;transition:background .35s,color .35s,border-color .35s}
+.dn-note.clean{background:rgba(245,166,35,.12);border-color:rgba(245,166,35,.38);color:var(--gold2)}
+.dn-mark{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:12px;font-weight:900;flex:none;background:rgba(240,112,90,.2);color:var(--coral)}
+.dn-note.clean .dn-mark{background:rgba(245,166,35,.2);color:var(--gold)}
+.desk-chart-panel{position:relative;border-radius:18px;background:var(--glass);border:1px solid var(--border);padding:14px;height:min(300px,40vh)}
+.desk-chart{width:100%;height:100%;display:block}
+.desk-chart-cap{position:absolute;left:22px;bottom:14px;font-size:12px;letter-spacing:.06em;color:var(--gold2);font-weight:700}
+@media(max-width:820px){.desk-wrap{grid-template-columns:1fr;gap:22px}.desk-chart-panel{height:190px}}
 /* concept charts (rewiring backdrop + four-shift panels) */
 .tf-rewire-canvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(780px,84%);height:min(330px,44vh);z-index:0;opacity:.62;pointer-events:none}
 .tf-split .kick,.tf-split .tf-rows{position:relative;z-index:1}
