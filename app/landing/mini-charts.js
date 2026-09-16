@@ -70,7 +70,8 @@ export function createChart(canvas, opts = {}) {
       const chaos = 0.5 + NOISE[i % NOISE.length] * 0.9 + Math.sin(t * 1.3 + i) * 0.06 * (1 - p);
       const v = lerp(clamp01(chaos), clamp01(base), smooth(0.05, 0.9, p));
       const jitter = (1 - p) * (NOISE[(i * 7) % NOISE.length]) * 18 * (1 - smooth(0, 0.6, p));
-      pts.push([x, lerp(y0, y1, v) + jitter]);
+      const live = Math.sin(t * 0.9 + i * 0.5) * 1.6;   // gentle always-on "live" shimmer
+      pts.push([x, lerp(y0, y1, v) + jitter + live]);
     }
     // glow under the line grows with p
     ctx.save();

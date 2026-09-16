@@ -12,6 +12,7 @@ import { createTransformScene } from './transform-scene.js';
 import { createNotebookScene } from './notebook-scene.js';
 import { createChart } from './mini-charts.js';
 import { initPeripherals } from './peripherals.js';
+import { createHeroFocal } from './hero-focal.js';
 
 const goApp = () => { window.location.href = '/'; };
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
@@ -97,6 +98,24 @@ const PROOF = [
   { n: 'Wins + Losses', k: 'Shown in full — never cherry-picked' },
   { n: 'Public', k: 'The same ledger behind every result' },
 ];
+// Count-up for a numeric-leading stat (e.g. "100%"); non-numeric passes through.
+// Initialises to the final value (safe if never seen), animates 0→value on first view.
+function CountUp({ text }) {
+  const m = /^(\d+)(.*)$/.exec(text);
+  if (!m) return <>{text}</>;
+  const target = parseInt(m[1], 10), suffix = m[2] || '';
+  const ref = useRef(null);
+  const [val, setVal] = useState(target);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    let raf = 0, started = false;
+    const run = () => { const t0 = performance.now(); const dur = 1100; const step = (t) => { const p = Math.min(1, (t - t0) / dur); const e = 1 - Math.pow(1 - p, 3); setVal(Math.round(e * target)); if (p < 1) raf = requestAnimationFrame(step); }; setVal(0); raf = requestAnimationFrame(step); };
+    const io = new IntersectionObserver((es) => { es.forEach((e) => { if (e.isIntersecting && !started) { started = true; run(); io.disconnect(); } }); }, { threshold: 0.4 });
+    io.observe(el);
+    return () => { io.disconnect(); if (raf) cancelAnimationFrame(raf); };
+  }, []);
+  return <span ref={ref}>{val}{suffix}</span>;
+}
 function Check() {
   return (<svg className="ck" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>);
 }
@@ -254,6 +273,9 @@ function App() {
   const bookCanvasRef = useRef(null);
   const rewireCanvasRef = useRef(null);
   const shiftCanvasRef = useRef(null);
+  const heroFocalRef = useRef(null);
+  const indCanvasRefs = useRef([]);
+  const trackCurveRef = useRef(null);
   const [activeStage, setActiveStage] = useState(0);
   const [mp, setMp] = useState(0);          // #method scroll progress 0..1
   const [convP, setConvP] = useState(0);    // conviction scroll progress 0..1
@@ -277,6 +299,12 @@ function App() {
     let rewireChart = null, shiftChart = null;
     try { rewireChart = createChart(rewireCanvasRef.current, { kind: 'structure' }); } catch (e) { rewireChart = null; }
     try { shiftChart = createChart(shiftCanvasRef.current, { kind: SHIFTS[0].chart }); } catch (e) { shiftChart = null; }
+    let heroFocal = null;
+    try { heroFocal = createHeroFocal(heroFocalRef.current); } catch (e) { heroFocal = null; }
+    const indKinds = ['structure', 'candles'];
+    const indCharts = indCanvasRefs.current.map((c, i) => { try { const ch = createChart(c, { kind: indKinds[i % indKinds.length] }); ch.setProgress(1); return ch; } catch (e) { return null; } });
+    let trackCurve = null;
+    try { trackCurve = createChart(trackCurveRef.current, { kind: 'equity' }); trackCurve.setProgress(1); } catch (e) { trackCurve = null; }
 
     const calc = (el) => { if (!el) return 0; const vh = innerHeight; const r = el.getBoundingClientRect(); const total = r.height - vh; return total <= 0 ? (r.top < 0 ? 1 : 0) : clamp01(-r.top / total); };
     const onScroll = () => {
@@ -312,6 +340,7 @@ function App() {
       const mx = (e.clientX / innerWidth) * 2 - 1, my = (e.clientY / innerHeight) * 2 - 1;
       scene && scene.setMouse(mx, my);
       desk && desk.setMouse(mx, my);
+      heroFocal && heroFocal.setMouse(mx, my);
     };
     addEventListener('scroll', onScroll, { passive: true });
     addEventListener('mousemove', onMouse, { passive: true });
@@ -333,7 +362,7 @@ function App() {
     // peripherals: smooth scroll, gold cursor, magnetic buttons, progress rail
     let periph = null; try { periph = initPeripherals(); } catch (e) { periph = null; }
 
-    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); removeEventListener('resize', onResize); clearTimeout(t0); clearTimeout(t1); io.disconnect(); navIo.disconnect(); if (periph) periph.dispose(); if (scene) scene.dispose(); if (desk) desk.dispose(); if (transform) transform.dispose(); if (book) book.dispose(); if (rewireChart) rewireChart.dispose(); if (shiftChart) shiftChart.dispose(); };
+    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); removeEventListener('resize', onResize); clearTimeout(t0); clearTimeout(t1); io.disconnect(); navIo.disconnect(); if (periph) periph.dispose(); if (scene) scene.dispose(); if (desk) desk.dispose(); if (transform) transform.dispose(); if (book) book.dispose(); if (rewireChart) rewireChart.dispose(); if (shiftChart) shiftChart.dispose(); if (heroFocal) heroFocal.dispose(); indCharts.forEach((c) => c && c.dispose()); if (trackCurve) trackCurve.dispose(); };
   }, []);
 
   // 3D mouse-tilt on cards marked .tilt3d
@@ -392,6 +421,7 @@ function App() {
 
         {/* HERO */}
         <section className="hero" data-scene="0">
+          <canvas ref={heroFocalRef} className="hero-focal" aria-hidden="true" />
           <Reveal><span className="eyebrow">Trader · Mentor · Fund Manager</span></Reveal>
           <Reveal delay={0.05}><h1 className="h1">Trade With a System.<br />Master <span className="gold">The Chain</span>.</h1></Reveal>
           <Reveal delay={0.12}><p className="lead">A structured Daily → Weekly → Monthly methodology — every trade, every model, every lesson logged in real time, and organized end to end by one system.</p></Reveal>
@@ -564,6 +594,7 @@ function App() {
                   <p className="pc-tag">{ind.tagline}</p>
                   <div className="pc-price"><span className="pc-amt">$40</span><span className="pc-per">/ month</span></div>
                 </div>
+                <canvas className="pc-chart" ref={(el) => { indCanvasRefs.current[i] = el; }} aria-hidden="true" />
                 <p className="body sm pc-desc">{ind.desc}</p>
                 <ul className="feat">{ind.features.map((f, j) => <li key={j}><Check /><span>{f}</span></li>)}</ul>
                 <a className="btn btn-gold block" href={ind.mailto}>Get Access — $40/mo →</a>
@@ -580,10 +611,14 @@ function App() {
             <h2 className="h2">Documented, Not Cherry-Picked</h2>
             <p className="body">Every result LMR Capitals shows is drawn from one transparent ledger — the same journal the methodology runs on, wins and losses alike.</p>
           </Reveal>
+          <Reveal className="track-curve-wrap">
+            <canvas ref={trackCurveRef} className="track-curve" aria-hidden="true" />
+            <span className="track-curve-cap">One ledger · logged in real time · wins and losses</span>
+          </Reveal>
           <div className="stat-row">
             {PROOF.map((s, i) => (
               <Reveal key={i} delay={i * 0.06} className="glass stat tilt3d">
-                <span className="stat-n">{s.n}</span>
+                <span className="stat-n"><CountUp text={s.n} /></span>
                 <span className="stat-k">{s.k}</span>
               </Reveal>
             ))}
@@ -697,6 +732,15 @@ a{color:var(--gold);text-decoration:none}
 .lmr-intro{position:fixed;inset:0;z-index:9997;background:radial-gradient(120% 90% at 50% 30%,rgba(20,15,4,.55),#05070d 70%);pointer-events:none;animation:lmrIntro 1s ease .05s forwards}
 @keyframes lmrIntro{0%{opacity:1}100%{opacity:0;visibility:hidden}}
 @media(prefers-reduced-motion:reduce){.lmr-intro{display:none}}
+/* 3D hero focal + live indicator chart previews */
+.hero-focal{position:absolute;right:2vw;top:50%;transform:translateY(-50%);width:min(44vw,600px);height:min(78vh,620px);z-index:1;pointer-events:none}
+.hero>div{position:relative;z-index:2}
+@media(max-width:900px){.hero-focal{opacity:.22;width:96vw;right:auto;left:50%;transform:translate(-50%,-50%)}}
+.pc-chart{width:100%;height:118px;display:block;margin:0;background:radial-gradient(120% 100% at 50% 0%,rgba(245,166,35,.06),transparent);border-bottom:1px solid var(--border)}
+/* track record equity curve */
+.track-curve-wrap{position:relative;max-width:900px;margin:30px auto 8px;border-radius:20px;overflow:hidden;background:var(--glass);border:1px solid var(--border)}
+.track-curve{display:block;width:100%;height:min(260px,34vh)}
+.track-curve-cap{position:absolute;left:20px;bottom:14px;font-size:12px;letter-spacing:.08em;font-weight:700;color:var(--text3)}
 /* hero */
 .hero{position:relative;min-height:100vh;display:flex;flex-direction:column;justify-content:center;max-width:1180px;margin:0 auto;padding:0 clamp(20px,5vw,72px)}
 .scrollhint{position:absolute;bottom:34px;left:clamp(20px,5vw,72px);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)}

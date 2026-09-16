@@ -7,12 +7,12 @@
 import * as THREE from 'three';
 
 const THEMES = [
-  { a: 0xF5A623, b: 0x2a5cff },  // hero — gold + deep blue
-  { a: 0xF5A623, b: 0x1e6bff },  // about
-  { a: 0xF5A623, b: 0x8a5cff },  // what we do
-  { a: 0xFFD166, b: 0x2dd4bf },  // the chain
-  { a: 0x2dd4bf, b: 0xf0705a },  // conviction (teal ↔ coral)
-  { a: 0xF5A623, b: 0x2a5cff },  // indicators / rest
+  { a: 0xF5A623, b: 0x2a5cff, e: 1.00 },  // hero — gold + deep blue
+  { a: 0xF5A623, b: 0x1e6bff, e: 0.88 },  // about — calm
+  { a: 0xF5A623, b: 0x8a5cff, e: 1.05 },  // what we do
+  { a: 0xFFD166, b: 0x2dd4bf, e: 1.18 },  // the chain
+  { a: 0x2dd4bf, b: 0xf0705a, e: 1.42 },  // conviction — most energetic (teal ↔ coral)
+  { a: 0xF5A623, b: 0x2a5cff, e: 1.00 },  // indicators / rest
 ];
 
 export function createScene(canvas) {
@@ -39,6 +39,7 @@ export function createScene(canvas) {
   const pos = new Float32Array(COUNT * 3);
   const col = new Float32Array(COUNT * 3);
   const cA = new THREE.Color(THEMES[0].a), cB = new THREE.Color(THEMES[0].b);
+  const isA = new Uint8Array(COUNT);            // which theme slot each particle tracks
   for (let i = 0; i < COUNT; i++) {
     // disc-ish cloud with depth
     const r = 6 + Math.pow(Math.random(), 0.6) * 34;
@@ -47,7 +48,8 @@ export function createScene(canvas) {
     pos[i * 3] = Math.cos(a) * r;
     pos[i * 3 + 1] = y;
     pos[i * 3 + 2] = Math.sin(a) * r - 8;
-    const c = Math.random() < 0.5 ? cA : cB;
+    const useA = Math.random() < 0.5; isA[i] = useA ? 1 : 0;
+    const c = useA ? cA : cB;
     col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
   }
   const pGeo = new THREE.BufferGeometry();
@@ -90,7 +92,7 @@ export function createScene(canvas) {
   }
   buildChain(0xF5A623);
 
-  const state = { scroll: 0, section: 0, chainP: 0, mx: 0, my: 0, themeT: 0, targetTheme: 0 };
+  const state = { scroll: 0, section: 0, chainP: 0, mx: 0, my: 0, themeT: 0, targetTheme: 0, energy: 1 };
   const curA = new THREE.Color(THEMES[0].a), curB = new THREE.Color(THEMES[0].b);
 
   function resize() {
@@ -119,10 +121,22 @@ export function createScene(canvas) {
     warm.color.copy(curA); cool.color.copy(curB);
     links.forEach((l) => { l.material.color.copy(curA); l.material.emissive.copy(curA); });
 
-    // particles: slow rotation + parallax + gentle vertical drift
-    particles.rotation.y = t * 0.02 + mxE * 0.3;
+    // the whole nebula recolours toward the section palette (each particle tracks its slot)
+    for (let i = 0; i < COUNT; i++) {
+      const tc = isA[i] ? curA : curB; const j = i * 3;
+      col[j] += (tc.r - col[j]) * 0.04; col[j + 1] += (tc.g - col[j + 1]) * 0.04; col[j + 2] += (tc.b - col[j + 2]) * 0.04;
+    }
+    pGeo.attributes.color.needsUpdate = true;
+
+    // energy ramps per section (conviction is the peak)
+    state.energy += ((th.e || 1) - state.energy) * 0.03;
+    const en = state.energy;
+
+    // particles: slow rotation + parallax + gentle vertical drift (energy-scaled)
+    particles.rotation.y = t * 0.02 * en + mxE * 0.3;
     particles.rotation.x = -0.1 + myE * 0.2;
-    pMat.opacity = 0.55 + 0.3 * Math.sin(t * 0.4) * 0.2 + 0.2;
+    pMat.opacity = 0.5 + 0.22 * en + Math.sin(t * 0.4) * 0.05;
+    pMat.size = 0.075 + 0.03 * en;
 
     // chain: continuous spin, scroll assembles + tilts, mouse parallax
     chain.rotation.z = t * 0.12 + p * 0.8;
