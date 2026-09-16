@@ -11,6 +11,7 @@ import { createDeskScene } from './desk-scene.js';
 import { createTransformScene } from './transform-scene.js';
 import { createNotebookScene } from './notebook-scene.js';
 import { createChart } from './mini-charts.js';
+import { initPeripherals } from './peripherals.js';
 
 const goApp = () => { window.location.href = '/'; };
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
@@ -258,6 +259,7 @@ function App() {
   const [convP, setConvP] = useState(0);    // conviction scroll progress 0..1
   const [screenRect, setScreenRect] = useState(null); // monitor screen rect in CSS px
   const [card, setCard] = useState(null);
+  const [activeNav, setActiveNav] = useState('');
 
   useEffect(() => {
     let scene;
@@ -322,7 +324,16 @@ function App() {
     }, { threshold: 0.4 });
     secs.forEach((s) => io.observe(s));
 
-    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); removeEventListener('resize', onResize); clearTimeout(t0); clearTimeout(t1); io.disconnect(); if (scene) scene.dispose(); if (desk) desk.dispose(); if (transform) transform.dispose(); if (book) book.dispose(); if (rewireChart) rewireChart.dispose(); if (shiftChart) shiftChart.dispose(); };
+    // active-nav highlight
+    const navIo = new IntersectionObserver((es) => {
+      es.forEach((e) => { if (e.isIntersecting) setActiveNav(e.target.id); });
+    }, { threshold: 0, rootMargin: '-40% 0px -55% 0px' });
+    ['about', 'what', 'method', 'indicators', 'contact'].forEach((id) => { const el = document.getElementById(id); if (el) navIo.observe(el); });
+
+    // peripherals: smooth scroll, gold cursor, magnetic buttons, progress rail
+    let periph = null; try { periph = initPeripherals(); } catch (e) { periph = null; }
+
+    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); removeEventListener('resize', onResize); clearTimeout(t0); clearTimeout(t1); io.disconnect(); navIo.disconnect(); if (periph) periph.dispose(); if (scene) scene.dispose(); if (desk) desk.dispose(); if (transform) transform.dispose(); if (book) book.dispose(); if (rewireChart) rewireChart.dispose(); if (shiftChart) shiftChart.dispose(); };
   }, []);
 
   // 3D mouse-tilt on cards marked .tilt3d
@@ -364,12 +375,17 @@ function App() {
     <>
       <canvas ref={canvasRef} id="bg3d" />
       <div className="veil" />
+      <div className="lmr-intro" />
       <div className="page">
         {/* NAV */}
         <nav className="nav">
           <div className="brand"><span className="dot">LMR</span><span>LMR <strong>Capitals</strong></span></div>
           <div className="links">
-            <a href="#about">About</a><a href="#what">What We Do</a><a href="#method">Methodology</a><a href="#indicators">Indicators</a><a href="#contact">Contact</a>
+            <a href="#about" className={activeNav === 'about' ? 'on' : ''}>About</a>
+            <a href="#what" className={activeNav === 'what' ? 'on' : ''}>What We Do</a>
+            <a href="#method" className={activeNav === 'method' ? 'on' : ''}>Methodology</a>
+            <a href="#indicators" className={activeNav === 'indicators' ? 'on' : ''}>Indicators</a>
+            <a href="#contact" className={activeNav === 'contact' ? 'on' : ''}>Contact</a>
           </div>
           <button className="btn btn-ghost" onClick={goApp}>Sign In</button>
         </nav>
@@ -662,7 +678,25 @@ a{color:var(--gold);text-decoration:none}
 .nav .links{display:flex;gap:26px}
 .nav .links a{color:var(--text2);font-size:14px;font-weight:600}
 .nav .links a:hover{color:var(--gold)}
+.nav .links a{position:relative;transition:color .2s}
+.nav .links a.on{color:var(--gold)}
+.nav .links a.on:after{content:'';position:absolute;left:0;right:0;bottom:-6px;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--gold2),var(--gold));box-shadow:0 0 10px rgba(245,166,35,.8)}
 @media(max-width:780px){.nav .links{display:none}}
+/* ── peripherals: progress rail, custom cursor, magnetic, intro ─────────────── */
+.lmr-progress{position:fixed;top:0;left:0;height:3px;width:100%;transform:scaleX(0);transform-origin:0 50%;z-index:60;background:linear-gradient(90deg,var(--gold2),var(--gold));box-shadow:0 0 12px rgba(245,166,35,.7);pointer-events:none}
+.lmr-cursor-on,.lmr-cursor-on a,.lmr-cursor-on button,.lmr-cursor-on .btn{cursor:none}
+.lmr-cur-dot,.lmr-cur-ring{position:fixed;top:0;left:0;z-index:9998;pointer-events:none;border-radius:50%;mix-blend-mode:screen;will-change:transform}
+.lmr-cur-dot{width:7px;height:7px;margin:-3.5px 0 0 -3.5px;background:var(--gold2);box-shadow:0 0 10px rgba(245,166,35,.9)}
+.lmr-cur-ring{width:34px;height:34px;margin:-17px 0 0 -17px;border:1.5px solid rgba(245,166,35,.55);transition:width .18s ease,height .18s ease,margin .18s ease,border-color .18s ease,background .18s ease}
+.lmr-cur-ring.hot{width:52px;height:52px;margin:-26px 0 0 -26px;border-color:rgba(255,209,122,.9);background:rgba(245,166,35,.08)}
+.lmr-cur-ring.down{width:26px;height:26px;margin:-13px 0 0 -13px}
+@media(pointer:coarse){.lmr-cur-dot,.lmr-cur-ring{display:none}}
+.brand{transition:transform .18s cubic-bezier(.22,1,.36,1)}
+.stat{transition:transform .22s cubic-bezier(.22,1,.36,1),border-color .22s,box-shadow .22s}
+.stat:hover{transform:translateY(-6px);border-color:rgba(245,166,35,.4);box-shadow:0 30px 70px -40px rgba(245,166,35,.45)}
+.lmr-intro{position:fixed;inset:0;z-index:9997;background:radial-gradient(120% 90% at 50% 30%,rgba(20,15,4,.55),#05070d 70%);pointer-events:none;animation:lmrIntro 1s ease .05s forwards}
+@keyframes lmrIntro{0%{opacity:1}100%{opacity:0;visibility:hidden}}
+@media(prefers-reduced-motion:reduce){.lmr-intro{display:none}}
 /* hero */
 .hero{position:relative;min-height:100vh;display:flex;flex-direction:column;justify-content:center;max-width:1180px;margin:0 auto;padding:0 clamp(20px,5vw,72px)}
 .scrollhint{position:absolute;bottom:34px;left:clamp(20px,5vw,72px);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)}
