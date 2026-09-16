@@ -90,7 +90,7 @@ export function createScene(canvas) {
       link.userData.base = link.rotation.clone();
     }
   }
-  buildChain(0xF5A623);
+  chain.visible = false; // removed: the ambient background ring read as clutter, not "the chain"
 
   const state = { scroll: 0, section: 0, chainP: 0, mx: 0, my: 0, themeT: 0, targetTheme: 0, energy: 1 };
   const curA = new THREE.Color(THEMES[0].a), curB = new THREE.Color(THEMES[0].b);
