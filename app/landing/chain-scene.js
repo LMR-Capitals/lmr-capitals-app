@@ -70,7 +70,10 @@ export function createChainScene(canvas, opts = {}) {
     links.length = 0;
     const m = METALS[cfg.metal] || METALS.gold;
     for (let i = 0; i < total; i++) {
-      const mat = new THREE.MeshPhysicalMaterial({ color: m.color, emissive: m.emissive, emissiveIntensity: 0, metalness: 1, roughness: 0.22, clearcoat: 0.8, clearcoatRoughness: 0.15, envMapIntensity: 1.4, transparent: true, opacity: i < count ? 1 : 0 });
+      // links in the chain are solid opaque gold (no see-through/ghosting); only the
+      // extra ring links, which appear during the finale, fade in via opacity.
+      const isExtra = i >= count;
+      const mat = new THREE.MeshPhysicalMaterial({ color: m.color, emissive: m.emissive, emissiveIntensity: 0, metalness: 1, roughness: 0.22, clearcoat: 0.8, clearcoatRoughness: 0.15, envMapIntensity: 1.4, transparent: isExtra, opacity: isExtra ? 0 : 1 });
       const mesh = new THREE.Mesh(geo, mat);
       mesh.position.set(0, restY(i), 0);
       mesh.rotation.y = i % 2 ? Math.PI / 2 : 0;
@@ -129,13 +132,11 @@ export function createChainScene(canvas, opts = {}) {
       l.mesh.rotation.y = lerp(l.mesh.rotation.y, lerp(l.baseRotY, 0, fe), 0.14);
       l.mesh.rotation.z = lerp(l.mesh.rotation.z, fe * (ang + Math.PI / 2), 0.14);
       // scale: active pop 1.12, finale settle ~0.95
-      const dist = Math.abs(i - activeIdx);
       const baseScale = i === activeIdx ? 1.12 : 1.0;
       const tScale = lerp(baseScale, 0.95, fe);
       const cur = l.mesh.scale.x; const ns = lerp(cur, tScale, 0.14); l.mesh.scale.setScalar(ns);
-      // opacity: far links dim (except in finale where all present)
-      const tOpacity = i >= count ? fe : lerp(dist > 1 ? 0.35 : 1, 1, fe);
-      mat.opacity = lerp(mat.opacity, tOpacity, 0.14);
+      // opacity: chain links stay solid gold; only extra ring links fade in for the finale
+      if (i >= count) mat.opacity = lerp(mat.opacity, fe, 0.14);
       // emissive glow: gated mid-slice on the active link; hover pulse; all glow in finale
       let em = 0;
       if (i === activeIdx && sliceFrac >= 0.5) em += 0.9 * cfg.glow;
@@ -160,6 +161,7 @@ export function createChainScene(canvas, opts = {}) {
   return {
     setProgress(p) { state.p = clamp01(p); step(); kick(); },
     setHover(i) { state.hover = (i == null ? null : i | 0); step(); kick(); },
+    resize() { resize(); step(); },
     getRotationDeg() { return group.rotation.z * 180 / Math.PI; },
     setMetal(m) { if (m && m !== cfg.metal && METALS[m]) { cfg.metal = m; buildLinks(); } },
     setScale(s) { if (s && s !== cfg.scale) { cfg.scale = s; rebuildGeo(); } },

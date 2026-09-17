@@ -7,6 +7,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createScene } from './scene-3d.js';
+import { createDeskScene } from './desk-scene.js';
 import { createChainScene } from './chain-scene.js';
 import { createPuzzle } from './puzzle-scene.js';
 import { createChart } from './mini-charts.js';
@@ -274,6 +275,8 @@ function App() {
   const canvasRef = useRef(null);
   const sceneRef = useRef(null);
   const chainSecRef = useRef(null);
+  const deskCanvasRef = useRef(null);
+  const deskRef = useRef(null);
   const chainCanvasRef = useRef(null);
   const chainRef = useRef(null);
   const convRef = useRef(null);
@@ -295,8 +298,14 @@ function App() {
     try { scene = createScene(canvasRef.current); } catch (e) { scene = null; }
     sceneRef.current = scene;
 
-    // The Chain — full-frame 3D: seven links rise in, light per stage, then lock
-    // into a spinning closed ring at the end.
+    // The cinematic desk + monitor. The camera flies into the screen; the new
+    // Chain (below) plays ON the monitor's screen, then it pulls back out.
+    let desk = null;
+    try { desk = createDeskScene(deskCanvasRef.current, { hideChain: true }); deskRef.current = desk; } catch (e) { desk = null; }
+
+    // The Chain — seven links rise in, light per stage, then lock into a spinning
+    // closed ring. Rendered on its own transparent canvas, locked to the monitor
+    // screen rectangle so it reads as playing on the display.
     let chain = null;
     try { chain = createChainScene(chainCanvasRef.current, { count: STAGES.length, extraRing: 0 }); if (chain) { chain.setSpacing(1.1); chainRef.current = chain; } } catch (e) { chain = null; }
     let puzzle = null, deskChart = null;
@@ -317,11 +326,14 @@ function App() {
       scene && scene.setScroll(p);
       const cp = calc(chainSecRef.current);
       scene && scene.setChainProgress(cp);
-      chain && chain.setProgress(cp);
+      desk && desk.setProgress(cp);
+      // camera flies in (→0.16) and pulls out (0.86→); the chain journey + ring
+      // finale play inside the screen across 0.16 → 0.80, then the ring holds.
+      const chp = clamp01((cp - 0.16) / (0.80 - 0.16));
+      chain && chain.setProgress(chp);
+      if (desk && desk.getScreenRect) { const r = desk.getScreenRect(); if (r && r.w > 0) setScreenRect(r); }
       setMp(cp);
-      // the 7-stage journey runs across 0.16 → 0.86
-      const inside = clamp01((cp - 0.16) / (0.86 - 0.16));
-      setActiveStage(Math.max(0, Math.min(STAGES.length - 1, Math.floor(inside * STAGES.length - 1e-6))));
+      setActiveStage(Math.max(0, Math.min(STAGES.length - 1, Math.floor((chp - 0.75 / STAGES.length) * STAGES.length))));
       const cvp = calc(convRef.current);
       setConvP(cvp);
       deskChart && deskChart.setProgress(clamp01((cvp - 0.08) / (0.30 - 0.08))); // workspace "high hope" chart resolves
@@ -332,11 +344,16 @@ function App() {
     const onMouse = (e) => {
       const mx = (e.clientX / innerWidth) * 2 - 1, my = (e.clientY / innerHeight) * 2 - 1;
       scene && scene.setMouse(mx, my);
+      desk && desk.setMouse(mx, my);
       heroFocal && heroFocal.setMouse(mx, my);
     };
+    const onResize = () => { if (desk && desk.getScreenRect) { const r = desk.getScreenRect(); if (r && r.w > 0) setScreenRect(r); } };
     addEventListener('scroll', onScroll, { passive: true });
     addEventListener('mousemove', onMouse, { passive: true });
+    addEventListener('resize', onResize);
     onScroll();
+    // the desk camera settles a beat after mount; re-read the screen rect then
+    const rt0 = setTimeout(onResize, 140), rt1 = setTimeout(onResize, 520);
 
     // section → scene theme index
     const secs = Array.from(document.querySelectorAll('[data-scene]'));
@@ -354,7 +371,7 @@ function App() {
     // peripherals: smooth scroll, gold cursor, magnetic buttons, progress rail
     let periph = null; try { periph = initPeripherals(); } catch (e) { periph = null; }
 
-    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); io.disconnect(); navIo.disconnect(); if (periph) periph.dispose(); if (scene) scene.dispose(); if (chain) chain.dispose(); if (puzzle) puzzle.dispose(); if (deskChart) deskChart.dispose(); cardCharts.forEach((c) => c && c.dispose()); if (heroFocal) heroFocal.dispose(); indCharts.forEach((c) => c && c.dispose()); if (trackCurve) trackCurve.dispose(); };
+    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); removeEventListener('resize', onResize); clearTimeout(rt0); clearTimeout(rt1); io.disconnect(); navIo.disconnect(); if (periph) periph.dispose(); if (scene) scene.dispose(); if (desk) desk.dispose(); if (chain) chain.dispose(); if (puzzle) puzzle.dispose(); if (deskChart) deskChart.dispose(); cardCharts.forEach((c) => c && c.dispose()); if (heroFocal) heroFocal.dispose(); indCharts.forEach((c) => c && c.dispose()); if (trackCurve) trackCurve.dispose(); };
   }, []);
 
   // 3D mouse-tilt on cards marked .tilt3d
@@ -370,16 +387,22 @@ function App() {
     return () => cards.forEach((c) => { c.removeEventListener('mousemove', onMove); c.removeEventListener('mouseleave', onLeave); });
   }, []);
 
+  // keep the chain renderer sized to the monitor screen rectangle it's locked to
+  useEffect(() => { if (chainRef.current && screenRect && screenRect.w > 0) chainRef.current.resize(); }, [screenRect]);
+
   // overlay copy timing, synced to the camera choreography
-  const introOpacity = 1 - smooth(0.04, 0.13, mp);                       // fades as we fly in
-  const insideOpacity = smooth(0.15, 0.20, mp) * (1 - smooth(0.88, 0.95, mp)); // in across the journey
-  const finaleOpacity = smooth(0.90, 0.97, mp);                          // the closing line, as the ring locks
-  const journeyProgress = clamp01((mp - 0.16) / (0.86 - 0.16));          // 0..1 through the 7 stages
+  const introOpacity = 1 - smooth(0.04, 0.13, mp);                            // fades as we fly in
+  const insideOpacity = smooth(0.20, 0.26, mp) * (1 - smooth(0.74, 0.80, mp)); // stage copy across the journey
+  const finaleOpacity = smooth(0.80, 0.85, mp) * (1 - smooth(0.88, 0.93, mp)); // the closing line, as the ring locks
+  const journeyProgress = clamp01((mp - 0.16) / (0.80 - 0.16));               // 0..1 through the 7 stages
+  // the chain plays ON the monitor screen: shown during the straight-on hold,
+  // hidden through the angled fly-in / pull-out so it never floats off the glass
+  const screenChainOpacity = smooth(0.17, 0.23, mp) * (1 - smooth(0.85, 0.90, mp));
   // overlay elements locked to the monitor screen rectangle (falls back to CSS % if unknown)
   const R = screenRect;
+  const chainPos = R ? { left: R.x, top: R.y, width: R.w, height: R.h } : null;
   const copyPos = R ? { left: R.x + R.w * 0.05, top: R.y + R.h * 0.52, width: R.w * 0.34, transform: 'translateY(-50%)' } : null;
-  const connPos = R ? { left: R.x + R.w * 0.26, top: R.y + R.h * 0.30, width: R.w * 0.32, height: R.h * 0.24 } : null;
-  const finalePos = R ? { left: R.x + R.w * 0.5, top: R.y + R.h * 0.07, transform: 'translateX(-50%)' } : null;
+  const finalePos = R ? { left: R.x + R.w * 0.5, top: R.y + R.h * 0.81, transform: 'translateX(-50%)' } : null;
   // conviction timing — PDF storyboard: organise the table → rewiring (puzzle) → four cards → close
   const cvHead = 1 - smooth(0.10, 0.16, convP);                                  // section intro copy over the table
   const cvTrades = smooth(0.03, 0.10, convP) * (1 - smooth(0.34, 0.40, convP));  // 1: organise the table
@@ -449,25 +472,29 @@ function App() {
           </div>
         </section>
 
-        {/* METHOD — the Chain: camera flies INTO the trader's monitor, the
-            content plays inside the screen, then shrinks back onto the desk. */}
+        {/* METHOD — the Chain: the camera flies INTO the trader's monitor; the
+            Chain plays ON the screen, locks into a ring, then pulls back out. */}
         <section id="method" ref={chainSecRef} className="method-sec" data-scene="3">
           <div className="method-sticky">
-            {/* full-frame 3D chain */}
-            <canvas ref={chainCanvasRef} className="chain-canvas" />
+            {/* the 3D desk + monitor */}
+            <canvas ref={deskCanvasRef} className="desk-canvas" />
+            {/* the Chain — its own transparent canvas, locked to the monitor screen */}
+            <canvas ref={chainCanvasRef} className="chain-canvas"
+              style={{ ...(chainPos || {}), opacity: screenChainOpacity, pointerEvents: 'none' }} />
             <div className="method-veil" />
 
-            {/* establishing caption — fades as the chain rises in */}
+            {/* establishing caption — visible on the wide desk shot, fades as we fly in */}
             <div className="method-intro" style={{ opacity: introOpacity, pointerEvents: introOpacity < 0.1 ? 'none' : 'auto' }}>
               <span className="kick">How We Do It — The Chain</span>
-              <h2 className="h2">Markets Move as One Chain</h2>
-              <p className="hint">Scroll — forge the chain ↓</p>
+              <h2 className="h2">It All Runs From One Desk</h2>
+              <p className="body">Every session, every model, every lesson — organized end to end by one system. Step inside the screen.</p>
+              <p className="hint">Scroll — fly into the monitor ↓</p>
             </div>
 
-            {/* per-stage copy — left column, the chain rises right of it */}
-            <div className="chain-copy" style={{ opacity: insideOpacity, pointerEvents: insideOpacity < 0.1 ? 'none' : 'auto' }}>
+            {/* per-stage copy — locked to the left of the monitor screen */}
+            <div className="method-inside" style={{ opacity: insideOpacity, pointerEvents: insideOpacity < 0.1 ? 'none' : 'auto', ...(copyPos || {}) }}>
+              <span className="kick">Stage {activeStage + 1} of {STAGES.length}</span>
               <div className="stagecard" key={activeStage}>
-                <span className="kick">Stage {activeStage + 1} of {STAGES.length}</span>
                 <h2 className="h2 gold">{STAGES[activeStage].k}</h2>
                 <p className="body">{STAGES[activeStage].c}</p>
               </div>
@@ -480,10 +507,8 @@ function App() {
               </div>
             </div>
 
-            {/* the closing line — centred under the locked ring */}
-            <div className="chain-finale-wrap" style={{ opacity: finaleOpacity, pointerEvents: 'none' }}>
-              <span className="chain-finale">The Chain — Connected in Full Circle</span>
-            </div>
+            {/* the closing line — locked low on the screen under the ring */}
+            <span className="chain-finale" style={{ opacity: finaleOpacity, ...(finalePos || {}) }}>The Chain — Connected in Full Circle</span>
           </div>
         </section>
 
@@ -735,7 +760,8 @@ a{color:var(--gold);text-decoration:none}
 .method-sec{position:relative;height:840vh}
 .method-sticky{position:sticky;top:0;height:100vh;width:100%;overflow:hidden}
 .desk-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0}
-.chain-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1}
+/* the chain canvas is sized+placed onto the monitor screen via inline style */
+.chain-canvas{position:absolute;z-index:1;display:block;pointer-events:none;transition:opacity .45s ease}
 .method-veil{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 120% at 50% 45%,transparent 60%,rgba(4,6,12,.7) 100%)}
 /* full-frame chain: per-stage copy in a left column, the chain rises right of it */
 .chain-copy{position:absolute;z-index:2;left:clamp(24px,6vw,96px);top:50%;transform:translateY(-50%);width:min(430px,42vw);text-align:left;transition:opacity .5s ease}
@@ -744,9 +770,8 @@ a{color:var(--gold);text-decoration:none}
 .chain-copy .h2{font-size:clamp(26px,3.2vw,46px);line-height:1.08;color:var(--gold2);margin:6px 0 14px;text-shadow:0 0 30px rgba(122,81,17,.5)}
 .chain-copy .body{max-width:40ch;margin:0;color:var(--text2)}
 .chain-copy .chain-dots{display:flex;gap:11px;justify-content:flex-start;margin-top:26px}
-/* finale line — centred under the locked ring, low so it clears the ring */
-.chain-finale-wrap{position:absolute;z-index:2;left:0;right:0;bottom:12vh;text-align:center;transition:opacity .6s ease}
-.chain-finale{display:inline-block;font-size:clamp(24px,3.4vw,46px);font-weight:800;letter-spacing:-.01em;background:linear-gradient(120deg,var(--gold2),var(--gold) 58%,#eccf6f);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 34px rgba(245,166,35,.42))}
+/* finale line — locked low on the monitor screen, under the ring (position via inline style) */
+.chain-finale{position:absolute;z-index:2;white-space:nowrap;font-size:clamp(15px,1.7vw,26px);font-weight:800;letter-spacing:.005em;color:#FFDD93;-webkit-text-fill-color:#FFDD93;text-shadow:0 2px 16px rgba(0,0,0,.65),0 0 30px rgba(245,166,35,.6);transition:opacity .6s ease}
 /* establishing caption sits low-left over the wide desk shot */
 .method-intro{position:absolute;z-index:2;left:clamp(20px,6vw,90px);bottom:clamp(48px,10vh,120px);max-width:min(560px,80vw);transition:opacity .4s ease}
 .method-intro .hint{margin-top:18px}
