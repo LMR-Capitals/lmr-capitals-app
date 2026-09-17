@@ -47,4 +47,6 @@ create table if not exists public.target_events (
 alter table public.target_events enable row level security;
 drop policy if exists "own target events" on public.target_events;
 create policy "own target events" on public.target_events
-  for all using (auth.uid() = (select user_id from public.targets where targets.id = target_id));
+  for all
+  using      (auth.uid() = (select user_id from public.targets where targets.id = target_id))
+  with check (auth.uid() = (select user_id from public.targets where targets.id = target_id));

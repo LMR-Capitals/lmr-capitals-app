@@ -1,0 +1,7 @@
+# Never deploy credentials or local tooling from the shared worktree.
+.env
+.env.*
+node_modules/
+.claude/
+.netlify/
+.DS_Store

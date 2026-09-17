@@ -18,3 +18,6 @@ supabase-setup.sql
 # Editor / tool configs
 .claude/
 .DS_Store
+
+# Local migration backup — never deploy the old Tauri starter
+.lmr-tauri-backup-*/
