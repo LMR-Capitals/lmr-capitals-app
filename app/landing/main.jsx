@@ -421,7 +421,7 @@ function App() {
       <div className="page">
         {/* NAV */}
         <nav className="nav">
-          <div className="brand"><img className="brand-logo" src="/icons/lmr-logo.svg" alt="LMR Capitals" width="34" height="34" /><span>LMR <strong>Capitals</strong></span></div>
+          <div className="brand"><img className="brand-logo" src="/icons/lmr-icon.png" alt="LMR Capitals" width="36" height="36" /><span>LMR <strong>Capitals</strong></span></div>
           <div className="links">
             <a href="#about" className={activeNav === 'about' ? 'on' : ''}>About</a>
             <a href="#what" className={activeNav === 'what' ? 'on' : ''}>What We Do</a>
@@ -712,7 +712,7 @@ a{color:var(--gold);text-decoration:none}
 /* nav */
 .nav{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:14px clamp(20px,5vw,72px);background:rgba(6,11,20,.55);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
 .brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:17px}
-.brand-logo{width:34px;height:34px;display:block;filter:drop-shadow(0 2px 10px rgba(245,166,35,.35))}
+.brand-logo{width:36px;height:36px;display:block;object-fit:contain;filter:drop-shadow(0 2px 12px rgba(245,166,35,.4))}
 .brand strong{color:var(--gold)}
 .nav .links{display:flex;gap:26px}
 .nav .links a{color:var(--text2);font-size:14px;font-weight:600}
