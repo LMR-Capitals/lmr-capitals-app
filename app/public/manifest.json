@@ -2,7 +2,7 @@
   "name": "LMR Capitals",
   "short_name": "LMR",
   "description": "LMR Capitals — Day Trade & Investor Journal. LMR Capitals Pty. Ltd.",
-  "start_url": "./index.html",
+  "start_url": "/app",
   "display": "standalone",
   "background_color": "#060B14",
   "theme_color": "#F5A623",
