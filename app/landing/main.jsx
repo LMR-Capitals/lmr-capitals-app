@@ -7,7 +7,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createScene } from './scene-3d.js';
-import { createDeskScene } from './desk-scene.js';
+import { createChainScene } from './chain-scene.js';
 import { createPuzzle } from './puzzle-scene.js';
 import { createChart } from './mini-charts.js';
 import { initPeripherals } from './peripherals.js';
@@ -274,7 +274,8 @@ function App() {
   const canvasRef = useRef(null);
   const sceneRef = useRef(null);
   const chainSecRef = useRef(null);
-  const deskCanvasRef = useRef(null);
+  const chainCanvasRef = useRef(null);
+  const chainRef = useRef(null);
   const convRef = useRef(null);
   const puzzleCanvasRef = useRef(null);
   const deskChartRef = useRef(null);
@@ -294,10 +295,10 @@ function App() {
     try { scene = createScene(canvasRef.current); } catch (e) { scene = null; }
     sceneRef.current = scene;
 
-    // The cinematic desk + monitor. Camera flies into the screen; the Chain
-    // assembles "inside" it; then it pulls back out onto the desk.
-    let desk = null;
-    try { desk = createDeskScene(deskCanvasRef.current); } catch (e) { desk = null; }
+    // The Chain — full-frame 3D: seven links rise in, light per stage, then lock
+    // into a spinning closed ring at the end.
+    let chain = null;
+    try { chain = createChainScene(chainCanvasRef.current, { count: STAGES.length, extraRing: 0 }); if (chain) { chain.setSpacing(1.1); chainRef.current = chain; } } catch (e) { chain = null; }
     let puzzle = null, deskChart = null;
     try { puzzle = createPuzzle(puzzleCanvasRef.current); } catch (e) { puzzle = null; }
     try { deskChart = createChart(deskChartRef.current, { kind: 'structure' }); } catch (e) { deskChart = null; }
@@ -316,11 +317,9 @@ function App() {
       scene && scene.setScroll(p);
       const cp = calc(chainSecRef.current);
       scene && scene.setChainProgress(cp);
-      desk && desk.setProgress(cp);
+      chain && chain.setProgress(cp);
       setMp(cp);
-      // lock the overlay to the monitor screen's actual projected rectangle
-      if (desk && desk.getScreenRect) { const r = desk.getScreenRect(); if (r && r.w > 0) setScreenRect(r); }
-      // the 7-stage in-monitor journey runs across 0.16 → 0.86
+      // the 7-stage journey runs across 0.16 → 0.86
       const inside = clamp01((cp - 0.16) / (0.86 - 0.16));
       setActiveStage(Math.max(0, Math.min(STAGES.length - 1, Math.floor(inside * STAGES.length - 1e-6))));
       const cvp = calc(convRef.current);
@@ -330,14 +329,9 @@ function App() {
       const cardsP = clamp01((cvp - 0.70) / (0.90 - 0.70));                     // four concept cards draw in
       cardCharts.forEach((ch, i) => ch && ch.setProgress(clamp01((cardsP - i * 0.10) / 0.55)));
     };
-    const onResize = () => { if (desk && desk.getScreenRect) { const r = desk.getScreenRect(); if (r && r.w > 0) setScreenRect(r); } };
-    addEventListener('resize', onResize);
-    // the rect depends on the rendered camera; sample a couple of frames after mount
-    const t0 = setTimeout(onResize, 120), t1 = setTimeout(onResize, 500);
     const onMouse = (e) => {
       const mx = (e.clientX / innerWidth) * 2 - 1, my = (e.clientY / innerHeight) * 2 - 1;
       scene && scene.setMouse(mx, my);
-      desk && desk.setMouse(mx, my);
       heroFocal && heroFocal.setMouse(mx, my);
     };
     addEventListener('scroll', onScroll, { passive: true });
@@ -360,7 +354,7 @@ function App() {
     // peripherals: smooth scroll, gold cursor, magnetic buttons, progress rail
     let periph = null; try { periph = initPeripherals(); } catch (e) { periph = null; }
 
-    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); removeEventListener('resize', onResize); clearTimeout(t0); clearTimeout(t1); io.disconnect(); navIo.disconnect(); if (periph) periph.dispose(); if (scene) scene.dispose(); if (desk) desk.dispose(); if (puzzle) puzzle.dispose(); if (deskChart) deskChart.dispose(); cardCharts.forEach((c) => c && c.dispose()); if (heroFocal) heroFocal.dispose(); indCharts.forEach((c) => c && c.dispose()); if (trackCurve) trackCurve.dispose(); };
+    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); io.disconnect(); navIo.disconnect(); if (periph) periph.dispose(); if (scene) scene.dispose(); if (chain) chain.dispose(); if (puzzle) puzzle.dispose(); if (deskChart) deskChart.dispose(); cardCharts.forEach((c) => c && c.dispose()); if (heroFocal) heroFocal.dispose(); indCharts.forEach((c) => c && c.dispose()); if (trackCurve) trackCurve.dispose(); };
   }, []);
 
   // 3D mouse-tilt on cards marked .tilt3d
@@ -379,6 +373,7 @@ function App() {
   // overlay copy timing, synced to the camera choreography
   const introOpacity = 1 - smooth(0.04, 0.13, mp);                       // fades as we fly in
   const insideOpacity = smooth(0.15, 0.20, mp) * (1 - smooth(0.88, 0.95, mp)); // in across the journey
+  const finaleOpacity = smooth(0.90, 0.97, mp);                          // the closing line, as the ring locks
   const journeyProgress = clamp01((mp - 0.16) / (0.86 - 0.16));          // 0..1 through the 7 stages
   // overlay elements locked to the monitor screen rectangle (falls back to CSS % if unknown)
   const R = screenRect;
@@ -458,40 +453,36 @@ function App() {
             content plays inside the screen, then shrinks back onto the desk. */}
         <section id="method" ref={chainSecRef} className="method-sec" data-scene="3">
           <div className="method-sticky">
-            <canvas ref={deskCanvasRef} className="desk-canvas" />
+            {/* full-frame 3D chain */}
+            <canvas ref={chainCanvasRef} className="chain-canvas" />
             <div className="method-veil" />
 
-            {/* establishing caption — visible on the wide desk shot, fades as we fly in */}
+            {/* establishing caption — fades as the chain rises in */}
             <div className="method-intro" style={{ opacity: introOpacity, pointerEvents: introOpacity < 0.1 ? 'none' : 'auto' }}>
               <span className="kick">How We Do It — The Chain</span>
-              <h2 className="h2">It All Runs From One Desk</h2>
-              <p className="body">Every session, every model, every lesson — organized end to end by one system. Step inside the screen.</p>
-              <p className="hint">Scroll — fly into the monitor ↓</p>
+              <h2 className="h2">Markets Move as One Chain</h2>
+              <p className="hint">Scroll — forge the chain ↓</p>
             </div>
 
-            {/* finale line, inside the screen, when the chain is complete */}
-            {activeStage === STAGES.length - 1 && journeyProgress > 0.94 && (
-              <span className="chain-finale" style={{ opacity: insideOpacity, ...(finalePos || {}) }}>The Chain — Connected in Full Circle</span>
-            )}
-
-            {/* thin gold connector line from the copy to the link (per the design) */}
-            <svg className="chain-connector" style={{ opacity: insideOpacity * 0.85, ...(connPos || {}) }} preserveAspectRatio="none" viewBox="0 0 100 100">
-              <path d="M1,72 L1,18 L99,18" fill="none" stroke="rgba(245,166,35,0.5)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
-              <circle cx="99" cy="18" r="2.4" fill="#F5A623" vectorEffect="non-scaling-stroke" />
-            </svg>
-
-            {/* inside-the-screen methodology — left copy block + dash-dots (per the design) */}
-            <div className="method-inside" style={{ opacity: insideOpacity, pointerEvents: insideOpacity < 0.1 ? 'none' : 'auto', ...(copyPos || {}) }}>
-              <span className="kick">How We Do It — The Chain</span>
+            {/* per-stage copy — left column, the chain rises right of it */}
+            <div className="chain-copy" style={{ opacity: insideOpacity, pointerEvents: insideOpacity < 0.1 ? 'none' : 'auto' }}>
               <div className="stagecard" key={activeStage}>
+                <span className="kick">Stage {activeStage + 1} of {STAGES.length}</span>
                 <h2 className="h2 gold">{STAGES[activeStage].k}</h2>
                 <p className="body">{STAGES[activeStage].c}</p>
               </div>
               <div className="chain-dots">
                 {STAGES.map((s, i) => (
-                  <span key={i} className={'cdot' + (i === activeStage ? ' on' : '')} title={s.k} />
+                  <span key={i} className={'cdot' + (i === activeStage ? ' on' : '')} title={s.k}
+                    onMouseEnter={() => chainRef.current && chainRef.current.setHover(i)}
+                    onMouseLeave={() => chainRef.current && chainRef.current.setHover(null)} />
                 ))}
               </div>
+            </div>
+
+            {/* the closing line — centred under the locked ring */}
+            <div className="chain-finale-wrap" style={{ opacity: finaleOpacity, pointerEvents: 'none' }}>
+              <span className="chain-finale">The Chain — Connected in Full Circle</span>
             </div>
           </div>
         </section>
@@ -744,7 +735,18 @@ a{color:var(--gold);text-decoration:none}
 .method-sec{position:relative;height:840vh}
 .method-sticky{position:sticky;top:0;height:100vh;width:100%;overflow:hidden}
 .desk-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0}
-.method-veil{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 120% at 50% 45%,transparent 55%,rgba(4,6,12,.72) 100%)}
+.chain-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1}
+.method-veil{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 120% at 50% 45%,transparent 60%,rgba(4,6,12,.7) 100%)}
+/* full-frame chain: per-stage copy in a left column, the chain rises right of it */
+.chain-copy{position:absolute;z-index:2;left:clamp(24px,6vw,96px);top:50%;transform:translateY(-50%);width:min(430px,42vw);text-align:left;transition:opacity .5s ease}
+.chain-copy .stagecard{margin:0}
+.chain-copy .kick{display:block;margin-bottom:12px}
+.chain-copy .h2{font-size:clamp(26px,3.2vw,46px);line-height:1.08;color:var(--gold2);margin:6px 0 14px;text-shadow:0 0 30px rgba(122,81,17,.5)}
+.chain-copy .body{max-width:40ch;margin:0;color:var(--text2)}
+.chain-copy .chain-dots{display:flex;gap:11px;justify-content:flex-start;margin-top:26px}
+/* finale line — centred under the locked ring, low so it clears the ring */
+.chain-finale-wrap{position:absolute;z-index:2;left:0;right:0;bottom:12vh;text-align:center;transition:opacity .6s ease}
+.chain-finale{display:inline-block;font-size:clamp(24px,3.4vw,46px);font-weight:800;letter-spacing:-.01em;background:linear-gradient(120deg,var(--gold2),var(--gold) 58%,#eccf6f);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 34px rgba(245,166,35,.42))}
 /* establishing caption sits low-left over the wide desk shot */
 .method-intro{position:absolute;z-index:2;left:clamp(20px,6vw,90px);bottom:clamp(48px,10vh,120px);max-width:min(560px,80vw);transition:opacity .4s ease}
 .method-intro .hint{margin-top:18px}
@@ -763,9 +765,15 @@ a{color:var(--gold);text-decoration:none}
 /* per-stage crossfade */
 .stagecard{animation:stageIn .55s cubic-bezier(.22,1,.36,1)}
 @keyframes stageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-/* finale line, centred near the top of the screen */
-.chain-finale{position:absolute;z-index:2;top:12%;left:50%;transform:translateX(-50%);font-size:13px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;color:var(--gold2);text-shadow:0 0 24px rgba(245,166,35,.6);transition:opacity .5s ease;white-space:nowrap}
 @media(max-width:780px){.method-inside{left:8%;width:70vw}}
+/* mobile: the chain centres (no right-bias), so drop the copy to a bottom band */
+@media(max-width:820px){
+  .chain-copy{left:0;right:0;top:auto;bottom:6vh;transform:none;width:auto;text-align:center;padding:0 clamp(18px,6vw,40px)}
+  .chain-copy .body{max-width:46ch;margin:0 auto}
+  .chain-copy .chain-dots{justify-content:center}
+  .chain-finale-wrap{bottom:8vh}
+  .chain-finale{font-size:clamp(22px,6vw,32px)}
+}
 .method-inside .step{border:1px solid var(--border);border-radius:999px;padding:7px 14px;background:rgba(10,16,28,.5);backdrop-filter:blur(8px)}
 .method-inside .step .stepk{font-size:12.5px}
 .method-inside .h2{text-shadow:0 2px 30px rgba(245,166,35,.35)}

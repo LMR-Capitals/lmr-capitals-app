@@ -1,140 +1,179 @@
-// LMR Capitals — "The Chain" 3D scene for the #method section.
-// A ring of metallic torus links that assemble as the section scrolls and
-// settle into a full circle at the finale. Exposes the API the landing
-// component drives: createChainScene(canvas,{count}) -> { setProgress, setScale,
-// setSpacing, setThickness, setMetal, setTilt, setGlow, setSwaySpeed, setHover,
-// getRotationDeg, dispose }.
+// LMR Capitals — "The Chain": full-frame 3D scroll-driven chain (rebuilt to the
+// client's CHAIN-HANDOFF spec). Seven stadium-tube gold links rise in, light per
+// stage on scroll, then lock into a single spinning closed ring in the last 3%.
+// Self-contained (three.js only). Sync factory (three is bundled).
+// API: createChainScene(canvas,{count,extraRing}) -> { setProgress, setHover,
+//   getRotationDeg, setMetal, setScale, setThickness, setSpacing, setTilt,
+//   setGlow, setSwaySpeed, dispose }
 
 import * as THREE from 'three';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
-const METAL = {
-  gold:  { color: 0xF5A623, emissive: 0x5a3a05 },
-  iron:  { color: 0x8B5A2B, emissive: 0x2a1a0a },
-  steel: { color: 0x8FA9BC, emissive: 0x1a2833 },
+const METALS = {
+  gold: { color: 0xF5A623, emissive: 0xB5720F },
+  iron: { color: 0x8f9299, emissive: 0x20242c },
+  steel: { color: 0xcfd6e2, emissive: 0x2a3242 },
 };
+const lerp = THREE.MathUtils.lerp;
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+const smoothstep = (t) => { t = clamp01(t); return t * t * (3 - 2 * t); };
 
-export async function createChainScene(canvas, opts = {}) {
-  const count = opts.count ?? 7;
+function stadiumShape(width, height) {
+  const r = width / 2, sx = width / 2, sy = Math.max(0.001, height / 2 - r);
+  const s = new THREE.Shape();
+  s.moveTo(sx, -sy);
+  s.lineTo(sx, sy);
+  s.absarc(0, sy, r, 0, Math.PI, false);
+  s.lineTo(-sx, -sy);
+  s.absarc(0, -sy, r, Math.PI, Math.PI * 2, false);
+  return s;
+}
+function linkGeometry(scale, thickness) {
+  const shape = stadiumShape(1.1 * scale, 2.0 * scale);
+  const pts = shape.getPoints(96).map((p) => new THREE.Vector3(p.x, p.y, 0));
+  const curve = new THREE.CatmullRomCurve3(pts, true);
+  return new THREE.TubeGeometry(curve, 200, thickness * scale, 20, true);
+}
 
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+export function createChainScene(canvas, opts = {}) {
+  let renderer;
+  try { renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' }); }
+  catch (e) { return noop(); }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setClearColor(0x000000, 0);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.15;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-  camera.position.set(0, 0, 9);
+  // metals need something to reflect or they render black — give them a lit room env
+  try { const pmrem = new THREE.PMREMGenerator(renderer); scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture; } catch (e) { /* env is a nicety */ }
+  const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
+  camera.position.set(0, 0, 10);
 
-  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
-  const key = new THREE.DirectionalLight(0xffffff, 1.4); key.position.set(3, 5, 6); scene.add(key);
-  const rim = new THREE.DirectionalLight(0xffe0a0, 0.8); rim.position.set(-4, -2, 4); scene.add(rim);
+  const keyLight = new THREE.DirectionalLight(0xfff2d6, 3.2); keyLight.position.set(4, 5, 7); scene.add(keyLight);
+  const rimLight = new THREE.DirectionalLight(0xffcf7a, 1.8); rimLight.position.set(-5, -1, -4); scene.add(rimLight);
+  scene.add(new THREE.AmbientLight(0x241a10, 0.5));
+  const glowLight = new THREE.PointLight(0xf5a623, 4, 14, 2); glowLight.position.set(0, 0, 5); scene.add(glowLight);
 
-  const ring = new THREE.Group();
-  scene.add(ring);
+  const count = opts.count || 5;
+  const extra = opts.extraRing == null ? 2 : opts.extraRing;
+  const total = count + extra;
+  const group = new THREE.Group(); scene.add(group);
 
-  const state = {
-    progress: 0, scale: 1, spacing: 1.1, thickness: 0.18,
-    metal: 'gold', tilt: 8, glow: 0.75, sway: 0.5, hover: null, rot: 0,
-  };
-
-  // Build `count` torus links evenly around a circle, each tilted 90° from the
-  // next so they interlock like a real chain.
+  const cfg = { scale: 1, thickness: 0.18, spacing: 1.1, metal: 'gold', tilt: 6, glow: 1, sway: 1 };
+  let geo = linkGeometry(cfg.scale, cfg.thickness);
   const links = [];
+  function restY(i) { return ((total - 1) / 2 - i) * cfg.spacing; }
   function buildLinks() {
-    links.forEach((l) => { l.geometry.dispose(); l.material.dispose(); ring.remove(l); });
+    links.forEach((l) => { group.remove(l.mesh); l.mesh.material.dispose(); });
     links.length = 0;
-    const m = METAL[state.metal] || METAL.gold;
-    for (let i = 0; i < count; i++) {
-      const geo = new THREE.TorusGeometry(0.62, state.thickness, 20, 48);
-      const mat = new THREE.MeshStandardMaterial({
-        color: m.color, emissive: m.emissive, emissiveIntensity: state.glow,
-        metalness: 0.95, roughness: 0.28,
-      });
-      const link = new THREE.Mesh(geo, mat);
-      link.userData.index = i;
-      ring.add(link);
-      links.push(link);
+    const m = METALS[cfg.metal] || METALS.gold;
+    for (let i = 0; i < total; i++) {
+      const mat = new THREE.MeshPhysicalMaterial({ color: m.color, emissive: m.emissive, emissiveIntensity: 0, metalness: 1, roughness: 0.22, clearcoat: 0.8, clearcoatRoughness: 0.15, envMapIntensity: 1.4, transparent: true, opacity: i < count ? 1 : 0 });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(0, restY(i), 0);
+      mesh.rotation.y = i % 2 ? Math.PI / 2 : 0;
+      group.add(mesh);
+      links.push({ mesh, baseRotY: mesh.rotation.y });
     }
-    layout();
   }
+  buildLinks();
 
-  function layout() {
-    const R = 2.4 * state.spacing;
-    for (let i = 0; i < links.length; i++) {
-      const a = (i / links.length) * Math.PI * 2;
-      const link = links[i];
-      link.position.set(Math.cos(a) * R, Math.sin(a) * R, 0);
-      // orient each link tangent to the circle, alternating so they interlock
-      link.rotation.set(i % 2 ? Math.PI / 2 : 0, 0, a + Math.PI / 2);
-      link.userData.baseRot = link.rotation.clone();
-    }
-  }
+  const state = { p: 0, hover: null };
+  let raf = 0, disposed = false, inView = true;
+  const clock = new THREE.Clock();
+  // eased runtime values
+  let gY = -cfg.spacing * total * 0.65, spinZ = 0, tiltCur = 0;
 
   function resize() {
-    const w = canvas.clientWidth || canvas.width || 800;
-    const h = canvas.clientHeight || canvas.height || 600;
-    renderer.setSize(w, h, false);
-    camera.aspect = w / h; camera.updateProjectionMatrix();
+    const w = canvas.clientWidth || 800, h = canvas.clientHeight || 600;
+    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
   }
+  resize(); window.addEventListener('resize', resize);
 
-  buildLinks();
-  resize();
-  window.addEventListener('resize', resize);
-
-  const clock = new THREE.Clock();
-  let raf = 0, disposed = false;
-
-  function frame() {
+  function step() {
     if (disposed) return;
     const t = clock.getElapsedTime();
-    const p = state.progress;
+    const p = state.p;
+    const activeIdx = Math.max(0, Math.min(count - 1, Math.floor((p - 0.75 / count) * count)));
+    const sliceFrac = p * count - Math.floor(p * count);
+    const rise = smoothstep(p / 0.18);
+    const finaleT = smoothstep((p - 0.88) / 0.10);   // ring forms 0.88→0.98, holds closed 0.98→1.0
 
-    // Ring rotates continuously (sway); a little faster near the finale.
-    state.rot += (0.06 + p * 0.12) * state.sway * 0.6 * 0.016 * 60 * 0.016;
-    ring.rotation.z = t * 0.15 * state.sway + p * 0.6;
-    ring.rotation.x = (state.tilt * Math.PI / 180) * (0.4 + 0.6 * p);
-    ring.scale.setScalar(state.scale * (0.72 + p * 0.28));
+    // group position: rise in from below, keep the active link centred through the
+    // stages while biased right of centre (leaving the left column for the copy),
+    // then re-centre (X→0, Y→0) as the finale ring forms so it sits dead-centre.
+    const offX = camera.aspect > 1.1 ? 1.9 : 0;   // desktop: chain right, copy left
+    const activeTargetGY = lerp(-cfg.spacing * total * 0.65, -restY(activeIdx), rise);
+    const targetGY = lerp(activeTargetGY, 0, finaleT);
+    const targetGX = lerp(offX, 0, finaleT);
+    gY = lerp(gY, targetGY, 0.12); group.position.y = gY;
+    group.position.x = lerp(group.position.x, targetGX, 0.12);
 
-    // Camera pulls back as the section progresses so the full ring reveals.
-    camera.position.z = 9 - p * 2.2;
+    // idle tilt + finale spin
+    const targetTilt = (cfg.tilt * Math.PI / 180) * (1 - finaleT);
+    tiltCur = lerp(tiltCur, targetTilt, 0.1); group.rotation.x = tiltCur + Math.sin(t * 0.4 * cfg.sway) * 0.02 * (1 - finaleT);
+    if (finaleT >= 0.999) spinZ -= 0.006; group.rotation.z = lerp(group.rotation.z, spinZ, 0.14);
 
-    // Staggered assembly: each link fades/scales in across 0 → 0.75.
+    const ringR = (cfg.spacing * total) / (Math.PI * 2) * 1.05;
     for (let i = 0; i < links.length; i++) {
-      const reveal = clamp01((p - (i / links.length) * 0.7) / 0.22);
-      const link = links[i];
-      const hovered = state.hover === i;
-      const s = (0.2 + reveal * 0.8) * (hovered ? 1.18 : 1);
-      link.scale.setScalar(s);
-      link.material.opacity = reveal;
-      link.material.transparent = reveal < 1;
-      link.material.emissiveIntensity = state.glow * (hovered ? 2.2 : 1) * (0.4 + reveal * 0.6);
-      // gentle individual sway
-      const br = link.userData.baseRot;
-      if (br) link.rotation.x = br.x + Math.sin(t * 0.8 + i) * 0.06;
+      const l = links[i], mat = l.mesh.material;
+      // finale per-link stagger
+      const fe = smoothstep((finaleT - (i / total) * 0.5) / 0.5);
+      // position: rest column → ring point
+      const ang = (i / total) * Math.PI * 2 - Math.PI / 2;
+      const ringX = Math.cos(ang) * ringR, ringY = Math.sin(ang) * ringR;
+      l.mesh.position.x = lerp(l.mesh.position.x, lerp(0, ringX, fe), 0.16);
+      l.mesh.position.y = lerp(l.mesh.position.y, lerp(restY(i), ringY, fe), 0.16);
+      l.mesh.rotation.y = lerp(l.mesh.rotation.y, lerp(l.baseRotY, 0, fe), 0.14);
+      l.mesh.rotation.z = lerp(l.mesh.rotation.z, fe * (ang + Math.PI / 2), 0.14);
+      // scale: active pop 1.12, finale settle ~0.95
+      const dist = Math.abs(i - activeIdx);
+      const baseScale = i === activeIdx ? 1.12 : 1.0;
+      const tScale = lerp(baseScale, 0.95, fe);
+      const cur = l.mesh.scale.x; const ns = lerp(cur, tScale, 0.14); l.mesh.scale.setScalar(ns);
+      // opacity: far links dim (except in finale where all present)
+      const tOpacity = i >= count ? fe : lerp(dist > 1 ? 0.35 : 1, 1, fe);
+      mat.opacity = lerp(mat.opacity, tOpacity, 0.14);
+      // emissive glow: gated mid-slice on the active link; hover pulse; all glow in finale
+      let em = 0;
+      if (i === activeIdx && sliceFrac >= 0.5) em += 0.9 * cfg.glow;
+      if (state.hover === i) em += (0.6 + 0.4 * Math.sin(t * 3 + i)) * cfg.glow;
+      em += fe * 0.8 * cfg.glow;
+      mat.emissiveIntensity = lerp(mat.emissiveIntensity, em, 0.12);
     }
+    glowLight.intensity = 3 + 2 * clamp01(sliceFrac) + finaleT * 3;
 
     renderer.render(scene, camera);
-    raf = requestAnimationFrame(frame);
   }
-  raf = requestAnimationFrame(frame);
+  function loop() { raf = 0; if (disposed || !inView || document.hidden) return; step(); raf = requestAnimationFrame(loop); }
+  function kick() { if (!raf && !disposed && inView && !document.hidden) raf = requestAnimationFrame(loop); }
+  kick();
+  let io = null;
+  try { io = new IntersectionObserver((es) => { inView = es[0].isIntersecting; if (inView) kick(); }, { threshold: 0 }); io.observe(canvas); } catch (e) { inView = true; }
+  function onVis() { if (!document.hidden) kick(); }
+  document.addEventListener('visibilitychange', onVis);
 
-  function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+  function rebuildGeo() { const old = geo; geo = linkGeometry(cfg.scale, cfg.thickness); links.forEach((l) => { l.mesh.geometry = geo; }); old.dispose(); }
 
   return {
-    setProgress(p) { state.progress = clamp01(p); },
-    setScale(v) { state.scale = v; },
-    setSpacing(v) { state.spacing = v; layout(); },
-    setThickness(v) { if (v !== state.thickness) { state.thickness = v; buildLinks(); } },
-    setMetal(v) { if (v !== state.metal) { state.metal = v; buildLinks(); } },
-    setTilt(v) { state.tilt = v; },
-    setGlow(v) { state.glow = v; },
-    setSwaySpeed(v) { state.sway = v; },
-    setHover(i) { state.hover = i; },
-    getRotationDeg() { return (ring.rotation.z * 180 / Math.PI) % 360; },
+    setProgress(p) { state.p = clamp01(p); step(); kick(); },
+    setHover(i) { state.hover = (i == null ? null : i | 0); step(); kick(); },
+    getRotationDeg() { return group.rotation.z * 180 / Math.PI; },
+    setMetal(m) { if (m && m !== cfg.metal && METALS[m]) { cfg.metal = m; buildLinks(); } },
+    setScale(s) { if (s && s !== cfg.scale) { cfg.scale = s; rebuildGeo(); } },
+    setThickness(t2) { if (t2 && t2 !== cfg.thickness) { cfg.thickness = t2; rebuildGeo(); } },
+    setSpacing(s) { if (s) { cfg.spacing = s; links.forEach((l, i) => { l.mesh.position.y = restY(i); }); } },
+    setTilt(deg) { cfg.tilt = deg; },
+    setGlow(g) { cfg.glow = g; },
+    setSwaySpeed(s) { cfg.sway = s; },
     dispose() {
-      disposed = true;
-      if (raf) cancelAnimationFrame(raf);
-      window.removeEventListener('resize', resize);
-      links.forEach((l) => { l.geometry.dispose(); l.material.dispose(); });
-      renderer.dispose();
+      disposed = true; if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener('resize', resize); document.removeEventListener('visibilitychange', onVis); if (io) io.disconnect();
+      links.forEach((l) => l.mesh.material.dispose()); geo.dispose(); renderer.dispose();
     },
   };
 }
+
+function noop() { return { setProgress() {}, setHover() {}, getRotationDeg() { return 0; }, setMetal() {}, setScale() {}, setThickness() {}, setSpacing() {}, setTilt() {}, setGlow() {}, setSwaySpeed() {}, dispose() {} }; }
