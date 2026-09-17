@@ -14,7 +14,7 @@ import { createChart } from './mini-charts.js';
 import { initPeripherals } from './peripherals.js';
 import { createHeroFocal } from './hero-focal.js';
 
-const goApp = () => { window.location.href = '/'; };
+const goApp = () => { window.location.href = '/app'; };
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 const smooth = (e0, e1, x) => { const t = clamp01((x - e0) / (e1 - e0)); return t * t * (3 - 2 * t); };
 
@@ -421,7 +421,7 @@ function App() {
       <div className="page">
         {/* NAV */}
         <nav className="nav">
-          <div className="brand"><span className="dot">LMR</span><span>LMR <strong>Capitals</strong></span></div>
+          <div className="brand"><img className="brand-logo" src="/icons/lmr-icon.png" alt="LMR Capitals" width="36" height="36" /><span>LMR <strong>Capitals</strong></span></div>
           <div className="links">
             <a href="#about" className={activeNav === 'about' ? 'on' : ''}>About</a>
             <a href="#what" className={activeNav === 'what' ? 'on' : ''}>What We Do</a>
@@ -712,7 +712,7 @@ a{color:var(--gold);text-decoration:none}
 /* nav */
 .nav{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:14px clamp(20px,5vw,72px);background:rgba(6,11,20,.55);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
 .brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:17px}
-.brand .dot{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#0a0b0f;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+.brand-logo{width:36px;height:36px;display:block;object-fit:contain;filter:drop-shadow(0 2px 12px rgba(245,166,35,.4))}
 .brand strong{color:var(--gold)}
 .nav .links{display:flex;gap:26px}
 .nav .links a{color:var(--text2);font-size:14px;font-weight:600}
