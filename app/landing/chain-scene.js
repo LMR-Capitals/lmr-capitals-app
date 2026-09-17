@@ -73,7 +73,8 @@ export function createChainScene(canvas, opts = {}) {
       // links in the chain are solid opaque gold (no see-through/ghosting); only the
       // extra ring links, which appear during the finale, fade in via opacity.
       const isExtra = i >= count;
-      const mat = new THREE.MeshPhysicalMaterial({ color: m.color, emissive: m.emissive, emissiveIntensity: 0, metalness: 1, roughness: 0.22, clearcoat: 0.8, clearcoatRoughness: 0.15, envMapIntensity: 1.4, transparent: isExtra, opacity: isExtra ? 0 : 1 });
+      // start as cold iron; step() forges the active link (and the finale ring) to gold
+      const mat = new THREE.MeshPhysicalMaterial({ color: 0x9aa0a8, emissive: 0x0e1013, emissiveIntensity: 0, metalness: 1, roughness: 0.55, clearcoat: 0.8, clearcoatRoughness: 0.15, envMapIntensity: 1.4, transparent: isExtra, opacity: isExtra ? 0 : 1 });
       const mesh = new THREE.Mesh(geo, mat);
       mesh.position.set(0, restY(i), 0);
       mesh.rotation.y = i % 2 ? Math.PI / 2 : 0;
@@ -83,11 +84,15 @@ export function createChainScene(canvas, opts = {}) {
   }
   buildLinks();
 
+  // iron ↔ gold: links sit as cold iron; the ACTIVE link (and the whole finale
+  // ring) forge to glowing gold. Scratch colours reused each frame.
+  const cIron = new THREE.Color(0x9aa0a8), cGold = new THREE.Color(METALS.gold.color);
+  const eIron = new THREE.Color(0x0e1013), eGold = new THREE.Color(METALS.gold.emissive);
+  const tmpCol = new THREE.Color(), tmpEm = new THREE.Color();
+
   const state = { p: 0, hover: null };
   let raf = 0, disposed = false, inView = true;
-  const clock = new THREE.Clock();
-  // eased runtime values
-  let gY = -cfg.spacing * total * 0.65, spinZ = 0, tiltCur = 0;
+  let gY = -cfg.spacing * total * 0.65;   // eased vertical position (only damped state; everything else is a pure fn of scroll)
 
   function resize() {
     const w = canvas.clientWidth || 800, h = canvas.clientHeight || 600;
@@ -97,7 +102,6 @@ export function createChainScene(canvas, opts = {}) {
 
   function step() {
     if (disposed) return;
-    const t = clock.getElapsedTime();
     const p = state.p;
     const activeIdx = Math.max(0, Math.min(count - 1, Math.floor((p - 0.75 / count) * count)));
     const sliceFrac = p * count - Math.floor(p * count);
@@ -114,10 +118,10 @@ export function createChainScene(canvas, opts = {}) {
     gY = lerp(gY, targetGY, 0.12); group.position.y = gY;
     group.position.x = lerp(group.position.x, targetGX, 0.12);
 
-    // idle tilt + finale spin
-    const targetTilt = (cfg.tilt * Math.PI / 180) * (1 - finaleT);
-    tiltCur = lerp(tiltCur, targetTilt, 0.1); group.rotation.x = tiltCur + Math.sin(t * 0.4 * cfg.sway) * 0.02 * (1 - finaleT);
-    if (finaleT >= 0.999) spinZ -= 0.006; group.rotation.z = lerp(group.rotation.z, spinZ, 0.14);
+    // tilt is a pure function of scroll — no time-based sway, no accumulating spin,
+    // so the whole sequence reverses exactly when you scroll back up and never drifts.
+    group.rotation.x = (cfg.tilt * Math.PI / 180) * (1 - finaleT);
+    group.rotation.z = 0;
 
     const ringR = (cfg.spacing * total) / (Math.PI * 2) * 1.05;
     for (let i = 0; i < links.length; i++) {
@@ -131,20 +135,24 @@ export function createChainScene(canvas, opts = {}) {
       l.mesh.position.y = lerp(l.mesh.position.y, lerp(restY(i), ringY, fe), 0.16);
       l.mesh.rotation.y = lerp(l.mesh.rotation.y, lerp(l.baseRotY, 0, fe), 0.14);
       l.mesh.rotation.z = lerp(l.mesh.rotation.z, fe * (ang + Math.PI / 2), 0.14);
-      // scale: active pop 1.12, finale settle ~0.95
-      const baseScale = i === activeIdx ? 1.12 : 1.0;
+      // scale: active pop, finale settle ~0.95
+      const isActive = i === activeIdx;
+      const baseScale = isActive ? 1.12 : 1.0;
       const tScale = lerp(baseScale, 0.95, fe);
       const cur = l.mesh.scale.x; const ns = lerp(cur, tScale, 0.14); l.mesh.scale.setScalar(ns);
-      // opacity: chain links stay solid gold; only extra ring links fade in for the finale
+      // opacity: chain links stay solid; only extra ring links fade in for the finale
       if (i >= count) mat.opacity = lerp(mat.opacity, fe, 0.14);
-      // emissive glow: gated mid-slice on the active link; hover pulse; all glow in finale
-      let em = 0;
-      if (i === activeIdx && sliceFrac >= 0.5) em += 0.9 * cfg.glow;
-      if (state.hover === i) em += (0.6 + 0.4 * Math.sin(t * 3 + i)) * cfg.glow;
-      em += fe * 0.8 * cfg.glow;
-      mat.emissiveIntensity = lerp(mat.emissiveIntensity, em, 0.12);
+      // iron → gold: only the ACTIVE link forges to gold (single glow); everything
+      // else stays cold iron until the finale, when the whole ring turns gold.
+      const goldness = Math.max(isActive ? 1 : 0, fe);
+      tmpCol.copy(cIron).lerp(cGold, goldness); mat.color.lerp(tmpCol, 0.2);
+      tmpEm.copy(eIron).lerp(eGold, goldness); mat.emissive.lerp(tmpEm, 0.2);
+      mat.roughness = lerp(mat.roughness, lerp(0.55, 0.22, goldness), 0.2);
+      let em = goldness * (0.55 + 0.35 * clamp01(sliceFrac)) * cfg.glow;   // gold links glow, iron stays dark
+      if (state.hover === i) em += 0.5 * cfg.glow;
+      mat.emissiveIntensity = lerp(mat.emissiveIntensity, em, 0.15);
     }
-    glowLight.intensity = 3 + 2 * clamp01(sliceFrac) + finaleT * 3;
+    glowLight.intensity = 2.2 + finaleT * 3;
 
     renderer.render(scene, camera);
   }
