@@ -36,7 +36,8 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 const smooth = (e0, e1, x) => { const t = clamp01((x - e0) / (e1 - e0)); return t * t * (3 - 2 * t); };
 
-export function createDeskScene(canvas) {
+export function createDeskScene(canvas, opts = {}) {
+  const hideChain = !!opts.hideChain;   // the new chain plays on the screen via an overlay instead
   let renderer;
   try {
     renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
@@ -139,6 +140,7 @@ export function createDeskScene(canvas) {
   const chain = new THREE.Group();
   chain.position.set(CHAIN_CX, CHAIN_CY, SCREEN_CZ + 0.02);
   chain.scale.setScalar(0.60);             // whole 7-link chain fits inside the right of the screen, clear of the copy
+  chain.visible = !hideChain;              // hidden when the new overlay chain renders on the screen instead
   scene.add(chain);
 
   const LINKS = 7;
@@ -254,7 +256,7 @@ export function createDeskScene(canvas) {
     screenLight.intensity = 1.1 + 0.8 * smooth(0.10, 0.18, p) + Math.sin(t * 1.3) * 0.1;
 
     // bloom: subtle throughout, blooms up as the chain connects in full circle
-    if (bloom) bloom.strength = 0.18 + connected * 1.15 + togetherPulse * 0.3;
+    if (bloom) bloom.strength = hideChain ? 0.16 : (0.18 + connected * 1.15 + togetherPulse * 0.3);
     if (composer) composer.render(); else renderer.render(scene, camera);
     raf = requestAnimationFrame(frame);
   }
@@ -297,7 +299,7 @@ export function createDeskScene(canvas) {
 // a circular cross-section. Two straight sides + two semicircular caps — the
 // classic elongated link, not an O-ring. a = straight half-length, b = cap
 // radius, t = iron thickness.
-class LinkCurve extends THREE.Curve {
+export class LinkCurve extends THREE.Curve {
   constructor(a, b) { super(); this.a = a; this.b = b; this.total = 4 * a + 2 * Math.PI * b; }
   getPoint(u, target = new THREE.Vector3()) {
     const { a, b, total } = this;
@@ -311,7 +313,7 @@ class LinkCurve extends THREE.Curve {
     return target.set(x, y, 0);
   }
 }
-function makeLinkGeometry(a, b, t) {
+export function makeLinkGeometry(a, b, t) {
   return new THREE.TubeGeometry(new LinkCurve(a, b), 150, t, 14, true);
 }
 

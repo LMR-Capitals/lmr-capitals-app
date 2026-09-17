@@ -8,7 +8,11 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createScene } from './scene-3d.js';
 import { createDeskScene } from './desk-scene.js';
-import { createTransformScene } from './transform-scene.js';
+import { createChainScene } from './chain-scene.js';
+import { createPuzzle } from './puzzle-scene.js';
+import { createChart } from './mini-charts.js';
+import { initPeripherals } from './peripherals.js';
+import { createHeroFocal } from './hero-focal.js';
 
 const goApp = () => { window.location.href = '/'; };
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
@@ -48,11 +52,36 @@ const STAGES = [
 const BEFORE = ['Hesitation before every entry', 'Self-doubt after every stop-out', 'Discipline that has to be forced', 'Reacting to headlines and noise', '"Am I right about this?"'];
 const AFTER = ['Alignment across every timeframe', 'Thesis stays intact through the drawdown', 'Patience has a reason, not just willpower', 'Anchored to structure, not sentiment', '"Is the chain confirming?"'];
 const CHAOS_WORDS = ['Hesitation', 'Self-doubt', 'Overtrading', 'Revenge trades', 'FOMO', 'No plan', 'Chasing noise', 'Forced entries'];
+// trades journal — each row has a "messy" (unlogged) and "clean" (organised) form
+const TRADES = [
+  { date: '03/11', sym: 'NQ', side: 'LONG', rr: '2.6R', pnl: '+$780', tag: 'Power of 3', win: true },
+  { date: '03/12', sym: 'ES', side: 'SHORT', rr: '1.9R', pnl: '+$410', tag: 'MMBM', win: true },
+  { date: '03/13', sym: 'YM', side: 'LONG', rr: '3.1R', pnl: '+$620', tag: 'AMD', win: true },
+  { date: '03/14', sym: 'NQ', side: 'SHORT', rr: '1.0R', pnl: '−$220', tag: 'Planned stop', win: false },
+  { date: '03/17', sym: 'ES', side: 'LONG', rr: '2.2R', pnl: '+$540', tag: 'Power of 3', win: true },
+  { date: '03/18', sym: 'NQ', side: 'LONG', rr: '1.8R', pnl: '+$360', tag: 'MMSM', win: true },
+];
+const TRADES_MESSY = { side: '—', rr: '—', pnl: '−$?', tag: ['no plan', 'revenge', 'FOMO', 'chased', 'no plan', 'tilt'] };
+// the trader's workspace: scattered worries (messy) → organised notes (clean)
+const DESK_NOTES = [
+  { bad: 'Self-doubt', good: 'Reviewed' },
+  { bad: 'FOMO', good: 'Waited for the setup' },
+  { bad: 'No plan', good: 'Plan written first' },
+  { bad: 'Revenge trade', good: 'Logged, moved on' },
+  { bad: '“Am I right?”', good: '“The chain confirms.”' },
+];
+const PLAYBOOK = [
+  'Wait for the chain. No confirmation, no trade.',
+  'Trade the plan — never the feeling.',
+  'Log every trade, and the emotion behind it.',
+  'When the chain breaks, exit. No story.',
+  'Review, don’t react. Repeat what works.',
+];
 const SHIFTS = [
-  { n: '01', k: 'Organization', c: 'Every trade has a place — logged, tagged, and reviewed. The screen stops being noise and becomes a system you can read.' },
-  { n: '02', k: 'Discipline', c: 'Patience stops being willpower. When the chain hasn’t confirmed, there is simply nothing to do — and that’s the edge.' },
-  { n: '03', k: 'Psychology', c: 'The thesis holds through the drawdown because it isn’t a feeling — it’s five markets you can point to. Fear loses its grip.' },
-  { n: '04', k: 'Purpose', c: 'You stop guessing and start executing a process. Every session has a reason, a plan, and a review. You trade a system, not a mood.' },
+  { n: '01', k: 'Organization', chart: 'scatter-grid', c: 'Every trade finds its place — the workspace stops being noise and becomes a system he can read.' },
+  { n: '02', k: 'Discipline', chart: 'uptrend', c: 'Every action presented with one motive. No confirmation, no trade — patience becomes the edge.' },
+  { n: '03', k: 'Psychology', chart: 'equity', c: 'His mindset is set by the journal — reading his own trades back, the thesis holds through the drawdown.' },
+  { n: '04', k: 'Purpose', chart: 'candles', c: 'Every trade has a purpose. He trades a process to buy back time — not to chase a feeling.' },
 ];
 const EDGES = [
   { t: 'Leading, Not Lagging', c: "The chain confirms direction across markets before price commits — you're positioned ahead of the move, not reacting to it." },
@@ -77,6 +106,24 @@ const PROOF = [
   { n: 'Wins + Losses', k: 'Shown in full — never cherry-picked' },
   { n: 'Public', k: 'The same ledger behind every result' },
 ];
+// Count-up for a numeric-leading stat (e.g. "100%"); non-numeric passes through.
+// Initialises to the final value (safe if never seen), animates 0→value on first view.
+function CountUp({ text }) {
+  const m = /^(\d+)(.*)$/.exec(text);
+  if (!m) return <>{text}</>;
+  const target = parseInt(m[1], 10), suffix = m[2] || '';
+  const ref = useRef(null);
+  const [val, setVal] = useState(target);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    let raf = 0, started = false;
+    const run = () => { const t0 = performance.now(); const dur = 1100; const step = (t) => { const p = Math.min(1, (t - t0) / dur); const e = 1 - Math.pow(1 - p, 3); setVal(Math.round(e * target)); if (p < 1) raf = requestAnimationFrame(step); }; setVal(0); raf = requestAnimationFrame(step); };
+    const io = new IntersectionObserver((es) => { es.forEach((e) => { if (e.isIntersecting && !started) { started = true; run(); io.disconnect(); } }); }, { threshold: 0.4 });
+    io.observe(el);
+    return () => { io.disconnect(); if (raf) cancelAnimationFrame(raf); };
+  }, []);
+  return <span ref={ref}>{val}{suffix}</span>;
+}
 function Check() {
   return (<svg className="ck" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>);
 }
@@ -229,25 +276,48 @@ function App() {
   const sceneRef = useRef(null);
   const chainSecRef = useRef(null);
   const deskCanvasRef = useRef(null);
+  const deskRef = useRef(null);
+  const chainCanvasRef = useRef(null);
+  const chainRef = useRef(null);
   const convRef = useRef(null);
-  const transformCanvasRef = useRef(null);
+  const puzzleCanvasRef = useRef(null);
+  const deskChartRef = useRef(null);
+  const cardCanvasRefs = useRef([]);
+  const heroFocalRef = useRef(null);
+  const indCanvasRefs = useRef([]);
+  const trackCurveRef = useRef(null);
   const [activeStage, setActiveStage] = useState(0);
   const [mp, setMp] = useState(0);          // #method scroll progress 0..1
   const [convP, setConvP] = useState(0);    // conviction scroll progress 0..1
   const [screenRect, setScreenRect] = useState(null); // monitor screen rect in CSS px
   const [card, setCard] = useState(null);
+  const [activeNav, setActiveNav] = useState('');
 
   useEffect(() => {
     let scene;
     try { scene = createScene(canvasRef.current); } catch (e) { scene = null; }
     sceneRef.current = scene;
 
-    // The cinematic desk + monitor. Camera flies into the screen; the Chain
-    // assembles "inside" it; then it pulls back out onto the desk.
+    // The cinematic desk + monitor. The camera flies into the screen; the new
+    // Chain (below) plays ON the monitor's screen, then it pulls back out.
     let desk = null;
-    try { desk = createDeskScene(deskCanvasRef.current); } catch (e) { desk = null; }
-    let transform = null;
-    try { transform = createTransformScene(transformCanvasRef.current, { words: CHAOS_WORDS }); } catch (e) { transform = null; }
+    try { desk = createDeskScene(deskCanvasRef.current, { hideChain: true }); deskRef.current = desk; } catch (e) { desk = null; }
+
+    // The Chain — seven links rise in, light per stage, then lock into a spinning
+    // closed ring. Rendered on its own transparent canvas, locked to the monitor
+    // screen rectangle so it reads as playing on the display.
+    let chain = null;
+    try { chain = createChainScene(chainCanvasRef.current, { count: STAGES.length, extraRing: 0 }); if (chain) { chain.setSpacing(1.1); chainRef.current = chain; } } catch (e) { chain = null; }
+    let puzzle = null, deskChart = null;
+    try { puzzle = createPuzzle(puzzleCanvasRef.current); } catch (e) { puzzle = null; }
+    try { deskChart = createChart(deskChartRef.current, { kind: 'structure' }); } catch (e) { deskChart = null; }
+    const cardCharts = cardCanvasRefs.current.map((c, i) => { try { return createChart(c, { kind: SHIFTS[i].chart }); } catch (e) { return null; } });
+    let heroFocal = null;
+    try { heroFocal = createHeroFocal(heroFocalRef.current); } catch (e) { heroFocal = null; }
+    const indKinds = ['structure', 'candles'];
+    const indCharts = indCanvasRefs.current.map((c, i) => { try { const ch = createChart(c, { kind: indKinds[i % indKinds.length] }); ch.setProgress(1); return ch; } catch (e) { return null; } });
+    let trackCurve = null;
+    try { trackCurve = createChart(trackCurveRef.current, { kind: 'equity' }); trackCurve.setProgress(1); } catch (e) { trackCurve = null; }
 
     const calc = (el) => { if (!el) return 0; const vh = innerHeight; const r = el.getBoundingClientRect(); const total = r.height - vh; return total <= 0 ? (r.top < 0 ? 1 : 0) : clamp01(-r.top / total); };
     const onScroll = () => {
@@ -257,28 +327,33 @@ function App() {
       const cp = calc(chainSecRef.current);
       scene && scene.setChainProgress(cp);
       desk && desk.setProgress(cp);
-      setMp(cp);
-      // lock the overlay to the monitor screen's actual projected rectangle
+      // camera flies in (→0.16) and pulls out (0.86→); the chain journey + ring
+      // finale play inside the screen across 0.16 → 0.80, then the ring holds.
+      const chp = clamp01((cp - 0.16) / (0.80 - 0.16));
+      chain && chain.setProgress(chp);
       if (desk && desk.getScreenRect) { const r = desk.getScreenRect(); if (r && r.w > 0) setScreenRect(r); }
-      // the 7-stage in-monitor journey runs across 0.16 → 0.86
-      const inside = clamp01((cp - 0.16) / (0.86 - 0.16));
-      setActiveStage(Math.max(0, Math.min(STAGES.length - 1, Math.floor(inside * STAGES.length - 1e-6))));
+      setMp(cp);
+      setActiveStage(Math.max(0, Math.min(STAGES.length - 1, Math.floor((chp - 0.75 / STAGES.length) * STAGES.length))));
       const cvp = calc(convRef.current);
       setConvP(cvp);
-      transform && transform.setProgress(clamp01(cvp / 0.40));
+      deskChart && deskChart.setProgress(clamp01((cvp - 0.08) / (0.30 - 0.08))); // workspace "high hope" chart resolves
+      puzzle && puzzle.setProgress(clamp01((cvp - 0.40) / (0.62 - 0.40)));      // rewiring: pieces align 0.40 → 0.62
+      const cardsP = clamp01((cvp - 0.70) / (0.90 - 0.70));                     // four concept cards draw in
+      cardCharts.forEach((ch, i) => ch && ch.setProgress(clamp01((cardsP - i * 0.10) / 0.55)));
     };
-    const onResize = () => { if (desk && desk.getScreenRect) { const r = desk.getScreenRect(); if (r && r.w > 0) setScreenRect(r); } };
-    addEventListener('resize', onResize);
-    // the rect depends on the rendered camera; sample a couple of frames after mount
-    const t0 = setTimeout(onResize, 120), t1 = setTimeout(onResize, 500);
     const onMouse = (e) => {
       const mx = (e.clientX / innerWidth) * 2 - 1, my = (e.clientY / innerHeight) * 2 - 1;
       scene && scene.setMouse(mx, my);
       desk && desk.setMouse(mx, my);
+      heroFocal && heroFocal.setMouse(mx, my);
     };
+    const onResize = () => { if (desk && desk.getScreenRect) { const r = desk.getScreenRect(); if (r && r.w > 0) setScreenRect(r); } };
     addEventListener('scroll', onScroll, { passive: true });
     addEventListener('mousemove', onMouse, { passive: true });
+    addEventListener('resize', onResize);
     onScroll();
+    // the desk camera settles a beat after mount; re-read the screen rect then
+    const rt0 = setTimeout(onResize, 140), rt1 = setTimeout(onResize, 520);
 
     // section → scene theme index
     const secs = Array.from(document.querySelectorAll('[data-scene]'));
@@ -287,7 +362,16 @@ function App() {
     }, { threshold: 0.4 });
     secs.forEach((s) => io.observe(s));
 
-    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); removeEventListener('resize', onResize); clearTimeout(t0); clearTimeout(t1); io.disconnect(); if (scene) scene.dispose(); if (desk) desk.dispose(); if (transform) transform.dispose(); };
+    // active-nav highlight
+    const navIo = new IntersectionObserver((es) => {
+      es.forEach((e) => { if (e.isIntersecting) setActiveNav(e.target.id); });
+    }, { threshold: 0, rootMargin: '-40% 0px -55% 0px' });
+    ['about', 'what', 'method', 'indicators', 'contact'].forEach((id) => { const el = document.getElementById(id); if (el) navIo.observe(el); });
+
+    // peripherals: smooth scroll, gold cursor, magnetic buttons, progress rail
+    let periph = null; try { periph = initPeripherals(); } catch (e) { periph = null; }
+
+    return () => { removeEventListener('scroll', onScroll); removeEventListener('mousemove', onMouse); removeEventListener('resize', onResize); clearTimeout(rt0); clearTimeout(rt1); io.disconnect(); navIo.disconnect(); if (periph) periph.dispose(); if (scene) scene.dispose(); if (desk) desk.dispose(); if (chain) chain.dispose(); if (puzzle) puzzle.dispose(); if (deskChart) deskChart.dispose(); cardCharts.forEach((c) => c && c.dispose()); if (heroFocal) heroFocal.dispose(); indCharts.forEach((c) => c && c.dispose()); if (trackCurve) trackCurve.dispose(); };
   }, []);
 
   // 3D mouse-tilt on cards marked .tilt3d
@@ -303,41 +387,54 @@ function App() {
     return () => cards.forEach((c) => { c.removeEventListener('mousemove', onMove); c.removeEventListener('mouseleave', onLeave); });
   }, []);
 
+  // keep the chain renderer sized to the monitor screen rectangle it's locked to
+  useEffect(() => { if (chainRef.current && screenRect && screenRect.w > 0) chainRef.current.resize(); }, [screenRect]);
+
   // overlay copy timing, synced to the camera choreography
-  const introOpacity = 1 - smooth(0.04, 0.13, mp);                       // fades as we fly in
-  const insideOpacity = smooth(0.15, 0.20, mp) * (1 - smooth(0.88, 0.95, mp)); // in across the journey
-  const journeyProgress = clamp01((mp - 0.16) / (0.86 - 0.16));          // 0..1 through the 7 stages
+  const introOpacity = 1 - smooth(0.04, 0.13, mp);                            // fades as we fly in
+  const insideOpacity = smooth(0.20, 0.26, mp) * (1 - smooth(0.74, 0.80, mp)); // stage copy across the journey
+  const finaleOpacity = smooth(0.80, 0.85, mp) * (1 - smooth(0.88, 0.93, mp)); // the closing line, as the ring locks
+  const journeyProgress = clamp01((mp - 0.16) / (0.80 - 0.16));               // 0..1 through the 7 stages
+  // the chain plays ON the monitor screen: shown during the straight-on hold,
+  // hidden through the angled fly-in / pull-out so it never floats off the glass
+  const screenChainOpacity = smooth(0.17, 0.23, mp) * (1 - smooth(0.85, 0.90, mp));
   // overlay elements locked to the monitor screen rectangle (falls back to CSS % if unknown)
   const R = screenRect;
+  const chainPos = R ? { left: R.x, top: R.y, width: R.w, height: R.h } : null;
   const copyPos = R ? { left: R.x + R.w * 0.05, top: R.y + R.h * 0.52, width: R.w * 0.34, transform: 'translateY(-50%)' } : null;
-  const connPos = R ? { left: R.x + R.w * 0.26, top: R.y + R.h * 0.30, width: R.w * 0.32, height: R.h * 0.24 } : null;
-  const finalePos = R ? { left: R.x + R.w * 0.5, top: R.y + R.h * 0.07, transform: 'translateX(-50%)' } : null;
-  // conviction "transformation" act timing
-  const cvHead = 1 - smooth(0.22, 0.30, convP);                                  // phase A intro copy
-  const cvChaos = 1 - smooth(0.40, 0.50, convP);                                 // phase A canvas
-  const cvSplit = smooth(0.42, 0.50, convP) * (1 - smooth(0.64, 0.70, convP));   // phase B
-  const cvSplitP = clamp01((convP - 0.42) / (0.64 - 0.42));
-  const cvShifts = smooth(0.70, 0.76, convP) * (1 - smooth(0.92, 0.96, convP));  // phase C
-  const cvShiftIdx = Math.max(0, Math.min(SHIFTS.length - 1, Math.floor(clamp01((convP - 0.70) / (0.92 - 0.70)) * SHIFTS.length - 1e-6)));
-  const cvClose = smooth(0.93, 0.99, convP);                                     // closing
+  const finalePos = R ? { left: R.x + R.w * 0.5, top: R.y + R.h * 0.81, transform: 'translateX(-50%)' } : null;
+  // conviction timing — PDF storyboard: organise the table → rewiring (puzzle) → four cards → close
+  const cvHead = 1 - smooth(0.10, 0.16, convP);                                  // section intro copy over the table
+  const cvTrades = smooth(0.03, 0.10, convP) * (1 - smooth(0.34, 0.40, convP));  // 1: organise the table
+  const cvTradesP = clamp01((convP - 0.08) / (0.30 - 0.08));
+  const cvPuzzle = smooth(0.38, 0.45, convP) * (1 - smooth(0.64, 0.70, convP));  // 2: the rewiring (jigsaw)
+  const cvCards = smooth(0.70, 0.77, convP) * (1 - smooth(0.95, 0.98, convP));   // 3: four concept cards
+  const cvCardsP = clamp01((convP - 0.70) / (0.90 - 0.70));
+  const cvClose = smooth(0.95, 0.99, convP);                                     // 4: closing
 
   const S = 'clamp(20px,5vw,72px)';
   return (
     <>
       <canvas ref={canvasRef} id="bg3d" />
       <div className="veil" />
+      <div className="lmr-intro" />
       <div className="page">
         {/* NAV */}
         <nav className="nav">
           <div className="brand"><span className="dot">LMR</span><span>LMR <strong>Capitals</strong></span></div>
           <div className="links">
-            <a href="#about">About</a><a href="#what">What We Do</a><a href="#method">Methodology</a><a href="#indicators">Indicators</a><a href="#contact">Contact</a>
+            <a href="#about" className={activeNav === 'about' ? 'on' : ''}>About</a>
+            <a href="#what" className={activeNav === 'what' ? 'on' : ''}>What We Do</a>
+            <a href="#method" className={activeNav === 'method' ? 'on' : ''}>Methodology</a>
+            <a href="#indicators" className={activeNav === 'indicators' ? 'on' : ''}>Indicators</a>
+            <a href="#contact" className={activeNav === 'contact' ? 'on' : ''}>Contact</a>
           </div>
           <button className="btn btn-ghost" onClick={goApp}>Sign In</button>
         </nav>
 
         {/* HERO */}
         <section className="hero" data-scene="0">
+          <canvas ref={heroFocalRef} className="hero-focal" aria-hidden="true" />
           <Reveal><span className="eyebrow">Trader · Mentor · Fund Manager</span></Reveal>
           <Reveal delay={0.05}><h1 className="h1">Trade With a System.<br />Master <span className="gold">The Chain</span>.</h1></Reveal>
           <Reveal delay={0.12}><p className="lead">A structured Daily → Weekly → Monthly methodology — every trade, every model, every lesson logged in real time, and organized end to end by one system.</p></Reveal>
@@ -375,11 +472,15 @@ function App() {
           </div>
         </section>
 
-        {/* METHOD — the Chain: camera flies INTO the trader's monitor, the
-            content plays inside the screen, then shrinks back onto the desk. */}
+        {/* METHOD — the Chain: the camera flies INTO the trader's monitor; the
+            Chain plays ON the screen, locks into a ring, then pulls back out. */}
         <section id="method" ref={chainSecRef} className="method-sec" data-scene="3">
           <div className="method-sticky">
+            {/* the 3D desk + monitor */}
             <canvas ref={deskCanvasRef} className="desk-canvas" />
+            {/* the Chain — its own transparent canvas, locked to the monitor screen */}
+            <canvas ref={chainCanvasRef} className="chain-canvas"
+              style={{ ...(chainPos || {}), opacity: screenChainOpacity, pointerEvents: 'none' }} />
             <div className="method-veil" />
 
             {/* establishing caption — visible on the wide desk shot, fades as we fly in */}
@@ -390,70 +491,86 @@ function App() {
               <p className="hint">Scroll — fly into the monitor ↓</p>
             </div>
 
-            {/* finale line, inside the screen, when the chain is complete */}
-            {activeStage === STAGES.length - 1 && journeyProgress > 0.94 && (
-              <span className="chain-finale" style={{ opacity: insideOpacity, ...(finalePos || {}) }}>The Chain — Connected in Full Circle</span>
-            )}
-
-            {/* thin gold connector line from the copy to the link (per the design) */}
-            <svg className="chain-connector" style={{ opacity: insideOpacity * 0.85, ...(connPos || {}) }} preserveAspectRatio="none" viewBox="0 0 100 100">
-              <path d="M1,72 L1,18 L99,18" fill="none" stroke="rgba(245,166,35,0.5)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
-              <circle cx="99" cy="18" r="2.4" fill="#F5A623" vectorEffect="non-scaling-stroke" />
-            </svg>
-
-            {/* inside-the-screen methodology — left copy block + dash-dots (per the design) */}
+            {/* per-stage copy — locked to the left of the monitor screen */}
             <div className="method-inside" style={{ opacity: insideOpacity, pointerEvents: insideOpacity < 0.1 ? 'none' : 'auto', ...(copyPos || {}) }}>
-              <span className="kick">How We Do It — The Chain</span>
+              <span className="kick">Stage {activeStage + 1} of {STAGES.length}</span>
               <div className="stagecard" key={activeStage}>
                 <h2 className="h2 gold">{STAGES[activeStage].k}</h2>
                 <p className="body">{STAGES[activeStage].c}</p>
               </div>
               <div className="chain-dots">
                 {STAGES.map((s, i) => (
-                  <span key={i} className={'cdot' + (i === activeStage ? ' on' : '')} title={s.k} />
+                  <span key={i} className={'cdot' + (i === activeStage ? ' on' : '')} title={s.k}
+                    onMouseEnter={() => chainRef.current && chainRef.current.setHover(i)}
+                    onMouseLeave={() => chainRef.current && chainRef.current.setHover(null)} />
                 ))}
               </div>
             </div>
+
+            {/* the closing line — locked low on the screen under the ring */}
+            <span className="chain-finale" style={{ opacity: finaleOpacity, ...(finalePos || {}) }}>The Chain — Connected in Full Circle</span>
           </div>
         </section>
 
         {/* CONVICTION — cinematic "Transformation" act (chaos→order, split, four shifts) */}
         <section ref={convRef} className="tf-sec" data-scene="4">
           <div className="tf-sticky">
-            {/* Phase A — chaos → order metamorphosis (canvas) */}
-            <canvas ref={transformCanvasRef} className="tf-canvas" style={{ opacity: cvChaos }} />
+            {/* section intro over the table */}
             <div className="tf-head" style={{ opacity: cvHead, pointerEvents: 'none' }}>
               <span className="kick">From Analysis to Conviction</span>
               <h2 className="h2">The Chain Doesn't Just Predict the Market.<br />It <span className="gold">Rewires the Trader</span>.</h2>
-              <p className="body" style={{ maxWidth: '46ch', margin: '14px auto 0' }}>Before the chain, the screen is noise. Watch it reorganize.</p>
+              <p className="body" style={{ maxWidth: '48ch', margin: '14px auto 0' }}>He sits down to a messy table and a high hope. Watch him organise it.</p>
             </div>
 
-            {/* Phase B — before → after transformation */}
-            <div className="tf-split" style={{ opacity: cvSplit, pointerEvents: 'none' }}>
-              <span className="kick">The Rewiring</span>
-              <div className="tf-rows">
-                {BEFORE.map((b, i) => {
-                  const rp = clamp01((cvSplitP - i * 0.11) / 0.4);
+            {/* Beat 1 — the trader's workspace: scattered worries → organised board + a rising "high hope" */}
+            <div className="tf-desk" style={{ opacity: cvTrades, pointerEvents: 'none' }}>
+              <span className="kick">His Workspace — Unorganised → Organised</span>
+              <div className="desk-wrap">
+                <div className="desk-notes">
+                  {DESK_NOTES.map((n, i) => {
+                    const c = clamp01((cvTradesP * 1.3 - i * 0.10) / 0.5);       // staggered snap-in
+                    const e = c * c * (3 - 2 * c);
+                    const clean = e >= 0.5;
+                    const mx = [-150, 130, -110, 160, -90][i], my = [-40, 26, 48, -24, 36][i], rot = [-9, 7, -6, 8, -5][i];
+                    return (
+                      <div className={'dn-note' + (clean ? ' clean' : '')} key={i} style={{ transform: `translate(${(mx * (1 - e)).toFixed(1)}px, ${(my * (1 - e)).toFixed(1)}px) rotate(${(rot * (1 - e)).toFixed(1)}deg)`, opacity: 0.4 + 0.6 * e }}>
+                        <span className="dn-mark">{clean ? '✓' : '!'}</span>
+                        <span>{clean ? n.good : n.bad}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="desk-chart-panel">
+                  <canvas ref={deskChartRef} className="desk-chart" aria-hidden="true" />
+                  <span className="desk-chart-cap">High hope — on plan.</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Beat 2 — The Rewiring: the trader finally aligns the puzzle */}
+            <div className="tf-puzzle" style={{ opacity: cvPuzzle, pointerEvents: 'none' }}>
+              <canvas ref={puzzleCanvasRef} className="tf-puzzle-canvas" />
+              <div className="tf-puzzle-copy">
+                <span className="kick">The Rewiring</span>
+                <p className="body">Every ability, aligned. He keeps trying — and the pieces finally lock into one picture.</p>
+              </div>
+            </div>
+
+            {/* Beat 3 — the four shifts as concept cards */}
+            <div className="tf-cards" style={{ opacity: cvCards, pointerEvents: 'none' }}>
+              <span className="kick">What The Chain Builds In Him</span>
+              <div className="cc-grid">
+                {SHIFTS.map((s, i) => {
+                  const cp = clamp01((cvCardsP - i * 0.10) / 0.4);
                   return (
-                    <div className="tf-row" key={i}>
-                      <span className="tf-before" style={{ opacity: 1 - rp * 0.85, transform: `translateX(${-rp * 8}px)` }}>{b}</span>
-                      <span className="tf-arrow" style={{ opacity: rp }}>→</span>
-                      <span className="tf-after" style={{ opacity: rp, transform: `translateX(${(1 - rp) * 8}px)` }}>{AFTER[i]}</span>
+                    <div className="cc-card" key={i} style={{ opacity: cp, transform: `translateY(${((1 - cp) * 26).toFixed(1)}px)` }}>
+                      <canvas className="cc-chart" ref={(el) => { cardCanvasRefs.current[i] = el; }} aria-hidden="true" />
+                      <span className="cc-n">{s.n}</span>
+                      <h3 className="cc-k">{s.k}</h3>
+                      <p className="cc-c">{s.c}</p>
                     </div>
                   );
                 })}
-              </div>
-            </div>
-
-            {/* Phase C — the four shifts */}
-            <div className="tf-shift" style={{ opacity: cvShifts, pointerEvents: 'none' }}>
-              <div className="tf-shift-card" key={cvShiftIdx}>
-                <span className="tf-n">{SHIFTS[cvShiftIdx].n}</span>
-                <h2 className="tf-k">{SHIFTS[cvShiftIdx].k}</h2>
-                <p className="body">{SHIFTS[cvShiftIdx].c}</p>
-              </div>
-              <div className="tf-dots">
-                {SHIFTS.map((s, i) => <span key={i} className={'tf-dot' + (i === cvShiftIdx ? ' on' : '')} />)}
               </div>
             </div>
 
@@ -481,6 +598,7 @@ function App() {
                   <p className="pc-tag">{ind.tagline}</p>
                   <div className="pc-price"><span className="pc-amt">$40</span><span className="pc-per">/ month</span></div>
                 </div>
+                <canvas className="pc-chart" ref={(el) => { indCanvasRefs.current[i] = el; }} aria-hidden="true" />
                 <p className="body sm pc-desc">{ind.desc}</p>
                 <ul className="feat">{ind.features.map((f, j) => <li key={j}><Check /><span>{f}</span></li>)}</ul>
                 <a className="btn btn-gold block" href={ind.mailto}>Get Access — $40/mo →</a>
@@ -497,10 +615,14 @@ function App() {
             <h2 className="h2">Documented, Not Cherry-Picked</h2>
             <p className="body">Every result LMR Capitals shows is drawn from one transparent ledger — the same journal the methodology runs on, wins and losses alike.</p>
           </Reveal>
+          <Reveal className="track-curve-wrap">
+            <canvas ref={trackCurveRef} className="track-curve" aria-hidden="true" />
+            <span className="track-curve-cap">One ledger · logged in real time · wins and losses</span>
+          </Reveal>
           <div className="stat-row">
             {PROOF.map((s, i) => (
               <Reveal key={i} delay={i * 0.06} className="glass stat tilt3d">
-                <span className="stat-n">{s.n}</span>
+                <span className="stat-n"><CountUp text={s.n} /></span>
                 <span className="stat-k">{s.k}</span>
               </Reveal>
             ))}
@@ -595,7 +717,34 @@ a{color:var(--gold);text-decoration:none}
 .nav .links{display:flex;gap:26px}
 .nav .links a{color:var(--text2);font-size:14px;font-weight:600}
 .nav .links a:hover{color:var(--gold)}
+.nav .links a{position:relative;transition:color .2s}
+.nav .links a.on{color:var(--gold)}
+.nav .links a.on:after{content:'';position:absolute;left:0;right:0;bottom:-6px;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--gold2),var(--gold));box-shadow:0 0 10px rgba(245,166,35,.8)}
 @media(max-width:780px){.nav .links{display:none}}
+/* ── peripherals: progress rail, custom cursor, magnetic, intro ─────────────── */
+.lmr-progress{position:fixed;top:0;left:0;height:3px;width:100%;transform:scaleX(0);transform-origin:0 50%;z-index:60;background:linear-gradient(90deg,var(--gold2),var(--gold));box-shadow:0 0 12px rgba(245,166,35,.7);pointer-events:none}
+.lmr-cursor-on,.lmr-cursor-on a,.lmr-cursor-on button,.lmr-cursor-on .btn{cursor:none}
+.lmr-cur-dot,.lmr-cur-ring{position:fixed;top:0;left:0;z-index:9998;pointer-events:none;border-radius:50%;mix-blend-mode:screen;will-change:transform}
+.lmr-cur-dot{width:7px;height:7px;margin:-3.5px 0 0 -3.5px;background:var(--gold2);box-shadow:0 0 10px rgba(245,166,35,.9)}
+.lmr-cur-ring{width:34px;height:34px;margin:-17px 0 0 -17px;border:1.5px solid rgba(245,166,35,.55);transition:width .18s ease,height .18s ease,margin .18s ease,border-color .18s ease,background .18s ease}
+.lmr-cur-ring.hot{width:52px;height:52px;margin:-26px 0 0 -26px;border-color:rgba(255,209,122,.9);background:rgba(245,166,35,.08)}
+.lmr-cur-ring.down{width:26px;height:26px;margin:-13px 0 0 -13px}
+@media(pointer:coarse){.lmr-cur-dot,.lmr-cur-ring{display:none}}
+.brand{transition:transform .18s cubic-bezier(.22,1,.36,1)}
+.stat{transition:transform .22s cubic-bezier(.22,1,.36,1),border-color .22s,box-shadow .22s}
+.stat:hover{transform:translateY(-6px);border-color:rgba(245,166,35,.4);box-shadow:0 30px 70px -40px rgba(245,166,35,.45)}
+.lmr-intro{position:fixed;inset:0;z-index:9997;background:radial-gradient(120% 90% at 50% 30%,rgba(20,15,4,.55),#05070d 70%);pointer-events:none;animation:lmrIntro 1s ease .05s forwards}
+@keyframes lmrIntro{0%{opacity:1}100%{opacity:0;visibility:hidden}}
+@media(prefers-reduced-motion:reduce){.lmr-intro{display:none}}
+/* 3D hero focal + live indicator chart previews */
+.hero-focal{position:absolute;right:4vw;bottom:6vh;width:min(34vw,440px);height:min(46vh,420px);z-index:1;pointer-events:none}
+.hero>div{position:relative;z-index:2}
+@media(max-width:1024px){.hero-focal{opacity:.18;right:auto;left:50%;bottom:auto;top:50%;transform:translate(-50%,-50%);width:90vw;height:60vh}}
+.pc-chart{width:100%;height:118px;display:block;margin:0;background:radial-gradient(120% 100% at 50% 0%,rgba(245,166,35,.06),transparent);border-bottom:1px solid var(--border)}
+/* track record equity curve */
+.track-curve-wrap{position:relative;max-width:900px;margin:30px auto 8px;border-radius:20px;overflow:hidden;background:var(--glass);border:1px solid var(--border)}
+.track-curve{display:block;width:100%;height:min(260px,34vh)}
+.track-curve-cap{position:absolute;left:20px;bottom:14px;font-size:12px;letter-spacing:.08em;font-weight:700;color:var(--text3)}
 /* hero */
 .hero{position:relative;min-height:100vh;display:flex;flex-direction:column;justify-content:center;max-width:1180px;margin:0 auto;padding:0 clamp(20px,5vw,72px)}
 .scrollhint{position:absolute;bottom:34px;left:clamp(20px,5vw,72px);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)}
@@ -611,7 +760,18 @@ a{color:var(--gold);text-decoration:none}
 .method-sec{position:relative;height:840vh}
 .method-sticky{position:sticky;top:0;height:100vh;width:100%;overflow:hidden}
 .desk-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0}
-.method-veil{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 120% at 50% 45%,transparent 55%,rgba(4,6,12,.72) 100%)}
+/* the chain canvas is sized+placed onto the monitor screen via inline style */
+.chain-canvas{position:absolute;z-index:1;display:block;pointer-events:none;transition:opacity .45s ease}
+.method-veil{position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 120% at 50% 45%,transparent 60%,rgba(4,6,12,.7) 100%)}
+/* full-frame chain: per-stage copy in a left column, the chain rises right of it */
+.chain-copy{position:absolute;z-index:2;left:clamp(24px,6vw,96px);top:50%;transform:translateY(-50%);width:min(430px,42vw);text-align:left;transition:opacity .5s ease}
+.chain-copy .stagecard{margin:0}
+.chain-copy .kick{display:block;margin-bottom:12px}
+.chain-copy .h2{font-size:clamp(26px,3.2vw,46px);line-height:1.08;color:var(--gold2);margin:6px 0 14px;text-shadow:0 0 30px rgba(122,81,17,.5)}
+.chain-copy .body{max-width:40ch;margin:0;color:var(--text2)}
+.chain-copy .chain-dots{display:flex;gap:11px;justify-content:flex-start;margin-top:26px}
+/* finale line — locked low on the monitor screen, under the ring (position via inline style) */
+.chain-finale{position:absolute;z-index:2;white-space:nowrap;font-size:clamp(15px,1.7vw,26px);font-weight:800;letter-spacing:.005em;color:#FFDD93;-webkit-text-fill-color:#FFDD93;text-shadow:0 2px 16px rgba(0,0,0,.65),0 0 30px rgba(245,166,35,.6);transition:opacity .6s ease}
 /* establishing caption sits low-left over the wide desk shot */
 .method-intro{position:absolute;z-index:2;left:clamp(20px,6vw,90px);bottom:clamp(48px,10vh,120px);max-width:min(560px,80vw);transition:opacity .4s ease}
 .method-intro .hint{margin-top:18px}
@@ -630,9 +790,15 @@ a{color:var(--gold);text-decoration:none}
 /* per-stage crossfade */
 .stagecard{animation:stageIn .55s cubic-bezier(.22,1,.36,1)}
 @keyframes stageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-/* finale line, centred near the top of the screen */
-.chain-finale{position:absolute;z-index:2;top:12%;left:50%;transform:translateX(-50%);font-size:13px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;color:var(--gold2);text-shadow:0 0 24px rgba(245,166,35,.6);transition:opacity .5s ease;white-space:nowrap}
 @media(max-width:780px){.method-inside{left:8%;width:70vw}}
+/* mobile: the chain centres (no right-bias), so drop the copy to a bottom band */
+@media(max-width:820px){
+  .chain-copy{left:0;right:0;top:auto;bottom:6vh;transform:none;width:auto;text-align:center;padding:0 clamp(18px,6vw,40px)}
+  .chain-copy .body{max-width:46ch;margin:0 auto}
+  .chain-copy .chain-dots{justify-content:center}
+  .chain-finale-wrap{bottom:8vh}
+  .chain-finale{font-size:clamp(22px,6vw,32px)}
+}
 .method-inside .step{border:1px solid var(--border);border-radius:999px;padding:7px 14px;background:rgba(10,16,28,.5);backdrop-filter:blur(8px)}
 .method-inside .step .stepk{font-size:12.5px}
 .method-inside .h2{text-shadow:0 2px 30px rgba(245,166,35,.35)}
@@ -681,9 +847,54 @@ a{color:var(--gold);text-decoration:none}
 .conv-stamp span{display:inline-block;font-size:clamp(14px,1.6vw,20px);font-weight:800;letter-spacing:.22em;color:#0a0b0f;background:linear-gradient(120deg,var(--gold2),var(--gold));padding:12px 26px;border-radius:999px;box-shadow:0 14px 40px -12px rgba(245,166,35,.8)}
 @media(max-width:640px){.fm-k{font-size:11px}.fm-lbl{display:none}}
 /* ── CONVICTION — cinematic "Transformation" act ──────────────────────────── */
-.tf-sec{position:relative;height:560vh}
+.tf-sec{position:relative;height:640vh}
+/* rewiring — jigsaw puzzle */
+.tf-puzzle{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 clamp(20px,5vw,72px)}
+.tf-puzzle-canvas{width:min(820px,90vw);height:min(440px,52vh);display:block}
+.tf-puzzle-copy{text-align:center;margin-top:14px;max-width:52ch}
+.tf-puzzle-copy .kick{margin-bottom:8px}
+/* four concept cards */
+.tf-cards{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 clamp(20px,5vw,72px);background:radial-gradient(70% 60% at 50% 50%,rgba(5,7,13,.82),rgba(5,7,13,0) 82%)}
+.cc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(12px,1.6vw,20px);width:100%;max-width:1120px;margin-top:26px}
+.cc-card{position:relative;background:var(--glass);border:1px solid var(--border);border-radius:18px;padding:16px 16px 20px;text-align:left;backdrop-filter:blur(14px);box-shadow:0 30px 70px -50px rgba(0,0,0,.8)}
+.cc-chart{width:100%;height:92px;display:block;margin-bottom:10px}
+.cc-n{font-size:12px;font-weight:800;letter-spacing:.12em;color:var(--gold)}
+.cc-k{font-size:clamp(17px,1.5vw,21px);font-weight:800;margin:4px 0 8px;background:linear-gradient(120deg,var(--gold2),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+.cc-c{font-size:13px;line-height:1.55;color:var(--text2);margin:0}
+@media(max-width:860px){.cc-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.cc-grid{grid-template-columns:1fr}}
 .tf-sticky{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .tf-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:1;display:block}
+/* trades journal: messy → organised */
+.tf-trades{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 clamp(20px,5vw,72px);background:radial-gradient(62% 60% at 50% 50%,rgba(5,7,13,.9),rgba(5,7,13,0) 80%)}
+.tt-wrap{width:100%;max-width:940px;margin-top:24px;transform:perspective(1500px) rotateX(9deg);transform-style:preserve-3d}
+.tt-head-row,.tt-row{display:grid;grid-template-columns:.75fr .6fr .9fr .7fr 1fr 1.5fr;gap:10px;align-items:center;padding:12px 20px;text-align:left}
+.tt-head-row{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);font-weight:800;border-bottom:1px solid var(--border);margin-bottom:6px}
+.tt-row{margin-top:9px;border-radius:12px;background:var(--glass);border:1px solid var(--border);font-size:14.5px;font-weight:600;backdrop-filter:blur(10px);will-change:transform;transition:background .3s,color .3s}
+.tt-date{color:var(--text3)}
+.tt-sym{color:var(--text);font-weight:800}
+.tt-side{color:var(--text2);font-weight:700}
+.tt-rr{color:var(--gold2);font-weight:800}
+.tt-pnl{font-weight:800}
+.tt-tag{justify-self:start;font-size:12px;font-weight:700;padding:4px 11px;border-radius:999px;background:rgba(240,112,90,.14);color:var(--coral)}
+.tt-tag.on{background:rgba(245,166,35,.15);color:var(--gold2)}
+@media(max-width:720px){.tt-head-row,.tt-row{grid-template-columns:.7fr .6fr .8fr 1fr;font-size:12px;padding:9px 12px}.tt-side,.tt-head-row span:nth-child(3){display:none}.tt-tag{grid-column:span 1}}
+/* the trader's workspace: worries → organised board + high-hope chart */
+.tf-desk{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 clamp(20px,5vw,72px);background:radial-gradient(72% 62% at 50% 50%,rgba(5,7,13,.82),rgba(5,7,13,0) 82%)}
+.desk-wrap{display:grid;grid-template-columns:1fr 1fr;gap:clamp(20px,4vw,56px);align-items:center;width:100%;max-width:1040px;margin-top:26px}
+.desk-notes{display:flex;flex-direction:column;gap:12px;align-items:stretch}
+.dn-note{display:flex;align-items:center;gap:11px;padding:13px 18px;border-radius:12px;font-weight:700;font-size:15px;text-align:left;background:rgba(240,112,90,.12);border:1px solid rgba(240,112,90,.3);color:var(--coral);will-change:transform;transition:background .35s,color .35s,border-color .35s}
+.dn-note.clean{background:rgba(245,166,35,.12);border-color:rgba(245,166,35,.38);color:var(--gold2)}
+.dn-mark{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:12px;font-weight:900;flex:none;background:rgba(240,112,90,.2);color:var(--coral)}
+.dn-note.clean .dn-mark{background:rgba(245,166,35,.2);color:var(--gold)}
+.desk-chart-panel{position:relative;border-radius:18px;background:var(--glass);border:1px solid var(--border);padding:14px;height:min(300px,40vh)}
+.desk-chart{width:100%;height:100%;display:block}
+.desk-chart-cap{position:absolute;left:22px;bottom:14px;font-size:12px;letter-spacing:.06em;color:var(--gold2);font-weight:700}
+@media(max-width:820px){.desk-wrap{grid-template-columns:1fr;gap:22px}.desk-chart-panel{height:190px}}
+/* concept charts (rewiring backdrop + four-shift panels) */
+.tf-rewire-canvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(780px,84%);height:min(330px,44vh);z-index:0;opacity:.62;pointer-events:none}
+.tf-split .kick,.tf-split .tf-rows{position:relative;z-index:1}
+.tf-shift-canvas{width:min(500px,84vw);height:172px;display:block;margin:0 auto 10px}
 /* phase A — intro copy over the canvas */
 .tf-head{position:absolute;left:0;right:0;top:13vh;z-index:3;text-align:center;padding:0 clamp(20px,5vw,72px)}
 .tf-head .h2{font-size:clamp(26px,3.8vw,52px);max-width:22ch;margin:0 auto}
