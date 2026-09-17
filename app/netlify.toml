@@ -1,20 +1,9 @@
-# LMR Capitals — Claude static-app import branch.
-# The standalone app lives in app/ and is published directly without a build step.
 [build]
-  base = "app"
-  command = ""
   publish = "."
 
 # ── HTML — never cache (ensures updates deploy instantly) ──────────────────
 [[headers]]
   for = "/index.html"
-  [headers.values]
-    Cache-Control = "no-cache, no-store, must-revalidate"
-    Pragma = "no-cache"
-    Expires = "0"
-
-[[headers]]
-  for = "/app.html"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
     Pragma = "no-cache"

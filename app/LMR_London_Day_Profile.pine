@@ -1,0 +1,571 @@
+//@version=6
+indicator("LMR London Day-Profile Engine", overlay = true, max_lines_count = 200, max_labels_count = 200, max_boxes_count = 300)
+
+// =====================================================================
+// LMR LONDON DAY-PROFILE ENGINE
+// ---------------------------------------------------------------------
+// Determines each day's London Judas (protraction) profile the way LMR
+// reads it, sourced from the ICT April 2017 Daytrading Model - Lesson 5
+// "Intraday Market Profiles" and LMR's own daily/weekly profiling.
+//
+// CORE LOGIC (positional, NOT fixed pips/ATR - scales to NQ points):
+//   * Pivot = the 00:00 midnight NY price line (IPDA true-day open).
+//   * At 02:00 NY, read price vs the midnight price:
+//        2AM ABOVE midnight  -> up-Judas   -> BEARISH day (Sell profile)
+//        2AM BELOW midnight  -> down-Judas -> BULLISH day (Buy profile)
+//     (the move INTO 2AM is the manipulation; the day delivers opposite)
+//   * VALID only if the protraction SWEEPS major liquidity:
+//        PDH/PDL, PWH/PWL, PMH/PML, Asian range H/L, swing H/L,
+//        untouched FVG (imbalance draw).
+//   * Normal vs Delayed = timing: reversal set by ~02:00 = Normal;
+//        drags to/after 02:00 (into London KZ) = Delayed.
+//
+// Session windows (NY / EST):
+//   CBDR 14:00-20:00 | Asian 20:00-24:00 | London KZ 01:00-05:00
+//   London Close KZ 10:00-12:00 | IPDA True Day 00:00-15:00
+//
+// Build progress:  [x] HTF pools  [x] Asian  [x] swings  [x] FVG  [x] Order Blocks
+//                  [ ] PSH/PSL  [ ] NY profile
+//
+// NOTE: best viewed on a 15-min chart (LMR's profiling timeframe).
+// =====================================================================
+
+// ---------------------------------------------------------------------
+// INPUTS
+// ---------------------------------------------------------------------
+tz = "America/New_York"
+
+grpLiq = "Liquidity Pools To Require For A Valid Judas"
+usePDHL   = input.bool(true,  "Previous Day High/Low (PDH/PDL)",     group = grpLiq)
+usePWHL   = input.bool(true,  "Previous Week High/Low (PWH/PWL)",    group = grpLiq)
+usePMHL   = input.bool(false, "Previous Month High/Low (PMH/PML)",   group = grpLiq)
+useAsian  = input.bool(true,  "Asian Range High/Low (8pm-12am)",     group = grpLiq)
+useSwings = input.bool(true,  "Relative equal High/Low (swings)",    group = grpLiq)
+swingLen  = input.int(10, "Swing pivot length", minval = 2, maxval = 50, group = grpLiq)
+useFVG    = input.bool(true,  "Untouched FVG (imbalance draw)",      group = grpLiq)
+fvgKeep   = input.int(25, "Max untouched FVGs tracked", minval = 5, maxval = 100, group = grpLiq)
+useOB     = input.bool(true,  "Order Block (consecutive-close run)", group = grpLiq)
+obMinRun  = input.int(1, "Min consecutive same-close candles for OB", minval = 1, maxval = 5, group = grpLiq)
+obKeep    = input.int(20, "Max order blocks tracked", minval = 5, maxval = 60, group = grpLiq)
+
+grpJudas = "Judas Determination"
+protractEnd  = input.int(120, "Protraction read time (min after midnight)", minval = 30, maxval = 300, tooltip = "120 = 02:00 NY. Price vs midnight at this time sets Judas direction.", group = grpJudas)
+lokzEnd      = input.int(300, "Latest reversal for Delayed (min after midnight)", minval = 180, maxval = 420, tooltip = "300 = 05:00 NY (end of London Killzone).", group = grpJudas)
+requireSweep = input.bool(true, "Require a major-liquidity sweep to validate", group = grpJudas)
+
+grpVis = "Display  (turn off for a clean chart - table keeps the info)"
+minimalChart  = input.bool(false, "Minimal chart (only midnight line + label)", group = grpVis)
+showMidLine   = input.bool(true, "00:00 midnight price line",  group = grpVis)
+show2amLine   = input.bool(true, "02:00 read marker",          group = grpVis)
+showLokzBox   = input.bool(true, "London Killzone box",        group = grpVis)
+showLiqLines  = input.bool(true, "Liquidity level lines",      group = grpVis)
+showFVGBoxes  = input.bool(true, "Untouched FVG boxes",        group = grpVis)
+showOBBoxes   = input.bool(true, "Order block boxes",          group = grpVis)
+showDayLabel  = input.bool(true, "Day-profile label",          group = grpVis)
+
+grpTbl = "Tables"
+showInfoTable = input.bool(true, "Today info table",           group = grpTbl)
+infoPos       = input.string(position.top_right, "Info table position", options = [position.top_right, position.top_left, position.bottom_right, position.bottom_left, position.middle_right], group = grpTbl)
+showWeekTable = input.bool(true, "Weekly Mon-Fri table",       group = grpTbl)
+weekPos       = input.string(position.bottom_right, "Weekly table position", options = [position.top_right, position.top_left, position.bottom_right, position.bottom_left, position.middle_right], group = grpTbl)
+
+// resolve visibility (minimal chart overrides the drawing toggles)
+vMid  = showMidLine
+vAm   = show2amLine  and not minimalChart
+vLokz = showLokzBox  and not minimalChart
+vLiq  = showLiqLines and not minimalChart
+vFvg  = showFVGBoxes and not minimalChart
+vOb   = showOBBoxes  and not minimalChart
+vLbl  = showDayLabel
+
+colBull = color.new(color.teal,  0)
+colBear = color.new(color.red,   0)
+colGray = color.new(color.gray,  0)
+
+// ---------------------------------------------------------------------
+// TIME HELPERS
+// ---------------------------------------------------------------------
+nyMin      = hour(time, tz) * 60 + minute(time, tz)
+nyDay      = dayofmonth(time, tz)
+isNewNYDay = nyDay != nyDay[1]
+dow        = dayofweek(time, tz)            // 1=Sun .. 7=Sat
+wIdx       = dow - 2                          // Mon=0 .. Fri=4
+isWeekday  = wIdx >= 0 and wIdx <= 4
+isNewWeek  = weekofyear(time, tz) != weekofyear(time, tz)[1]
+
+inLondonKZ = nyMin >= 60 and nyMin < 300             // 01:00 -> 05:00
+inWindow   = nyMin >= 0  and nyMin < lokzEnd         // 00:00 -> latest delayed
+inAsian    = nyMin >= 1200                            // 20:00 -> 24:00
+
+// ---------------------------------------------------------------------
+// PRIOR HTF LIQUIDITY (previous completed period high/low)
+// ---------------------------------------------------------------------
+[pdh, pdl] = request.security(syminfo.tickerid, "D", [high[1], low[1]], lookahead = barmerge.lookahead_off)
+[pwh, pwl] = request.security(syminfo.tickerid, "W", [high[1], low[1]], lookahead = barmerge.lookahead_off)
+[pmh, pml] = request.security(syminfo.tickerid, "M", [high[1], low[1]], lookahead = barmerge.lookahead_off)
+
+// Recent swing highs/lows (relative equal buy-side / sell-side liquidity)
+var float swingHigh = na
+var float swingLow  = na
+ph = ta.pivothigh(swingLen, swingLen)
+pl = ta.pivotlow(swingLen, swingLen)
+if not na(ph)
+    swingHigh := ph
+if not na(pl)
+    swingLow := pl
+
+// ---------------------------------------------------------------------
+// UNTOUCHED FVG TRACKER  (3-candle imbalance; removed once price fills it)
+// ---------------------------------------------------------------------
+var array<float> fvgTop  = array.new_float()
+var array<float> fvgBot  = array.new_float()
+var array<bool>  fvgBull = array.new_bool()
+var array<box>   fvgBox  = array.new_box()
+
+// detect new FVG (middle candle = bar[1])
+bullFVG = low > high[2]
+bearFVG = high < low[2]
+if useFVG and bullFVG
+    t = low
+    b = high[2]
+    array.push(fvgTop, t)
+    array.push(fvgBot, b)
+    array.push(fvgBull, true)
+    array.push(fvgBox, box.new(bar_index[1], t, bar_index, b, border_color = color.new(color.teal, vFvg ? 60 : 100), bgcolor = color.new(color.teal, vFvg ? 88 : 100)))
+if useFVG and bearFVG
+    t = low[2]
+    b = high
+    array.push(fvgTop, t)
+    array.push(fvgBot, b)
+    array.push(fvgBull, false)
+    array.push(fvgBox, box.new(bar_index[1], t, bar_index, b, border_color = color.new(color.red, vFvg ? 60 : 100), bgcolor = color.new(color.red, vFvg ? 88 : 100)))
+
+// prune: remove filled FVGs and cap the list size
+if array.size(fvgTop) > 0
+    for i = array.size(fvgTop) - 1 to 0
+        t = array.get(fvgTop, i)
+        b = array.get(fvgBot, i)
+        isBull = array.get(fvgBull, i)
+        filled = isBull ? low <= t : high >= b     // price re-entered the gap
+        if filled
+            bx = array.get(fvgBox, i)
+            if not na(bx)
+                box.delete(bx)
+            array.remove(fvgTop, i)
+            array.remove(fvgBot, i)
+            array.remove(fvgBull, i)
+            array.remove(fvgBox, i)
+        else if not na(array.get(fvgBox, i))
+            box.set_right(array.get(fvgBox, i), bar_index)
+// cap oldest
+while array.size(fvgTop) > fvgKeep
+    bx = array.get(fvgBox, 0)
+    if not na(bx)
+        box.delete(bx)
+    array.shift(fvgTop)
+    array.shift(fvgBot)
+    array.shift(fvgBull)
+    array.shift(fvgBox)
+
+// nearest untouched FVG above / below current price (as a draw = liquidity)
+f_fvgAbove() =>
+    float lvl = na
+    int cnt = 0
+    if array.size(fvgBot) > 0
+        for i = 0 to array.size(fvgBot) - 1
+            b = array.get(fvgBot, i)
+            if b > close
+                cnt += 1
+                lvl := na(lvl) ? b : math.min(lvl, b)   // nearest above = lowest bottom above price
+    [lvl, cnt]
+f_fvgBelow() =>
+    float lvl = na
+    int cnt = 0
+    if array.size(fvgTop) > 0
+        for i = 0 to array.size(fvgTop) - 1
+            t = array.get(fvgTop, i)
+            if t < close
+                cnt += 1
+                lvl := na(lvl) ? t : math.max(lvl, t)   // nearest below = highest top below price
+    [lvl, cnt]
+[fvgAboveLvl, fvgAboveCnt] = f_fvgAbove()
+[fvgBelowLvl, fvgBelowCnt] = f_fvgBelow()
+
+// ---------------------------------------------------------------------
+// ORDER BLOCK TRACKER
+// OB = the consecutive same-direction close run immediately before an
+// opposite displacement (tagged by an FVG). Bullish OB = down-close run
+// before an up-displacement; Bearish OB = up-close run before a down one.
+// ---------------------------------------------------------------------
+var array<float> obTop  = array.new_float()
+var array<float> obBot  = array.new_float()
+var array<bool>  obBull = array.new_bool()
+var array<box>   obBox  = array.new_box()
+
+// scan the same-direction close run that ends at bar[2] (just before the
+// displacement middle bar[1]). wantDown=true -> bullish OB, else bearish.
+f_obRun(wantDown) =>
+    float top = na
+    float bot = na
+    int cnt = 0
+    int lastOff = 2
+    bool broke = false
+    for s = 2 to 12
+        isDown = close[s] < open[s]
+        match = wantDown ? isDown : not isDown
+        if not broke and match
+            top := na(top) ? high[s] : math.max(top, high[s])
+            bot := na(bot) ? low[s]  : math.min(bot, low[s])
+            cnt += 1
+            lastOff := s
+        else
+            broke := true
+    [top, bot, cnt, lastOff]
+
+if useOB and bullFVG
+    [t, b, cnt, off] = f_obRun(true)
+    if cnt >= obMinRun and not na(t)
+        array.push(obTop, t)
+        array.push(obBot, b)
+        array.push(obBull, true)
+        array.push(obBox, box.new(bar_index[off], t, bar_index, b, border_color = color.new(color.teal, vOb ? 25 : 100), bgcolor = color.new(color.teal, vOb ? 80 : 100)))
+if useOB and bearFVG
+    [t, b, cnt, off] = f_obRun(false)
+    if cnt >= obMinRun and not na(t)
+        array.push(obTop, t)
+        array.push(obBot, b)
+        array.push(obBull, false)
+        array.push(obBox, box.new(bar_index[off], t, bar_index, b, border_color = color.new(color.red, vOb ? 25 : 100), bgcolor = color.new(color.red, vOb ? 80 : 100)))
+
+// prune mitigated OBs (price closed through the far edge) + cap
+if array.size(obTop) > 0
+    for i = array.size(obTop) - 1 to 0
+        isBull = array.get(obBull, i)
+        mitig = isBull ? close < array.get(obBot, i) : close > array.get(obTop, i)
+        if mitig
+            bx = array.get(obBox, i)
+            if not na(bx)
+                box.delete(bx)
+            array.remove(obTop, i)
+            array.remove(obBot, i)
+            array.remove(obBull, i)
+            array.remove(obBox, i)
+        else if not na(array.get(obBox, i))
+            box.set_right(array.get(obBox, i), bar_index)
+while array.size(obTop) > obKeep
+    bx = array.get(obBox, 0)
+    if not na(bx)
+        box.delete(bx)
+    array.shift(obTop)
+    array.shift(obBot)
+    array.shift(obBull)
+    array.shift(obBox)
+
+// nearest bearish OB above / bullish OB below (as a PD-array draw)
+f_obAbove() =>
+    float lvl = na
+    int cnt = 0
+    if array.size(obBot) > 0
+        for i = 0 to array.size(obBot) - 1
+            if not array.get(obBull, i) and array.get(obBot, i) > close   // bearish OB above
+                cnt += 1
+                lvl := na(lvl) ? array.get(obBot, i) : math.min(lvl, array.get(obBot, i))
+    [lvl, cnt]
+f_obBelow() =>
+    float lvl = na
+    int cnt = 0
+    if array.size(obTop) > 0
+        for i = 0 to array.size(obTop) - 1
+            if array.get(obBull, i) and array.get(obTop, i) < close       // bullish OB below
+                cnt += 1
+                lvl := na(lvl) ? array.get(obTop, i) : math.max(lvl, array.get(obTop, i))
+    [lvl, cnt]
+[obAboveLvl, obAboveCnt] = f_obAbove()
+[obBelowLvl, obBelowCnt] = f_obBelow()
+
+// ---------------------------------------------------------------------
+// ASIAN RANGE (8pm-12am) - captured the evening BEFORE, frozen at midnight
+// ---------------------------------------------------------------------
+var float asianRunH = na
+var float asianRunL = na
+var float asianH    = na
+var float asianL    = na
+if isNewNYDay
+    asianH    := asianRunH
+    asianL    := asianRunL
+    asianRunH := na
+    asianRunL := na
+if inAsian
+    asianRunH := na(asianRunH) ? high : math.max(asianRunH, high)
+    asianRunL := na(asianRunL) ? low  : math.min(asianRunL, low)
+
+// ---------------------------------------------------------------------
+// PER-DAY STATE (reset at NY midnight)
+// ---------------------------------------------------------------------
+var float  midPrice     = na
+var float  price2am     = na
+var float  protHigh     = na
+var float  protLow      = na
+var bool   read2amDone  = false
+var bool   sweptBuySide = false
+var bool   sweptSellSide= false
+var string sweptName    = ""
+var bool   sweepAfter2am= false
+var string dayProfile   = "-"
+var int    dayDir       = 0
+
+if isNewNYDay
+    midPrice     := open
+    price2am     := na
+    protHigh     := high
+    protLow      := low
+    read2amDone  := false
+    sweptBuySide := false
+    sweptSellSide:= false
+    sweptName    := ""
+    sweepAfter2am:= false
+    dayProfile   := "-"
+    dayDir       := 0
+
+if inWindow and not na(midPrice)
+    protHigh := math.max(protHigh, high)
+    protLow  := math.min(protLow, low)
+
+if not read2amDone and not na(midPrice) and nyMin >= protractEnd and nyMin < lokzEnd
+    price2am    := open
+    read2amDone := true
+
+// ---------------------------------------------------------------------
+// LIQUIDITY SWEEP DETECTION (during the London window)
+// ---------------------------------------------------------------------
+f_tookHigh(lvl) => not na(lvl) and high > lvl
+f_tookLow(lvl)  => not na(lvl) and low  < lvl
+
+if inWindow and not na(midPrice)
+    bs = ""
+    if usePDHL   and f_tookHigh(pdh)         and bs == ""
+        bs := "PDH"
+    if usePWHL   and f_tookHigh(pwh)         and bs == ""
+        bs := "PWH"
+    if usePMHL   and f_tookHigh(pmh)         and bs == ""
+        bs := "PMH"
+    if useAsian  and f_tookHigh(asianH)      and bs == ""
+        bs := "AsnH"
+    if useSwings and f_tookHigh(swingHigh)   and bs == ""
+        bs := "SwgH"
+    if useFVG    and f_tookHigh(fvgAboveLvl) and bs == ""
+        bs := "FVG+"
+    if useOB     and f_tookHigh(obAboveLvl)  and bs == ""
+        bs := "OB+"
+    if bs != "" and not sweptBuySide
+        sweptBuySide  := true
+        sweptName     := sweptName == "" ? bs : sweptName + "," + bs
+        sweepAfter2am := sweepAfter2am or (nyMin >= protractEnd)
+
+    ss = ""
+    if usePDHL   and f_tookLow(pdl)          and ss == ""
+        ss := "PDL"
+    if usePWHL   and f_tookLow(pwl)          and ss == ""
+        ss := "PWL"
+    if usePMHL   and f_tookLow(pml)          and ss == ""
+        ss := "PML"
+    if useAsian  and f_tookLow(asianL)       and ss == ""
+        ss := "AsnL"
+    if useSwings and f_tookLow(swingLow)     and ss == ""
+        ss := "SwgL"
+    if useFVG    and f_tookLow(fvgBelowLvl)  and ss == ""
+        ss := "FVG-"
+    if useOB     and f_tookLow(obBelowLvl)   and ss == ""
+        ss := "OB-"
+    if ss != "" and not sweptSellSide
+        sweptSellSide := true
+        sweptName     := sweptName == "" ? ss : sweptName + "," + ss
+        sweepAfter2am := sweepAfter2am or (nyMin >= protractEnd)
+
+// ---------------------------------------------------------------------
+// CLASSIFY THE DAY
+// ---------------------------------------------------------------------
+biasSell = read2amDone and not na(price2am) and price2am > midPrice
+biasBuy  = read2amDone and not na(price2am) and price2am < midPrice
+
+if read2amDone and not na(midPrice)
+    if biasSell
+        valid = not requireSweep or sweptBuySide
+        if valid
+            dayDir     := -1
+            timing     = sweepAfter2am ? "Delayed" : "Normal"
+            dayProfile := "London SELL - " + timing + (sweptName != "" ? " (" + sweptName + ")" : "")
+        else
+            dayProfile := "Sell bias - no sweep"
+            dayDir     := 0
+    else if biasBuy
+        valid = not requireSweep or sweptSellSide
+        if valid
+            dayDir     := 1
+            timing     = sweepAfter2am ? "Delayed" : "Normal"
+            dayProfile := "London BUY - " + timing + (sweptName != "" ? " (" + sweptName + ")" : "")
+        else
+            dayProfile := "Buy bias - no sweep"
+            dayDir     := 0
+    else
+        dayProfile := "Flat at read"
+        dayDir     := 0
+
+// ---------------------------------------------------------------------
+// DRAW TARGET (the HTF level the Judas is drawing toward - opposite side)
+// ---------------------------------------------------------------------
+f_nearBelow(px) =>
+    float lvl = na
+    string nm = ""
+    if usePDHL  and not na(pdl)    and pdl    < px and (na(lvl) or pdl    > lvl)
+        lvl := pdl
+        nm  := "PDL"
+    if usePWHL  and not na(pwl)    and pwl    < px and (na(lvl) or pwl    > lvl)
+        lvl := pwl
+        nm  := "PWL"
+    if usePMHL  and not na(pml)    and pml    < px and (na(lvl) or pml    > lvl)
+        lvl := pml
+        nm  := "PML"
+    if useAsian and not na(asianL) and asianL < px and (na(lvl) or asianL > lvl)
+        lvl := asianL
+        nm  := "AsnL"
+    [lvl, nm]
+f_nearAbove(px) =>
+    float lvl = na
+    string nm = ""
+    if usePDHL  and not na(pdh)    and pdh    > px and (na(lvl) or pdh    < lvl)
+        lvl := pdh
+        nm  := "PDH"
+    if usePWHL  and not na(pwh)    and pwh    > px and (na(lvl) or pwh    < lvl)
+        lvl := pwh
+        nm  := "PWH"
+    if usePMHL  and not na(pmh)    and pmh    > px and (na(lvl) or pmh    < lvl)
+        lvl := pmh
+        nm  := "PMH"
+    if useAsian and not na(asianH) and asianH > px and (na(lvl) or asianH < lvl)
+        lvl := asianH
+        nm  := "AsnH"
+    [lvl, nm]
+
+drawLvl = float(na)
+drawNm  = ""
+if dayDir < 0
+    [dl, dn] = f_nearBelow(close)
+    drawLvl := dl
+    drawNm  := dn
+else if dayDir > 0
+    [al, an] = f_nearAbove(close)
+    drawLvl := al
+    drawNm  := an
+
+// ---------------------------------------------------------------------
+// WEEKLY MON-FRI STORAGE
+// ---------------------------------------------------------------------
+var array<string> weekProfile = array.new_string(5, "-")
+var array<int>    weekDir     = array.new_int(5, 0)
+if isNewWeek
+    for i = 0 to 4
+        array.set(weekProfile, i, "-")
+        array.set(weekDir, i, 0)
+if isWeekday and read2amDone
+    array.set(weekProfile, wIdx, dayProfile)
+    array.set(weekDir, wIdx, dayDir)
+
+// ---------------------------------------------------------------------
+// VISUALS
+// ---------------------------------------------------------------------
+var line midLn = na
+var line amLn  = na
+var box  lokzBx= na
+
+if vMid and isNewNYDay and not na(open)
+    midLn := line.new(bar_index, open, bar_index, open, color = color.new(color.orange, 0), style = line.style_solid, width = 2)
+if vMid and not na(midLn) and nyMin < 900
+    line.set_x2(midLn, bar_index)
+    line.set_y1(midLn, midPrice)
+    line.set_y2(midLn, midPrice)
+
+if vAm and read2amDone and not read2amDone[1] and not na(price2am)
+    amCol = biasSell ? colBear : biasBuy ? colBull : colGray
+    amLn := line.new(bar_index, price2am, bar_index, midPrice, color = amCol, style = line.style_dotted, width = 2)
+
+if vLokz and nyMin >= 60 and nyMin[1] < 60
+    lokzBx := box.new(bar_index, high, bar_index, low, border_color = color.new(color.blue, 40), bgcolor = color.new(color.blue, 92))
+if vLokz and not na(lokzBx) and inLondonKZ
+    box.set_right(lokzBx, bar_index)
+    box.set_top(lokzBx, math.max(box.get_top(lokzBx), high))
+    box.set_bottom(lokzBx, math.min(box.get_bottom(lokzBx), low))
+
+plot(vLiq and usePDHL ? pdh : na, "PDH", color.new(color.red, 55), 1, plot.style_linebr)
+plot(vLiq and usePDHL ? pdl : na, "PDL", color.new(color.teal, 55), 1, plot.style_linebr)
+plot(vLiq and usePWHL ? pwh : na, "PWH", color.new(color.red, 30), 1, plot.style_linebr)
+plot(vLiq and usePWHL ? pwl : na, "PWL", color.new(color.teal, 30), 1, plot.style_linebr)
+plot(vLiq and useAsian ? asianH : na, "Asian H", color.new(color.orange, 40), 1, plot.style_linebr)
+plot(vLiq and useAsian ? asianL : na, "Asian L", color.new(color.orange, 40), 1, plot.style_linebr)
+
+plotshape(sweptBuySide and not sweptBuySide[1], title = "Buy-side swept", style = shape.triangledown, location = location.abovebar, color = colBear, size = size.tiny)
+plotshape(sweptSellSide and not sweptSellSide[1], title = "Sell-side swept", style = shape.triangleup, location = location.belowbar, color = colBull, size = size.tiny)
+
+if vLbl and nyMin >= 480 and nyMin[1] < 480 and isWeekday
+    lblCol = dayDir > 0 ? colBull : dayDir < 0 ? colBear : colGray
+    label.new(bar_index, high, dayProfile, style = label.style_label_down, color = color.new(lblCol, 15), textcolor = color.white, size = size.small)
+
+// ---------------------------------------------------------------------
+// TODAY INFO TABLE  (keeps the chart clean)
+// ---------------------------------------------------------------------
+f_px(x) => na(x) ? "-" : str.tostring(x, format.mintick)
+
+if showInfoTable and barstate.islast
+    it = table.new(infoPos, 2, 12, bgcolor = color.new(color.black, 8), border_color = color.gray, border_width = 1)
+    dName = array.from("Sun","Mon","Tue","Wed","Thu","Fri","Sat")
+    readTxt = not read2amDone ? "pending" : biasSell ? "2AM > Mid  ->  SELL" : biasBuy ? "2AM < Mid  ->  BUY" : "flat"
+    readCol = biasSell ? colBear : biasBuy ? colBull : colGray
+    proCol  = dayDir > 0 ? colBull : dayDir < 0 ? colBear : colGray
+    drawTxt = na(drawLvl) ? "-" : drawNm + " " + f_px(drawLvl)
+    table.cell(it, 0, 0, "LMR LONDON - TODAY", text_color = color.white, bgcolor = color.new(color.gray, 25))
+    table.cell(it, 1, 0, array.get(dName, dow - 1), text_color = color.white, bgcolor = color.new(color.gray, 25))
+    table.cell(it, 0, 1, "Midnight px", text_color = color.silver)
+    table.cell(it, 1, 1, f_px(midPrice), text_color = color.white)
+    table.cell(it, 0, 2, "02:00 px", text_color = color.silver)
+    table.cell(it, 1, 2, f_px(price2am), text_color = color.white)
+    table.cell(it, 0, 3, "Read", text_color = color.silver)
+    table.cell(it, 1, 3, readTxt, text_color = readCol)
+    table.cell(it, 0, 4, "Protraction H/L", text_color = color.silver)
+    table.cell(it, 1, 4, f_px(protHigh) + " / " + f_px(protLow), text_color = color.white)
+    table.cell(it, 0, 5, "Swept", text_color = color.silver)
+    table.cell(it, 1, 5, sweptName == "" ? "-" : sweptName, text_color = color.white)
+    table.cell(it, 0, 6, "Untouched FVG", text_color = color.silver)
+    table.cell(it, 1, 6, str.tostring(fvgAboveCnt) + " up / " + str.tostring(fvgBelowCnt) + " dn", text_color = color.white)
+    table.cell(it, 0, 7, "Order Blocks", text_color = color.silver)
+    table.cell(it, 1, 7, str.tostring(obAboveCnt) + " up / " + str.tostring(obBelowCnt) + " dn", text_color = color.white)
+    table.cell(it, 0, 8, "Draw target", text_color = color.silver)
+    table.cell(it, 1, 8, drawTxt, text_color = color.white)
+    table.cell(it, 0, 9, "Timing", text_color = color.silver)
+    table.cell(it, 1, 9, not read2amDone ? "-" : (sweepAfter2am ? "Delayed" : "Normal"), text_color = color.white)
+    table.cell(it, 0, 10, "PROFILE", text_color = color.white, bgcolor = color.new(color.gray, 40))
+    table.cell(it, 1, 10, dayProfile, text_color = proCol, bgcolor = color.new(color.gray, 40))
+    table.cell(it, 0, 11, "Pools on", text_color = color.silver)
+    poolsOn = (usePDHL?"PD ":"") + (usePWHL?"PW ":"") + (usePMHL?"PM ":"") + (useAsian?"Asn ":"") + (useSwings?"Swg ":"") + (useFVG?"FVG ":"") + (useOB?"OB":"")
+    table.cell(it, 1, 11, poolsOn, text_color = color.silver)
+
+// ---------------------------------------------------------------------
+// WEEKLY TABLE
+// ---------------------------------------------------------------------
+if showWeekTable and barstate.islast
+    tbl = table.new(weekPos, 2, 6, bgcolor = color.new(color.black, 10), border_color = color.gray, border_width = 1)
+    table.cell(tbl, 0, 0, "LMR WEEK PROFILE", text_color = color.white, bgcolor = color.new(color.gray, 30))
+    table.cell(tbl, 1, 0, "This Week", text_color = color.white, bgcolor = color.new(color.gray, 30))
+    days = array.from("Mon", "Tue", "Wed", "Thu", "Fri")
+    for i = 0 to 4
+        p = array.get(weekProfile, i)
+        d = array.get(weekDir, i)
+        c = d > 0 ? colBull : d < 0 ? colBear : colGray
+        table.cell(tbl, 0, i + 1, array.get(days, i), text_color = color.white)
+        table.cell(tbl, 1, i + 1, p, text_color = c)
+
+// ---------------------------------------------------------------------
+// ALERTS
+// ---------------------------------------------------------------------
+alertcondition(read2amDone and not read2amDone[1] and biasSell, "London Sell read", "LMR: 2AM above midnight - Sell-Judas bias")
+alertcondition(read2amDone and not read2amDone[1] and biasBuy,  "London Buy read",  "LMR: 2AM below midnight - Buy-Judas bias")
+alertcondition((sweptBuySide and not sweptBuySide[1]) or (sweptSellSide and not sweptSellSide[1]), "Liquidity swept", "LMR: major liquidity swept in London window")

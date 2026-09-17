@@ -1,0 +1,552 @@
+//@version=6
+indicator("LMR Session Quarters + AMD Detector v9 (target-aware)", overlay=true, max_boxes_count=500, max_lines_count=500, max_labels_count=500)
+
+// =====================================================================
+// LMR SESSION QUARTERS + LIVE AMD DETECTOR (v7 - timeframe visibility)
+// -----------------------------------------------------------------------
+// Structure:
+//   1 OUTER box per session (Asia / London / NY AM / NY PM)
+//   3 INNER boxes inside each session = the 90-min A/M/D blocks
+//
+// NEW IN v5:
+//   - Auto Border: border color is automatically calculated as a darker
+//     shade of each box's own fill color, so you don't have to manually
+//     pick/match a border color. Turn it off per box type (session or
+//     block) if you want to set your own manual border color instead.
+//   - Inputs use "inline" grouping so each settings section renders as
+//     a clean, compact framed block instead of one long vertical list.
+//
+// Sessions (New York time):
+//   Asia    : 22:00-23:30 (ASIA1) | 23:30-01:00 (ASIA2) | 01:00-02:30 (ASIA3)
+//   London  : 02:30-04:00 (LO1)   | 04:00-05:30 (LO2)   | 05:30-07:00 (LO3)
+//   NY AM   : 07:00-08:30 (AM1)   | 08:30-10:00 (AM2)   | 10:00-11:30 (AM3)
+//   NY PM   : 11:30-13:00 (PM1)   | 13:00-14:30 (PM2)   | 14:30-16:00 (PM3)
+//   Off     : 16:00-22:00 (dead zone, hidden by default)
+//
+// TARGET-AWARE AMD (v9): every 90-min block is Accumulation by default.
+// A block that SWEEPS the previous block's dealing range is classified by
+// its direction relative to your marked HTF (Monthly) target:
+//   Accumulation - block did not sweep the prior block's range
+//   Manipulation - block swept the prior block AGAINST the target (the trap)
+//   Distribution - block swept the prior block TOWARD the target (the delivery)
+// Sweeping the TWO previous blocks in a row = the STRONG / decisive one (x2).
+// =====================================================================
+
+// ---------------------------------------------------------------------
+// INPUTS - SESSIONS ON/OFF
+// ---------------------------------------------------------------------
+grpSessions = "Sessions"
+showAsia    = input.bool(true,  "Asia",   inline = "s1", group = grpSessions)
+showLondon  = input.bool(true,  "London", inline = "s1", group = grpSessions)
+showNYAM    = input.bool(true,  "NY AM",  inline = "s2", group = grpSessions)
+showNYPM    = input.bool(true,  "NY PM",  inline = "s2", group = grpSessions)
+showOff     = input.bool(false, "Dead Zone (16:00-22:00)", group = grpSessions)
+
+// ---------------------------------------------------------------------
+// INPUTS - AMD DETECTION
+// ---------------------------------------------------------------------
+grpAMD    = "AMD Detection"
+strongOnly2Blk = input.bool(false, "Only tag M/D on a 2-block sweep", group = grpAMD, tooltip = "A block that sweeps the PREVIOUS block's dealing range = a normal Manipulation/Distribution.\nA block that sweeps the TWO previous blocks in a row = the STRONG / decisive one.\nEnable this to label only the strong (2-block) sweeps and leave everything else Accumulation.")
+
+// ---------------------------------------------------------------------
+// INPUTS - HTF TARGETS (mark your prices; direction is derived from them)
+// ---------------------------------------------------------------------
+grpHTF        = "HTF Targets"
+monthlyTarget = input.float(0.0, "Monthly Target (PML / objective)", group = grpHTF, tooltip = "Type the exact price here. The line is LOCKED to this value and cannot be dragged on the chart - it only changes when you edit this box. Direction below is read from where price sits vs this level.")
+biasMode      = input.string("Auto (from Monthly)", "Draw direction", options = ["Auto (from Monthly)", "Force Bullish", "Force Bearish"], group = grpHTF, tooltip = "Auto = bullish when price is below the monthly target (drawing up to it), bearish when above (drawing down). Force to override.")
+pdFallback    = input.bool(true, "Auto direction from P/D when no Monthly target", group = grpHTF, tooltip = "When the Monthly Target box is empty and Draw direction = Auto, take the bias from the Premium/Discount array instead: price in Premium -> bearish draw, in Discount -> bullish draw. Keeps the AMD classifying before you mark a level.")
+useWeekly     = input.bool(false, "Weekly level", inline = "hw", group = grpHTF)
+weeklyLevel   = input.float(0.0, "", inline = "hw", group = grpHTF, tooltip = "Type the weekly level price. Locked - not draggable from the chart.")
+useDaily      = input.bool(false, "Daily level", inline = "hd", group = grpHTF)
+dailyLevel    = input.float(0.0, "", inline = "hd", group = grpHTF, tooltip = "Type the daily level price. Locked - not draggable from the chart.")
+monthlyLineColor = input.color(color.new(color.orange, 0), "Monthly", inline = "hc", group = grpHTF)
+weeklyLineColor  = input.color(color.new(color.aqua, 0),   "Weekly",  inline = "hc", group = grpHTF)
+dailyLineColor   = input.color(color.new(color.yellow, 0), "Daily",   inline = "hc", group = grpHTF)
+htfLineWidth      = input.int(2, "Line width", minval = 1, maxval = 5, inline = "hlw", group = grpHTF)
+htfLineStyleInput = input.string("Solid", "Style", options = ["Solid", "Dashed", "Dotted"], inline = "hlw", group = grpHTF)
+htfLeftBars   = input.int(60, "Left length", minval = 0, inline = "hlen", group = grpHTF, tooltip = "Bars the line is drawn to the LEFT of now.")
+htfRightBars  = input.int(20, "Right length", minval = 1, maxval = 50, inline = "hlen", group = grpHTF, tooltip = "Bars the line projects to the RIGHT into empty space. The price label sits at this right end, clear of the candles.")
+htfLabelSize  = input.string("Small", "Price size", options = ["Tiny", "Small", "Normal", "Large"], inline = "hlbl", group = grpHTF)
+htfLabelBg    = input.color(color.new(color.black, 20), "Price BG", inline = "hlbl", group = grpHTF)
+htfExtendInput = input.string("Left (price on right)", "Extend line", options = ["Left (price on right)", "Both sides", "Right (chart end)", "None (finite)"], group = grpHTF, tooltip = "Left (price on right) = line runs infinitely to the LEFT and STOPS at the price tag on the right, so the line never crosses the price. Both sides = fully infinite. Right = to the right chart edge. None = finite line using the Left/Right lengths above.")
+htfLineStyleV = htfLineStyleInput == "Dashed" ? line.style_dashed : htfLineStyleInput == "Dotted" ? line.style_dotted : line.style_solid
+htfExtendV    = htfExtendInput == "Left (price on right)" ? extend.left : htfExtendInput == "Both sides" ? extend.both : htfExtendInput == "Right (chart end)" ? extend.right : extend.none
+
+// ---------------------------------------------------------------------
+// INPUTS - PREMIUM / DISCOUNT (P/D ARRAY)
+// ---------------------------------------------------------------------
+grpPD         = "Premium / Discount (P/D Array)"
+showPD        = input.bool(true, "Show P/D zones + EQ", group = grpPD)
+pdRange       = input.string("Weekly", "Dealing range", options = ["Daily", "Weekly", "Monthly"], group = grpPD, tooltip = "The range whose 50% equilibrium splits Premium (upper half) from Discount (lower half). 'Aligned' = price sits in the half that agrees with the draw (bearish->Premium, bullish->Discount).")
+eqColor       = input.color(color.new(color.gray, 0),   "EQ 50%",   inline = "pd1", group = grpPD)
+premiumColor  = input.color(color.new(color.red, 90),   "Premium",  inline = "pd1", group = grpPD)
+discountColor = input.color(color.new(color.green, 90), "Discount", inline = "pd1", group = grpPD)
+
+// ---------------------------------------------------------------------
+// INPUTS - DASHBOARD (size / colors / placement / layout)
+// ---------------------------------------------------------------------
+grpDash    = "Dashboard"
+dashPos    = input.string("Top Right", "Placement", options = ["Top Right", "Top Center", "Top Left", "Middle Right", "Middle Left", "Bottom Right", "Bottom Center", "Bottom Left"], group = grpDash)
+dashSize   = input.string("Small", "Text size", options = ["Tiny", "Small", "Normal", "Large"], group = grpDash)
+dashLayout = input.string("Vertical (2 column)", "Layout", options = ["Vertical (2 column)", "Horizontal (2 row)"], group = grpDash, tooltip = "Vertical = label/value stacked in 2 columns (tall). Horizontal = labels on top row, values beneath (wide, short).")
+dashHdrBg  = input.color(color.new(color.gray, 30),  "Header BG", inline = "dc1", group = grpDash)
+dashCellBg = input.color(color.new(color.black, 20), "Cell BG",   inline = "dc1", group = grpDash)
+dashText   = input.color(color.white, "Text",        inline = "dc1", group = grpDash)
+dashBorder = input.color(color.new(color.gray, 40),  "Border",    inline = "dc2", group = grpDash)
+
+// ---------------------------------------------------------------------
+// INPUTS - GLOBAL BOX STYLE (applies to every box, session + block)
+// ---------------------------------------------------------------------
+grpGlobal = "Global Box Style"
+globalBgTransparency     = input.int(90, "Background Transparency (all boxes)", minval = 0, maxval = 100, group = grpGlobal, tooltip = "0 = fully solid, 100 = invisible. Overrides the alpha of every box color below - only the hue you pick matters now.")
+globalBorderTransparency = input.int(15, "Border Transparency (all boxes)",     minval = 0, maxval = 100, group = grpGlobal, tooltip = "Applies to both Auto Border and Manual Border colors on every box.")
+
+// ---------------------------------------------------------------------
+// INPUTS - TIMEFRAME INFO
+// ---------------------------------------------------------------------
+grpTF = "Timeframe Info"
+showTFInfo       = input.bool(true, "Show Current Timeframe in Table", group = grpTF)
+maxRecommendedTF = input.int(30, "Recommended Max Timeframe (minutes)", minval = 1, group = grpTF, tooltip = "90-min blocks need enough bars to resolve cleanly. Above this, the boxes will still draw but each block may only span 1-2 bars.")
+
+// ---------------------------------------------------------------------
+// INPUTS - OUTER SESSION BOX (framed group, laid out inline)
+// ---------------------------------------------------------------------
+grpSessBox = "Outer Session Box"
+showSessionBox    = input.bool(true, "Show Box",   inline = "so1", group = grpSessBox)
+showSessionLabel  = input.bool(true, "Show Label", inline = "so1", group = grpSessBox)
+
+asiaBoxColor      = input.color(color.new(color.purple, 92), "Asia",   inline = "soc1", group = grpSessBox)
+londonBoxColor    = input.color(color.new(color.teal, 92),   "London", inline = "soc1", group = grpSessBox)
+nyamBoxColor      = input.color(color.new(color.blue, 92),   "NY AM",  inline = "soc2", group = grpSessBox)
+nypmBoxColor      = input.color(color.new(color.maroon, 92), "NY PM",  inline = "soc2", group = grpSessBox)
+offBoxColor       = input.color(color.new(color.gray, 92),   "Off",    inline = "soc3", group = grpSessBox)
+
+autoBorderSession = input.bool(true, "Auto Border (darker shade of box fill)", group = grpSessBox)
+sessionBorderColor= input.color(color.gray, "Manual Border", inline = "sob1", group = grpSessBox)
+sessionBorderWidth= input.int(2, "Width", inline = "sob1", minval = 1, maxval = 5, group = grpSessBox)
+sessionBorderStyleInput = input.string("Solid", "Style", inline = "sob1", options = ["Solid", "Dashed", "Dotted"], group = grpSessBox)
+sessionBorderStyle = sessionBorderStyleInput == "Dashed" ? line.style_dashed : sessionBorderStyleInput == "Dotted" ? line.style_dotted : line.style_solid
+
+sessionLabelColor = input.color(color.white, "Label Color", inline = "sol1", group = grpSessBox)
+sessionLabelSize  = input.string(size.normal, "Size", inline = "sol1", options = [size.tiny, size.small, size.normal, size.large], group = grpSessBox)
+
+asiaLabelText     = input.string("ASIA",   "Asia",   inline = "solt1", group = grpSessBox)
+londonLabelText   = input.string("LONDON", "London", inline = "solt1", group = grpSessBox)
+nyamLabelText     = input.string("NY AM",  "NY AM",  inline = "solt2", group = grpSessBox)
+nypmLabelText     = input.string("NY PM",  "NY PM",  inline = "solt2", group = grpSessBox)
+offLabelText      = input.string("OFF",    "Off",    inline = "solt3", group = grpSessBox)
+
+// ---------------------------------------------------------------------
+// INPUTS - INNER 90-MIN BLOCK BOX (framed group, laid out inline)
+// ---------------------------------------------------------------------
+grpBlockBox = "Inner 90-Min Block Boxes"
+showBlockBox      = input.bool(true, "Show Box",   inline = "bo1", group = grpBlockBox)
+showBlockLabel    = input.bool(true, "Show Label", inline = "bo1", group = grpBlockBox)
+
+accumColor        = input.color(color.new(color.blue, 85),    "Accum",          inline = "boc1", group = grpBlockBox)
+manipColor        = input.color(color.new(color.orange, 85),  "Manip",          inline = "boc1", group = grpBlockBox)
+manipConfirmColor = input.color(color.new(color.orange, 60),  "Manip Judas OK", inline = "boc2", group = grpBlockBox)
+distBullColor     = input.color(color.new(color.green, 70),   "Dist Bull",      inline = "boc2", group = grpBlockBox)
+distBearColor     = input.color(color.new(color.red, 70),     "Dist Bear",      inline = "boc3", group = grpBlockBox)
+distWeakColor     = input.color(color.new(color.gray, 85),    "Dist Weak",      inline = "boc3", group = grpBlockBox)
+
+autoBorderBlock   = input.bool(true, "Auto Border (darker shade of box fill)", group = grpBlockBox)
+blockBorderColor  = input.color(color.new(color.gray, 40), "Manual Border", inline = "bob1", group = grpBlockBox)
+blockBorderWidth  = input.int(1, "Width", inline = "bob1", minval = 1, maxval = 5, group = grpBlockBox)
+blockBorderStyleInput = input.string("Solid", "Style", inline = "bob1", options = ["Solid", "Dashed", "Dotted"], group = grpBlockBox)
+blockBorderStyle = blockBorderStyleInput == "Dashed" ? line.style_dashed : blockBorderStyleInput == "Dotted" ? line.style_dotted : line.style_solid
+
+blockLabelColor   = input.color(color.white, "Label Color", inline = "bol1", group = grpBlockBox)
+blockLabelSize    = input.string(size.small, "Size", inline = "bol1", options = [size.tiny, size.small, size.normal, size.large], group = grpBlockBox)
+showLiveStatus    = input.bool(false, "Append Live Status", inline = "bol1", group = grpBlockBox)
+
+accumLabelSuffix  = input.string(" Accum",  "Accum Suffix", inline = "bolt1", group = grpBlockBox)
+manipLabelSuffix  = input.string(" Manip",  "Manip Suffix", inline = "bolt1", group = grpBlockBox)
+distLabelSuffix   = input.string(" Dist",   "Dist Suffix",  inline = "bolt1", group = grpBlockBox)
+
+// ---------------------------------------------------------------------
+// INPUTS - TRUE OPEN LINE & BACKGROUND
+// ---------------------------------------------------------------------
+grpMisc = "True Open / Background"
+showTrueOpen  = input.bool(true, "Show True Open Lines", inline = "m1", group = grpMisc)
+trueOpenColor = input.color(color.yellow, "Color", inline = "m1", group = grpMisc)
+trueOpenWidth = input.int(1, "Width", inline = "m1", minval = 1, maxval = 4, group = grpMisc)
+showBg        = input.bool(false, "Color Chart Background by Phase", inline = "m2", group = grpMisc)
+showTable     = input.bool(true, "Show Dashboard Table", inline = "m2", group = grpMisc)
+showRangeLines = input.bool(true, "Show Accumulation Range Lines", inline = "m3", group = grpMisc)
+rangeLineColor = input.color(color.new(color.blue, 40), "Color", inline = "m3", group = grpMisc)
+
+// ---------------------------------------------------------------------
+// COLOR HELPERS
+// f_darken   - produces a darker version of a color's hue (for Auto Border)
+// f_setAlpha - strips whatever alpha a picked color has and re-applies
+//              the universal global transparency, so one slider controls
+//              every box's opacity regardless of what was picked above.
+// ---------------------------------------------------------------------
+f_darken(col) =>
+    r = int(math.round(color.r(col) * 0.55))
+    g = int(math.round(color.g(col) * 0.55))
+    b = int(math.round(color.b(col) * 0.55))
+    color.rgb(r, g, b, 0)
+
+f_setAlpha(col, transp) =>
+    color.rgb(color.r(col), color.g(col), color.b(col), transp)
+
+// dashboard placement + text-size mappers
+f_tablePos(s) =>
+    s == "Top Right" ? position.top_right : s == "Top Center" ? position.top_center : s == "Top Left" ? position.top_left : s == "Middle Right" ? position.middle_right : s == "Middle Left" ? position.middle_left : s == "Bottom Right" ? position.bottom_right : s == "Bottom Center" ? position.bottom_center : position.bottom_left
+
+f_tableSize(s) =>
+    s == "Tiny" ? size.tiny : s == "Small" ? size.small : s == "Large" ? size.large : size.normal
+
+// current ICT macro window (New York minutes) -> name, "" if none
+f_macro(m) =>
+    m >= 90 and m < 120 ? "LONDON 1" : m >= 170 and m < 190 ? "LONDON 2" : m >= 270 and m < 300 ? "LONDON 3" : m >= 530 and m < 550 ? "NY AM" : m >= 590 and m < 610 ? "NY AM1" : m >= 650 and m < 670 ? "NY AM2" : m >= 710 and m < 730 ? "LUNCH" : m >= 830 and m < 850 ? "PM" : m >= 915 and m < 945 ? "CLOSE" : m >= 950 and m < 960 ? "FINAL" : ""
+
+// f_phaseColorRaw - raw fill color for a phase.
+//   "" (nothing proven yet) falls back to the neutral "Dist Weak" grey.
+f_phaseColorRaw(ph, dDir) =>
+    ph == "ACCUM" ? accumColor : ph == "MANIP" ? manipColor : ph == "DIST" ? (dDir == 1 ? distBullColor : distBearColor) : distWeakColor
+
+// ---------------------------------------------------------------------
+// TIME / SESSION MAPPING (all times converted to New York local time)
+// ---------------------------------------------------------------------
+nyH   = hour(time,   "America/New_York")
+nyM   = minute(time, "America/New_York")
+nyMin = nyH * 60 + nyM
+
+string blockID     = na
+string sessionName = na
+
+// --- Asia : three 90-min blocks across 22:00 -> 02:30 ---
+if nyMin >= 1320 and nyMin < 1410
+    blockID     := "ASIA1"
+    sessionName := "Asia"
+else if nyMin >= 1410 or nyMin < 60
+    blockID     := "ASIA2"
+    sessionName := "Asia"
+else if nyMin >= 60 and nyMin < 150
+    blockID     := "ASIA3"
+    sessionName := "Asia"
+// --- London ---
+else if nyMin >= 150 and nyMin < 240
+    blockID     := "LO1"
+    sessionName := "London"
+else if nyMin >= 240 and nyMin < 330
+    blockID     := "LO2"
+    sessionName := "London"
+else if nyMin >= 330 and nyMin < 420
+    blockID     := "LO3"
+    sessionName := "London"
+// --- NY AM ---
+else if nyMin >= 420 and nyMin < 510
+    blockID     := "AM1"
+    sessionName := "NY AM"
+else if nyMin >= 510 and nyMin < 600
+    blockID     := "AM2"
+    sessionName := "NY AM"
+else if nyMin >= 600 and nyMin < 690
+    blockID     := "AM3"
+    sessionName := "NY AM"
+// --- NY PM ---
+else if nyMin >= 690 and nyMin < 780
+    blockID     := "PM1"
+    sessionName := "NY PM"
+else if nyMin >= 780 and nyMin < 870
+    blockID     := "PM2"
+    sessionName := "NY PM"
+else if nyMin >= 870 and nyMin < 960
+    blockID     := "PM3"
+    sessionName := "NY PM"
+// --- Dead zone : 16:00 -> 22:00 ---
+else
+    blockID     := "OFF"
+    sessionName := "Off"
+
+isReal         = sessionName != "Off"
+sessionVisible = sessionName == "Asia" ? showAsia : sessionName == "Off" ? showOff : sessionName == "London" ? showLondon : sessionName == "NY AM" ? showNYAM : showNYPM
+
+isNewSession = sessionName != sessionName[1]
+isNewBlock   = blockID != blockID[1]
+
+// ---------------------------------------------------------------------
+// OUTER SESSION BOX STATE (one box per session, colored by session)
+// ---------------------------------------------------------------------
+var float sessionHigh     = na
+var float sessionLow      = na
+var float sessionOpen     = na
+var int   sessionStartBar = na
+var box   currentSessionBox   = na
+var label currentSessionLabel = na
+
+if isNewSession
+    sessionHigh     := high
+    sessionLow      := low
+    sessionOpen     := open
+    sessionStartBar := bar_index
+
+    if showSessionBox and sessionVisible
+        sessColorRaw = sessionName == "Asia" ? asiaBoxColor : sessionName == "London" ? londonBoxColor : sessionName == "NY AM" ? nyamBoxColor : sessionName == "NY PM" ? nypmBoxColor : offBoxColor
+        sessFill   = f_setAlpha(sessColorRaw, globalBgTransparency)
+        sessBorder = f_setAlpha(autoBorderSession ? f_darken(sessColorRaw) : sessionBorderColor, globalBorderTransparency)
+        currentSessionBox := box.new(bar_index, high, bar_index, low, border_color = sessBorder, border_width = sessionBorderWidth, border_style = sessionBorderStyle, bgcolor = sessFill, extend = extend.none)
+
+    if showSessionLabel and sessionVisible
+        sessText = sessionName == "Asia" ? asiaLabelText : sessionName == "London" ? londonLabelText : sessionName == "NY AM" ? nyamLabelText : sessionName == "NY PM" ? nypmLabelText : offLabelText
+        currentSessionLabel := label.new(bar_index, high, text = sessText, style = label.style_label_down, color = color.new(color.black, 100), textcolor = sessionLabelColor, size = sessionLabelSize)
+else
+    sessionHigh := math.max(sessionHigh, high)
+    sessionLow  := math.min(sessionLow, low)
+
+if showSessionBox and sessionVisible and not na(currentSessionBox)
+    box.set_right(currentSessionBox, bar_index)
+    box.set_top(currentSessionBox, sessionHigh)
+    box.set_bottom(currentSessionBox, sessionLow)
+
+if showSessionLabel and sessionVisible and not na(currentSessionLabel)
+    label.set_y(currentSessionLabel, sessionHigh)
+    label.set_x(currentSessionLabel, math.round((sessionStartBar + bar_index) / 2))
+
+// ---------------------------------------------------------------------
+// PREMIUM / DISCOUNT EQUILIBRIUM (computed first so the draw can fall back to it)
+//   built directly on the chart TF (no request.security -> no repaint)
+// ---------------------------------------------------------------------
+pdTF   = pdRange == "Daily" ? "D" : pdRange == "Weekly" ? "W" : "M"
+newPd  = ta.change(time(pdTF)) != 0
+var float pdHi = na
+var float pdLo = na
+var int   pdStartBar = na
+if newPd
+    pdHi := high
+    pdLo := low
+    pdStartBar := bar_index
+else
+    pdHi := math.max(pdHi, high)
+    pdLo := math.min(pdLo, low)
+pdMid      = (pdHi + pdLo) / 2
+inPremium  = not na(pdMid) and close > pdMid
+inDiscount = not na(pdMid) and close < pdMid
+
+// ---------------------------------------------------------------------
+// HTF DRAW DIRECTION
+//   Auto: use the Monthly target if set; otherwise (if enabled) fall back to
+//   the P/D array -> in Premium = bearish draw, in Discount = bullish draw.
+//   drawDir = +1 bullish | -1 bearish | 0 no bias -> blocks stay Accumulation
+// ---------------------------------------------------------------------
+hasTarget = monthlyTarget > 0
+autoDir   = hasTarget ? (close < monthlyTarget ? 1 : -1) : (pdFallback ? (inPremium ? -1 : inDiscount ? 1 : 0) : 0)
+drawDir   = biasMode == "Force Bullish" ? 1 : biasMode == "Force Bearish" ? -1 : autoDir
+pdAligned = drawDir == -1 ? inPremium : drawDir == 1 ? inDiscount : false
+
+// ---------------------------------------------------------------------
+// HTF TARGET LINES (drawn from the prices you marked)
+// ---------------------------------------------------------------------
+f_htfLine(px, useIt, txt, lineCol) =>
+    var line  ln = na
+    var label lb = na
+    if useIt and px > 0 and barstate.islast
+        rEnd = bar_index + htfRightBars
+        if na(ln)
+            ln := line.new(bar_index - htfLeftBars, px, rEnd, px, extend = htfExtendV, color = lineCol, width = htfLineWidth, style = htfLineStyleV)
+            lb := label.new(rEnd, px, "", style = label.style_label_right, color = htfLabelBg, textcolor = lineCol, size = f_tableSize(htfLabelSize))
+        line.set_xy1(ln, bar_index - htfLeftBars, px)
+        line.set_xy2(ln, rEnd, px)
+        line.set_extend(ln, htfExtendV)
+        line.set_color(ln, lineCol)
+        line.set_width(ln, htfLineWidth)
+        line.set_style(ln, htfLineStyleV)
+        label.set_xy(lb, rEnd, px)
+        label.set_text(lb, txt + "  " + str.tostring(px, format.mintick))
+        label.set_textcolor(lb, lineCol)
+        label.set_color(lb, htfLabelBg)
+        label.set_size(lb, f_tableSize(htfLabelSize))
+
+f_htfLine(monthlyTarget, hasTarget, "M", monthlyLineColor)
+f_htfLine(weeklyLevel,   useWeekly,  "W", weeklyLineColor)
+f_htfLine(dailyLevel,    useDaily,   "D", dailyLineColor)
+
+// ---------------------------------------------------------------------
+// PREMIUM / DISCOUNT ZONES (drawing; equilibrium + alignment computed earlier)
+// ---------------------------------------------------------------------
+var box  premiumBox  = na
+var box  discountBox = na
+var line eqLine      = na
+if showPD and not na(pdHi) and not na(pdLo) and not na(pdStartBar) and barstate.islast
+    if na(premiumBox)
+        premiumBox  := box.new(pdStartBar, pdHi, bar_index, pdMid, bgcolor = premiumColor, border_color = color.new(color.white, 100))
+        discountBox := box.new(pdStartBar, pdMid, bar_index, pdLo, bgcolor = discountColor, border_color = color.new(color.white, 100))
+        eqLine      := line.new(pdStartBar, pdMid, bar_index, pdMid, color = eqColor, style = line.style_dashed, width = 1)
+    box.set_lefttop(premiumBox, pdStartBar, pdHi)
+    box.set_rightbottom(premiumBox, bar_index, pdMid)
+    box.set_lefttop(discountBox, pdStartBar, pdMid)
+    box.set_rightbottom(discountBox, bar_index, pdLo)
+    line.set_xy1(eqLine, pdStartBar, pdMid)
+    line.set_xy2(eqLine, bar_index, pdMid)
+
+// ---------------------------------------------------------------------
+// MACROS (ICT time windows) - current-macro status for the dashboard tick
+// ---------------------------------------------------------------------
+curMacro = f_macro(nyMin)
+inMacro  = curMacro != ""
+
+// ---------------------------------------------------------------------
+// PER-BLOCK AMD ENGINE
+//   Every 90-min block is Accumulation by default. A block that SWEEPS the
+//   previous block's dealing range is tagged by DIRECTION vs the HTF draw:
+//     sweep toward target  -> Distribution (the delivery)
+//     sweep against target -> Manipulation (the trap)
+//   Sweeping the TWO previous blocks in a row = the STRONG / decisive one (x2).
+// ---------------------------------------------------------------------
+var float trueOpen = na
+if isNewSession
+    trueOpen := open
+
+var float pb1H = na   // previous block dealing range
+var float pb1L = na
+var float pb2H = na   // two blocks ago
+var float pb2L = na
+
+var float  blkHigh     = na
+var float  blkLow      = na
+var int    blkStartBar = na
+var string blkRole     = "ACCUM"
+var int    blkStrength = 0
+
+var box   curBlkBox    = na
+var label curBlkLabel  = na
+var line  trueOpenLine = na
+
+var bool manipAlerted = false
+var bool distAlerted  = false
+
+if isNewBlock
+    // roll the just-finished block into prior-block memory (skip dead zone)
+    if not na(blockID[1]) and blockID[1] != "OFF"
+        pb2H := pb1H
+        pb2L := pb1L
+        pb1H := blkHigh
+        pb1L := blkLow
+    blkHigh     := high
+    blkLow      := low
+    blkStartBar := bar_index
+    blkRole     := "ACCUM"
+    blkStrength := 0
+    manipAlerted := false
+    distAlerted  := false
+    if showBlockBox and sessionVisible and isReal
+        accBorder = f_setAlpha(autoBorderBlock ? f_darken(accumColor) : blockBorderColor, globalBorderTransparency)
+        curBlkBox := box.new(bar_index, high, bar_index, low, border_color = accBorder, border_width = blockBorderWidth, border_style = blockBorderStyle, bgcolor = f_setAlpha(accumColor, globalBgTransparency), extend = extend.none)
+    if showBlockLabel and sessionVisible and isReal
+        curBlkLabel := label.new(bar_index, high, text = blockID, style = label.style_label_down, color = color.new(color.black, 100), textcolor = blockLabelColor, size = blockLabelSize)
+else
+    blkHigh := math.max(blkHigh, high)
+    blkLow  := math.min(blkLow, low)
+
+// per-session true open line
+if isNewSession
+    trueOpenLine := na
+    if showTrueOpen and sessionVisible and isReal
+        trueOpenLine := line.new(bar_index, open, bar_index, open, color = trueOpenColor, style = line.style_dashed, width = trueOpenWidth)
+
+// --- sweep detection against the prior block(s) ---
+sweptPB1H = not na(pb1H) and high > pb1H
+sweptPB1L = not na(pb1L) and low  < pb1L
+sweptPB2H = not na(pb2H) and high > pb2H
+sweptPB2L = not na(pb2L) and low  < pb2L
+swept2Up  = sweptPB1H and sweptPB2H
+swept2Dn  = sweptPB1L and sweptPB2L
+curDir    = sweptPB1H ? 1 : sweptPB1L ? -1 : 0
+curStr    = (swept2Up or swept2Dn) ? 2 : (sweptPB1H or sweptPB1L) ? 1 : 0
+
+// --- classify the block by sweep direction vs the HTF draw ---
+if isReal and drawDir != 0 and curDir != 0
+    qualifies = strongOnly2Blk ? (curStr == 2) : (curStr >= 1)
+    if qualifies and blkRole == "ACCUM"
+        blkRole := curDir == drawDir ? "DIST" : "MANIP"
+    if curStr > blkStrength
+        blkStrength := curStr
+
+// --- colour + label the block box by its role ---
+if showBlockBox and sessionVisible and isReal and not na(curBlkBox)
+    box.set_right(curBlkBox, bar_index)
+    box.set_top(curBlkBox, blkHigh)
+    box.set_bottom(curBlkBox, blkLow)
+    roleFill = blkRole == "MANIP" ? manipColor : blkRole == "DIST" ? (drawDir == 1 ? distBullColor : distBearColor) : accumColor
+    box.set_bgcolor(curBlkBox, f_setAlpha(roleFill, globalBgTransparency))
+    box.set_border_color(curBlkBox, f_setAlpha(autoBorderBlock ? f_darken(roleFill) : blockBorderColor, globalBorderTransparency))
+
+if showBlockLabel and sessionVisible and isReal and not na(curBlkLabel)
+    rName = blkRole == "ACCUM" ? "Accum" : blkRole == "MANIP" ? "Manip" : "Dist"
+    sTag  = blkStrength == 2 ? " x2" : ""
+    label.set_text(curBlkLabel, showLiveStatus ? blockID + "  " + rName + sTag : blockID)
+    label.set_y(curBlkLabel, blkHigh)
+    label.set_x(curBlkLabel, math.round((blkStartBar + bar_index) / 2))
+
+if showTrueOpen and isReal and not na(trueOpenLine)
+    line.set_x2(trueOpenLine, bar_index)
+
+// ---------------------------------------------------------------------
+// BACKGROUND COLOR BY BLOCK ROLE
+// ---------------------------------------------------------------------
+bgRoleRaw = not showBg or not sessionVisible or not isReal or blkRole == "ACCUM" ? na : (blkRole == "MANIP" ? manipColor : (drawDir == 1 ? distBullColor : distBearColor))
+bgcolor(bgRoleRaw)
+
+// ---------------------------------------------------------------------
+// CURRENT TIMEFRAME CHECK
+// ---------------------------------------------------------------------
+currentTFMinutes = timeframe.in_seconds() / 60
+tfIsIntraday     = timeframe.isintraday
+tfOK             = tfIsIntraday and currentTFMinutes <= maxRecommendedTF
+tfDisplay        = timeframe.period + (tfIsIntraday ? "m" : "")
+
+// ---------------------------------------------------------------------
+// DASHBOARD TABLE
+// ---------------------------------------------------------------------
+if showTable and barstate.islast
+    drawSrc = biasMode != "Auto (from Monthly)" ? "forced" : hasTarget ? "tgt" : "P/D"
+    drawTxt = drawDir == 1 ? "Bullish (" + drawSrc + ")" : drawDir == -1 ? "Bearish (" + drawSrc + ")" : "no bias"
+    drawCol = drawDir == 1 ? color.lime : drawDir == -1 ? color.red : color.gray
+    roleTxt = blkRole == "ACCUM" ? "Accumulation" : blkRole == "MANIP" ? "Manipulation" : "Distribution"
+    strTxt  = blkStrength == 2 ? "x2 strong" : blkStrength == 1 ? "x1" : "-"
+    pdTxt   = na(pdMid) ? "-" : (inPremium ? "Premium" : "Discount") + (pdAligned ? " (aligned)" : "")
+    pdCol   = pdAligned ? color.lime : na(pdMid) ? color.gray : color.orange
+    macTxt  = inMacro ? "✔ " + curMacro : "-"
+    macCol  = inMacro ? color.lime : color.gray
+    tgtTxt  = hasTarget ? str.tostring(monthlyTarget, format.mintick) : "-"
+    toTxt   = na(trueOpen) ? "-" : str.tostring(trueOpen, format.mintick)
+    tfTxt   = tfDisplay + (tfOK ? " OK" : " high")
+
+    labels = array.from("Session", "Block", "Draw", "Phase", "Strength", "P/D", "Macro", "Monthly", "TrueOpen", "TF")
+    vals   = array.from(sessionName, blockID, drawTxt, roleTxt, strTxt, pdTxt, macTxt, tgtTxt, toTxt, tfTxt)
+    vcols  = array.from(dashText, dashText, drawCol, dashText, color.yellow, pdCol, macCol, dashText, dashText, tfOK ? color.lime : color.orange)
+    n = array.size(labels)
+    tSize = f_tableSize(dashSize)
+    tPos  = f_tablePos(dashPos)
+
+    if dashLayout == "Horizontal (2 row)"
+        t = table.new(tPos, n, 2, border_color = dashBorder, border_width = 1)
+        for i = 0 to n - 1
+            table.cell(t, i, 0, array.get(labels, i), text_color = dashText, bgcolor = dashHdrBg, text_size = tSize)
+            table.cell(t, i, 1, array.get(vals, i), text_color = array.get(vcols, i), bgcolor = dashCellBg, text_size = tSize)
+    else
+        t = table.new(tPos, 2, n, border_color = dashBorder, border_width = 1)
+        for i = 0 to n - 1
+            table.cell(t, 0, i, array.get(labels, i), text_color = dashText, bgcolor = dashHdrBg, text_size = tSize)
+            table.cell(t, 1, i, array.get(vals, i), text_color = array.get(vcols, i), bgcolor = dashCellBg, text_size = tSize)
+
+// ---------------------------------------------------------------------
+// ALERTS
+// ---------------------------------------------------------------------
+enteredManip = isReal and blkRole == "MANIP" and blkRole[1] != "MANIP"
+enteredDist  = isReal and blkRole == "DIST"  and blkRole[1] != "DIST"
+
+if enteredManip and not manipAlerted
+    manipAlerted := true
+    alert("LMR: Manipulation (against target) in " + blockID, alert.freq_once_per_bar)
+
+if enteredDist and not distAlerted
+    distAlerted := true
+    alert("LMR: Distribution (toward target) in " + blockID, alert.freq_once_per_bar)
+
+alertcondition(enteredManip, title = "Manipulation (against target)", message = "LMR: Manipulation against the HTF target")
+alertcondition(enteredDist,  title = "Distribution (toward target)",  message = "LMR: Distribution toward the HTF target")

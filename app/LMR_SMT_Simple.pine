@@ -1,0 +1,203 @@
+//@version=6
+indicator("LMR SMT", overlay = true, max_lines_count = 400, max_labels_count = 400)
+
+// =====================================================================
+// LMR SMT - timeframe period high/low, per asset, merged across TFs
+//   For EACH timeframe (1m 5m 15m 30m 1hr 90m 4hr Daily):
+//     compare THIS period's high/low to the PRIOR period's high/low.
+//     If one asset TOOK the prior high/low and another did NOT -> SMT.
+//   Daily-to-daily, 1h-to-1h, ... - no swings, no bar counting, just each
+//   TF's own high & low. When several TFs fire on the same level they merge
+//   into ONE line labelled with the TFs (e.g. "D / 4hr / 90m"). Line runs
+//   from the prior period's level to the current price.
+//   (Pine looks UP only: lower rungs are n/a until you drop to that chart.)
+// =====================================================================
+
+grpSym = "Symbols"
+nqSymbol = input.symbol("NQ1!", "NQ", inline = "nq", group = grpSym)
+useNQ    = input.bool(true, "compare", inline = "nq", group = grpSym)
+esSymbol = input.symbol("ES1!", "ES", inline = "es", group = grpSym)
+useES    = input.bool(true, "compare", inline = "es", group = grpSym)
+ymSymbol = input.symbol("YM1!", "YM", inline = "ym", group = grpSym)
+useYM    = input.bool(true, "compare", inline = "ym", group = grpSym)
+
+mergeTk   = input.int(20, "Merge TFs whose level is within N ticks", minval = 0)
+lineCol   = input.color(color.new(#FFA500, 0), "SMT line / label color")
+lineW     = input.int(2, "Line width", minval = 1, maxval = 5)
+showTable = input.bool(true, "Show cascade table")
+
+// SMT among ENABLED assets: needs >=2 compared and they DISAGREE.
+f_smt(a, b, c) =>
+    cnt = (useNQ ? 1 : 0) + (useES ? 1 : 0) + (useYM ? 1 : 0)
+    tc  = (useNQ and a ? 1 : 0) + (useES and b ? 1 : 0) + (useYM and c ? 1 : 0)
+    cnt >= 2 and tc > 0 and tc < cnt
+
+// one level -> [stateHigh, stateLow] : did the assets DISAGREE on taking the
+// prior period's high / low?
+f_state(nqH,nqHP,nqL,nqLP, esH,esHP,esL,esLP, ymH,ymHP,ymL,ymLP) =>
+    nqHi = not na(nqHP) and nqH > nqHP
+    esHi = not na(esHP) and esH > esHP
+    ymHi = not na(ymHP) and ymH > ymHP
+    nqLo = not na(nqLP) and nqL < nqLP
+    esLo = not na(esLP) and esL < esLP
+    ymLo = not na(ymLP) and ymL < ymLP
+    [f_smt(nqHi, esHi, ymHi), f_smt(nqLo, esLo, ymLo)]
+
+chartMin = timeframe.isintraday ? timeframe.multiplier : timeframe.isdaily ? timeframe.multiplier * 1440 : timeframe.multiplier * 10080
+
+// =====================================================================
+// SECURITY (global): 8 TFs x 4 = 32 calls
+//   chart -> prior period high/low + its time (drawing anchor)
+//   NQ/ES/YM -> current high/low + prior period high/low (detection)
+// =====================================================================
+[cHP1,cLP1,cPt1] = request.security(syminfo.tickerid, "1", [high[1], low[1], time[1]])
+[nq1H,nq1L,nq1HP,nq1LP] = request.security(nqSymbol, "1", [high, low, high[1], low[1]])
+[es1H,es1L,es1HP,es1LP] = request.security(esSymbol, "1", [high, low, high[1], low[1]])
+[ym1H,ym1L,ym1HP,ym1LP] = request.security(ymSymbol, "1", [high, low, high[1], low[1]])
+[sH1,sL1] = f_state(nq1H,nq1HP,nq1L,nq1LP, es1H,es1HP,es1L,es1LP, ym1H,ym1HP,ym1L,ym1LP)
+
+[cHP5,cLP5,cPt5] = request.security(syminfo.tickerid, "5", [high[1], low[1], time[1]])
+[nq5H,nq5L,nq5HP,nq5LP] = request.security(nqSymbol, "5", [high, low, high[1], low[1]])
+[es5H,es5L,es5HP,es5LP] = request.security(esSymbol, "5", [high, low, high[1], low[1]])
+[ym5H,ym5L,ym5HP,ym5LP] = request.security(ymSymbol, "5", [high, low, high[1], low[1]])
+[sH5,sL5] = f_state(nq5H,nq5HP,nq5L,nq5LP, es5H,es5HP,es5L,es5LP, ym5H,ym5HP,ym5L,ym5LP)
+
+[cHP15,cLP15,cPt15] = request.security(syminfo.tickerid, "15", [high[1], low[1], time[1]])
+[nq15H,nq15L,nq15HP,nq15LP] = request.security(nqSymbol, "15", [high, low, high[1], low[1]])
+[es15H,es15L,es15HP,es15LP] = request.security(esSymbol, "15", [high, low, high[1], low[1]])
+[ym15H,ym15L,ym15HP,ym15LP] = request.security(ymSymbol, "15", [high, low, high[1], low[1]])
+[sH15,sL15] = f_state(nq15H,nq15HP,nq15L,nq15LP, es15H,es15HP,es15L,es15LP, ym15H,ym15HP,ym15L,ym15LP)
+
+[cHP30,cLP30,cPt30] = request.security(syminfo.tickerid, "30", [high[1], low[1], time[1]])
+[nq30H,nq30L,nq30HP,nq30LP] = request.security(nqSymbol, "30", [high, low, high[1], low[1]])
+[es30H,es30L,es30HP,es30LP] = request.security(esSymbol, "30", [high, low, high[1], low[1]])
+[ym30H,ym30L,ym30HP,ym30LP] = request.security(ymSymbol, "30", [high, low, high[1], low[1]])
+[sH30,sL30] = f_state(nq30H,nq30HP,nq30L,nq30LP, es30H,es30HP,es30L,es30LP, ym30H,ym30HP,ym30L,ym30LP)
+
+[cHP60,cLP60,cPt60] = request.security(syminfo.tickerid, "60", [high[1], low[1], time[1]])
+[nq60H,nq60L,nq60HP,nq60LP] = request.security(nqSymbol, "60", [high, low, high[1], low[1]])
+[es60H,es60L,es60HP,es60LP] = request.security(esSymbol, "60", [high, low, high[1], low[1]])
+[ym60H,ym60L,ym60HP,ym60LP] = request.security(ymSymbol, "60", [high, low, high[1], low[1]])
+[sH60,sL60] = f_state(nq60H,nq60HP,nq60L,nq60LP, es60H,es60HP,es60L,es60LP, ym60H,ym60HP,ym60L,ym60LP)
+
+[cHP90,cLP90,cPt90] = request.security(syminfo.tickerid, "90", [high[1], low[1], time[1]])
+[nq90H,nq90L,nq90HP,nq90LP] = request.security(nqSymbol, "90", [high, low, high[1], low[1]])
+[es90H,es90L,es90HP,es90LP] = request.security(esSymbol, "90", [high, low, high[1], low[1]])
+[ym90H,ym90L,ym90HP,ym90LP] = request.security(ymSymbol, "90", [high, low, high[1], low[1]])
+[sH90,sL90] = f_state(nq90H,nq90HP,nq90L,nq90LP, es90H,es90HP,es90L,es90LP, ym90H,ym90HP,ym90L,ym90LP)
+
+[cHP240,cLP240,cPt240] = request.security(syminfo.tickerid, "240", [high[1], low[1], time[1]])
+[nq240H,nq240L,nq240HP,nq240LP] = request.security(nqSymbol, "240", [high, low, high[1], low[1]])
+[es240H,es240L,es240HP,es240LP] = request.security(esSymbol, "240", [high, low, high[1], low[1]])
+[ym240H,ym240L,ym240HP,ym240LP] = request.security(ymSymbol, "240", [high, low, high[1], low[1]])
+[sH240,sL240] = f_state(nq240H,nq240HP,nq240L,nq240LP, es240H,es240HP,es240L,es240LP, ym240H,ym240HP,ym240L,ym240LP)
+
+[cHPD,cLPD,cPtD] = request.security(syminfo.tickerid, "D", [high[1], low[1], time[1]])
+[nqDH,nqDL,nqDHP,nqDLP] = request.security(nqSymbol, "D", [high, low, high[1], low[1]])
+[esDH,esDL,esDHP,esDLP] = request.security(esSymbol, "D", [high, low, high[1], low[1]])
+[ymDH,ymDL,ymDHP,ymDLP] = request.security(ymSymbol, "D", [high, low, high[1], low[1]])
+[sHD,sLD] = f_state(nqDH,nqDHP,nqDL,nqDLP, esDH,esDHP,esDL,esDLP, ymDH,ymDHP,ymDL,ymDLP)
+
+lbls  = array.from("1m","5m","15m","30m","1hr","90m","4hr","D")
+mins  = array.from(1,5,15,30,60,90,240,1440)
+aSH   = array.from(sH1,sH5,sH15,sH30,sH60,sH90,sH240,sHD)
+aSL   = array.from(sL1,sL5,sL15,sL30,sL60,sL90,sL240,sLD)
+aCSH  = array.from(cHP1,cHP5,cHP15,cHP30,cHP60,cHP90,cHP240,cHPD)
+aCSL  = array.from(cLP1,cLP5,cLP15,cLP30,cLP60,cLP90,cLP240,cLPD)
+aPt   = array.from(cPt1,cPt5,cPt15,cPt30,cPt60,cPt90,cPt240,cPtD)
+nLv = 8
+tol = mergeTk * syminfo.mintick
+
+// =====================================================================
+// GROUP ACTIVE SMTs BY LEVEL (merge TFs) AND DRAW (redrawn to "now")
+// =====================================================================
+var array<line>  ln = array.new<line>()
+var array<label> lb = array.new<label>()
+
+if array.size(ln) > 0
+    for l in ln
+        line.delete(l)
+    array.clear(ln)
+if array.size(lb) > 0
+    for b in lb
+        label.delete(b)
+    array.clear(lb)
+
+gL   = array.new_float()
+gT   = array.new_int()
+gTxt = array.new_string()
+gHi  = array.new_bool()
+
+for i = 0 to nLv - 1
+    active = array.get(mins, i) >= chartMin
+    if active and array.get(aSH, i) and not na(array.get(aCSH, i))
+        L = array.get(aCSH, i)
+        T = array.get(aPt, i)
+        gi = -1
+        sz = array.size(gL)
+        if sz > 0
+            for j = 0 to sz - 1
+                if array.get(gHi, j) and math.abs(array.get(gL, j) - L) <= tol
+                    gi := j
+                    break
+        if gi == -1
+            array.push(gL, L)
+            array.push(gT, T)
+            array.push(gTxt, array.get(lbls, i))
+            array.push(gHi, true)
+        else
+            array.set(gTxt, gi, array.get(gTxt, gi) + " / " + array.get(lbls, i))
+            if not na(T) and (na(array.get(gT, gi)) or T < array.get(gT, gi))
+                array.set(gT, gi, T)
+    if active and array.get(aSL, i) and not na(array.get(aCSL, i))
+        L = array.get(aCSL, i)
+        T = array.get(aPt, i)
+        gi = -1
+        sz = array.size(gL)
+        if sz > 0
+            for j = 0 to sz - 1
+                if not array.get(gHi, j) and math.abs(array.get(gL, j) - L) <= tol
+                    gi := j
+                    break
+        if gi == -1
+            array.push(gL, L)
+            array.push(gT, T)
+            array.push(gTxt, array.get(lbls, i))
+            array.push(gHi, false)
+        else
+            array.set(gTxt, gi, array.get(gTxt, gi) + " / " + array.get(lbls, i))
+            if not na(T) and (na(array.get(gT, gi)) or T < array.get(gT, gi))
+                array.set(gT, gi, T)
+
+gsz = array.size(gL)
+if gsz > 0
+    for g = 0 to gsz - 1
+        L = array.get(gL, g)
+        T = array.get(gT, g)
+        isH = array.get(gHi, g)
+        curPx = isH ? high : low
+        if not na(T)
+            l = line.new(T, L, time, curPx, xloc = xloc.bar_time, color = lineCol, width = lineW)
+            b = label.new(int((T + time) / 2), (L + curPx) / 2, array.get(gTxt, g), xloc = xloc.bar_time, style = label.style_none, textcolor = lineCol, size = size.tiny)
+            array.push(ln, l)
+            array.push(lb, b)
+
+// =====================================================================
+// CASCADE TABLE (HTF -> LTF)
+// =====================================================================
+f_cell(active, state) => not active ? "n/a" : state ? "SMT" : "-"
+f_col(active, state)  => not active ? color.gray : state ? color.new(#FFA500, 0) : color.gray
+if showTable and barstate.islast
+    tbl = table.new(position.top_right, 3, nLv + 1, bgcolor = color.new(color.black, 10), border_color = color.gray, border_width = 1)
+    table.cell(tbl, 0, 0, "TF", text_color = color.white, bgcolor = color.new(color.gray, 30), text_size = size.small)
+    table.cell(tbl, 1, 0, "High SMT", text_color = color.white, bgcolor = color.new(color.gray, 30), text_size = size.small)
+    table.cell(tbl, 2, 0, "Low SMT", text_color = color.white, bgcolor = color.new(color.gray, 30), text_size = size.small)
+    for i = 0 to nLv - 1
+        row = nLv - i
+        act = array.get(mins, i) >= chartMin
+        table.cell(tbl, 0, row, array.get(lbls, i), text_color = color.white, text_size = size.small)
+        table.cell(tbl, 1, row, f_cell(act, array.get(aSH, i)), text_color = f_col(act, array.get(aSH, i)), text_size = size.small)
+        table.cell(tbl, 2, row, f_cell(act, array.get(aSL, i)), text_color = f_col(act, array.get(aSL, i)), text_size = size.small)
+
+alertcondition(sH1 or sH5 or sH15 or sH30 or sH60 or sH90 or sH240 or sHD, title = "Bearish SMT (any TF)", message = "LMR SMT: prior-period high taken by one asset, not the other")
+alertcondition(sL1 or sL5 or sL15 or sL30 or sL60 or sL90 or sL240 or sLD, title = "Bullish SMT (any TF)", message = "LMR SMT: prior-period low taken by one asset, not the other")
