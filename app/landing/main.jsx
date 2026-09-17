@@ -88,9 +88,17 @@ const EDGES = [
   { t: 'Confluence Over Opinion', c: 'One market never decides a trade. Five markets agreeing removes opinion from the equation entirely.' },
   { t: 'Built-In Risk Filter', c: 'When the chain breaks, the thesis breaks with it — an objective reason to exit before the loss becomes a story.' },
 ];
+// Indicator card visual: the real TradingView screenshot when the image file is
+// present, otherwise a clean labelled placeholder (falls back on load error too).
+function IndicatorShot({ img, label }) {
+  const [failed, setFailed] = useState(false);
+  if (img && !failed) return <img className="pc-chart pc-shot" src={img} alt={label} loading="lazy" onError={() => setFailed(true)} />;
+  return <div className="pc-chart pc-shot-ph" aria-hidden="true"><span>{label || 'TradingView screenshot'}</span></div>;
+}
+
 const INDICATORS = [
-  { name: 'LMR ICT Everything', tagline: 'All-in-one ICT charting suite', price: '$40 / month', desc: 'One indicator that replaces a dozen — every key level, session and time window from the LMR playbook drawn automatically, with a live bias panel keeping you honest.', features: ['Session boxes & vertical session lines (London / New York)', 'Time-window macros — the exact delivery windows that matter', 'Midnight, Sunday, Weekly & Monthly opening price lines', 'Prev day / week / month highs & lows, plus RTH high–low', 'Equilibrium with Premium / Discount zones', 'Live Bias panel, Checklist panel & A+ Setup Score'], mailto: 'mailto:admin@lmrcapitals.com?subject=LMR%20ICT%20Everything' },
-  { name: 'LMR 90-Min Cycle', tagline: 'Session Quarters + Live AMD Detector', price: '$40 / month', desc: 'The market moves in 90-minute quarters — Accumulation, Manipulation, Distribution. This maps every session into its A-M-D blocks and tells you, live, which phase price is in.', features: ['Asia, London, NY AM & NY PM boxes with 90-min quarter blocks', 'Live AMD phase engine — Accumulation → Manipulation → Distribution', 'Judas-swing confirmation on the manipulation block', 'Bull / bear distribution confirmed by ATR displacement', 'True Open lines for every session', 'Live dashboard — session, block, phase & status at a glance'], mailto: 'mailto:admin@lmrcapitals.com?subject=LMR%2090-Min%20Cycle' },
+  { name: 'LMR ICT Everything', tagline: 'All-in-one ICT charting suite', price: '$40 / month', desc: 'One indicator that replaces a dozen — every key level, session and time window from the LMR playbook drawn automatically, with a live bias panel keeping you honest.', features: ['Session boxes & vertical session lines (London / New York)', 'Time-window macros — the exact delivery windows that matter', 'Midnight, Sunday, Weekly & Monthly opening price lines', 'Prev day / week / month highs & lows, plus RTH high–low', 'Equilibrium with Premium / Discount zones', 'Live Bias panel, Checklist panel & A+ Setup Score'], mailto: 'mailto:admin@lmrcapitals.com?subject=LMR%20ICT%20Everything', img: '/indicators/lmr-ict-everything.png', imgLabel: 'LMR ICT Everything — TradingView screenshot' },
+  { name: 'LMR 90-Min Cycle', tagline: 'Session Quarters + Live AMD Detector', price: '$40 / month', desc: 'The market moves in 90-minute quarters — Accumulation, Manipulation, Distribution. This maps every session into its A-M-D blocks and tells you, live, which phase price is in.', features: ['Asia, London, NY AM & NY PM boxes with 90-min quarter blocks', 'Live AMD phase engine — Accumulation → Manipulation → Distribution', 'Judas-swing confirmation on the manipulation block', 'Bull / bear distribution confirmed by ATR displacement', 'True Open lines for every session', 'Live dashboard — session, block, phase & status at a glance'], mailto: 'mailto:admin@lmrcapitals.com?subject=LMR%2090-Min%20Cycle', img: '/indicators/lmr-90min-cycle.png', imgLabel: 'LMR 90-Min Cycle — TradingView screenshot' },
 ];
 const SOCIAL = [
   { label: 'X / Twitter', href: 'https://x.com/lmrcapitals', d: 'M18.9 2H22l-7.2 8.2L23 22h-6.6l-5.2-6.8L5 22H2l7.7-8.8L1.5 2h6.8l4.7 6.2L18.9 2z', fill: true },
@@ -598,7 +606,7 @@ function App() {
                   <p className="pc-tag">{ind.tagline}</p>
                   <div className="pc-price"><span className="pc-amt">$40</span><span className="pc-per">/ month</span></div>
                 </div>
-                <canvas className="pc-chart" ref={(el) => { indCanvasRefs.current[i] = el; }} aria-hidden="true" />
+                <IndicatorShot img={ind.img} label={ind.imgLabel} />
                 <p className="body sm pc-desc">{ind.desc}</p>
                 <ul className="feat">{ind.features.map((f, j) => <li key={j}><Check /><span>{f}</span></li>)}</ul>
                 <a className="btn btn-gold block" href={ind.mailto}>Get Access — $40/mo →</a>
@@ -740,7 +748,10 @@ a{color:var(--gold);text-decoration:none}
 .hero-focal{position:absolute;right:4vw;bottom:6vh;width:min(34vw,440px);height:min(46vh,420px);z-index:1;pointer-events:none}
 .hero>div{position:relative;z-index:2}
 @media(max-width:1024px){.hero-focal{opacity:.18;right:auto;left:50%;bottom:auto;top:50%;transform:translate(-50%,-50%);width:90vw;height:60vh}}
-.pc-chart{width:100%;height:118px;display:block;margin:0;background:radial-gradient(120% 100% at 50% 0%,rgba(245,166,35,.06),transparent);border-bottom:1px solid var(--border)}
+.pc-chart{width:100%;height:150px;display:block;margin:0;background:radial-gradient(120% 100% at 50% 0%,rgba(245,166,35,.06),transparent);border-bottom:1px solid var(--border)}
+.pc-shot{object-fit:cover;object-position:center}
+.pc-shot-ph{display:flex;align-items:center;justify-content:center;text-align:center;padding:16px;background:linear-gradient(135deg,#0b1524,#060b14)}
+.pc-shot-ph span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#3c4b66;line-height:1.5}
 /* track record equity curve */
 .track-curve-wrap{position:relative;max-width:900px;margin:30px auto 8px;border-radius:20px;overflow:hidden;background:var(--glass);border:1px solid var(--border)}
 .track-curve{display:block;width:100%;height:min(260px,34vh)}
