@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "LMR Capitals — trading journal + Notion exporter",
   "scripts": {
+    "build": "node -e \"console.log('Static site — no build step required')\"",
     "notion-export": "node notion-export.js",
     "serve": "python3 -m http.server 3000"
   },
