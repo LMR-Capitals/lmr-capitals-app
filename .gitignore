@@ -1,6 +1,7 @@
 # Secrets & generated output — never commit
 .env
 lmr-notion-export.json
+graphify-out/
 
 # Dependencies
 node_modules/
