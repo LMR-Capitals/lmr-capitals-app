@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LMR Journal &amp; Notes — drop-in section</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+<!-- ============================================================
+     LMR CAPITALS · JOURNAL + NOTES SECTIONS
+     Paste-ready for index.html. Four parts:
+       1. <style id="lmr-jn-css">                  → into <head>
+       2. <div id="p-journal">                     → panel sibling
+       3. <div id="p-notes">                       → panel sibling
+       4. <script id="lmr-jn-js">                  → before </body>
+     Reads/writes state.journal[] and state.notes[]; images live in
+     IndexedDB keyed by the entry's imgKey, so the chart renders
+     inside the card with its text. Hook the host app in JN_PERSIST.
+     ============================================================ -->
+
+<style id="lmr-jn-css">
+#p-journal, #p-notes{
+  --jn-bg:var(--bg1,#0A0A0F); --jn-surface:var(--bg2,#101018);
+  --jn-inset:var(--bg3,#14141C); --jn-chip:#1A1A24;
+  --jn-line:var(--border,rgba(255,255,255,0.08));
+  --jn-txt:var(--text1,#EDEDF2); --jn-mut:var(--text2,#A0A0B0);
+  --jn-dim:var(--text3,#7A7A8C);
+  --jn-gold:var(--gold,#F5A623); --jn-rose:var(--bear,#FF4060);
+  --jn-green:var(--bull,#3fb950); --jn-blue:#6ea8fe;
+  font-family:'Inter',system-ui,sans-serif; color:var(--jn-txt);
+}
+#p-journal .jn-wrap, #p-notes .jn-wrap{padding:20px 24px 48px;display:flex;flex-direction:column;gap:16px;max-width:1000px}
+
+/* ── composer ──────────────────────────────────────────────── */
+#p-journal .jn-comp, #p-notes .jn-comp{border:1px solid var(--jn-line);background:var(--jn-surface);display:flex;flex-direction:column}
+#p-journal .jn-chead, #p-notes .jn-chead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--jn-line);background:var(--jn-inset)}
+#p-journal .jn-eyebrow, #p-notes .jn-eyebrow{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+#p-journal .jn-cbody, #p-notes .jn-cbody{display:flex;flex-direction:column;gap:12px;padding:14px}
+#p-journal .jn-types{display:flex;gap:7px;flex-wrap:wrap}
+#p-journal .jn-type{background:var(--jn-chip);border:1px solid var(--jn-line);padding:6px 13px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;letter-spacing:.04em;color:var(--jn-mut)}
+#p-journal .jn-type[aria-pressed="true"]{color:var(--jn-bg);border-color:transparent}
+#p-journal .jn-fields, #p-notes .jn-fields{display:grid;grid-template-columns:130px minmax(0,1fr);gap:10px;align-items:center}
+#p-journal .jn-lab, #p-notes .jn-lab{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--jn-dim)}
+#p-journal .jn-in, #p-notes .jn-in{width:100%;box-sizing:border-box;background:var(--jn-chip);border:1px solid var(--jn-line);border-radius:3px;padding:9px 11px;color:var(--jn-txt);font-family:'Inter',sans-serif;font-size:13px;outline:0}
+#p-journal .jn-in:focus, #p-notes .jn-in:focus{border-color:var(--jn-gold)}
+#p-journal .jn-ta, #p-notes .jn-ta{width:100%;box-sizing:border-box;background:var(--jn-chip);border:1px solid var(--jn-line);border-radius:3px;padding:11px;color:var(--jn-txt);font-family:'Inter',sans-serif;font-size:14px;line-height:1.65;outline:0;resize:vertical;min-height:96px}
+#p-journal .jn-ta:focus, #p-notes .jn-ta:focus{border-color:var(--jn-gold)}
+#p-journal .jn-drop, #p-notes .jn-drop{position:relative;width:100%;aspect-ratio:16/9;max-height:230px;background:var(--jn-inset);border:1px dashed #2E2E3A;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer}
+#p-journal .jn-drop.is-over, #p-notes .jn-drop.is-over{border-color:var(--jn-gold);background:rgba(245,166,35,.06)}
+#p-journal .jn-drop img, #p-notes .jn-drop img{width:100%;height:100%;object-fit:cover;display:block}
+#p-journal .jn-dph, #p-notes .jn-dph{font-size:12px;color:var(--jn-dim);text-align:center;padding:0 16px;line-height:1.6}
+#p-journal .jn-x, #p-notes .jn-x{position:absolute;top:6px;right:6px;z-index:4;width:24px;height:24px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;border:1px solid rgba(255,255,255,.25);border-radius:3px;background:rgba(0,0,0,.62);color:#fff;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px}
+#p-journal .jn-cfoot, #p-notes .jn-cfoot{display:flex;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid var(--jn-line)}
+#p-journal .jn-save, #p-notes .jn-save{margin-left:auto;background:var(--jn-gold);border:0;padding:9px 20px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:12px;color:var(--jn-bg)}
+#p-journal .jn-save[disabled], #p-notes .jn-save[disabled]{opacity:.4;cursor:not-allowed}
+#p-journal .jn-shot, #p-notes .jn-shot{background:transparent;border:1px solid var(--jn-line);padding:8px 13px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;color:var(--jn-txt)}
+#p-journal .jn-shot:hover, #p-notes .jn-shot:hover{background:var(--jn-chip)}
+
+/* ── feed ──────────────────────────────────────────────────── */
+#p-journal .jn-feedhead, #p-notes .jn-feedhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+#p-journal .jn-sub, #p-notes .jn-sub{font-size:12px;color:var(--jn-dim)}
+#p-journal .jn-filters{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+#p-journal .jn-filter{background:transparent;border:1px solid var(--jn-line);padding:5px 11px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;color:var(--jn-dim)}
+#p-journal .jn-filter[aria-pressed="true"]{color:var(--jn-txt);border-color:var(--jn-gold);background:rgba(245,166,35,.10)}
+#p-journal .jn-feed, #p-notes .jn-feed{display:flex;flex-direction:column;gap:12px}
+
+/* The left border carries the entry type — the one place colour is used. */
+#p-journal .jn-card, #p-notes .jn-card{border:1px solid var(--jn-line);border-left-width:3px;background:var(--jn-surface);display:flex;flex-direction:column}
+#p-journal .jn-khead, #p-notes .jn-khead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--jn-line)}
+#p-journal .jn-tag{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:99px}
+#p-journal .jn-ktitle, #p-notes .jn-ktitle{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#p-journal .jn-kdate, #p-notes .jn-kdate{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--jn-dim);flex:none}
+#p-journal .jn-kdel, #p-notes .jn-kdel{flex:none;background:transparent;border:1px solid var(--jn-line);width:26px;height:26px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;border-radius:99px;color:var(--jn-rose);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px}
+#p-journal .jn-ktext, #p-notes .jn-ktext{margin:0;padding:14px;font-size:14px;line-height:1.7;color:var(--jn-mut);white-space:pre-wrap;text-wrap:pretty}
+/* Chart sits directly beneath the text, inside the same card. */
+#p-journal .jn-kimg, #p-notes .jn-kimg{margin:0 14px 14px;border:1px solid var(--jn-line);border-radius:8px;overflow:hidden;background:var(--jn-inset)}
+#p-journal .jn-kimg img, #p-notes .jn-kimg img{width:100%;display:block}
+#p-journal .jn-none, #p-notes .jn-none{border:1px dashed var(--jn-line);padding:26px 16px;text-align:center;font-size:13px;color:var(--jn-dim)}
+</style>
+</head>
+<body style="margin:0;background:#0A0A0F">
+
+<!-- ==== 2. JOURNAL PANEL ==== -->
+<div class="panel" id="p-journal"><div class="jn-wrap">
+  <div class="jn-comp">
+    <div class="jn-chead">
+      <span class="jn-eyebrow">New journal entry</span>
+      <span class="jn-sub" id="jDayHint"></span>
+    </div>
+    <div class="jn-cbody">
+      <div class="jn-types" id="jTypes"></div>
+      <div class="jn-fields">
+        <span class="jn-lab">Date</span>
+        <input class="jn-in" type="date" id="jDate">
+        <span class="jn-lab">Title</span>
+        <input class="jn-in" type="text" id="jTitle" placeholder="One line — what this entry is about">
+      </div>
+      <textarea class="jn-ta" id="jText" placeholder="What happened, what you did, and what you will do differently."></textarea>
+      <div class="jn-drop" id="jDrop">
+        <span class="jn-dph">Click, drop or paste the chart this entry is about<br>It saves with the entry and shows inside the card</span>
+      </div>
+    </div>
+    <div class="jn-cfoot">
+      <button class="jn-shot" id="jShot">Screenshot</button>
+      <button class="jn-save" id="jSave" disabled>Save entry</button>
+    </div>
+  </div>
+
+  <div class="jn-feedhead">
+    <span class="jn-eyebrow">Entries</span>
+    <span class="jn-sub" id="jCount"></span>
+    <div class="jn-filters" id="jFilters"></div>
+  </div>
+  <div class="jn-feed" id="jFeed"></div>
+</div></div>
+
+<!-- ==== 3. NOTES PANEL ==== -->
+<div class="panel" id="p-notes"><div class="jn-wrap">
+  <div class="jn-comp">
+    <div class="jn-chead">
+      <span class="jn-eyebrow">New note</span>
+      <span class="jn-sub" id="nDayHint"></span>
+    </div>
+    <div class="jn-cbody">
+      <div class="jn-fields">
+        <span class="jn-lab">Date</span>
+        <input class="jn-in" type="date" id="nDate">
+        <span class="jn-lab">Title</span>
+        <input class="jn-in" type="text" id="nTitle" placeholder="Short label">
+      </div>
+      <textarea class="jn-ta" id="nText" placeholder="Quick note — a level, a reminder, something to check tomorrow."></textarea>
+      <div class="jn-drop" id="nDrop">
+        <span class="jn-dph">Click, drop or paste a chart<br>Optional — the note saves either way</span>
+      </div>
+    </div>
+    <div class="jn-cfoot">
+      <button class="jn-shot" id="nShot">Screenshot</button>
+      <button class="jn-save" id="nSave" disabled>Save note</button>
+    </div>
+  </div>
+
+  <div class="jn-feedhead">
+    <span class="jn-eyebrow">Notes</span>
+    <span class="jn-sub" id="nCount"></span>
+  </div>
+  <div class="jn-feed" id="nFeed"></div>
+</div></div>
+
+<!-- ==== 4. LOGIC ==== -->
+<script id="lmr-jn-js">
+(function(){
+'use strict';
+
+// Journal entry types. The colour is the card's left border and its tag.
+var TYPES = [
+  ['Lesson', 'var(--jn-gold)'],
+  ['Win',    'var(--jn-green)'],
+  ['Loss',   'var(--jn-rose)'],
+  ['Note',   'var(--jn-blue)']
+];
+
+// ── PERSISTENCE ────────────────────────────────────────────────
+// Three hooks. Point them at the host app; the fallbacks let this
+// file run standalone in a browser.
+var JN_PERSIST = {
+  read: function(){
+    if (typeof state === 'object' && state) return state;
+    try { return JSON.parse(localStorage.getItem('lmr_jn') || '{}'); }
+    catch(e){ return {}; }
+  },
+  write: function(kind, rec){
+    if (typeof save === 'function') save();
+    else { try { localStorage.setItem('lmr_jn', JSON.stringify({journal:S.journal, notes:S.notes})); } catch(e){} }
+    // Cloud: the host app's own column names for each table.
+    if (rec && typeof sbSyncRecord === 'function' && typeof _sbUserId !== 'undefined' && _sbUserId) {
+      try {
+        if (kind === 'journal')
+          sbSyncRecord('journal', {id:String(rec.id), user_id:_sbUserId, date:rec.date||null,
+            title:rec.type||null, content:rec.text||'', created_at:rec.createdAt});
+        else
+          sbSyncRecord('notes', {id:String(rec.id), user_id:_sbUserId, title:rec.title||null,
+            text:rec.text||'', date:rec.date||null, created_at:rec.createdAt});
+      } catch(e){}
+    }
+  },
+  del: function(kind, id){
+    if (typeof sbDeleteRecord === 'function') { try { sbDeleteRecord(kind, id); } catch(e){} }
+  },
+  // NEVER localStorage — base64 there throws QuotaExceededError at 5MB.
+  saveImg: function(k,b){ return (typeof saveImg==='function') ? saveImg(k,b) : Promise.resolve(_mem[k]=b); },
+  getImg:  function(k){   return (typeof getImg ==='function') ? getImg(k)    : Promise.resolve(_mem[k]); }
+};
+var _mem = {};
+
+var S = JN_PERSIST.read();
+S.journal = S.journal || [];
+S.notes   = S.notes   || [];
+
+// Composer drafts. Each holds its own pending image as a data URL until
+// the entry is saved — only then does it get an imgKey and go to IndexedDB.
+var draft = { journal:{type:'Lesson', img:null}, notes:{img:null} };
+var jFilter = 'All';
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function today(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(iso){
+  if(!iso) return '';
+  var d=new Date(iso+'T00:00:00');
+  if(isNaN(d)) return iso;
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+function colourFor(type){
+  for(var i=0;i<TYPES.length;i++) if(TYPES[i][0]===type) return TYPES[i][1];
+  return 'var(--jn-line)';
+}
+// Day count, if the host app tracks one.
+function dayCount(iso){
+  if (typeof dayCountFor === 'function') { try { return dayCountFor(iso); } catch(e){} }
+  return null;
+}
+
+// ── COMPOSER: type chips + filters ─────────────────────────────
+function renderTypes(){
+  document.getElementById('jTypes').innerHTML = TYPES.map(function(t){
+    var on = draft.journal.type===t[0];
+    return '<button class="jn-type" data-type="'+t[0]+'" aria-pressed="'+on+'"'
+         + (on ? ' style="background:'+t[1]+'"' : '') + '>'+t[0]+'</button>';
+  }).join('');
+}
+function renderFilters(){
+  var opts = ['All'].concat(TYPES.map(function(t){return t[0];}));
+  document.getElementById('jFilters').innerHTML = opts.map(function(o){
+    return '<button class="jn-filter" data-filter="'+o+'" aria-pressed="'+(jFilter===o)+'">'+o+'</button>';
+  }).join('');
+}
+
+// ── DROP ZONES ────────────────────────────────────────────────
+function paintDrop(which){
+  var box = document.getElementById(which==='journal' ? 'jDrop' : 'nDrop');
+  var img = draft[which].img;
+  if (img){
+    box.innerHTML = '<img src="'+img+'" alt=""><button class="jn-x" data-clear="'+which+'" title="Remove image">\u00d7</button>';
+  } else {
+    box.innerHTML = which==='journal'
+      ? '<span class="jn-dph">Click, drop or paste the chart this entry is about<br>It saves with the entry and shows inside the card</span>'
+      : '<span class="jn-dph">Click, drop or paste a chart<br>Optional \u2014 the note saves either way</span>';
+  }
+}
+function pickFile(which){
+  var inp=document.createElement('input');
+  inp.type='file'; inp.accept='image/*';
+  inp.onchange=function(){
+    var f=inp.files[0]; if(!f) return;
+    var r=new FileReader();
+    r.onload=function(){ draft[which].img=r.result; paintDrop(which); };
+    r.readAsDataURL(f);
+  };
+  inp.click();
+}
+// Screen capture, where the browser allows it.
+function screenshot(which){
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){
+    alert('Screen capture is not available in this browser \u2014 paste or drop the chart instead.');
+    return;
+  }
+  navigator.mediaDevices.getDisplayMedia({video:true}).then(function(stream){
+    var track=stream.getVideoTracks()[0];
+    var video=document.createElement('video');
+    video.srcObject=stream; video.muted=true;
+    video.onloadedmetadata=function(){
+      video.play();
+      setTimeout(function(){
+        var c=document.createElement('canvas');
+        c.width=video.videoWidth; c.height=video.videoHeight;
+        c.getContext('2d').drawImage(video,0,0);
+        draft[which].img=c.toDataURL('image/png');
+        track.stop(); paintDrop(which);
+      },260);
+    };
+  }).catch(function(){});
+}
+
+// ── SAVE ──────────────────────────────────────────────────────
+function refreshSaveState(){
+  document.getElementById('jSave').disabled = !document.getElementById('jText').value.trim();
+  document.getElementById('nSave').disabled = !document.getElementById('nText').value.trim();
+}
+
+function saveJournal(){
+  var text=document.getElementById('jText').value.trim();
+  if(!text) return;
+  var id = Date.now();
+  var rec = {
+    id: id,
+    type: draft.journal.type,
+    title: document.getElementById('jTitle').value.trim(),
+    date: document.getElementById('jDate').value || today(),
+    text: text,
+    // The draft's image key is stored ON the entry, which is what makes
+    // the chart render inside the card instead of being orphaned.
+    imgKey: draft.journal.img ? ('journal-'+id) : null,
+    createdAt: new Date().toISOString()
+  };
+  var done = function(){
+    S.journal.unshift(rec);
+    JN_PERSIST.write('journal', rec);
+    document.getElementById('jText').value='';
+    document.getElementById('jTitle').value='';
+    draft.journal.img=null; paintDrop('journal');
+    refreshSaveState(); renderJournal();
+    if (typeof flash==='function') flash('\u2713 Entry saved');
+  };
+  if (rec.imgKey) JN_PERSIST.saveImg(rec.imgKey, draft.journal.img).then(done);
+  else done();
+}
+
+function saveNote(){
+  var text=document.getElementById('nText').value.trim();
+  if(!text) return;
+  var id = Date.now();
+  var rec = {
+    id: id,
+    title: document.getElementById('nTitle').value.trim(),
+    date: document.getElementById('nDate').value || today(),
+    text: text,
+    imgKey: draft.notes.img ? ('note-'+id) : null,
+    createdAt: new Date().toISOString()
+  };
+  var done = function(){
+    S.notes.unshift(rec);
+    JN_PERSIST.write('notes', rec);
+    document.getElementById('nText').value='';
+    document.getElementById('nTitle').value='';
+    draft.notes.img=null; paintDrop('notes');
+    refreshSaveState(); renderNotes();
+    if (typeof flash==='function') flash('\u2713 Note saved');
+  };
+  if (rec.imgKey) JN_PERSIST.saveImg(rec.imgKey, draft.notes.img).then(done);
+  else done();
+}
+
+// ── FEEDS ─────────────────────────────────────────────────────
+function cardHTML(kind, r){
+  var accent = kind==='journal' ? colourFor(r.type) : 'var(--jn-blue)';
+  var dc = dayCount(r.date);
+  var head = '<div class="jn-khead" style="border-bottom-color:var(--jn-line)">';
+  if (kind==='journal')
+    head += '<span class="jn-tag" style="background:'+accent+'26;color:'+accent+'">'+esc(r.type)+'</span>';
+  head += '<span class="jn-ktitle">'+esc(r.title || (kind==='journal' ? r.type : 'Note'))+'</span>'
+       +  '<span class="jn-kdate">'+esc(fmtDate(r.date))+(dc!=null?' \u00b7 D'+dc:'')+'</span>'
+       +  '<button class="jn-kdel" data-del="'+kind+':'+r.id+'" title="Delete">\u00d7</button>'
+       +  '</div>';
+  return '<article class="jn-card" style="border-left-color:'+accent+'">'
+       + head
+       + '<p class="jn-ktext">'+esc(r.text)+'</p>'
+       + (r.imgKey ? '<div class="jn-kimg" data-slot="'+esc(r.imgKey)+'"></div>' : '')
+       + '</article>';
+}
+
+// Images are fetched after the markup lands, then painted in place.
+function paintCardImages(root){
+  Array.prototype.forEach.call(root.querySelectorAll('[data-slot]'), function(box){
+    JN_PERSIST.getImg(box.dataset.slot).then(function(src){
+      if (src) box.innerHTML = '<img src="'+src+'" alt="">';
+      else box.remove();
+    });
+  });
+}
+
+function renderJournal(){
+  var rows = jFilter==='All' ? S.journal : S.journal.filter(function(r){return r.type===jFilter;});
+  var feed = document.getElementById('jFeed');
+  document.getElementById('jCount').textContent =
+    rows.length + (rows.length===1?' entry':' entries') + (jFilter==='All'?'':' \u00b7 '+jFilter);
+  feed.innerHTML = rows.length
+    ? rows.map(function(r){ return cardHTML('journal', r); }).join('')
+    : '<div class="jn-none">No entries yet \u2014 write the first one above.</div>';
+  paintCardImages(feed);
+  renderFilters();
+}
+
+function renderNotes(){
+  var feed = document.getElementById('nFeed');
+  document.getElementById('nCount').textContent =
+    S.notes.length + (S.notes.length===1?' note':' notes');
+  feed.innerHTML = S.notes.length
+    ? S.notes.map(function(r){ return cardHTML('notes', r); }).join('')
+    : '<div class="jn-none">No notes yet.</div>';
+  paintCardImages(feed);
+}
+
+// ── EVENTS ────────────────────────────────────────────────────
+document.addEventListener('click', function(e){
+  var el = e.target.closest('[data-type],[data-filter],[data-clear],[data-del],#jDrop,#nDrop,#jSave,#nSave,#jShot,#nShot');
+  if(!el) return;
+  var d = el.dataset;
+
+  if (d.type){ draft.journal.type=d.type; renderTypes(); return; }
+  if (d.filter){ jFilter=d.filter; renderJournal(); return; }
+  if (d.clear){ e.stopPropagation(); draft[d.clear].img=null; paintDrop(d.clear); return; }
+  if (el.id==='jSave'){ saveJournal(); return; }
+  if (el.id==='nSave'){ saveNote(); return; }
+  if (el.id==='jShot'){ screenshot('journal'); return; }
+  if (el.id==='nShot'){ screenshot('notes'); return; }
+  if (el.id==='jDrop'){ pickFile('journal'); return; }
+  if (el.id==='nDrop'){ pickFile('notes'); return; }
+
+  if (d.del){
+    var parts=d.del.split(':'), kind=parts[0], id=parts[1];
+    if(!window.confirm('Delete this '+(kind==='journal'?'entry':'note')+'?')) return;
+    var list = kind==='journal' ? S.journal : S.notes;
+    var rec  = list.filter(function(r){return String(r.id)===id;})[0];
+    if (rec && rec.imgKey) JN_PERSIST.saveImg(rec.imgKey, null);
+    if (kind==='journal') S.journal = S.journal.filter(function(r){return String(r.id)!==id;});
+    else                  S.notes   = S.notes.filter(function(r){return String(r.id)!==id;});
+    JN_PERSIST.write(kind, null);
+    JN_PERSIST.del(kind, id);
+    if (kind==='journal') renderJournal(); else renderNotes();
+  }
+});
+
+document.addEventListener('input', function(e){
+  if (e.target.id==='jText' || e.target.id==='nText') refreshSaveState();
+});
+
+// Scoped paste: a paste inside a panel lands in THAT panel's drop zone.
+document.addEventListener('paste', function(e){
+  var jp=document.getElementById('p-journal'), np=document.getElementById('p-notes');
+  var which = null;
+  if (jp && (jp.contains(e.target) || jp.contains(document.activeElement))) which='journal';
+  else if (np && (np.contains(e.target) || np.contains(document.activeElement))) which='notes';
+  if(!which) return;
+  var items=(e.clipboardData||{}).items||[], i;
+  for(i=0;i<items.length;i++){
+    if(items[i].type.indexOf('image')!==0) continue;
+    e.preventDefault();
+    var r=new FileReader();
+    r.onload=function(){ draft[which].img=r.result; paintDrop(which); };
+    r.readAsDataURL(items[i].getAsFile());
+    return;
+  }
+});
+
+['jDrop','nDrop'].forEach(function(id){
+  var box=document.getElementById(id);
+  var which = id==='jDrop' ? 'journal' : 'notes';
+  box.addEventListener('dragover', function(e){ e.preventDefault(); box.classList.add('is-over'); });
+  box.addEventListener('dragleave', function(){ box.classList.remove('is-over'); });
+  box.addEventListener('drop', function(e){
+    e.preventDefault(); box.classList.remove('is-over');
+    var f=(e.dataTransfer.files||[])[0];
+    if(!f || f.type.indexOf('image')!==0) return;
+    var r=new FileReader();
+    r.onload=function(){ draft[which].img=r.result; paintDrop(which); };
+    r.readAsDataURL(f);
+  });
+});
+
+// ── MOUNT ─────────────────────────────────────────────────────
+function mount(){
+  document.getElementById('jDate').value = today();
+  document.getElementById('nDate').value = today();
+  var dc = dayCount(today());
+  if (dc!=null){
+    document.getElementById('jDayHint').textContent = 'Day D'+dc;
+    document.getElementById('nDayHint').textContent = 'Day D'+dc;
+  }
+  renderTypes(); paintDrop('journal'); paintDrop('notes');
+  refreshSaveState(); renderJournal(); renderNotes();
+}
+// Call these from the host app's panel switcher.
+window.renderJournalSection = renderJournal;
+window.renderNotesSection   = renderNotes;
+mount();
+})();
+</script>
+</body>
+</html>

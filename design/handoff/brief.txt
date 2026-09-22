@@ -1,0 +1,736 @@
+
+LMR CAPITALS
+Trading Journal — Technical Brief
+Mobile App Build Reference
+lmrcapitals.com  ·  Niraj Ghorsaine  ·  Aug 2026
+
+~940 KB  index.html (single file)
+Vanilla JS  No framework, no build step
+Supabase  PostgreSQL + Auth + Storage
+Netlify  Manual deploy (not git-triggered)
+NQ Futures  Primary instrument (Nasdaq)
+18 panels  Full journaling + account suite
+
+1.  What It Is
+LMR Capitals is a personal prop-trading journal and performance dashboard for NQ futures (Nasdaq). The user trades multiple funded prop accounts on Tradeify (Select Flex model) and needs to:
+Track every trade with full P&amp;L, risk, R:R, session context, and chart screenshots
+Journal daily, weekly, and monthly sessions with block editor notes and images
+Manage funded account payout cycles (5-day gate, 50% cumulative profit rule)
+Distribute trades across accounts via a leader/follower copier with multipliers
+Review performance through charts, patterns, drawdown analysis, and AI coaching
+
+1.1  Core Tech
+Single file:  index.html (~940KB) — all HTML, CSS, and JavaScript in one file. No React, no Vue, no build step.
+Backend:  Supabase (PostgreSQL + Auth + Storage). Project URL: https://agrvylclhvxyevsmmexf.supabase.co
+Hosting:  Netlify static site. Site ID: 09e03f83-2353-4a3a-bb21-ae5ab81ef45b. Domain: lmrcapitals.com
+Auth:  Supabase Auth (email + password). All tables use RLS — user_id = auth.uid(). Per-user namespaced localStorage keys.
+
+2.  Storage Architecture
+Three tiers — Supabase always wins:
+
+Supabase DB  ──(on boot: sbAutoLoadOnStart)──►  In-Memory State  ──(save)──►  localStorage cache
+                                                      │
+                                    (large blobs)     ▼
+                               IndexedDB (chart images)  +  Supabase Storage (receipts, obs screenshots)
+
+▸  Supabase is source of truth.  On every sign-in, all tables are pulled and overwrite the localStorage cache.
+▸  Never store base64 in localStorage.  5MB cap. Images go to IndexedDB (trade charts) or Supabase columns (receipts, achievements).
+▸  Regression guard in save().  If new state has fewer trades/accounts than the previous save, it merges instead of overwriting — prevents accidental data loss.
+▸  Per-user namespace.  On sign-in, _switchUserStore(uid) migrates legacy keys to lmr_v3_state__&lt;uid&gt; and lmr_v3_img__&lt;uid&gt;.
+▸  Followers never store trades.  _copierFollowerView(accountId) derives follower trades live from the leader on every render. Zero stored copies.
+
+3.  All 18 Panels
+
+navTo() key
+Panel Name
+What it shows
+navTo(&apos;dash&apos;)
+Dashboard
+Stats tiles, equity curve, daily heatmap, day counter, quick-add trade
+navTo(&apos;trades&apos;)
+Trade Log
+Full journal table — add/edit trade modal, image upload, filters, sort
+navTo(&apos;daily&apos;)
+Daily
+Day narrative, session notes, intraday chart image, linked trades list
+navTo(&apos;weekly&apos;)
+Weekly
+Week review, P&amp;L, linked days, block editor notes, chart image
+navTo(&apos;monthly&apos;)
+Monthly
+Monthly journal, P&amp;L totals, linked weeks, block editor content
+navTo(&apos;perf&apos;)
+Performance
+Equity chart, win rate, drawdown, P&amp;L distribution, pattern analysis
+navTo(&apos;accounts&apos;)
+Accounts
+Prop account cards — balance, trailing DD, payout eligibility, equity curve
+navTo(&apos;cockpit&apos;)
+Copier Cockpit
+Leader/follower wiring, multiplier config, live mirror view, date-scoping
+navTo(&apos;payout&apos;)
+Payout
+Eligibility check, submit payout, history of payouts and withdrawals
+navTo(&apos;trans&apos;)
+Transactions
+Deposits, withdrawals, payouts — receipt image upload, categorised
+navTo(&apos;achievements&apos;)
+Achievements
+Track record — funded passes, payouts, milestones; public profile toggle
+navTo(&apos;observation&apos;)
+Observations
+Free-form market journal, rich-text editor, Discord webhook post
+navTo(&apos;today&apos;)
+Today / Chain
+Daily pre/post-market checklist chain
+navTo(&apos;cal&apos;)
+Calendar
+Economic news calendar with holiday flags
+navTo(&apos;terminology&apos;)
+Terminology
+Block editor — ICT glossary and concept definitions
+navTo(&apos;psychology&apos;)
+Psychology
+Block editor — trading psychology notes and process rules
+navTo(&apos;reports&apos;)
+Reports
+Exportable performance summaries
+navTo(&apos;ai-coach&apos;)
+AI Coach
+Claude-powered coaching with journal context injection
+
+4.  In-Memory State Object
+The entire app reads from and writes to a single JS object — serialised to localStorage and synced to Supabase.
+
+const DEFAULT_STATE = {
+  trades:       [],   // trade objects — the journal
+  accounts:     [],   // prop accounts (Eval / Funded / Blown)
+  transactions: [],   // deposits / payouts / withdrawals
+  notes:        [],   // quick notes
+  journal:      [],   // legacy entries (merged with daily)
+  daily:        {},   // keyed &quot;YYYY-MM-DD&quot;   → { notes, html, imgKey, … }
+  weekly:       {},   // keyed &quot;YYYY-MM-Wn&quot;   → { notes, html, imgKey, review, … }
+  monthly:      {},   // keyed &quot;YYYY-MM&quot;      → { notes, html, lmrbBlocks, … }
+  profile:      {},   // user profile, Discord webhooks, settings
+  currentMonth: &quot;YYYY-MM&quot;,
+  currentWeek:  1,
+  currentAcc:   null, // selected account id
+};
+
+Key trade fields
+{ id, date, openTime, closeTime, market, position (&quot;Long&quot;|&quot;Short&quot;),
+  entry, exit, pnl, size, risk, rr,
+  account (→ accounts.id), models[], notes, imgKey,
+  mirror: bool (legacy only), _tmManualAdd: bool }
+
+Key account fields
+{ id, name, firm, accountNo, plan, size,
+  status (&quot;Active&quot;|&quot;Eval&quot;|&quot;Funded&quot;|&quot;Blown&quot;|&quot;Passed&quot;),
+  type (&quot;regular&quot;|&quot;eval&quot;|&quot;funded&quot;),
+  date, startDate, copier: { leaderId, multiplier, connectedAt },
+  fundedSpawned: bool, blownAt }
+
+5.  Supabase Tables
+⚠  All tables use RLS — every row has user_id that must equal auth.uid(). SQL migrations run manually in Supabase → SQL Editor.
+
+5.1  trades  (primary journal)
+Column
+Type
+Notes
+id
+text PK
+Client-generated uuid string
+user_id
+uuid
+References auth.users
+date
+date
+Trade date YYYY-MM-DD
+open_time
+text
+Entry time HH:MM
+close_time
+text
+Exit time HH:MM
+market
+text
+e.g. NQ, ES, CL
+position
+text
+&apos;Long&apos; or &apos;Short&apos;
+entry
+numeric
+Entry price
+exit
+numeric
+Exit price
+pnl
+numeric
+Realised P&amp;L in USD
+size
+numeric
+Contracts / lot size
+risk
+numeric
+Risk in USD
+rr
+numeric
+Risk:Reward ratio
+account
+text
+Foreign key → accounts.id
+models
+text[]
+Trading model tags e.g. [&apos;ICT OTE&apos;, &apos;Judas Swing&apos;]
+notes
+text
+Trade notes / journal entry
+img_key
+text
+IndexedDB / Storage key for chart screenshot
+mirror
+bool
+True = legacy stored copier copy (new system derives live)
+created_at
+timestamptz
+Auto-generated
+
+5.2  accounts
+Column
+Type
+Notes
+id
+text PK
+Client-generated
+user_id
+uuid
+
+name
+text
+Display name e.g. &quot;Tradeify 50K #1&quot;
+firm
+text
+Prop firm name
+account_no
+text
+Firm&apos;s account number
+plan
+text
+Select / Growth / Lightning
+size
+numeric
+Account size e.g. 50000
+status
+text
+Active | Eval | Funded | Blown | Passed
+type
+text
+regular | eval | funded
+date
+date
+Account creation date
+start_date
+date
+Records trades from — copier date-scope anchor
+copier
+jsonb
+{ leaderId, multiplier, connectedAt }
+funded_spawned
+bool
+Guard: prevents double Eval→Funded auto-pass
+blown_at
+timestamptz
+Set when trailing DD floor hit
+
+5.3  transactions
+Column
+Type
+Notes
+id
+text PK
+
+user_id
+uuid
+
+type
+text
+Deposit | Payout | Withdrawal
+amount
+numeric
+USD
+account
+text
+Account id
+date
+date
+
+notes
+text
+
+image
+text
+Base64 receipt — stored here, NOT in localStorage
+
+5.4  payouts
+Column
+Type
+Notes
+id
+text PK
+
+user_id
+uuid
+
+account_id
+text
+
+amount
+numeric
+50% of cumulative profit at time of request
+date
+date
+Payout date — becomes new baseline date for win-day counter
+baseline_profit
+numeric
+Running profit total at the time of payout
+win_days_count
+int
+Winning days accumulated in this cycle
+
+5.5  targets  (goals)
+Column
+Type
+Notes
+id
+text PK
+
+user_id
+uuid
+
+title
+text
+
+type
+text
+pnl | trades | winrate | custom
+target_value
+numeric
+
+current_value
+numeric
+Auto-computed or manual
+deadline
+date
+Optional
+period
+text
+daily | weekly | monthly | total
+
+5.6  daily / weekly / monthly  (journal storage)
+Column
+Type
+Notes
+key
+text
+YYYY-MM-DD (daily)  ·  YYYY-MM-Wn (weekly)  ·  YYYY-MM (monthly)
+user_id
+uuid
+Composite PK with key
+data
+jsonb
+Free-form: notes, html, lmrbBlocks, imgKey, etc.
+
+5.7  lmr_observations
+Column
+Type
+Notes
+id
+text PK
+Client uuid
+user_id
+uuid
+
+title
+text
+
+content
+text
+Rich HTML — screenshots stored in Supabase Storage, not inline base64
+created_at
+timestamptz
+
+updated_at
+timestamptz
+
+5.8  lmr_achievements
+Column
+Type
+Notes
+id
+text PK
+
+user_id
+uuid
+
+title
+text
+e.g. &quot;Funded Pass — Tradeify 50K&quot;
+category
+text
+pass | payout | milestone | goal
+firm
+text
+Prop firm name
+amount
+numeric
+USD value
+achieved_on
+date
+
+caption
+text
+Description
+image
+text
+Base64 proof screenshot — stored here, NOT in localStorage
+is_public
+bool
+Public profile toggle
+
+5.9  lmr_ach_suppressions  (delete tombstones)
+Column
+Type
+Notes
+id
+text
+Achievement id that was deleted
+user_id
+uuid
+Composite PK with id
+
+5.10  notes
+Column
+Type
+Notes
+id
+text PK
+
+user_id
+uuid
+
+content
+text
+
+created_at
+timestamptz
+
+6.  localStorage Keys
+⚠  5 MB cap. Never store base64 image data here — it will hit quota and abort saves.
+
+Key
+Type
+What it stores
+lmr_v3_state__&lt;uid&gt;
+JSON
+Main app state (light — no images). Primary cache.
+lmr_v3_state__&lt;uid&gt;_bk
+JSON
+Backup copy — restored if primary is empty on boot
+lmr_active_uid
+string
+Last signed-in Supabase user id
+lmr_obs_entries_v2
+JSON
+Observations cache (light — image src stripped to &quot;cloud&quot;)
+lmr_achievements_v1
+JSON
+Achievements cache (no base64 images)
+lmr_payouts_v1
+JSON
+Payouts cache
+lmr_targets_v1
+JSON
+Goals cache
+lmr_img_idx__&lt;uid&gt;
+JSON
+Set of IndexedDB image keys (for quick existence check)
+lmr_img_idx_ok__&lt;uid&gt;
+&quot;1&quot;
+Flag: image index has been synced with cloud
+lmr_pnl_hidden
+&quot;1&quot;
+P&amp;L blur / privacy mode toggle
+lmr_nav_collapsed
+JSON
+Array of collapsed nav section labels
+lmr_canvas_pages
+JSON
+Canvas whiteboard page list
+lmr_canvas_last
+string
+Last opened canvas page id
+
+7.  IndexedDB  (Image Store)
+▸  Database name:  lmr_v3_img__&lt;uid&gt;  (per-user; migrated from legacy lmr_v3 on first sign-in)
+▸  Object store:  &quot;images&quot; — key = trade/daily/weekly id string, value = compressed Blob
+▸  What goes here:  All chart screenshots: trade entry/exit chart, daily intraday, weekly chart
+▸  Cloud backup:  Supabase Storage bucket &quot;app-images&quot; under path &lt;uid&gt;/&lt;key&gt;
+▸  Auto-restore:  On boot, autoRestoreImagesFromCloud() downloads any cloud images missing locally
+
+8.  Payout Rules (Funded Accounts)
+8.1  Balance Formula
+balance = account.size + SUM(trade.pnl) - SUM(payout.amount)
+
+// NOTE: Payouts are deducted. Withdrawals are NOT (they are the banking side only).
+// _accMetrics(account) is the ONLY source of balance — all cards, tiles, and payout
+//  calculations call this function. Never compute balance elsewhere.
+
+8.2  Payout Amount
+profit  = balance - account.size          // cumulative, not per-cycle
+payout  = profit * 0.50                   // 50% — NO 10% fee
+payout  = min(payout, account.payoutCap)  // tier cap
+
+// The kept 50% ROLLS FORWARD into the next payout calc.
+// Example: earn $1000 → pay $500 → keep $500 → earn $1500 more
+//          total profit = $2000 → pay 50% = $1000 → keep $1000
+
+8.3  Eligibility Gate
+▸  5 winning days  required since the last payout date. Win threshold by account tier:
+50K account  →  day P&amp;L ≥ $150
+100K account  →  day P&amp;L ≥ $200
+150K account  →  day P&amp;L ≥ $250
+▸  Win-day counter  resets after each payout. Profit does NOT reset — it accumulates across cycles.
+▸  2nd+ payout  requires positive net profit since the last payout date (cyclePnl &gt; 0).
+
+8.4  Trailing Max Drawdown Floor
+floor = min(peak_balance - dd_by_tier, account.size + 100)
+
+// DD by tier: 50K→$2000  100K→$3000  150K→$4500
+// Floor locks at (size + $100) once peak is high enough.
+// If balance drops below floor → status = &quot;Blown&quot;, blownAt = now
+// Blown accounts keep ALL trades and data — only status changes.
+
+8.5  Eval → Funded Auto-Pass
+▸  Select track:  profit target ($3,000 for 50K) + ≥3 trading days + best single day ≤ 40% of total profit
+▸  Growth track:  profit target + ≥1 trading day (no consistency rule)
+▸  Lightning:  funded from day 1, no eval phase
+▸  On pass:  mark eval &quot;Passed&quot; (keep data), spawn a FRESH funded account at size (no trades carried over)
+▸  Guard:  account.funded_spawned = true prevents double-spawn. Set immediately after creating the funded account.
+▸  Trigger:  ONLY in saveTrade() when a trade crosses the profit target. NOT on render.
+
+9.  Copier Model
+⚠  This is the most common source of bugs. Get the derived-live model exactly right.
+
+Leader Account  ─── (real trades in Trade Log) ───►  _copierFollowerView(followerId)
+                                                             │
+                                                    filter: date &gt;= _folSince(acc, cfg)
+                                                    scale:  trade.pnl * cfg.multiplier
+                                                    id:     &quot;d-&lt;accId&gt;-&lt;leaderId&gt;&quot;
+                                                             │
+                                                    Follower A  +  Follower B  +  …
+
+9.1  Core Rules
+▸  Followers NEVER store trades.  _copierFollowerView() derives the follower&apos;s list live on every render. Zero DB writes for followers.
+▸  Date scoping via _folSince(acc, cfg):  priority = acc.startDate → cfg.connectedAt → acc.date. A new follower only gets leader trades from its start date.
+▸  Self-healing:  _copierPurgeFollowerStored() runs every renderAccountCards() and deletes any stray stored copies on connected followers.
+
+9.2  P&amp;L Display Rules
+▸  Dashboard / sidebar Total P&amp;L  = de-duped leader trades only. Never summed across copier accounts.
+▸  Daily heatmap  = de-duped daily P&amp;L × _cockpitCountOn(day) = leader(1) + Σ multipliers of active followers that day.
+▸  Per-account view  = that account&apos;s own derived trades only.
+▸  _accMetrics(account)  = size + Σ trade P&amp;L − Σ payouts. Single source of truth for any account&apos;s balance.
+
+9.3  Clicking a Follower Trade
+Calls goToTradeInLog(id) → _originTradeId(id) → resolves synthetic id back to the real leader trade id → navigates to it in the Trade Log journal. Never opens a separate modal.
+
+10.  Week / Month Boundary Rule
+⚠  A &quot;most weekdays&quot; rule was tried and reverted — it hid June&apos;s W5. The Monday rule is final.
+
+▸  A week belongs to its Monday&apos;s month.  Cross-month weeks are NEVER split.
+Example:  Mon Jun 29 → Fri Jul 3 2026 is June&apos;s W5. Trades on Jul 1–3 count in June&apos;s monthly P&amp;L. July W1 starts Mon Jul 6.
+
+10.1  Canonical Functions
+_weekMondayStr(dateStr)          → Monday date of that week
+_weekOwnerMonth(mondayStr)       → mondayStr.slice(0,7)  // YYYY-MM of the Monday — THE rule
+_ownedWeeksOfMonth(ym)           → chronological week list { num, monDate, label }
+getWeeklyKeyForDate(date)        → &quot;YYYY-MM-Wn&quot;  via the above
+computeWeekPnl(weekKey)          → sum trade P&amp;L for that week (excl. mirror copies)
+computeMonthPnl(monthKey)        → sum trade P&amp;L for that month (excl. mirror copies)
+
+▸  All P&amp;L and journal code  must key off getWeeklyKeyForDate / _weekOwnerMonth. Never re-derive week numbers from the calendar month.
+▸  State data is never lost  by boundary rule changes — weekly keys just get remapped. Data is preserved under the new key.
+
+11.  Block Editor (Notion-Style)
+Powers the Terminology and Psychology pages. Vanilla JS — no React, no external libraries.
+
+11.1  Data Model
+// Flat array — NOT a parent_block_id tree
+blocks = [
+  { id: &quot;uuid&quot;, type: &quot;paragraph&quot;, indent: 0, content: { html: &quot;&lt;b&gt;text&lt;/b&gt;&quot; } },
+  { id: &quot;uuid&quot;, type: &quot;h2&quot;,        indent: 0, content: { html: &quot;Heading&quot; } },
+  { id: &quot;uuid&quot;, type: &quot;bullet&quot;,    indent: 1, content: { html: &quot;Nested item&quot; } },
+  { id: &quot;uuid&quot;, type: &quot;image&quot;,     indent: 0, content: { key: &quot;idb-key&quot;, caption: &quot;...&quot; } },
+  { id: &quot;uuid&quot;, type: &quot;table&quot;,     indent: 0, content: { rows: [[&quot;cell&quot;,&quot;cell&quot;]] } },
+]
+
+// Nesting = indent depth (Tab/Shift+Tab). Max depth typically 3.
+// Images stored in IndexedDB via saveImg(key, blob) — never base64 in the JSON.
+
+11.2  Implemented Block Types
+Type
+Content shape
+Notes
+text, h1–h4
+{ html }
+Full text-family. Enter → new text sibling (not same type).
+bullet, numbered
+{ html }
+Numbering computed at render from same-indent numbered siblings.
+todo
+{ html, checked }
+Checkbox mutates checked → re-render.
+toggle, th1–th3
+{ summaryHtml, open }
+Toggle open/closed. Tab into toggle force-opens it.
+callout, quote, code
+{ html }
+Code has no syntax highlighting.
+divider
+{}
+No editable surface.
+table
+{ rows: [[cell,…],…] }
+Raw 2D string array. +Row/+Col mutate and re-render.
+image, video, audio, file
+{ key, filename, caption }
+Blob in IndexedDB. Dropzone → media element.
+bookmark
+{ url }
+Plain URL — no unfurl/favicon.
+page, linktopage
+{ title, linkedPageId }
+linkedPageId always null (no navigation implemented yet).
+Columns
+NOT IMPLEMENTED
+Requires parent_block_id tree refactor. Deferred by user choice.
+
+11.3  Key API
+lmrbInit(section, data, onChange)  // data = block array | { blocks } | legacy HTML string
+lmrbSerialize()                    // → JSON string of current blocks
+lmrSimpleLoad(section)             // loads from monthly Supabase row (prefers lmrbBlocks, else converts HTML)
+lmrSimpleSave(section)             // saves { html, lmrbBlocks } to Supabase monthly row
+
+▸  Backward compatible:  Old HTML auto-converts to blocks on load. An HTML mirror is always kept alongside lmrbBlocks.
+▸  Do NOT add Columns  without confirming the tree refactor with the user. The flat array model cannot support it.
+
+12.  Deploy Process
+⚠  Deploys are MANUAL. A git push does NOT deploy. Netlify is NOT connected to the git repo.
+
+12.1  Deploy Command
+# Working directory: ~/LMR Capitals APP_files/
+
+# Step 1 — draft deploy (no --prod) to get a preview URL
+npx --yes netlify-cli@latest deploy --dir &quot;.&quot;
+
+# Step 2 — verify the draft URL:
+#   /.env returns 404  (secret file excluded by .netlifyignore)
+#   your change is visible and working
+
+# Step 3 — promote to production
+npx --yes netlify-cli@latest deploy --prod --dir &quot;.&quot;
+
+# Auth token: stored in ~/Library/Preferences/netlify/config.json
+# Site auto-detected from .netlify/state.json in the app folder
+
+12.2  Git Hazard
+⚠  The git repo is rooted at the HOME directory (~/) — NOT the app folder. NEVER run git add -A.
+# WRONG — stages .ssh, Desktop, credentials, everything
+git add -A
+
+# CORRECT — always stage by explicit path
+git add &quot;LMR Capitals APP_files/index.html&quot;
+
+# Then commit and push (does NOT trigger deploy)
+git commit -m &quot;your message&quot;
+git push
+
+▸  .netlifyignore  excludes .env (NOTION_TOKEN), node_modules, large data files. Verified /.env → 404 after every deploy.
+▸  SQL migrations  run manually in Supabase → SQL Editor. App degrades to localStorage if a table does not exist.
+▸  index.html is served no-cache  Users always get the latest version on refresh.
+
+13.  AI Prompt — Mobile App Build
+Paste this into a new AI session to brief it on everything needed to build a native mobile app version of LMR Capitals.
+
+I want to build a native mobile app (React Native / Expo) that replicates my LMR
+Capitals trading journal web app. Here is the full technical brief:
+
+## What It Is
+LMR Capitals is a personal prop-trading journal and account management app. The user
+trades NQ futures on multiple funded prop accounts (Tradeify Select Flex model).
+Features: trade journaling, P&amp;L tracking, copier trade distribution across accounts,
+funded-account payout cycle management, daily/weekly/monthly reviews, trading education.
+
+## Backend (already set up — reuse it)
+Supabase. Project URL: https://agrvylclhvxyevsmmexf.supabase.co
+Auth: email + password. All tables use RLS (user_id = auth.uid()).
+
+## Core Tables
+trades: id, user_id, date, open_time, close_time, market, position, entry, exit,
+        pnl, size, risk, rr, account (→accounts.id), models[], notes, img_key
+
+accounts: id, user_id, name, firm, account_no, plan, size,
+          status (Active|Eval|Funded|Blown|Passed), type,
+          date, start_date, copier (jsonb: {leaderId,multiplier,connectedAt}),
+          funded_spawned (bool), blown_at
+
+transactions: id, user_id, type (Deposit|Payout|Withdrawal), amount, account, date, image
+payouts: id, user_id, account_id, amount, date, baseline_profit, win_days_count
+targets: id, user_id, title, type, target_value, current_value, deadline, period
+daily/weekly/monthly: key, user_id, data (jsonb)
+lmr_observations: id, user_id, title, content, created_at, updated_at
+lmr_achievements: id, user_id, title, category, firm, amount, achieved_on, image, is_public
+
+## Critical Business Logic
+
+### Balance
+balance = account.size + SUM(trade.pnl) - SUM(payout.amount)
+Payouts deducted. Withdrawals are NOT.
+
+### Payout (Funded accounts)
+- Amount = 50% of (balance - size). No fee. Capped at tier cap.
+- Gate = 5 winning days since last payout.
+  Win threshold: 50K→$150/day, 100K→$200/day, 150K→$250/day.
+- Win-day count resets after payout. Profit accumulates — never resets.
+- Trailing DD floor = min(peak_balance - DD, size + $100).
+  DD: 50K→$2000, 100K→$3000, 150K→$4500.
+  Breach → status = Blown (all data kept).
+
+### Copier (critical)
+FOLLOWERS NEVER STORE TRADES.
+follower_trades = leader_trades
+  .filter(date &gt;= max(account.start_date, copier.connectedAt, account.date))
+  .map(t =&gt; ({ ...t, pnl: t.pnl * copier.multiplier }))
+Dashboard P&amp;L = de-duped leader trades only (never summed across accounts).
+
+### Week/Month boundary
+Week belongs to its Monday&apos;s month.
+weekOwnerMonth = monday.toISOString().slice(0,7)
+Week key format: &quot;YYYY-MM-Wn&quot;
+
+## 18 Screens
+Dashboard, Trade Log, Daily, Weekly, Monthly, Performance, Accounts,
+Copier Cockpit, Payout, Transactions, Achievements, Observations,
+Today/Chain, Calendar, Terminology (block editor), Psychology (block editor),
+Reports, AI Coach
+
+## Image Storage
+Chart screenshots → device local storage (IndexedDB on web, device FS on mobile)
+Receipt/achievement images → Supabase column (base64)
+Observation screenshots → Supabase Storage bucket &quot;app-images&quot;
+NEVER cache base64 in the main state
+
+## Start With
+Auth screen → Trade Log screen → Accounts screen with balance calculation.
+Use the existing Supabase project. Ask before adding tables or changing schema.
+
+LMR Capitals  ·  Technical Brief  ·  Generated Aug 2026

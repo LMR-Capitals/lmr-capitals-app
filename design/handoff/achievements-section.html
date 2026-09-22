@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LMR Achievements — drop-in section</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+<!-- ============================================================
+     LMR CAPITALS · ACHIEVEMENTS / TRACK RECORD
+       1. <style id="lmr-ach-css">   → into <head>
+       2. <div id="p-achievements">  → panel sibling
+       3. <script id="lmr-ach-js">   → before </body>
+
+     Column names match public.lmr_achievements EXACTLY, so the same
+     record shape serves the app and the landing page:
+       id · user_id · title · category · firm · amount · achieved_on
+       · caption · image · is_public · created_at · updated_at
+     is_public = true is what the landing page's public-read policy
+     exposes as "Proven Track Record" — nothing else leaves the account.
+     ============================================================ -->
+
+<style id="lmr-ach-css">
+#p-achievements{
+  --a-bg:var(--bg1,#0A0A0F); --a-surface:var(--bg2,#101018);
+  --a-inset:var(--bg3,#14141C); --a-chip:#1A1A24;
+  --a-line:var(--border,rgba(255,255,255,0.08));
+  --a-txt:var(--text1,#EDEDF2); --a-mut:var(--text2,#A0A0B0);
+  --a-dim:var(--text3,#7A7A8C);
+  --a-gold:var(--gold,#F5A623); --a-rose:var(--bear,#FF4060);
+  --a-green:var(--bull,#3fb950); --a-blue:#6ea8fe; --a-violet:#b085f5;
+  font-family:'Inter',system-ui,sans-serif; color:var(--a-txt);
+}
+#p-achievements .a-wrap{padding:20px 24px 48px;display:flex;flex-direction:column;gap:16px;max-width:1100px}
+#p-achievements .a-eyebrow{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+#p-achievements .a-sub{font-size:12px;color:var(--a-dim)}
+#p-achievements .a-lab{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--a-dim)}
+
+/* summary */
+#p-achievements .a-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--a-line);border:1px solid var(--a-line)}
+#p-achievements .a-kpi{background:var(--a-surface);padding:13px 15px;display:flex;flex-direction:column;gap:5px;min-width:0}
+#p-achievements .a-kv{font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:700}
+#p-achievements .a-kn{font-size:11px;color:var(--a-dim)}
+
+/* toolbar */
+#p-achievements .a-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#p-achievements .a-filters{display:flex;gap:6px;flex-wrap:wrap}
+#p-achievements .a-filter{background:transparent;border:1px solid var(--a-line);padding:5px 12px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;color:var(--a-dim)}
+#p-achievements .a-filter[aria-pressed="true"]{color:var(--a-txt);border-color:var(--a-gold);background:rgba(245,166,35,.10)}
+#p-achievements .a-new{margin-left:auto;background:var(--a-gold);border:0;padding:9px 18px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:12px;color:var(--a-bg)}
+
+/* cards */
+#p-achievements .a-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:13px}
+#p-achievements .a-card{border:1px solid var(--a-line);border-top-width:3px;background:var(--a-surface);display:flex;flex-direction:column;min-width:0}
+#p-achievements .a-img{width:100%;aspect-ratio:16/10;background:var(--a-inset);overflow:hidden;display:flex;align-items:center;justify-content:center}
+#p-achievements .a-img img{width:100%;height:100%;object-fit:cover;display:block}
+#p-achievements .a-imgph{font-size:11px;color:var(--a-dim);text-align:center;padding:0 14px}
+#p-achievements .a-body{padding:13px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+#p-achievements .a-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#p-achievements .a-tag{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:99px}
+#p-achievements .a-pub{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.06em;padding:3px 8px;border-radius:99px;border:1px solid var(--a-line);color:var(--a-dim)}
+#p-achievements .a-pub.is-on{color:var(--a-green);border-color:rgba(63,185,80,.4);background:rgba(63,185,80,.10)}
+#p-achievements .a-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;line-height:1.3;text-wrap:pretty}
+#p-achievements .a-meta{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:12px}
+#p-achievements .a-mk{color:var(--a-dim)}
+#p-achievements .a-mv{font-family:'JetBrains Mono',monospace;color:var(--a-txt)}
+#p-achievements .a-cap{font-size:12px;line-height:1.6;color:var(--a-mut);text-wrap:pretty}
+#p-achievements .a-foot{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:0 14px 13px}
+#p-achievements .a-act{background:transparent;border:1px solid var(--a-line);border-radius:99px;padding:5px 12px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:10px;letter-spacing:.06em;color:var(--a-dim)}
+#p-achievements .a-act:hover{color:var(--a-txt);border-color:var(--a-gold)}
+#p-achievements .a-act.is-danger{color:var(--a-rose)}
+#p-achievements .a-none{border:1px dashed var(--a-line);padding:28px 16px;text-align:center;font-size:13px;color:var(--a-dim)}
+
+/* sheet */
+#p-achievements .a-scrim{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;padding:20px}
+#p-achievements .a-sheet{width:min(560px,100%);max-height:88vh;overflow:auto;border:1px solid var(--a-line);background:var(--a-surface)}
+#p-achievements .a-shead{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--a-line);background:var(--a-inset);position:sticky;top:0}
+#p-achievements .a-sbody{padding:16px;display:flex;flex-direction:column;gap:13px}
+#p-achievements .a-row{display:grid;grid-template-columns:130px minmax(0,1fr);gap:10px;align-items:center}
+#p-achievements .a-in{width:100%;box-sizing:border-box;background:var(--a-chip);border:1px solid var(--a-line);border-radius:3px;padding:9px 11px;color:var(--a-txt);font-family:'Inter',sans-serif;font-size:13px;outline:0}
+#p-achievements .a-in:focus{border-color:var(--a-gold)}
+#p-achievements .a-ta{width:100%;box-sizing:border-box;background:var(--a-chip);border:1px solid var(--a-line);border-radius:3px;padding:11px;color:var(--a-txt);font-family:'Inter',sans-serif;font-size:13px;line-height:1.6;outline:0;resize:vertical;min-height:72px}
+#p-achievements .a-chips{display:flex;gap:7px;flex-wrap:wrap}
+#p-achievements .a-chip2{background:var(--a-chip);border:1px solid var(--a-line);padding:6px 13px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;color:var(--a-mut)}
+#p-achievements .a-chip2[aria-pressed="true"]{color:var(--a-bg);border-color:transparent}
+#p-achievements .a-drop{position:relative;width:100%;aspect-ratio:16/10;background:var(--a-inset);border:1px dashed #2E2E3A;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer}
+#p-achievements .a-drop.is-over{border-color:var(--a-gold);background:rgba(245,166,35,.06)}
+#p-achievements .a-drop img{width:100%;height:100%;object-fit:cover;display:block}
+#p-achievements .a-x{position:absolute;top:6px;right:6px;z-index:4;width:24px;height:24px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;border:1px solid rgba(255,255,255,.25);border-radius:3px;background:rgba(0,0,0,.62);color:#fff;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px}
+#p-achievements .a-switch{display:flex;align-items:flex-start;gap:11px;padding:11px 13px;border:1px solid var(--a-line);border-radius:8px;background:var(--a-inset)}
+#p-achievements .a-box{flex:none;width:18px;height:18px;margin-top:1px;accent-color:var(--a-gold)}
+#p-achievements .a-sfoot{display:flex;align-items:center;gap:9px;padding:13px 16px;border-top:1px solid var(--a-line);position:sticky;bottom:0;background:var(--a-surface)}
+#p-achievements .a-save{margin-left:auto;background:var(--a-gold);border:0;padding:9px 20px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:12px;color:var(--a-bg)}
+#p-achievements .a-save[disabled]{opacity:.4;cursor:not-allowed}
+</style>
+</head>
+<body style="margin:0;background:#0A0A0F">
+
+<!-- ==== 2. PANEL ==== -->
+<div class="panel" id="p-achievements"><div class="a-wrap">
+
+  <div class="a-kpis" id="aKpis"></div>
+
+  <div class="a-bar">
+    <div class="a-filters" id="aFilters"></div>
+    <button class="a-new" id="aNew">+ New achievement</button>
+  </div>
+
+  <div class="a-grid" id="aGrid"></div>
+</div></div>
+
+<!-- ==== 3. LOGIC ==== -->
+<script id="lmr-ach-js">
+(function(){
+'use strict';
+
+// The four categories the table's `category` column accepts.
+var CATS = [
+  ['Funded Pass',  'var(--a-green)'],
+  ['Payout',       'var(--a-gold)'],
+  ['Milestone',    'var(--a-blue)'],
+  ['Certificate',  'var(--a-violet)']
+];
+
+// The nine firms the account creation sheet already knows.
+var FIRMS = ['Tradeify','Apex','Topstep','Take Profit Trader','Blue Guardian',
+             'Lucid Trading','MyFundedFutures','FundedNext','Alpha Futures'];
+
+// ── PERSISTENCE ────────────────────────────────────────────────
+var ACH_PERSIST = {
+  read: function(){
+    if (typeof state === 'object' && state) return state;
+    try { return JSON.parse(localStorage.getItem('lmr_ach') || '{}'); }
+    catch(e){ return {}; }
+  },
+  write: function(rec){
+    if (typeof save === 'function') save();
+    else { try { localStorage.setItem('lmr_ach', JSON.stringify({achievements:S.achievements})); } catch(e){} }
+    if (rec && typeof sbSyncRecord === 'function' && typeof _sbUserId !== 'undefined' && _sbUserId) {
+      try {
+        // Column names are verbatim from create-achievements-table.sql.
+        sbSyncRecord('lmr_achievements', {
+          id:String(rec.id), user_id:_sbUserId,
+          title:rec.title||null, category:rec.category||null, firm:rec.firm||null,
+          amount:(rec.amount===''||rec.amount==null) ? null : Number(rec.amount),
+          achieved_on:rec.achieved_on||null, caption:rec.caption||null,
+          image:rec.image||null, is_public:!!rec.is_public,
+          created_at:rec.created_at, updated_at:new Date().toISOString()
+        });
+      } catch(e){}
+    }
+  },
+  del: function(id){ if (typeof sbDeleteRecord==='function'){ try{ sbDeleteRecord('lmr_achievements', id); }catch(e){} } },
+  // The certificate itself. Held in IndexedDB locally; the data URL goes
+  // into the row's `image` column on sync so the landing page can read it.
+  saveImg: function(k,b){ return (typeof saveImg==='function') ? saveImg(k,b) : Promise.resolve(_mem[k]=b); },
+  getImg:  function(k){   return (typeof getImg ==='function') ? getImg(k)    : Promise.resolve(_mem[k]); }
+};
+var _mem = {};
+
+var S = ACH_PERSIST.read();
+S.achievements = S.achievements || [];
+
+var filter = 'All';
+var draft = null;       // the open sheet's record, or null
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function today(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(iso){
+  if(!iso) return '—';
+  var d=new Date(iso+'T00:00:00');
+  return isNaN(d) ? iso : d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+function money(v){
+  if (v===''||v==null) return '—';
+  var n=Number(v); if(isNaN(n)) return '—';
+  if (typeof fmtMoney==='function') { try { return fmtMoney(n); } catch(e){} }
+  return '$'+n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:2});
+}
+function colourFor(c){
+  for(var i=0;i<CATS.length;i++) if(CATS[i][0]===c) return CATS[i][1];
+  return 'var(--a-line)';
+}
+
+// ── SUMMARY ───────────────────────────────────────────────────
+function renderKpis(){
+  var A=S.achievements;
+  var passes=A.filter(function(r){return r.category==='Funded Pass';}).length;
+  var payouts=A.filter(function(r){return r.category==='Payout';});
+  var paid=payouts.reduce(function(s,r){return s+(Number(r.amount)||0);},0);
+  var pub=A.filter(function(r){return r.is_public;}).length;
+  var tiles=[
+    ['Funded passes', String(passes), passes===1?'1 firm cleared':'firms cleared', 'var(--a-green)'],
+    ['Payouts', String(payouts.length), money(paid)+' total', 'var(--a-gold)'],
+    ['Certificates', String(A.filter(function(r){return r.category==='Certificate';}).length), 'On file', 'var(--a-violet)'],
+    ['Public', pub+' / '+A.length, pub?'Shown on the landing page':'Track record is private', pub?'var(--a-green)':'var(--a-dim)']
+  ];
+  document.getElementById('aKpis').innerHTML = tiles.map(function(t){
+    return '<div class="a-kpi"><span class="a-kn">'+t[0]+'</span>'
+         + '<span class="a-kv" style="color:'+t[3]+'">'+esc(t[1])+'</span>'
+         + '<span class="a-kn">'+esc(t[2])+'</span></div>';
+  }).join('');
+}
+
+function renderFilters(){
+  var opts=['All'].concat(CATS.map(function(c){return c[0];})).concat(['Public']);
+  document.getElementById('aFilters').innerHTML = opts.map(function(o){
+    return '<button class="a-filter" data-filter="'+o+'" aria-pressed="'+(filter===o)+'">'+o+'</button>';
+  }).join('');
+}
+
+// ── CARDS ─────────────────────────────────────────────────────
+function cardHTML(r){
+  var accent=colourFor(r.category);
+  var meta=[];
+  if (r.firm)  meta.push(['Firm', esc(r.firm)]);
+  if (r.amount!=='' && r.amount!=null) meta.push(['Amount', money(r.amount)]);
+  meta.push(['Achieved', esc(fmtDate(r.achieved_on))]);
+  return '<article class="a-card" style="border-top-color:'+accent+'">'
+    + '<div class="a-img" data-slot="'+esc(r.imgKey||'')+'">'
+      + (r.imgKey ? '' : '<span class="a-imgph">No certificate attached</span>')
+    + '</div>'
+    + '<div class="a-body">'
+      + '<div class="a-head">'
+        + '<span class="a-tag" style="background:'+accent+'26;color:'+accent+'">'+esc(r.category||'—')+'</span>'
+        + '<span class="a-pub'+(r.is_public?' is-on':'')+'">'+(r.is_public?'PUBLIC':'PRIVATE')+'</span>'
+      + '</div>'
+      + '<span class="a-title">'+esc(r.title||'Untitled')+'</span>'
+      + '<div class="a-meta">'+meta.map(function(m){
+          return '<span class="a-mk">'+m[0]+'</span><span class="a-mv">'+m[1]+'</span>'; }).join('')+'</div>'
+      + (r.caption ? '<p class="a-cap" style="margin:0">'+esc(r.caption)+'</p>' : '')
+    + '</div>'
+    + '<div class="a-foot">'
+      + '<button class="a-act" data-edit="'+r.id+'">Edit</button>'
+      + '<button class="a-act" data-toggle="'+r.id+'">'+(r.is_public?'Make private':'Publish')+'</button>'
+      + '<button class="a-act is-danger" data-del="'+r.id+'">Delete</button>'
+    + '</div>'
+  + '</article>';
+}
+
+function paintImages(root){
+  Array.prototype.forEach.call(root.querySelectorAll('[data-slot]'), function(box){
+    var k=box.dataset.slot;
+    if(!k) return;
+    ACH_PERSIST.getImg(k).then(function(src){
+      if (src) box.innerHTML='<img src="'+src+'" alt="">';
+    });
+  });
+}
+
+function rows(){
+  var A=S.achievements.slice().sort(function(a,b){
+    return String(b.achieved_on||'').localeCompare(String(a.achieved_on||''));
+  });
+  if (filter==='All') return A;
+  if (filter==='Public') return A.filter(function(r){return r.is_public;});
+  return A.filter(function(r){return r.category===filter;});
+}
+
+function render(){
+  renderKpis(); renderFilters();
+  var grid=document.getElementById('aGrid'), list=rows();
+  grid.innerHTML = list.length
+    ? list.map(cardHTML).join('')
+    : '<div class="a-none" style="grid-column:1/-1">Nothing here yet \u2014 log the first pass, payout or certificate.</div>';
+  paintImages(grid);
+}
+
+function byId(id){
+  return S.achievements.filter(function(r){return String(r.id)===String(id);})[0];
+}
+
+// ── SHEET ─────────────────────────────────────────────────────
+function openSheet(rec){
+  draft = rec ? Object.assign({}, rec) : {
+    id: Date.now(), title:'', category:'Funded Pass', firm:'', amount:'',
+    achieved_on: today(), caption:'', is_public:false, imgKey:null, img:null,
+    created_at: new Date().toISOString()
+  };
+  if (rec && rec.imgKey) {
+    ACH_PERSIST.getImg(rec.imgKey).then(function(src){ draft.img=src||null; paintSheet(); });
+  }
+  paintSheet();
+}
+function closeSheet(){ draft=null; paintSheet(); }
+
+function paintSheet(){
+  var old=document.getElementById('aScrim');
+  if(old) old.remove();
+  if(!draft) return;
+  var d=draft;
+  var el=document.createElement('div');
+  el.className='a-scrim'; el.id='aScrim';
+  el.innerHTML =
+    '<div class="a-sheet">'
+    + '<div class="a-shead"><span class="a-eyebrow">'+(byId(d.id)?'Edit achievement':'New achievement')+'</span>'
+      + '<button class="a-act" id="aClose" style="margin-left:auto">Close</button></div>'
+    + '<div class="a-sbody">'
+      + '<div><span class="a-lab" style="display:block;margin-bottom:7px">Category</span>'
+        + '<div class="a-chips">'+CATS.map(function(c){
+            var on=d.category===c[0];
+            return '<button class="a-chip2" data-cat="'+c[0]+'" aria-pressed="'+on+'"'
+                 + (on?' style="background:'+c[1]+'"':'')+'>'+c[0]+'</button>'; }).join('')+'</div></div>'
+      + '<div class="a-row">'
+        + '<span class="a-lab">Title</span>'
+        + '<input class="a-in" id="aTitle" type="text" placeholder="Tradeify 50K \u00b7 Select passed" value="'+esc(d.title)+'">'
+        + '<span class="a-lab">Firm</span>'
+        + '<input class="a-in" id="aFirm" type="text" list="aFirmList" placeholder="Tradeify" value="'+esc(d.firm)+'">'
+        + '<span class="a-lab">Amount</span>'
+        + '<input class="a-in" id="aAmount" type="number" step="0.01" placeholder="Payouts only" value="'+esc(d.amount)+'">'
+        + '<span class="a-lab">Achieved on</span>'
+        + '<input class="a-in" id="aDate" type="date" value="'+esc(d.achieved_on)+'">'
+      + '</div>'
+      + '<datalist id="aFirmList">'+FIRMS.map(function(f){return '<option value="'+esc(f)+'">';}).join('')+'</datalist>'
+      + '<div><span class="a-lab" style="display:block;margin-bottom:7px">Caption</span>'
+        + '<textarea class="a-ta" id="aCaption" placeholder="What it took \u2014 shown under the card, and on the landing page if public.">'+esc(d.caption)+'</textarea></div>'
+      + '<div><span class="a-lab" style="display:block;margin-bottom:7px">Certificate / proof</span>'
+        + '<div class="a-drop" id="aDrop">'
+          + (d.img ? '<img src="'+d.img+'" alt=""><button class="a-x" id="aClearImg" title="Remove">\u00d7</button>'
+                   : '<span class="a-imgph">Click, drop or paste the certificate<br>Stored with the record</span>')
+        + '</div></div>'
+      + '<label class="a-switch">'
+        + '<input class="a-box" type="checkbox" id="aPublic"'+(d.is_public?' checked':'')+'>'
+        + '<span><span style="display:block;font-family:\'Space Grotesk\',sans-serif;font-weight:700;font-size:12px">Show on the public track record</span>'
+        + '<span style="display:block;margin-top:3px;font-size:12px;line-height:1.55;color:var(--a-mut)">Publishing makes this one row readable by anyone \u2014 that is what the landing page reads. Everything else stays private to your account.</span></span>'
+      + '</label>'
+    + '</div>'
+    + '<div class="a-sfoot">'
+      + '<button class="a-act" id="aCancel">Cancel</button>'
+      + '<button class="a-save" id="aSave"'+(d.title.trim()?'':' disabled')+'>'+(byId(d.id)?'Update':'Save')+'</button>'
+    + '</div></div>';
+  document.getElementById('p-achievements').appendChild(el);
+}
+
+function collect(){
+  if(!draft) return;
+  var g=function(id){ var e=document.getElementById(id); return e?e.value:''; };
+  draft.title=g('aTitle'); draft.firm=g('aFirm'); draft.amount=g('aAmount');
+  draft.achieved_on=g('aDate'); draft.caption=g('aCaption');
+  var p=document.getElementById('aPublic'); draft.is_public=!!(p&&p.checked);
+}
+
+function commit(){
+  collect();
+  if(!draft.title.trim()) return;
+  var d=draft, existing=byId(d.id);
+  var rec={
+    id:d.id, title:d.title.trim(), category:d.category, firm:d.firm.trim(),
+    amount:d.amount, achieved_on:d.achieved_on, caption:d.caption.trim(),
+    is_public:d.is_public, imgKey:d.img ? ('ach-'+d.id) : null,
+    image:d.img || null, created_at:d.created_at
+  };
+  var done=function(){
+    if (existing) S.achievements = S.achievements.map(function(r){ return String(r.id)===String(rec.id) ? rec : r; });
+    else S.achievements.unshift(rec);
+    ACH_PERSIST.write(rec);
+    closeSheet(); render();
+    if (typeof flash==='function') flash('\u2713 '+(existing?'Achievement updated':'Achievement saved'));
+  };
+  if (rec.imgKey) ACH_PERSIST.saveImg(rec.imgKey, d.img).then(done);
+  else done();
+}
+
+// ── IMAGE INPUT ───────────────────────────────────────────────
+function pickFile(){
+  var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+  inp.onchange=function(){
+    var f=inp.files[0]; if(!f) return;
+    var r=new FileReader(); r.onload=function(){ collect(); draft.img=r.result; paintSheet(); };
+    r.readAsDataURL(f);
+  };
+  inp.click();
+}
+
+// ── EVENTS ────────────────────────────────────────────────────
+document.addEventListener('click', function(e){
+  var el=e.target.closest('[data-filter],[data-cat],[data-edit],[data-toggle],[data-del],#aNew,#aDrop,#aClearImg,#aSave,#aCancel,#aClose');
+  if(!el) return;
+  var d=el.dataset;
+
+  if (d.filter){ filter=d.filter; render(); return; }
+  if (el.id==='aNew'){ openSheet(null); return; }
+  if (d.cat){ collect(); draft.category=d.cat; paintSheet(); return; }
+  if (el.id==='aClearImg'){ e.stopPropagation(); collect(); draft.img=null; paintSheet(); return; }
+  if (el.id==='aDrop'){ pickFile(); return; }
+  if (el.id==='aSave'){ commit(); return; }
+  if (el.id==='aCancel' || el.id==='aClose'){ closeSheet(); return; }
+  if (d.edit){ openSheet(byId(d.edit)); return; }
+
+  if (d.toggle){
+    var r=byId(d.toggle);
+    if(!r) return;
+    r.is_public=!r.is_public;
+    ACH_PERSIST.write(r); render();
+    if (typeof flash==='function') flash(r.is_public ? '\u2713 Published to the track record' : '\u2713 Made private');
+    return;
+  }
+  if (d.del){
+    if(!window.confirm('Delete this achievement?')) return;
+    var rec=byId(d.del);
+    if (rec && rec.imgKey) ACH_PERSIST.saveImg(rec.imgKey, null);
+    S.achievements = S.achievements.filter(function(x){return String(x.id)!==String(d.del);});
+    ACH_PERSIST.write(null); ACH_PERSIST.del(d.del); render();
+  }
+});
+
+document.addEventListener('input', function(e){
+  if (e.target.id==='aTitle'){
+    var b=document.getElementById('aSave');
+    if(b) b.disabled = !e.target.value.trim();
+  }
+});
+
+document.addEventListener('paste', function(e){
+  if(!draft) return;
+  var items=(e.clipboardData||{}).items||[];
+  for(var i=0;i<items.length;i++){
+    if(items[i].type.indexOf('image')!==0) continue;
+    e.preventDefault();
+    var r=new FileReader();
+    r.onload=function(){ collect(); draft.img=r.result; paintSheet(); };
+    r.readAsDataURL(items[i].getAsFile());
+    return;
+  }
+});
+
+document.addEventListener('dragover', function(e){
+  var box=e.target.closest('#aDrop'); if(!box) return;
+  e.preventDefault(); box.classList.add('is-over');
+});
+document.addEventListener('dragleave', function(e){
+  var box=e.target.closest('#aDrop'); if(box) box.classList.remove('is-over');
+});
+document.addEventListener('drop', function(e){
+  var box=e.target.closest('#aDrop'); if(!box) return;
+  e.preventDefault(); box.classList.remove('is-over');
+  var f=(e.dataTransfer.files||[])[0];
+  if(!f || f.type.indexOf('image')!==0) return;
+  var r=new FileReader();
+  r.onload=function(){ collect(); draft.img=r.result; paintSheet(); };
+  r.readAsDataURL(f);
+});
+
+window.renderAchievementsSection = render;   // call from the panel switcher
+render();
+})();
+</script>
+</body>
+</html>
