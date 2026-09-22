@@ -9140,9 +9140,11 @@ function drawLine(id,labels,data){if(perfCharts[id])perfCharts[id].destroy();if(
 // ============= LMR SIMPLE EDITORS (Terminology / Psychology / Observation) =============
 // Clean contenteditable approach — no external dependencies
 
-const LMR_SECTION_KEYS = {
-  terminology: 'lmr-terminology',
-  psychology:  'lmr-psychology'
+// Each nav section persists to its OWN dedicated table (one row per user).
+// (Previously Terminology/Psychology were stored inside the `monthly` table.)
+const LMR_SECTION_TABLES = {
+  terminology: 'lmr_terminology',
+  psychology:  'lmr_psychology'
 };
 const _lmrSaveTimers = {};
 const _lmrEditors = {}; // kept for compat
@@ -9167,7 +9169,7 @@ async function lmrSimpleLoad(section){
     state['terminologyPage']=JSON.stringify(_empty);
     let cloudDone=true;
     try{
-      if(_sb&&_sbUserId){ const {error}=await _sb.from('monthly').upsert({key:LMR_SECTION_KEYS['terminology'],data:_empty,user_id:_sbUserId},{onConflict:'key,user_id'}); cloudDone=!error; }
+      if(_sb&&_sbUserId){ const {error}=await _sb.from('lmr_terminology').upsert({data:_empty,user_id:_sbUserId},{onConflict:'user_id'}); cloudDone=!error; }
       else cloudDone=false; // cloud not ready → don't mark done, retry next load
     }catch(e){ cloudDone=false; }
     try{ save&&save(); }catch(e){}
@@ -9181,8 +9183,8 @@ async function lmrSimpleLoad(section){
   // Try Supabase first
   if(_sb && _sbUserId){
     try{
-      const{data:row} = await _sb.from('monthly').select('data')
-        .eq('key', LMR_SECTION_KEYS[section]).eq('user_id',_sbUserId).single();
+      const{data:row} = await _sb.from(LMR_SECTION_TABLES[section]).select('data')
+        .eq('user_id',_sbUserId).single();
       if(row?.data?.lmrbBlocks) lmrbBlocks = row.data.lmrbBlocks;
       if(row?.data?.html) html = row.data.html;
       else if(row?.data?.blocks){
@@ -9269,7 +9271,7 @@ async function lmrClearSection(section){
   const _empty={html:'',lmrbBlocks:[]};
   state[section+'Page']=JSON.stringify(_empty);
   try{ save&&save(); }catch(e){}
-  try{ if(_sb&&_sbUserId) await _sb.from('monthly').upsert({key:LMR_SECTION_KEYS[section],data:_empty,user_id:_sbUserId},{onConflict:'key,user_id'}); }catch(e){}
+  try{ if(_sb&&_sbUserId) await _sb.from(LMR_SECTION_TABLES[section]).upsert({data:_empty,user_id:_sbUserId},{onConflict:'user_id'}); }catch(e){}
   if(typeof lmrbInit==='function') lmrbInit(section,[],()=>lmrSimpleAutoSave(section));
   else { const el=document.getElementById(section+'-content'); if(el) el.innerHTML=''; }
   if(statusEl){ statusEl.textContent='✓ Cleared'; setTimeout(()=>statusEl.textContent='Auto-saves',1500); }
@@ -9296,9 +9298,9 @@ async function lmrSimpleSave(section, silent=false){
   // Save to Supabase
   if(_sb && _sbUserId){
     try{
-      await _sb.from('monthly').upsert(
-        {key: LMR_SECTION_KEYS[section], data:_payload, user_id:_sbUserId},
-        {onConflict:'key,user_id'}
+      await _sb.from(LMR_SECTION_TABLES[section]).upsert(
+        {data:_payload, user_id:_sbUserId},
+        {onConflict:'user_id'}
       );
       if(statusEl) statusEl.textContent = '✓ Saved';
       setTimeout(()=>{ if(statusEl) statusEl.textContent='Auto-saves'; }, 1500);
