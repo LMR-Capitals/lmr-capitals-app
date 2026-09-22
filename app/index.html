@@ -5236,6 +5236,9 @@ async function _sbUpsertAll(uid){
   if(monthlyRows.length)_chk('monthly', await _sb.from('monthly').upsert(monthlyRows,{onConflict:'key,user_id'}));
   const weeklyRows=Object.entries(state.weekly).map(([week_key,data])=>({week_key,data,user_id:uid}));
   if(weeklyRows.length)_chk('weekly', await _sb.from('weekly').upsert(weeklyRows,{onConflict:'week_key,user_id'}));
+  if(state.copier && (state.copier.leaderId || Object.keys(state.copier.followers||{}).length))
+    _chk('copier_config', await _sb.from('copier_config').upsert(
+      {user_id:uid, config:state.copier, updated_at:new Date().toISOString()},{onConflict:'user_id'}));
   if(_errs.length) throw new Error(_errs.join(' | '));
 }
 
@@ -12338,7 +12341,7 @@ async function sbAutoLoadOnStart() {
 }
 
 async function _sbDoPull() {
-  const [tr, ac, tx, no, ju, da, mo, we] = await Promise.all([
+  const [tr, ac, tx, no, ju, da, mo, we, cc] = await Promise.all([
     _sb.from('trades').select('*'),
     _sb.from('accounts').select('*'),
     _sb.from('transactions').select('*'),
@@ -12347,6 +12350,7 @@ async function _sbDoPull() {
     _sb.from('daily').select('*'),
     _sb.from('monthly').select('*'),
     _sb.from('weekly').select('*'),
+    _sb.from('copier_config').select('config'),
   ]);
   const pulledTrades = (tr.data||[]).map(t => ({
     ...t,
@@ -12430,6 +12434,13 @@ async function _sbDoPull() {
   const cloudWeekly = {};
   (we.data||[]).forEach(w => { if(w.week_key&&w.data) cloudWeekly[w.week_key] = w.data; });
   state.weekly = { ...state.weekly, ...cloudWeekly };
+
+  // Copier Cockpit config: one row per user. Cloud wins when it has a config,
+  // merged over local so any local-only keys are preserved.
+  const cloudCopier = (cc.data||[])[0]?.config;
+  if(cloudCopier && typeof cloudCopier==='object'){
+    state.copier = { ...(state.copier||{}), ...cloudCopier };
+  }
 
   try{localStorage.setItem(STORE_KEY, JSON.stringify(state));}catch(e){}
 }
