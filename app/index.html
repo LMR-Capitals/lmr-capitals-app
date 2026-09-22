@@ -10971,10 +10971,9 @@ const FLEX_CFG={
 const FLEX_MIN_WIN_DAYS=5, FLEX_SPLIT=90, FLEX_MAX_PCT=0.5;
 let _payoutAccId=null, _payoutChart=null, _payoutCalMonth=null;
 
-function getPayoutsCache(){ try{return JSON.parse(localStorage.getItem('lmr_payouts_v1')||'[]');}catch(e){return[];} }
-function savePayoutsCache(a){ localStorage.setItem('lmr_payouts_v1',JSON.stringify(a)); }
-function payoutsForAccount(id){ return getPayoutsCache().filter(p=>String(p.accountId)===String(id)).sort((a,b)=>String(b.requestedAt).localeCompare(String(a.requestedAt))); }
-function _lastPaidDate(id){ const p=payoutsForAccount(id).filter(x=>x.status==='Paid'&&x.paidAt); return p.length?p.map(x=>x.paidAt).sort().pop().slice(0,10):null; }
+// Payouts persist as type='Payout' rows in the `transactions` table (the source
+// of truth for balance + history). The old lmr_payouts_v1 localStorage cache and
+// its markPayoutPaid/`payouts`-table writer were dead legacy code and were removed.
 function _flexCfg(acc){ const size=parseInt(acc.size)||parseFloat(acc.deposit)||50000; return FLEX_CFG[size]||FLEX_CFG[50000]; }
 function _payoutAccount(){
   let acc=null;
@@ -11314,16 +11313,6 @@ function markPayoutSent(txId){
     }
   });
   save(); renderPayoutModule(); renderTransTable&&renderTransTable(); flash('✓ Payout marked Sent');
-}
-function markPayoutPaid(id){
-  const list=getPayoutsCache(); const p=list.find(x=>x.id===id); if(!p)return;
-  if(!confirm('Mark this payout as Paid? (The withdrawal was already deducted at request time.)'))return;
-  const now=new Date().toISOString();
-  p.status='Paid'; p.paidAt=now;
-  savePayoutsCache(list);
-  if(_sb&&_sbUserId){ try{ _sb.from('payouts').update({status:'Paid',paid_at:now}).eq('id',id).then(()=>{},()=>{}); }catch(e){} }
-  renderPayoutModule();
-  flash('✓ Payout marked Paid');
 }
 function downloadPayoutCertificate(id){
   const acc=state.accounts.find(a=>String(a.id)===String(id)); if(!acc)return;
