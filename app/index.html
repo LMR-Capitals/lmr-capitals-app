@@ -2422,6 +2422,7 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
           </div>
           <div class="prop-right">
             <div class="chips" id="priceRefs" style="padding:2px 0"></div>
+            <div id="priceRefOrder" style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;align-items:center"></div>
           </div>
         </div>
 
@@ -6415,9 +6416,32 @@ document.addEventListener('click',e=>{
   const grp=e.target.dataset.grp;
   if(multi){e.target.classList.toggle('on')}
   else{document.querySelectorAll(`.chip[data-grp="${grp}"]`).forEach(c=>c.classList.remove('on'));e.target.classList.add('on')}
+  // Price refs: click ORDER is data — maintain the ordered sequence + colour rule.
+  if(grp==='priceRefs'){
+    const val=e.target.dataset.val;
+    if(e.target.classList.contains('on')){ if(!_priceRefOrder.includes(val)) _priceRefOrder.push(val); }
+    else { _priceRefOrder=_priceRefOrder.filter(x=>x!==val); }
+    _renderPriceOrder();
+  }
   // Auto-save if chip is in Today panel
   if(document.getElementById('p-today').classList.contains('active'))autoSaveDaily();
 });
+// Price references are an ORDERED list (design rule): the sequence below shows the
+// click order, and Premium reddens that entry + every one after it, Discount blues
+// the rest. Persisted to daily.price as an ordered array.
+let _priceRefOrder=[];
+function _renderPriceOrder(){
+  const strip=document.getElementById('priceRefOrder'); if(!strip) return;
+  if(!_priceRefOrder.length){ strip.innerHTML='<span style="font-size:10px;color:var(--text3);letter-spacing:.05em">IN ORDER · —</span>'; return; }
+  const pi=_priceRefOrder.indexOf('Premium'), di=_priceRefOrder.indexOf('Discount');
+  const seq=_priceRefOrder.map((v,i)=>{
+    let col='var(--text2)';
+    if(pi>=0 && i>=pi) col='var(--bear)';
+    if(di>=0 && i>=di) col='var(--blue)';
+    return `<span style="font-size:11px;font-weight:600;color:${col};background:var(--bg3);border:1px solid var(--border2);border-radius:99px;padding:2px 9px">${i+1}. ${v}</span>`;
+  }).join('');
+  strip.innerHTML='<span style="font-size:10px;color:var(--text3);letter-spacing:.05em;margin-right:2px">IN ORDER ·</span>'+seq;
+}
 function getChipsValues(grp,multi=true){
   const sel=document.querySelectorAll(`.chip[data-grp="${grp}"].on`);
   const vals=[...sel].map(c=>c.dataset.val);
@@ -6442,6 +6466,8 @@ function loadDaily(){
   setChipsValues('ny',_normNY(d.ny));
   setChipsValues('asianRange',d.asianRange||[]);
   setChipsValues('priceRefs',d.priceRefs||d.price||[]); // read from either key
+  _priceRefOrder=(Array.isArray(d.price)?d.price:(Array.isArray(d.priceRefs)?d.priceRefs:[])).slice(); // preserve click order
+  _renderPriceOrder();
   setChipsValues('session',d.session||'');
   setChipsValues('plan',d.plan||'');
   setChipsValues('pred',d.pred||'');
@@ -6478,8 +6504,8 @@ function saveDaily(){
     london:getChipsValues('london',false),
     ny:getChipsValues('ny',false),
     asianRange:getChipsValues('asianRange',true),
-    priceRefs:getChipsValues('priceRefs',true),
-    price:getChipsValues('priceRefs',true),   // save as BOTH keys so Daily modal can read it
+    priceRefs:[..._priceRefOrder],
+    price:[..._priceRefOrder],   // ORDERED (click order is data); saved as BOTH keys so Daily modal can read it
     session:getChipsValues('session',false),
     plan:getChipsValues('plan',false),
     pred:getChipsValues('pred',false),
