@@ -3329,21 +3329,24 @@ Midnight Open $______"></textarea>
 
 <!-- LMR PSYCHOLOGY -->
 <div class="panel" id="p-psychology">
-<div style="height:100%;display:flex;flex-direction:column">
-  <div style="padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-    <span style="font-size:20px">🎯</span>
-    <div>
-      <div style="font-size:16px;font-weight:800;color:var(--text)">LMR Psychology</div>
-      <div style="font-size:11px;color:var(--text3)">Mindset · Discipline · Emotional control · Trade psychology</div>
-    </div>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
-      <span class="canvas-status" id="psychology-status" style="font-size:10px;color:var(--text3)">Auto-saves</span>
-      <button class="btn btn-ghost btn-sm" onclick="lmrClearSection('psychology')" title="Permanently clear all psychology content">🗑 Clear</button>
-      <button class="btn btn-primary btn-sm" onclick="lmrSimpleSave('psychology')">💾 Save</button>
-    </div>
+<div class="panel-inner">
+  <!-- KPI strip -->
+  <div class="ks-row" style="border:1px solid var(--border2);border-radius:var(--r2);background:var(--bg2);margin-bottom:14px;grid-template-columns:repeat(4,1fr)">
+    <div class="ks-tile"><div class="ks-label">Clean sessions</div><div class="ks-val" id="psy-clean">0 / 0</div><div class="ks-sub" id="psy-clean-sub">Sessions with zero breaches · 0%</div></div>
+    <div class="ks-tile"><div class="ks-label">Avg on clean sessions</div><div class="ks-val" id="psy-avg">+$0</div><div class="ks-sub">Every rule held</div></div>
+    <div class="ks-tile"><div class="ks-label">Sessions with a breach</div><div class="ks-val" id="psy-breach">0</div><div class="ks-sub" id="psy-breach-sub">avg per session</div></div>
+    <div class="ks-tile"><div class="ks-label">Rules never breached</div><div class="ks-val" id="psy-neverbr">5 / 5</div><div class="ks-sub">Graded live off real trades</div></div>
   </div>
-  <div style="flex:1;overflow-y:auto;padding:20px">
-    <div id="psychology-content" style="min-height:500px;color:var(--text);font-size:14px;line-height:1.8"></div>
+  <!-- AI feedback -->
+  <div class="m-card" style="margin-bottom:14px;border-color:var(--bear-border,var(--border2))">
+    <div class="m-sec-row"><span class="m-sec" style="color:var(--rose,var(--bear))">✦ AI Feedback Summary</span>
+      <button class="btn btn-bear btn-sm" style="margin-left:auto" onclick="runPsychologyReview()">Run AI review</button></div>
+    <div class="m-card-pad"><div id="psy-feedback" class="m-val" style="color:var(--text2)">Log trades to grade your process rules.</div></div>
+  </div>
+  <!-- Graded rules -->
+  <div class="m-card">
+    <div class="m-sec-row"><span class="m-sec">Process Rules — Graded</span></div>
+    <div id="psy-rules"></div>
   </div>
 </div>
 </div>
@@ -6664,7 +6667,7 @@ function navTo(p){
   if(p==='today') loadDaily();
   if(p==='settings') renderSettings();
   if(p==='terminology') setTimeout(()=>loadKnowledge(),100);
-  if(p==='psychology')  setTimeout(()=>lmrSimpleLoad('psychology'),100);
+  if(p==='psychology')  setTimeout(()=>renderPsychology(),100);
   if(p==='observation') setTimeout(loadObservations,100);
   if(p==='achievements') setTimeout(loadAchievements,100);
   if(p==='payout') setTimeout(renderPayoutModule,60);
@@ -9847,6 +9850,73 @@ function addKnowledgeTerm(sid){
   const kb=_kbState(); kb.addedTerms[sid]=kb.addedTerms[sid]||[]; kb.addedTerms[sid].push({name:name.trim(),short:short.trim()});
   saveKnowledge(); renderKnowledge();
 }
+
+// ── LMR Psychology — rule-based scoring graded live off real trades (design v2) ──
+const LMR_PSY_RULES=[
+  {id:'twoloss', title:'Stop after two losses', desc:'Hard stop — close the platform.',
+   grade:(day)=>{ let losses=0; for(const t of day){ if(losses>=2) return false; if((t.pnl||0)<0) losses++; } return true; }},
+  {id:'risk', title:'Risk never exceeds the default', desc:'Size stays constant regardless of conviction.',
+   grade:(day,ctx)=>{ if(!ctx.defRisk) return true; return day.every(t=>!(t.risk>0) || t.risk<=ctx.defRisk+0.01); }},
+  {id:'onemodel', title:'One setup, one model, per session', desc:'No switching models mid-session.',
+   grade:(day)=>{ const models=new Set(day.map(t=>(t.models&&t.models[0])||'').filter(Boolean)); return models.size<=1; }},
+  {id:'first5', title:'No trades in the first 5 minutes', desc:'Let the open resolve (09:30–09:35 ET).',
+   grade:(day)=>day.every(t=>{ const m=_psyMin(t.openTime); return m===null || m<570 || m>574; })},
+  {id:'noreentry', title:'No re-entry after a loss inside 15 minutes', desc:'A re-entry is not a new setup.',
+   grade:(day)=>{ for(let i=0;i<day.length;i++){ if((day[i].pnl||0)<0){ const lt=_psyMin(day[i].closeTime||day[i].openTime); if(lt===null) continue; for(let j=i+1;j<day.length;j++){ const nt=_psyMin(day[j].openTime); if(nt!==null && nt-lt>=0 && nt-lt<15) return false; } } } return true; }}
+];
+function _psyMin(hhmm){ if(!hhmm||typeof hhmm!=='string'||hhmm.indexOf(':')<0) return null; const [h,m]=hhmm.split(':').map(Number); if(isNaN(h)||isNaN(m)) return null; return h*60+m; }
+function renderPsychology(){
+  const _mids=(typeof _mirrorTradeIds==='function')?_mirrorTradeIds().ids:new Set();
+  const own=state.trades.filter(t=>!_mids.has(t.id));
+  // group into sessions by date, sort each by open time
+  const byDay={}; own.forEach(t=>{ const d=(t.date||'').slice(0,10); if(!d) return; (byDay[d]=byDay[d]||[]).push(t); });
+  const days=Object.keys(byDay).sort();
+  days.forEach(d=>byDay[d].sort((a,b)=>(_psyMin(a.openTime)??9999)-(_psyMin(b.openTime)??9999)||(a.id||0)-(b.id||0)));
+  // default risk = most common risk value among risk>0 trades
+  const riskCounts={}; own.forEach(t=>{ if(t.risk>0){ const k=Math.round(t.risk); riskCounts[k]=(riskCounts[k]||0)+1; } });
+  const defRisk=Object.keys(riskCounts).sort((a,b)=>riskCounts[b]-riskCounts[a]).map(Number)[0]||0;
+  const ctx={defRisk};
+  // per-rule breach counts + per-session breach tally
+  const ruleBreaches={}; LMR_PSY_RULES.forEach(r=>ruleBreaches[r.id]=0);
+  let cleanSessions=0, cleanPnl=0, sessionsWithBreach=0, totalBreaches=0;
+  days.forEach(d=>{ const day=byDay[d]; let breaches=0;
+    LMR_PSY_RULES.forEach(r=>{ const held=r.grade(day,ctx); if(!held){ ruleBreaches[r.id]++; breaches++; } });
+    const pnl=day.reduce((s,t)=>s+(t.pnl||0),0);
+    if(breaches===0){ cleanSessions++; cleanPnl+=pnl; } else { sessionsWithBreach++; totalBreaches+=breaches; }
+  });
+  const nSessions=days.length;
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('psy-clean',cleanSessions+' / '+nSessions);
+  set('psy-clean-sub','Sessions with zero breaches · '+(nSessions?Math.round(cleanSessions/nSessions*100):0)+'%');
+  const avgClean=cleanSessions?cleanPnl/cleanSessions:0;
+  set('psy-avg',(avgClean>=0?'+':'-')+'$'+Math.abs(avgClean).toFixed(0));
+  set('psy-breach',sessionsWithBreach);
+  set('psy-breach-sub',(sessionsWithBreach?(totalBreaches/sessionsWithBreach).toFixed(1):'0')+' rules avg per session');
+  const neverBr=LMR_PSY_RULES.filter(r=>ruleBreaches[r.id]===0).length;
+  set('psy-neverbr',neverBr+' / '+LMR_PSY_RULES.length);
+  // rule rows
+  const box=document.getElementById('psy-rules');
+  if(box) box.innerHTML=LMR_PSY_RULES.map(r=>{
+    const br=ruleBreaches[r.id]; const held=nSessions-br;
+    const pct=nSessions?Math.round(br/nSessions*100):0;
+    const ok=br===0;
+    return `<div class="kb-term" style="cursor:default;align-items:flex-start;flex-direction:column;gap:4px">
+      <div style="display:flex;align-items:center;gap:10px;width:100%">
+        <span class="kb-term-name">${r.title}</span>
+        <span class="m-badge-flag ${ok?'ok':''}" style="margin-left:auto">${ok?'HELD':br+' BREACH'+(br===1?'':'ES')}</span>
+        <span class="ks-sub" style="min-width:38px;text-align:right">${pct}%</span>
+      </div>
+      <div class="kb-term-short">${r.desc} — ${nSessions?(ok?'Clean across all '+nSessions+' session'+(nSessions===1?'':'s'):held+' of '+nSessions+' sessions held'):'No sessions yet'}.</div>
+    </div>`;
+  }).join('');
+  // feedback
+  const fb=document.getElementById('psy-feedback');
+  if(fb){ if(!nSessions){ fb.textContent='Log trades to grade your process rules.'; }
+    else if(sessionsWithBreach===0){ fb.textContent='Every process rule held across all '+nSessions+' session'+(nSessions===1?'':'s')+'. Nothing to correct — keep the sizing and stop-out discipline exactly where it is.'; }
+    else { const worst=LMR_PSY_RULES.slice().sort((a,b)=>ruleBreaches[b.id]-ruleBreaches[a.id])[0]; fb.textContent=`${sessionsWithBreach} of ${nSessions} sessions had a breach. Most broken rule: “${worst.title}” (${ruleBreaches[worst.id]}×). Fix that one first — it is the cheapest edge you are leaving on the table.`; }
+  }
+}
+function runPsychologyReview(){ renderPsychology(); try{ flash('✓ Psychology re-graded from your latest trades'); }catch(e){} }
 const _lmrSaveTimers = {};
 const _lmrEditors = {}; // kept for compat
 
