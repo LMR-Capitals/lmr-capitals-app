@@ -4183,6 +4183,13 @@ Midnight Open $______"></textarea>
         <div><label class="form-label">RTH Profile</label><select id="tm-rth"></select></div>
         <div><label class="form-label">HTF Delivery</label><select id="tm-htf"><option>Delivered</option><option>Undelivered</option></select></div>
       </div>
+      <!-- Trade quality (design v2): PD array committed, grade, plan adherence, refs -->
+      <div class="cols3" style="margin-top:8px">
+        <div><label class="form-label">PD Array</label><select id="tm-pdarray"><option value="">—</option></select></div>
+        <div><label class="form-label">Grade</label><select id="tm-grade"><option value="">—</option><option>A+</option><option>A</option><option>B</option><option>C</option><option>D</option><option>F</option></select></div>
+        <div><label class="form-label">Plan followed?</label><select id="tm-plan"><option value="">—</option><option>Followed</option><option>Unfollowed</option></select></div>
+      </div>
+      <div class="form-row" style="margin-top:8px"><label class="form-label">Price references <span style="color:var(--text3);font-weight:400">· in order, comma-separated</span></label><input id="tm-refs" placeholder="e.g. HTF OTE, Premium, PDH"></div>
       <div class="cols3" style="margin-top:8px">
         <div><label class="form-label">Net P&amp;L ($)</label><input type="number" id="tm-pnl" step="0.01"></div>
         <div><label class="form-label">Risk ($)</label><input type="number" id="tm-risk" step="0.01"></div>
@@ -5542,6 +5549,9 @@ function _mapTrade(t,uid){
     risk:parseFloat(t.risk)||0,lots:parseFloat(t.lots)||0,rr:parseFloat(t.rr)||0,
     open_time:t.openTime||null,close_time:t.closeTime||null,
     draws:t.draws||null,feedback:t.feedback||null,win:parseFloat(t.pnl||0)>0,
+    pd_array:t.pdArray||t.pd_array||null,grade:t.grade||null,
+    plan_followed:t.planFollowed||t.plan_followed||null,
+    refs:Array.isArray(t.refs)?t.refs:(t.refs?[t.refs]:[]),
     updated_at:new Date().toISOString()};
 }
 function _mapDaily(date,d,uid){
@@ -7532,6 +7542,8 @@ function openTradeModal(editId,presetAccId){
   // A normal open (no presetAccId) clears both, so the flags never leak to the next trade.
   _tmReturnAcct = (!editId&&presetAccId)?String(presetAccId):null;
   _tmManualAdd  = (!editId&&presetAccId)?true:false;
+  // Populate the PD-array select once (before any value is loaded below)
+  { const e=document.getElementById('tm-pdarray'); if(e&&e.options.length<=1&&typeof LMR_PD_ARRAYS!=='undefined') e.innerHTML='<option value="">—</option>'+LMR_PD_ARRAYS.map(a=>`<option value="${_pdEsc(a.name)}">${_pdEsc(a.short)} · ${_pdEsc(a.name)}</option>`).join(''); }
   // Normalise to same type used when images were saved
   const ex=editId?state.trades.find(t=>String(t.id)===String(editId)):null;
   document.getElementById('tm-date').value=ex?ex.date:todayStr();
@@ -7595,11 +7607,15 @@ function openTradeModal(editId,presetAccId){
     document.getElementById('tm-acc').value=String(ex.accountId||'');
     document.getElementById('tm-draws').value=ex.draws||'';
     document.getElementById('tm-fb').value=ex.feedback||'';
+    { const e=document.getElementById('tm-pdarray'); if(e)e.value=ex.pdArray||ex.pd_array||''; }
+    { const e=document.getElementById('tm-grade'); if(e)e.value=ex.grade||''; }
+    { const e=document.getElementById('tm-plan'); if(e)e.value=ex.planFollowed||ex.plan_followed||''; }
+    { const e=document.getElementById('tm-refs'); if(e)e.value=Array.isArray(ex.refs)?ex.refs.join(', '):(ex.refs||''); }
   } else {
     // New trade: if adding from a specific account → that account; else the Copier LEADER; else active account.
     const _def=(presetAccId?String(presetAccId):'')||_lid||(state.currentAcc?String(state.currentAcc):'');
     if(_def) document.getElementById('tm-acc').value=_def;
-    ['tm-pnl','tm-risk','tm-lots','tm-draws','tm-fb'].forEach(id=>document.getElementById(id).value='');
+    ['tm-pnl','tm-risk','tm-lots','tm-draws','tm-fb','tm-pdarray','tm-grade','tm-plan','tm-refs'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   }
   // Set image keys — use existing trade ID for edits, pre-generate for new
   const imgId = editId || ('new-'+Date.now());
@@ -7638,6 +7654,10 @@ function saveTrade(){
     accountId:document.getElementById('tm-acc').value,
     draws:document.getElementById('tm-draws').value,
     feedback:document.getElementById('tm-fb').value,
+    pdArray:(document.getElementById('tm-pdarray')||{}).value||'',
+    grade:(document.getElementById('tm-grade')||{}).value||'',
+    planFollowed:(document.getElementById('tm-plan')||{}).value||'',
+    refs:((document.getElementById('tm-refs')||{}).value||'').split(',').map(s=>s.trim()).filter(Boolean),
     dayCount:dayCountFor(date)
   };
   t.rr=t.risk>0?(t.pnl/t.risk).toFixed(2):0;
@@ -12883,7 +12903,11 @@ async function _sbDoPull() {
     rr:       parseFloat(t.rr)||0,
     openTime: t.open_time||t.openTime||'',   // recover from Supabase open_time column
     closeTime:t.close_time||t.closeTime||'', // recover from Supabase close_time column
-    accountId:t.account_id||t.accountId||''  // ensure accountId is always set
+    accountId:t.account_id||t.accountId||'', // ensure accountId is always set
+    pdArray:  t.pd_array||t.pdArray||'',           // design v2 trade-quality fields
+    grade:    t.grade||'',
+    planFollowed: t.plan_followed||t.planFollowed||'',
+    refs:     Array.isArray(t.refs)?t.refs:(t.refs?[t.refs]:[])
   }));
   // ── SAFETY: never overwrite more local trades with fewer cloud trades ──
   // If cloud has significantly fewer trades, abort (Supabase might be empty/stale)

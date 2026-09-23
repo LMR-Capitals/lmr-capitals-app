@@ -36,7 +36,7 @@ data layer; verify (syntax → headless preview → data round-trip) → commit 
 
 ## Phase 6 — Trades
 - [x] 6.1 Stats strip (already) + filter toolbar (acc/side/model/emotion/phase/mmm/rth + result chips + Clear) + List/Gallery views
-- [ ] 6.2 Add/Edit sheet + new fields (pd_array/refs/grade/plan_followed/img_entry+exit)
+- [x] 6.2 Add/Edit sheet new fields: PD array (LMR_PD_ARRAYS), grade, plan-followed, ordered refs; img_entry/exit via existing 4 image zones — save→map→reload verified
 
 ## Phase 7 — Performance / Reports
 - [ ] 7.1 6 charts + Review Performance → weekly_reports(kind='performance')
