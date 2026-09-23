@@ -164,6 +164,15 @@ h1,h2,h3,h4,.card-title,.tb-title,#tbTitle,.panel-title{font-family:'Space Grote
 .kb-term-chev{margin-left:auto;color:var(--text3);font-size:14px}
 .kb-addterm{background:none;border:1px solid var(--border2);color:var(--text2);font-size:10px;font-weight:700;padding:4px 10px;border-radius:99px}
 .kb-addterm:hover{border-color:var(--gold-border);color:var(--gold)}
+/* Compact density (design v2 setting) — tightens the busy surfaces */
+:root[data-density="compact"] .m-card-pad{padding:9px 12px}
+:root[data-density="compact"] .ks-tile{padding:9px 12px}
+:root[data-density="compact"] .ks-val{font-size:19px;margin:4px 0 2px}
+:root[data-density="compact"] .tile{padding:10px 12px}
+:root[data-density="compact"] .kb-term{padding:8px 12px}
+:root[data-density="compact"] .card-body{padding:10px 12px}
+:root[data-density="compact"] .m-sec-row{padding:8px 12px}
+:root[data-density="compact"] .tbl td,:root[data-density="compact"] .tbl th{padding-top:6px;padding-bottom:6px}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 input,textarea,select{font-family:inherit;font-size:13px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:var(--r);width:100%;outline:none}
 input:focus,textarea:focus,select:focus{border-color:var(--gold)}
@@ -3841,6 +3850,13 @@ Midnight Open $______"></textarea>
         </div>
       </div>
     </div>
+    <div class="form-row" style="margin-bottom:14px">
+      <label class="form-label">Density</label>
+      <select id="set-density" onchange="setDensity(this.value)">
+        <option value="comfortable">Comfortable — default spacing</option>
+        <option value="compact">Compact — tighter rows &amp; cards</option>
+      </select>
+    </div>
 
     <div style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px">⏱ Time &amp; Region</div>
     <div class="form-row"><label class="form-label">Timezone</label>
@@ -6395,6 +6411,7 @@ async function loadProfileFromCloud(){
     save();
     updateSidebarProfile();
     if(state.profile.theme) setTheme(state.profile.theme);
+    if(typeof applyDensity==='function') applyDensity();
     console.log('[LMR] Profile loaded from cloud ✓');
     return true;
   }catch(e){
@@ -13377,6 +13394,16 @@ function setTheme(name){
     el.classList.toggle('active',el.dataset.theme===name);
   });
 }
+// Density (design v2): comfortable | compact — persisted to profile.density
+function setDensity(mode){
+  const m=(mode==='compact')?'compact':'comfortable';
+  if(m==='compact') document.documentElement.setAttribute('data-density','compact');
+  else document.documentElement.removeAttribute('data-density');
+  state.profile=state.profile||{}; state.profile.density=m;
+  const sel=document.getElementById('set-density'); if(sel)sel.value=m;
+  save();
+}
+function applyDensity(){ setDensity((state.profile&&state.profile.density)||'comfortable'); }
 
 // ── EXPORT TRADES CSV ────────────────────────────────────────────────────────
 function exportTradesCSV(){
@@ -13578,6 +13605,7 @@ async function lgUnlock(user){
     // Apply saved theme
     if(state.profile?.theme)setTheme(state.profile.theme);
     else setTheme('navy-gold');
+    if(typeof applyDensity==='function') applyDensity();
     updateSidebarProfile();
     // Auto-restore any images from cloud that aren't in local IndexedDB
     // Runs silently in background — re-renders image zones when done

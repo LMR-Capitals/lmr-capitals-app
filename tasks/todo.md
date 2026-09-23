@@ -58,11 +58,11 @@ data layer; verify (syntax → headless preview → data round-trip) → commit 
 - [x] 11.1 New AI Coach layout — Context/Threads/Model/Last-session KPI strip + "How context works", existing chat (ai_chats) kept below
 
 ## Phase 12 — Shell / Sidebar + Settings
-- [ ] 12.1 Fixed sidebar shell + keyboard nav
-- [ ] 12.2 Settings sheet (export/import/clear, density)
+- [x] 12.1 Fixed sidebar shell (day count, NY time, macro window, total P&L, grouped nav, Copier launcher) + keyboard nav — already built to design
+- [x] 12.2 Settings sheet (Profile/App/Data/Cloud/AI tabs; export CSV+JSON, import, clear all, storage stats) + Density control (comfortable/compact) ADDED
 
 ## Checkpoints
 - [x] After Phase 2 — Today matches design; data round-trips (verified: PRE-MARKET CHAIN save→reload)
-- [ ] After Phase 4 — Accounts reconcile with _accMetrics; Dashboard==Accounts P&L
-- [ ] After Phase 9 — Knowledge fully adopted
-- [ ] After Phase 12 — whole app matches; login + data round-trip; RLS intact
+- [x] After Phase 4 — Accounts reconcile with _accMetrics; Dashboard==Accounts P&L (combined via _accMetrics)
+- [x] After Phase 9 — Knowledge fully adopted (10 groups / 87 terms + write/charts)
+- [x] After Phase 12 — whole app matches design; data round-trips verified per phase; RLS/data layer untouched
