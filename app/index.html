@@ -67,10 +67,11 @@ html,body{height:100%;overflow:hidden}
 body{
   font-family:'Inter','Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-serif;
   font-feature-settings:"cv02","cv03","cv04","cv11","ss01","calt","liga";
-  background:radial-gradient(ellipse 140% 60% at 60% -5%,rgba(20,60,120,.22) 0%,var(--bg) 55%) fixed,
-             radial-gradient(ellipse 80% 40% at 10% 90%,rgba(91,143,255,.06) 0%,transparent 60%);
+  background:var(--bg) fixed;
   color:var(--text);font-size:14px;line-height:1.55;letter-spacing:-.005em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;
 }
+/* Modernist headings — Space Grotesk, tight tracking */
+h1,h2,h3,h4,.card-title,.tb-title,#tbTitle,.panel-title{font-family:'Space Grotesk','Inter',sans-serif;letter-spacing:-.01em}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 input,textarea,select{font-family:inherit;font-size:13px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:var(--r);width:100%;outline:none}
 input:focus,textarea:focus,select:focus{border-color:var(--gold)}

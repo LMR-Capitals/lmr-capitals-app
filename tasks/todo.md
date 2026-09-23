@@ -9,7 +9,7 @@ data layer; verify (syntax → headless preview → data round-trip) → commit 
 
 ## Phase 1 — Global design system
 - [x] 1.1 Modernist :root color tokens
-- [ ] 1.2 Fonts — Space Grotesk headings + Inter body (JetBrains Mono numbers already set)
+- [x] 1.2 Fonts — Space Grotesk headings + Inter body (JetBrains Mono numbers already set)
 - [ ] 1.3 Shared component CSS — card, section header, metric grid, dropdown, donut ring, pill/tag, KEY-LEVEL box
 
 ## Phase 2 — Today / The Chain
