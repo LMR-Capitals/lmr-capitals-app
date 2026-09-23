@@ -2960,63 +2960,73 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
           <div id="lmr-pd"></div>
         </div>
 
-        <!-- RESULT PROPERTIES -->
+        <!-- TRADE PLAN (design) — written before the open -->
+        <div class="chain-sec-header" style="padding:8px 16px 4px;font-size:8px;opacity:.5">▼ TRADE PLAN</div>
+        <div class="prop-block" style="padding:8px 16px;display:block">
+          <div class="m-field">
+            <label for="ch-tradeplan">Plan</label>
+            <span class="m-fhint">Written before the open</span>
+            <textarea id="ch-tradeplan" rows="3" placeholder="Why I should take a trade?" onchange="autoSaveDaily()" style="width:100%"></textarea>
+          </div>
+        </div>
+
+        <!-- END OF DAY REVIEW (design) — grade the day -->
         <div class="chain-sec-header" style="padding:8px 16px 4px;font-size:8px;opacity:.5">▼ END OF DAY REVIEW</div>
-
-        <div class="prop-block p-plan" style="padding:8px 16px">
-          <div class="prop-left">
-            <div class="prop-label">Plan →</div>
-            <div class="prop-type">Select · Did you follow it?</div>
-          </div>
-          <div class="prop-right">
-            <div class="chips" style="padding:2px 0">
-              <button class="chip bull" data-grp="plan" data-val="Followed">✓ Followed</button>
-              <button class="chip bear" data-grp="plan" data-val="Unfollowed">✗ Unfollowed</button>
+        <div class="prop-block" style="padding:8px 16px;display:block">
+          <div class="m-grid m-grid-4">
+            <div class="m-field">
+              <label>Plan adherence</label>
+              <span class="m-fhint">Grades the execution, not the result</span>
+              <select data-grp="plan" class="m-focus" onchange="autoSaveDaily()">
+                <option value="">Select…</option><option value="Followed">Followed</option><option value="Unfollowed">Unfollowed</option>
+              </select>
+            </div>
+            <div class="m-field">
+              <label>Plan</label>
+              <span class="m-fhint">Feeds the psychology grade</span>
+              <select data-grp="plangrade" class="m-focus" onchange="autoSaveDaily()">
+                <option value="">Select…</option><option value="A">A · Excellent</option><option value="B">B · Good</option><option value="C">C · Fair</option><option value="D">D · Poor</option>
+              </select>
+            </div>
+            <div class="m-field">
+              <label>Prediction</label>
+              <span class="m-fhint">Scores the monthly bias</span>
+              <select data-grp="pred" class="m-focus" onchange="autoSaveDaily()">
+                <option value="">Select…</option><option value="Correct">Correct</option><option value="Incorrect">Incorrect</option>
+              </select>
+            </div>
+            <div class="m-field">
+              <label>Day status</label>
+              <span class="m-fhint">How the day closed</span>
+              <select data-grp="daystatus" class="m-focus" onchange="autoSaveDaily()">
+                <option value="">Select…</option><option value="Passed">Passed</option><option value="In Process">In Process</option><option value="Blown">Blown</option>
+              </select>
             </div>
           </div>
         </div>
 
-        <div class="prop-block p-pred" style="padding:8px 16px">
-          <div class="prop-left">
-            <div class="prop-label">Prediction →</div>
-            <div class="prop-type">Select · Was it correct?</div>
-          </div>
-          <div class="prop-right">
-            <div class="chips" style="padding:2px 0">
-              <button class="chip bull" data-grp="pred" data-val="Correct">✓ Correct</button>
-              <button class="chip bear" data-grp="pred" data-val="Incorrect">✗ Incorrect</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="prop-block" style="padding:8px 16px">
-          <div class="prop-left">
-            <div class="prop-label" style="color:var(--bull)">Status →</div>
-            <div class="prop-type">Select · Day result</div>
-          </div>
-          <div class="prop-right">
-            <div class="chips" style="padding:2px 0">
-              <button class="chip bull" data-grp="daystatus" data-val="Passed">✅ Passed</button>
-              <button class="chip" data-grp="daystatus" data-val="In Process">⏳ In Process</button>
-              <button class="chip bear" data-grp="daystatus" data-val="Blown">💥 Blown</button>
-            </div>
-          </div>
-        </div>
-
+        <!-- JOURNAL (design "Review notes" → inline Journal, connected to the Journal with images) -->
         <div class="chain-sec-header" style="padding:8px 16px 4px;font-size:8px;opacity:.5">▼ JOURNAL</div>
-
-        <div class="prop-block" style="padding:8px 16px">
-          <div class="prop-left">
-            <div class="prop-label" style="color:var(--gold)">Journal →</div>
-            <div class="prop-type">Daily reflection</div>
+        <div class="prop-block" style="padding:8px 16px;display:block">
+          <div class="m-field">
+            <label for="ch-journal-text">Journal</label>
+            <span class="m-fhint">Written after the close — saved to your Journal</span>
+            <textarea id="ch-journal-text" rows="4" placeholder="How did the day go? What did you learn?" style="width:100%"></textarea>
           </div>
-          <div class="prop-right" style="flex:1">
-            <div id="today-journal-preview" style="font-size:11px;color:var(--text3);margin-bottom:6px;line-height:1.4;cursor:pointer" onclick="openTodayJournal()">
-              No entry yet — click to add
+          <div style="margin-top:10px">
+            <div class="m-label" style="margin-bottom:6px">Charts / Images</div>
+            <div class="img-grid-2">
+              <div class="img-zone-wrap">
+                <div class="img-zone" data-imgkey="today-journal-1" onclick="pickImage(this)" style="min-height:110px"><div class="img-zone-text">📋 Paste or + Chart 1</div></div>
+              </div>
+              <div class="img-zone-wrap">
+                <div class="img-zone" data-imgkey="today-journal-2" onclick="pickImage(this)" style="min-height:110px"><div class="img-zone-text">📋 Paste or + Chart 2</div></div>
+              </div>
             </div>
-            <button class="btn btn-sm" onclick="openTodayJournal()" style="background:rgba(245,166,35,.08);border-color:rgba(245,166,35,.25);color:var(--gold);font-size:10px">
-              ✦ Open / Add Journal
-            </button>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;margin-top:10px">
+            <button class="btn btn-primary btn-sm" onclick="saveTodayJournalInline()">💾 Save Journal Entry</button>
+            <span id="today-journal-preview" style="font-size:11px;color:var(--text3);line-height:1.4"></span>
           </div>
         </div>
 
@@ -7365,9 +7375,13 @@ function loadDaily(){
   if(window.PD&&typeof PD.render==='function')PD.render(); // design PD-array commitment card
   setChipsValues('session',d.session||'');
   setChipsValues('plan',d.plan||'');
+  setChipsValues('plangrade',d.plangrade||'');
+  { const tp=document.getElementById('ch-tradeplan'); if(tp)tp.value=d.tradePlan||''; }
   setChipsValues('pred',d.pred||'');
   setChipsValues('daystatus',d.daystatus||'');
   document.getElementById('ch-rth').value=d.rth||'';
+  // inline journal text (today's entry from Notes/Journal)
+  { const jt=document.getElementById('ch-journal-text'); if(jt){ const je=(state.notes||[]).find(n=>n.date===ds)||(state.journal||[]).find(n=>n.date===ds); jt.value=je?je.text||'':''; } }
   document.getElementById('todayStatus').textContent=d.savedAt?('Saved '+new Date(d.savedAt).toLocaleTimeString()):'Not started';
   // render images
   document.querySelectorAll('#p-today .img-zone').forEach(z=>renderImgZone(z));
@@ -7409,6 +7423,8 @@ function saveDaily(){
     pdSwitches:_prevPdSwitches,
     session:getChipsValues('session',false),
     plan:getChipsValues('plan',false),
+    plangrade:getChipsValues('plangrade',false),
+    tradePlan:(document.getElementById('ch-tradeplan')||{}).value||'',
     pred:getChipsValues('pred',false),
     daystatus:getChipsValues('daystatus',false),
     htfpoi:document.getElementById('ch-poi').value,
@@ -7596,11 +7612,11 @@ function updateWeeklyDisplay(){
 function updateTodayJournalPreview(ds){
   const el = document.getElementById('today-journal-preview');
   if(!el) return;
-  const entry = state.notes.find(n=>n.date===ds);
+  const entry = (state.notes||[]).find(n=>n.date===ds) || (state.journal||[]).find(n=>n.date===ds);
   if(entry){
-    el.innerHTML=`<span style="color:var(--text2);cursor:pointer" onclick="openTodayJournal()">📓 ${entry.text.slice(0,100)}${entry.text.length>100?'…':''}</span>`;
+    el.innerHTML=`<span style="color:var(--bull)">✓ Saved</span> · ${entry.text.slice(0,60)}${entry.text.length>60?'…':''}`;
   } else {
-    el.textContent='No entry yet — click to add';
+    el.textContent='Not saved yet';
   }
 }
 
@@ -7699,6 +7715,26 @@ function saveTodayJournal(ds, dc){
   flash('✓ Journal entry saved for D'+dc);
 }
 
+// Inline Today's-chain journal (design "Review notes" → Journal). Saves to Notes
+// (date-keyed) + cloud, same store the Journal panel reads; images persist via
+// the today-journal-1/2 zones (saveImg on paste/upload).
+function saveTodayJournalInline(){
+  const ds=todayStr();
+  const dc=dayCountFor(ds)||getNextDayCount();
+  const text=(document.getElementById('ch-journal-text')||{}).value?.trim()||'';
+  if(!text){ flash('⚠ Add some text first'); return; }
+  const existing=(state.notes||[]).find(n=>n.date===ds);
+  const id=existing?existing.id:Date.now();
+  const note={ id, type:existing?.type||'neutral', date:ds, dayCount:dc, title:`D${dc} · ${fmtDate(ds)}`, text, createdAt:existing?.createdAt||new Date().toISOString() };
+  state.notes=(state.notes||[]).filter(n=>n.date!==ds);
+  state.notes.unshift(note);
+  save();
+  if(_sbSyncEnabled&&_sbUserId&&_sb){
+    _sb.from('notes').upsert({ id:String(id), user_id:_sbUserId, title:note.title, text:note.text, date:ds, created_at:note.createdAt },{onConflict:'id'}).catch(()=>{});
+  }
+  updateTodayJournalPreview(ds);
+  flash('✓ Journal saved for D'+dc);
+}
 function deleteTodayJournalEntry(id, ds){
   if(!confirm('Delete this journal entry?'))return;
   state.notes = state.notes.filter(n=>String(n.id)!==String(id));
