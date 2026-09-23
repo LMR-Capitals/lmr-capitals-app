@@ -2883,15 +2883,19 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
           </div>
         </div>
 
-        <div class="prop-block" style="padding:8px 16px">
-          <div class="prop-left">
-            <div class="prop-label" style="color:var(--text2)">Price Refs →</div>
-            <div class="prop-type">Multi-select · PD Arrays</div>
+        <div class="prop-block" style="padding:8px 16px;display:block">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+            <div>
+              <div class="prop-label" style="color:var(--text2)">Price references</div>
+              <div class="prop-type" id="priceRefCount">0 of 0 selected · click to build the order</div>
+            </div>
+            <button class="btn btn-sm" id="priceRefToggle" style="margin-left:auto" onclick="togglePriceRefPicker()">Add / edit references</button>
           </div>
-          <div class="prop-right">
+          <div id="priceRefPicker" style="display:none">
+            <input id="priceRefSearch" placeholder="Search references…" oninput="filterPriceRefs(this.value)" style="width:100%;max-width:360px;margin-bottom:8px;font-size:12px">
             <div class="chips" id="priceRefs" style="padding:2px 0"></div>
-            <div id="priceRefOrder" style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;align-items:center"></div>
           </div>
+          <div id="priceRefOrder" style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;align-items:center"></div>
         </div>
 
         <!-- P/D ARRAY COMMITMENT — drop-in section from the design (design/handoff/pd-arrays-section.html) -->
@@ -7165,8 +7169,34 @@ document.addEventListener('click',e=>{
 // click order, and Premium reddens that entry + every one after it, Discount blues
 // the rest. Persisted to daily.price as an ordered array.
 let _priceRefOrder=[];
+function _updatePriceRefCount(){
+  const el=document.getElementById('priceRefCount'); if(!el) return;
+  const total=(typeof PRICE_REFS!=='undefined'?PRICE_REFS.length:0);
+  const n=_priceRefOrder.length;
+  el.textContent=n+' of '+total+' in play'+(n?' · click order is the delivery sequence':' · click to build the order');
+}
+function togglePriceRefPicker(){
+  const p=document.getElementById('priceRefPicker'), b=document.getElementById('priceRefToggle');
+  if(!p) return; const open=p.style.display==='none'||!p.style.display;
+  p.style.display=open?'block':'none';
+  if(b)b.textContent=open?'Hide references':'Add / edit references';
+  if(open){ const s=document.getElementById('priceRefSearch'); if(s){s.focus();} }
+}
+function filterPriceRefs(q){
+  q=(q||'').trim().toLowerCase();
+  document.querySelectorAll('#priceRefs .chip[data-grp="priceRefs"]').forEach(c=>{
+    c.style.display=(!q||(c.dataset.val||'').toLowerCase().includes(q))?'':'none';
+  });
+  // hide a group header whose chips are all filtered out
+  document.querySelectorAll('#priceRefs > div').forEach(g=>{
+    const chips=[...g.querySelectorAll('.chip')];
+    const anyVisible=chips.some(c=>c.style.display!=='none');
+    g.style.display=(chips.length&&!anyVisible)?'none':'';
+  });
+}
 function _renderPriceOrder(){
   const strip=document.getElementById('priceRefOrder'); if(!strip) return;
+  _updatePriceRefCount();
   if(!_priceRefOrder.length){ strip.innerHTML='<span style="font-size:10px;color:var(--text3);letter-spacing:.05em">IN ORDER · —</span>'; return; }
   const pi=_priceRefOrder.indexOf('Premium'), di=_priceRefOrder.indexOf('Discount');
   const seq=_priceRefOrder.map((v,i)=>{
