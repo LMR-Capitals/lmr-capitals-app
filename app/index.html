@@ -2370,20 +2370,6 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
         <!-- DAILY CHAIN PROPERTIES -->
         <div class="chain-sec-header" style="padding:8px 16px 4px;font-size:8px;opacity:.5">▼ DAILY CHAIN — FILL BEFORE 9:30</div>
 
-        <div class="prop-block p-bias" style="padding:8px 16px">
-          <div class="prop-left">
-            <div class="prop-label">Daily Bias →</div>
-            <div class="prop-type">Select · Single</div>
-          </div>
-          <div class="prop-right">
-            <div class="chips" style="padding:2px 0">
-              <button class="chip bull" data-grp="dbias" data-val="Bullish">Bullish</button>
-              <button class="chip" data-grp="dbias" data-val="Bearish" style="color:var(--text2)">Bearish</button>
-              <button class="chip" data-grp="dbias" data-val="Neutral" style="color:var(--text3)">Neutral</button>
-            </div>
-          </div>
-        </div>
-
         <!-- HIGHER-TIMEFRAME CONTEXT — 4-field grid (Premarket · Weekly draw · Daily run · Daily draw) -->
         <div style="padding:6px 16px 10px">
           <div class="m-card">
@@ -2415,45 +2401,75 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
           </div>
         </div>
 
-        <div class="prop-block p-london" style="padding:8px 16px">
-          <div class="prop-left">
-            <div class="prop-label">London Killzone →</div>
-            <div class="prop-type">Select · Judas + session</div>
-          </div>
-          <div class="prop-right">
-            <div class="chips" style="padding:2px 0">
-              <button class="chip bull" data-grp="london" data-val="Accumulation">Accumulation</button>
-              <button class="chip bear" data-grp="london" data-val="Manipulation">Manipulation</button>
-              <button class="chip" data-grp="london" data-val="Distribution" style="color:var(--blue);border-color:rgba(91,168,255,.35)">Distribution</button>
-              <button class="chip" data-grp="london" data-val="Judas London">Judas London</button>
-              <button class="chip" data-grp="london" data-val="Judas NY">Judas NY</button>
-              <button class="chip" data-grp="london" data-val="Judas Both">Judas Both</button>
-              <button class="chip" data-grp="london" data-val="No Judas">No Judas</button>
+        <!-- PRE-MARKET CHAIN — dropdown grid (bias · asian · london · ny · rth · session) -->
+        <div style="padding:6px 16px 10px">
+          <div class="m-card">
+            <div class="m-sec-row"><span class="m-sec">Pre-Market Chain</span></div>
+            <div class="m-card-pad">
+              <div class="m-grid m-grid-4">
+                <div class="m-field">
+                  <span class="m-flabel">Daily bias</span>
+                  <span class="m-fhint">Single-select</span>
+                  <select id="ch-bias" data-grp="dbias" class="m-focus" onchange="autoSaveDaily()">
+                    <option value="">Select…</option>
+                    <option value="Bullish">Bullish</option>
+                    <option value="Bearish">Bearish</option>
+                    <option value="Neutral">Neutral</option>
+                  </select>
+                </div>
+                <div class="m-field">
+                  <span class="m-flabel">Asian range</span>
+                  <span class="m-fhint">Single-select</span>
+                  <select id="ch-asianrange" data-grp="asianRange" class="m-focus" onchange="autoSaveDaily()"><option value="">Select…</option></select>
+                </div>
+                <div class="m-field">
+                  <span class="m-flabel">London Killzone</span>
+                  <span class="m-fhint">Judas + session</span>
+                  <select id="ch-london" data-grp="london" class="m-focus" onchange="autoSaveDaily()">
+                    <option value="">Select…</option>
+                    <option value="Accumulation">Accumulation</option>
+                    <option value="Manipulation">Manipulation</option>
+                    <option value="Distribution">Distribution</option>
+                    <option value="Judas London">Judas London</option>
+                    <option value="Judas NY">Judas NY</option>
+                    <option value="Judas Both">Judas Both</option>
+                    <option value="No Judas">No Judas</option>
+                  </select>
+                </div>
+                <div class="m-field">
+                  <span class="m-flabel">NY session</span>
+                  <span class="m-fhint">Session profile</span>
+                  <select id="ch-ny" data-grp="ny" class="m-focus" onchange="autoSaveDaily()">
+                    <option value="">Select…</option>
+                    <option value="Rebalance / Reversal">Rebalance / Reversal</option>
+                    <option value="Manipulation / Distribution">Manip / Distrib</option>
+                    <option value="Retracement / Continuations">Retracement / Continuation</option>
+                  </select>
+                </div>
+                <div class="m-field">
+                  <span class="m-flabel">RTH delivery profile</span>
+                  <span class="m-fhint">Premium first, then discount</span>
+                  <select id="ch-rth" class="m-focus" onchange="autoSaveDaily()"><option value="">Select RTH Profile…</option></select>
+                </div>
+                <div class="m-field">
+                  <span class="m-flabel">Session traded</span>
+                  <span class="m-fhint">Killzone</span>
+                  <select id="ch-session" data-grp="session" class="m-focus" onchange="autoSaveDaily()">
+                    <option value="">Select…</option>
+                    <option value="Asian Killzone">Asian Killzone</option>
+                    <option value="Midnight Open">Midnight Open</option>
+                    <option value="London Open">London Open</option>
+                    <option value="London Kill Zone">London Kill Zone</option>
+                    <option value="Pre-NY Session">Pre-NY Session</option>
+                    <option value="AM">NY AM</option>
+                    <option value="London Close">London Close</option>
+                    <option value="NY Lunch">NY Lunch</option>
+                    <option value="PM">NY PM</option>
+                    <option value="Final Hour">Final Hour</option>
+                  </select>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-
-        <div class="prop-block p-ny" style="padding:8px 16px">
-          <div class="prop-left">
-            <div class="prop-label">New York →</div>
-            <div class="prop-type">Select · Session profile</div>
-          </div>
-          <div class="prop-right">
-            <div class="chips" style="padding:2px 0">
-              <button class="chip bear" data-grp="ny" data-val="Rebalance / Reversal">Rebalance / Reversal</button>
-              <button class="chip bull" data-grp="ny" data-val="Manipulation / Distribution">Manip / Distrib</button>
-              <button class="chip" data-grp="ny" data-val="Retracement / Continuations" style="color:var(--blue);border-color:rgba(91,168,255,.35)">Retracement / Continuation</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="prop-block p-asian" style="padding:8px 16px">
-          <div class="prop-left">
-            <div class="prop-label">Asian Range →</div>
-            <div class="prop-type">Select · single</div>
-          </div>
-          <div class="prop-right">
-            <div class="chips" id="asianRange" style="padding:2px 0"></div>
           </div>
         </div>
 
@@ -2477,37 +2493,6 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
               <select id="ch-pdarray" style="font-size:12px;width:100%;max-width:440px" onchange="commitPdArray(this)"><option value="">Commit today's P/D array…</option></select>
               <div id="ch-pdarray-detail" style="margin-top:12px"></div>
             </div>
-          </div>
-        </div>
-
-        <div class="prop-block p-session" style="padding:8px 16px">
-          <div class="prop-left">
-            <div class="prop-label">Session Traded →</div>
-            <div class="prop-type">Select · Killzone</div>
-          </div>
-          <div class="prop-right">
-            <div class="chips" style="padding:2px 0">
-              <button class="chip" data-grp="session" data-val="Asian Killzone">Asian Killzone</button>
-              <button class="chip" data-grp="session" data-val="Midnight Open">Midnight Open</button>
-              <button class="chip" data-grp="session" data-val="London Open">London Open</button>
-              <button class="chip" data-grp="session" data-val="London Kill Zone">London Kill Zone</button>
-              <button class="chip" data-grp="session" data-val="Pre-NY Session">Pre-NY Session</button>
-              <button class="chip bull" data-grp="session" data-val="AM">NY AM</button>
-              <button class="chip" data-grp="session" data-val="London Close">London Close</button>
-              <button class="chip" data-grp="session" data-val="NY Lunch">NY Lunch</button>
-              <button class="chip" data-grp="session" data-val="PM" style="color:var(--blue);border-color:rgba(91,168,255,.35)">NY PM</button>
-              <button class="chip" data-grp="session" data-val="Final Hour">Final Hour</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="prop-block" style="padding:8px 16px">
-          <div class="prop-left">
-            <div class="prop-label" style="color:var(--text2)">RTH Delivery →</div>
-            <div class="prop-type">Select · Profile</div>
-          </div>
-          <div class="prop-right">
-            <select id="ch-rth" style="font-size:12px" onchange="saveDaily()"><option value="">Select RTH Profile…</option></select>
           </div>
         </div>
 
@@ -6818,12 +6803,18 @@ function renderPdArrayDetail(name){
   </div>`;
 }
 function getChipsValues(grp,multi=true){
+  // Some groups render as a native <select data-grp> (design v2 dropdown grid);
+  // read those the same way so every existing call site keeps working.
+  const selEl=document.querySelector(`select[data-grp="${grp}"]`);
+  if(selEl){ const v=selEl.value||''; return multi?(v?[v]:[]):v; }
   const sel=document.querySelectorAll(`.chip[data-grp="${grp}"].on`);
   const vals=[...sel].map(c=>c.dataset.val);
   return multi?vals:(vals[0]||'');
 }
 function setChipsValues(grp,vals){
   if(!Array.isArray(vals)) vals=[vals];
+  const selEl=document.querySelector(`select[data-grp="${grp}"]`);
+  if(selEl){ selEl.value=vals[0]||''; return; }
   document.querySelectorAll(`.chip[data-grp="${grp}"]`).forEach(c=>c.classList.toggle('on',vals.includes(c.dataset.val)));
 }
 
@@ -12070,7 +12061,8 @@ async function init(){
   if(!state.terminologyPage)state.terminologyPage='';
   if(!state.psychologyPage)state.psychologyPage='';
   // build chips that need rendering
-  buildChips('asianRange',ASIAN_RANGE,false,'asianRange'); // design v2: single-select
+  // Asian range is now a native <select> (design v2 dropdown grid); populate from ASIAN_RANGE
+  { const _ar=document.getElementById('ch-asianrange'); if(_ar) _ar.innerHTML='<option value="">Select…</option>'+ASIAN_RANGE.map(v=>`<option value="${v}">${v}</option>`).join(''); }
   buildPriceRefChips();
   buildChips('smtChips',SMT_OPTS,true,'smtChips');
   // populate RTH select on today panel

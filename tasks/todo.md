@@ -18,7 +18,7 @@ data layer; verify (syntax → headless preview → data round-trip) → commit 
 - [x] 2.3 PD Array commitment card + hard-block → pd_switches
 - [x] 2.4 Monthly/Weekly context cards (metric grid + KEY LEVEL)
 - [x] 2.5 HIGHER-TIMEFRAME CONTEXT 4-col grid
-- [ ] 2.6 PRE-MARKET CHAIN dropdown-grid card
+- [x] 2.6 PRE-MARKET CHAIN dropdown-grid card
 - [ ] 2.7 Chart-slot row order + trades moved to bottom
 
 ## Phase 3 — Dashboard
