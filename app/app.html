@@ -3011,17 +3011,13 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
           <div class="m-field">
             <label for="ch-journal-text">Journal</label>
             <span class="m-fhint">Written after the close — saved to your Journal</span>
+            <div id="ch-journal-types" class="chips" style="padding:4px 0 8px"></div>
             <textarea id="ch-journal-text" rows="4" placeholder="How did the day go? What did you learn?" style="width:100%"></textarea>
           </div>
           <div style="margin-top:10px">
-            <div class="m-label" style="margin-bottom:6px">Charts / Images</div>
-            <div class="img-grid-2">
-              <div class="img-zone-wrap">
-                <div class="img-zone" data-imgkey="today-journal-1" onclick="pickImage(this)" style="min-height:110px"><div class="img-zone-text">📋 Paste or + Chart 1</div></div>
-              </div>
-              <div class="img-zone-wrap">
-                <div class="img-zone" data-imgkey="today-journal-2" onclick="pickImage(this)" style="min-height:110px"><div class="img-zone-text">📋 Paste or + Chart 2</div></div>
-              </div>
+            <div class="m-label" style="margin-bottom:6px">Chart / Image</div>
+            <div class="img-zone-wrap">
+              <div class="img-zone" data-imgkey="today-journal-1" onclick="pickImage(this)" style="min-height:120px"><div class="img-zone-text">📋 Paste or + upload</div></div>
             </div>
           </div>
           <div style="display:flex;gap:10px;align-items:center;margin-top:10px">
@@ -7380,8 +7376,11 @@ function loadDaily(){
   setChipsValues('pred',d.pred||'');
   setChipsValues('daystatus',d.daystatus||'');
   document.getElementById('ch-rth').value=d.rth||'';
-  // inline journal text (today's entry from Notes/Journal)
-  { const jt=document.getElementById('ch-journal-text'); if(jt){ const je=(state.notes||[]).find(n=>n.date===ds)||(state.journal||[]).find(n=>n.date===ds); jt.value=je?je.text||'':''; } }
+  // inline journal text + type (today's entry from Notes/Journal)
+  { const je=(state.notes||[]).find(n=>n.date===ds)||(state.journal||[]).find(n=>n.date===ds);
+    const jt=document.getElementById('ch-journal-text'); if(jt) jt.value=je?je.text||'':'';
+    _todayJType = je ? (window.jNormType?jNormType(je.type):je.type||'Lesson') : 'Lesson';
+    if(typeof renderTodayJournalTypes==='function') renderTodayJournalTypes(); }
   document.getElementById('todayStatus').textContent=d.savedAt?('Saved '+new Date(d.savedAt).toLocaleTimeString()):'Not started';
   // render images
   document.querySelectorAll('#p-today .img-zone').forEach(z=>renderImgZone(z));
@@ -7644,13 +7643,11 @@ function openTodayJournal(){
 
     <div style="margin-bottom:12px">
       <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px">Type</label>
-      <select id="tj-type" style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;width:160px">
-        <option value="lesson">Lesson</option>
-        <option value="mindset">Mindset</option>
-        <option value="mistake">Mistake</option>
-        <option value="bull">Win Recap</option>
-        <option value="bear">Loss Recap</option>
-        <option value="neutral">Note</option>
+      <select id="tj-type" style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;width:180px">
+        <option value="Lesson">Lesson</option>
+        <option value="Win / Adhered">Win / Adhered</option>
+        <option value="Loss / Mistake">Loss / Mistake</option>
+        <option value="Mindset">Mindset</option>
       </select>
     </div>
 
@@ -7660,13 +7657,10 @@ function openTodayJournal(){
         style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 14px;color:var(--text);font-size:13px;resize:vertical;font-family:'Plus Jakarta Sans',sans-serif;line-height:1.6">${existing?.text||''}</textarea>
     </div>
 
-    <!-- Image zones for journal -->
+    <!-- Image zone for journal (single) -->
     <div style="margin-bottom:16px">
-      <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:8px">Charts / Images</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div class="img-zone" data-imgkey="journal-${ds}-1" onclick="pickImage(this)" style="height:100px"><div class="img-zone-text">📋 Chart 1</div></div>
-        <div class="img-zone" data-imgkey="journal-${ds}-2" onclick="pickImage(this)" style="height:100px"><div class="img-zone-text">📋 Chart 2</div></div>
-      </div>
+      <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:8px">Chart / Image</label>
+      <div class="img-zone" data-imgkey="today-journal-1" onclick="pickImage(this)" style="height:130px"><div class="img-zone-text">📋 Paste or click to upload</div></div>
     </div>
 
     <div style="display:flex;gap:8px">
@@ -7680,8 +7674,8 @@ function openTodayJournal(){
   document.body.appendChild(modal);
   // Load existing images
   modal.querySelectorAll('.img-zone').forEach(z=>renderImgZone(z));
-  // Pre-fill type if existing
-  if(existing) document.getElementById('tj-type').value = existing.type||'lesson';
+  // Pre-fill type if existing (normalised to the 4 canonical types)
+  if(existing) document.getElementById('tj-type').value = (window.jNormType?jNormType(existing.type):existing.type)||'Lesson';
 }
 
 function closeTodayJournal(){
@@ -7690,7 +7684,7 @@ function closeTodayJournal(){
 
 function saveTodayJournal(ds, dc){
   const text = document.getElementById('tj-text')?.value?.trim();
-  const type = document.getElementById('tj-type')?.value||'lesson';
+  const type = document.getElementById('tj-type')?.value||'Lesson';
   if(!text){ flash('⚠ Add some text first'); return; }
 
   const id = Date.now();
@@ -7715,9 +7709,37 @@ function saveTodayJournal(ds, dc){
   flash('✓ Journal entry saved for D'+dc);
 }
 
+// ── Canonical journal types (unified across Today, the modal and the Journal page) ──
+// Lesson = red, Win/Adhered = green, Loss/Mistake = blue, Mindset = yellow/gold.
+window.JTYPES = [
+  ['Lesson',         'var(--bear)'],
+  ['Win / Adhered',  'var(--bull)'],
+  ['Loss / Mistake', 'var(--blue)'],
+  ['Mindset',        'var(--gold)']
+];
+window.jNormType = function(t){
+  t = String(t||'').toLowerCase();
+  if (t.indexOf('win')>=0 || t==='bull' || t.indexOf('adher')>=0) return 'Win / Adhered';
+  if (t.indexOf('loss')>=0 || t==='bear' || t.indexOf('mistake')>=0) return 'Loss / Mistake';
+  if (t.indexOf('mind')>=0 || t==='neutral' || t.indexOf('note')>=0) return 'Mindset';
+  return 'Lesson';
+};
+window.jTypeColor = function(t){ t=jNormType(t); for(var i=0;i<JTYPES.length;i++) if(JTYPES[i][0]===t) return JTYPES[i][1]; return 'var(--text3)'; };
+
+let _todayJType = 'Lesson';
+function renderTodayJournalTypes(){
+  const host=document.getElementById('ch-journal-types'); if(!host) return;
+  host.innerHTML = JTYPES.map(t=>{
+    const on = _todayJType===t[0];
+    return `<button type="button" class="chip" onclick="setTodayJType('${t[0].replace(/'/g,"\\'")}')" `
+      + `style="border-color:${t[1]};color:${on?'#12121A':t[1]};background:${on?t[1]:'transparent'};font-weight:700">${t[0]}</button>`;
+  }).join('');
+}
+function setTodayJType(t){ _todayJType=t; renderTodayJournalTypes(); }
+
 // Inline Today's-chain journal (design "Review notes" → Journal). Saves to Notes
-// (date-keyed) + cloud, same store the Journal panel reads; images persist via
-// the today-journal-1/2 zones (saveImg on paste/upload).
+// (date-keyed) + cloud, same store the Journal panel reads; image persists via
+// the today-journal-1 zone (saveImg on paste/upload).
 function saveTodayJournalInline(){
   const ds=todayStr();
   const dc=dayCountFor(ds)||getNextDayCount();
@@ -7725,7 +7747,7 @@ function saveTodayJournalInline(){
   if(!text){ flash('⚠ Add some text first'); return; }
   const existing=(state.notes||[]).find(n=>n.date===ds);
   const id=existing?existing.id:Date.now();
-  const note={ id, type:existing?.type||'neutral', date:ds, dayCount:dc, title:`D${dc} · ${fmtDate(ds)}`, text, createdAt:existing?.createdAt||new Date().toISOString() };
+  const note={ id, type:_todayJType||'Lesson', date:ds, dayCount:dc, title:`D${dc} · ${fmtDate(ds)}`, text, createdAt:existing?.createdAt||new Date().toISOString() };
   state.notes=(state.notes||[]).filter(n=>n.date!==ds);
   state.notes.unshift(note);
   save();
@@ -9303,8 +9325,8 @@ function deleteNote(id){
 async function openNoteDetail(id){
   const n=state.notes.find(x=>x.id===id)||state.journal.find(x=>x.id===id);
   if(!n)return;
-  const typeColors={lesson:'var(--blue)',bull:'var(--bull)',bear:'var(--bear)',neutral:'var(--text2)'};
-  const typeLabel={lesson:'💡 Lesson',bull:'✅ Win',bear:'❌ Loss/Mistake',neutral:'📝 Note'};
+  const _tCol=(window.jTypeColor?jTypeColor(n.type):'var(--text2)');
+  const _tLbl=(window.jNormType?jNormType(n.type):(n.type||'Mindset'));
   const dc=n.dayCount||dayCountFor(n.date||todayStr());
   let imgHtml='';
   const imgKey=n.imgKey||`note-img-${n.id}`;
@@ -9317,7 +9339,7 @@ async function openNoteDetail(id){
   modal.className='modal-bg show';
   modal.innerHTML=`<div class="modal" style="max-width:640px">
     <div class="modal-head">
-      <span style="font-size:11px;padding:3px 9px;border-radius:99px;background:rgba(255,255,255,.07);color:${typeColors[n.type]||'var(--text2)'};font-weight:700;margin-right:8px">${typeLabel[n.type]||n.type}</span>
+      <span style="font-size:11px;padding:3px 9px;border-radius:99px;background:rgba(255,255,255,.07);color:${_tCol};font-weight:700;margin-right:8px">${_tLbl}</span>
       <div class="modal-title">${n.title||'Journal Entry'}</div>
       <div style="font-size:10px;color:var(--text3);margin-left:8px">D${dc} · ${n.date||''}</div>
       <button class="close" style="margin-left:auto" onclick="this.closest('.modal-bg').remove()">×</button>
@@ -9341,12 +9363,13 @@ function renderNotesList(){
   });
   if(!allEntries.length){w.innerHTML='<div class="empty" style="padding:40px;text-align:center"><div style="font-size:32px;margin-bottom:12px">📓</div><div>No journal entries yet.</div><div style="font-size:11px;color:var(--text3);margin-top:6px">Use + Entry to add your first reflection</div></div>';return}
 
-  const COLORS={lesson:'var(--blue)',bull:'var(--bull)',bear:'var(--bear)',neutral:'var(--text3)',mistake:'var(--bear)',mindset:'var(--gold)'};
-  const DOTS={lesson:'#5B8FFF',bull:'#00D4A4',bear:'#FF4060',neutral:'#444',mistake:'#FF4060',mindset:'#F5A623'};
+  // Canonical dot colours by type: Lesson red · Win green · Loss blue · Mindset yellow
+  const DOT={'Lesson':'#D74955','Win / Adhered':'#3ECF8E','Loss / Mistake':'#5BA8FF','Mindset':'#D98B0A'};
 
   w.innerHTML=allEntries.map(n=>{
     const dc = n.dayCount || (n.date?dayCountFor(n.date):null);
-    const dot = DOTS[n.type]||'#444';
+    const _lbl = window.jNormType?jNormType(n.type):(n.type||'Mindset');
+    const dot = DOT[_lbl]||'#888';
     const isNote = state.notes.some(x=>x.id===n.id);
     const imgs = Array.isArray(n.images) ? n.images : [];
     const hasImages = imgs.length > 0;
@@ -9357,7 +9380,7 @@ function renderNotesList(){
       <!-- Header -->
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <span style="width:8px;height:8px;border-radius:50%;background:${dot};flex-shrink:0;box-shadow:0 0 6px ${dot}88"></span>
-        <span style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">${n.type||'note'}</span>
+        <span style="font-size:10px;font-weight:700;color:${dot};text-transform:uppercase;letter-spacing:.08em">${_lbl}</span>
         <span style="margin-left:auto;font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace">
           ${dc?`<span style="color:var(--gold)">D${dc}</span> · `:''}${n.date?fmtDate(n.date):''}
         </span>
@@ -17317,11 +17340,19 @@ mount();
 
 // Journal entry types. The colour is the card's left border and its tag.
 var TYPES = [
-  ['Lesson', 'var(--jn-gold)'],
-  ['Win',    'var(--jn-green)'],
-  ['Loss',   'var(--jn-rose)'],
-  ['Note',   'var(--jn-blue)']
+  ['Lesson',         'var(--jn-rose)'],    // red
+  ['Win / Adhered',  'var(--jn-green)'],   // green
+  ['Loss / Mistake', 'var(--jn-blue)'],    // blue
+  ['Mindset',        'var(--jn-gold)']     // yellow/gold
 ];
+// Map any legacy type value (old labels or lowercase keys) to a canonical label.
+function normType(t){
+  t = String(t==null?'':t).toLowerCase();
+  if (t.indexOf('win')>=0 || t==='bull' || t.indexOf('adher')>=0) return 'Win / Adhered';
+  if (t.indexOf('loss')>=0 || t==='bear' || t.indexOf('mistake')>=0) return 'Loss / Mistake';
+  if (t.indexOf('mind')>=0 || t==='neutral' || t.indexOf('note')>=0) return 'Mindset';
+  return 'Lesson';
+}
 
 // ── PERSISTENCE ────────────────────────────────────────────────
 // Three hooks. Point them at the host app; the fallbacks let this
@@ -17375,6 +17406,7 @@ function fmtDate(iso){
   return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
 }
 function colourFor(type){
+  type = normType(type);
   for(var i=0;i<TYPES.length;i++) if(TYPES[i][0]===type) return TYPES[i][1];
   return 'var(--jn-line)';
 }
@@ -17510,8 +17542,8 @@ function cardHTML(kind, r){
   var dc = dayCount(r.date);
   var head = '<div class="jn-khead" style="border-bottom-color:var(--jn-line)">';
   if (kind==='journal')
-    head += '<span class="jn-tag" style="background:'+accent+'26;color:'+accent+'">'+esc(r.type)+'</span>';
-  head += '<span class="jn-ktitle">'+esc(r.title || (kind==='journal' ? r.type : 'Note'))+'</span>'
+    head += '<span class="jn-tag" style="background:'+accent+'26;color:'+accent+'">'+esc(normType(r.type))+'</span>';
+  head += '<span class="jn-ktitle">'+esc(r.title || (kind==='journal' ? normType(r.type) : 'Note'))+'</span>'
        +  '<span class="jn-kdate">'+esc(fmtDate(r.date))+(dc!=null?' \u00b7 D'+dc:'')+'</span>'
        +  '<button class="jn-kdel" data-del="'+kind+':'+r.id+'" title="Delete">\u00d7</button>'
        +  '</div>';
@@ -17533,7 +17565,7 @@ function paintCardImages(root){
 }
 
 function renderJournal(){
-  var rows = jFilter==='All' ? S.journal : S.journal.filter(function(r){return r.type===jFilter;});
+  var rows = jFilter==='All' ? S.journal : S.journal.filter(function(r){return normType(r.type)===jFilter;});
   var feed = document.getElementById('jFeed');
   document.getElementById('jCount').textContent =
     rows.length + (rows.length===1?' entry':' entries') + (jFilter==='All'?'':' \u00b7 '+jFilter);
