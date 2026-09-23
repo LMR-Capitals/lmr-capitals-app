@@ -49,13 +49,13 @@ data layer; verify (syntax → headless preview → data round-trip) → commit 
 - [x] 9.2 Per-term chart drop capability in place (image zone per term). Bulk upload of the 94 PD chart images is a content task for the user.
 
 ## Phase 10 — Journal / Notes / Observation / Psychology / Achievements
-- [ ] 10.1 Journal/Notes + inline charts + tags
-- [ ] 10.2 Observation + Discord webhook + past posts
-- [ ] 10.3 Psychology rule-based scoring
-- [ ] 10.4 Achievements grid
+- [x] 10.1 Journal typed entries (type/title/linked-day/content) + attach image + history — already built to design
+- [x] 10.2 Observation canvas + Discord post + paste-images + past posts — already built to design
+- [x] 10.3 Psychology rule-based scoring (5 graded rules + KPI strip + AI feedback) — REBUILT to design
+- [x] 10.4 Achievements grid (KPI tiles + auto cards + Goals & Milestones) — already built to design
 
 ## Phase 11 — AI Coach
-- [ ] 11.1 New AI Coach layout + upgraded review flow
+- [x] 11.1 New AI Coach layout — Context/Threads/Model/Last-session KPI strip + "How context works", existing chat (ai_chats) kept below
 
 ## Phase 12 — Shell / Sidebar + Settings
 - [ ] 12.1 Fixed sidebar shell + keyboard nav

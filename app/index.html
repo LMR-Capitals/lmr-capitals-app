@@ -3449,7 +3449,18 @@ Midnight Open $______"></textarea>
 <!-- AI COACH PANEL -->
 <div class="panel" id="p-ai-coach">
 <div class="panel-inner">
-  <div class="card" style="display:flex;flex-direction:column;height:calc(100vh - 140px)">
+  <!-- AI Coach KPI strip (design v2) — chat kept below -->
+  <div class="ks-row" style="border:1px solid var(--border2);border-radius:var(--r2);background:var(--bg2);margin-bottom:14px;grid-template-columns:repeat(4,1fr)">
+    <div class="ks-tile"><div class="ks-label">Context</div><div class="ks-val" id="aic-context">0 trades</div><div class="ks-sub">Injected per message</div></div>
+    <div class="ks-tile"><div class="ks-label">Threads</div><div class="ks-val" id="aic-threads">0</div><div class="ks-sub">This month</div></div>
+    <div class="ks-tile"><div class="ks-label">Model</div><div class="ks-val" id="aic-model" style="font-size:16px">Claude</div><div class="ks-sub">Journal-aware</div></div>
+    <div class="ks-tile"><div class="ks-label">Last session</div><div class="ks-val" id="aic-last" style="font-size:16px">—</div><div class="ks-sub">Most recent thread</div></div>
+  </div>
+  <div class="m-card" style="margin-bottom:14px">
+    <div class="m-sec-row"><span class="m-sec">How context works</span></div>
+    <div class="m-card-pad"><div class="ks-sub">Every message ships a compacted slice of the journal — trades, accounts, chain notes and rule breaches — so the coach answers from your data, never from generic advice.</div></div>
+  </div>
+  <div class="card" style="display:flex;flex-direction:column;height:calc(100vh - 320px);min-height:460px">
     <div class="card-head" style="border-bottom:1px solid rgba(245,166,35,.15)">
       <span class="card-tag" style="background:rgba(245,166,35,.15);color:var(--gold);display:inline-flex;align-items:center;gap:4px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/></svg> AI</span>
       <div class="card-title">LMR Trading Coach</div>
@@ -14113,10 +14124,24 @@ function sendQuickMessage(text){
   sendAIMessage();
 }
 
+function _aicModelLabel(){ const m=(state.profile&&state.profile.aiModel)||AI_MODEL||''; if(/opus/i.test(m))return'Claude Opus'; if(/sonnet/i.test(m))return'Claude Sonnet'; if(/haiku/i.test(m))return'Claude Haiku'; return'Claude'; }
+function renderAiCoachStats(sessions){
+  const _mids=(typeof _mirrorTradeIds==='function')?_mirrorTradeIds().ids:new Set();
+  const nTrades=state.trades.filter(t=>!_mids.has(t.id)).length;
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('aic-context',nTrades+' trade'+(nTrades===1?'':'s'));
+  set('aic-model',_aicModelLabel());
+  const sess=sessions||[];
+  const ym=new Date().toISOString().slice(0,7);
+  set('aic-threads',sess.filter(s=>(s.session_date||'').startsWith(ym)).length);
+  const last=sess.map(s=>s.session_date).filter(Boolean).sort().pop();
+  if(last){ try{ set('aic-last',new Date(last+'T12:00').toLocaleDateString('en-US',{day:'numeric',month:'short'})); }catch(e){ set('aic-last',last); } }
+}
 async function loadAndRenderAIHistory(){
   const list = document.getElementById('ai-history-list');
-  if(!list) return;
   const sessions = await loadAIChatHistory();
+  try{ renderAiCoachStats(sessions); }catch(e){}
+  if(!list) return;
   if(!sessions.length){
     list.innerHTML='<div style="font-size:10px;color:var(--text3);text-align:center;padding:8px">No history yet</div>';
     return;
