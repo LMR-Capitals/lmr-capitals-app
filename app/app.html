@@ -2093,6 +2093,76 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
 #lmr-pd-block .primary{border:0;background:var(--gold,#F5A623);color:#0A0A0F;font-weight:800}
 #lmr-pd-block .secondary{border:1px solid var(--border,rgba(255,255,255,.08));background:transparent;color:var(--text1,#EDEDF2);font-weight:700}
 </style>
+<style id="lmr-kb-css">
+/* Falls back to LMR values if the host page has not defined them. */
+#p-terminology{
+  --kb-bg:var(--bg1,#0A0A0F); --kb-surface:var(--bg2,#101018);
+  --kb-inset:var(--bg3,#14141C); --kb-chip:#1A1A24;
+  --kb-line:var(--border,rgba(255,255,255,0.08));
+  --kb-txt:var(--text1,#EDEDF2); --kb-mut:var(--text2,#A0A0B0);
+  --kb-dim:var(--text3,#7A7A8C);
+  --kb-gold:var(--gold,#F5A623); --kb-rose:var(--bear,#FF4060);
+  font-family:'Inter',system-ui,sans-serif; color:var(--kb-txt);
+}
+#p-terminology .kb-h{font-family:'Space Grotesk',sans-serif}
+#p-terminology .kb-wrap{padding:20px 24px 48px;display:flex;flex-direction:column;gap:14px;max-width:1000px}
+#p-terminology .kb-top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+#p-terminology .kb-eyebrow{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+#p-terminology .kb-sub{font-size:12px;color:var(--kb-dim)}
+#p-terminology .kb-btn-gold{margin-left:auto;background:var(--kb-gold);border:0;padding:7px 13px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:12px;color:var(--kb-bg)}
+#p-terminology .kb-btn-ghost{background:transparent;border:1px solid var(--kb-line);padding:4px 10px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;color:var(--kb-txt)}
+#p-terminology .kb-btn-ghost:hover{background:var(--kb-chip)}
+#p-terminology .kb-btn-del{background:transparent;border:1px solid var(--kb-line);padding:4px 10px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;color:var(--kb-rose)}
+
+/* ── group card ────────────────────────────────────────────── */
+#p-terminology .kb-group{border:1px solid var(--kb-line);background:var(--kb-surface);display:flex;flex-direction:column}
+#p-terminology .kb-ghead{display:flex;flex-direction:column;gap:5px;padding:11px 14px;border-bottom:1px solid var(--kb-line);background:var(--kb-inset)}
+#p-terminology .kb-grow1{display:flex;align-items:baseline;gap:10px}
+#p-terminology .kb-gtitle{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:18px;letter-spacing:.06em;text-transform:uppercase;color:var(--kb-gold)}
+#p-terminology .kb-gcount{font-size:11px;color:var(--kb-dim)}
+#p-terminology .kb-gblurb{font-size:12px;line-height:1.55;color:var(--kb-dim);max-width:74ch;text-wrap:pretty}
+#p-terminology .kb-row{display:flex;align-items:stretch;border-bottom:1px solid var(--kb-line);min-width:0}
+#p-terminology .kb-row:last-child{border-bottom:0}
+#p-terminology .kb-open{display:flex;align-items:center;gap:12px;flex:1;text-align:left;cursor:pointer;border:0;background:transparent;padding:15px 14px;color:var(--kb-txt);min-width:0;font-family:'Inter',sans-serif}
+#p-terminology .kb-open:hover{background:var(--kb-inset)}
+#p-terminology .kb-abbr{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;flex:none}
+#p-terminology .kb-gloss{font-size:13px;color:var(--kb-dim);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#p-terminology .kb-chev{flex:none;opacity:.6}
+#p-terminology .kb-xterm{flex:none;width:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:0;border-left:1px solid var(--kb-line);background:transparent;color:var(--kb-rose);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px}
+#p-terminology .kb-empty{padding:15px 14px;font-size:13px;color:var(--kb-dim)}
+
+/* ── term detail ───────────────────────────────────────────── */
+#p-terminology .kb-dhead{display:flex;align-items:center;gap:14px;padding:14px 24px;border-bottom:1px solid var(--kb-line);position:sticky;top:0;background:var(--kb-bg);z-index:10}
+#p-terminology .kb-back{display:inline-flex;align-items:center;gap:7px;background:transparent;border:1px solid var(--kb-line);padding:7px 11px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;color:var(--kb-txt);flex:none}
+#p-terminology .kb-back:hover{background:var(--kb-chip)}
+#p-terminology .kb-dtitle{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+#p-terminology .kb-dabbr{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;letter-spacing:-.02em;line-height:1}
+#p-terminology .kb-dgloss{font-size:12px;color:var(--kb-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#p-terminology .kb-addtext{background:var(--kb-gold);border:0;padding:8px 13px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;color:var(--kb-bg);flex:none}
+
+/* 60-track grid: full rows span 60, an n-column cell spans 60/n. */
+#p-terminology .kb-canvas{display:grid;grid-template-columns:repeat(60,minmax(0,1fr));align-items:start;align-content:start;padding:22px 24px 60px;min-height:60vh;box-sizing:border-box}
+#p-terminology .kb-blk{position:relative;min-width:0;padding:2px 0}
+#p-terminology .kb-blk-inner{display:flex;align-items:flex-start;gap:8px;min-width:0}
+#p-terminology .kb-ta{width:100%;box-sizing:border-box;background:transparent;border:0;outline:0;resize:none;overflow:hidden;color:var(--kb-txt);font-family:'Inter',sans-serif;font-size:14px;line-height:1.65;padding:4px 0}
+#p-terminology .kb-ta::placeholder{color:var(--kb-dim)}
+#p-terminology .kb-ta[data-t="h"]{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px;line-height:1.35;letter-spacing:-.01em}
+#p-terminology .kb-ta[data-t="tg1"]{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px}
+#p-terminology .kb-ta[data-t="tg2"]{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px}
+#p-terminology .kb-ta[data-t="tg3"]{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13.5px}
+#p-terminology .kb-ta[data-t="q"]{border-left:2px solid var(--kb-gold);padding-left:12px;color:var(--kb-mut);font-style:italic}
+#p-terminology .kb-bullet{flex:none;padding-top:9px;color:var(--kb-gold);font-size:15px;line-height:1}
+#p-terminology .kb-caret{flex:none;width:20px;height:26px;display:flex;align-items:center;justify-content:center;padding:0;background:transparent;border:0;cursor:pointer;color:var(--kb-gold);font-size:12px}
+#p-terminology .kb-div{height:1px;background:var(--kb-line);margin:14px 0}
+#p-terminology .kb-imgbox{position:relative;width:100%;aspect-ratio:16/9;background:var(--kb-inset);border:1px dashed #2E2E3A;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer}
+#p-terminology .kb-imgbox img{width:100%;height:100%;object-fit:cover;display:block}
+#p-terminology .kb-imgph{font-size:12px;color:var(--kb-dim);text-align:center;padding:0 16px}
+#p-terminology .kb-x{position:absolute;top:6px;right:6px;z-index:4;width:24px;height:24px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;border:1px solid rgba(255,255,255,.25);border-radius:3px;background:rgba(0,0,0,.62);color:#fff;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px}
+#p-terminology .kb-slash{position:absolute;z-index:20;top:calc(100% + 4px);left:0;width:236px;max-height:290px;overflow:auto;background:var(--kb-surface);border:1px solid var(--kb-line);border-radius:3px;box-shadow:0 18px 40px rgba(0,0,0,.5);display:flex;flex-direction:column;padding:5px}
+#p-terminology .kb-slash button{display:flex;align-items:center;width:100%;text-align:left;background:transparent;border:0;border-radius:3px;padding:8px 10px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;color:var(--kb-txt)}
+#p-terminology .kb-slash button:hover{background:var(--kb-chip)}
+#p-terminology .kb-hide{display:none}
+</style>
 </head>
 <body>
 
@@ -3386,45 +3456,10 @@ Midnight Open $______"></textarea>
 .lmrb-mact.del:hover{background:rgba(255,68,102,.15)!important;color:var(--bear)!important}
 .lmrb-msep{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:6px 10px 3px;border-top:1px solid var(--border);margin-top:2px}
 </style>
+<!-- KNOWLEDGE (LMR Terminology) — drop-in section from design/handoff/knowledge-section.html -->
 <div class="panel" id="p-terminology">
-<div style="height:100%;display:flex;flex-direction:column">
-  <div style="padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-    <span style="font-size:20px">📖</span>
-    <div>
-      <div style="font-size:16px;font-weight:800;color:var(--text)">LMR Terminology</div>
-      <div style="font-size:11px;color:var(--text3)">Glossary · open a term to write notes &amp; drop charts</div>
-    </div>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
-      <span class="canvas-status" id="terminology-status" style="font-size:10px;color:var(--text3)">Auto-saves</span>
-    </div>
-  </div>
-  <div style="flex:1;overflow-y:auto;padding:20px">
-    <div class="kb-head">
-      <div><span class="m-sec" style="font-size:13px">Glossary</span> <span class="ks-sub" id="kb-count">—</span></div>
-      <button class="btn btn-bear btn-sm" onclick="addKnowledgeSection()">+ Add section</button>
-    </div>
-    <div id="knowledge-groups"></div>
-  </div>
-</div>
-</div>
-
-<!-- KNOWLEDGE TERM DETAIL MODAL -->
-<div class="modal-bg" id="kbTermModal">
-  <div class="modal" style="max-width:680px">
-    <div class="modal-head"><div class="modal-title" id="kb-term-title">Term</div><span class="ks-sub" id="kb-term-sub" style="margin-left:8px"></span><button class="close" style="margin-left:auto" onclick="closeModal('kbTermModal')">×</button></div>
-    <div class="modal-body">
-      <label class="form-label">Your notes</label>
-      <textarea id="kb-term-body" rows="9" placeholder="Write how you trade this — definition, formation, entry, invalidation, examples…"></textarea>
-      <div class="img-zone-wrap" style="margin-top:12px">
-        <div class="img-zone-label">Chart <span>paste or click to drop a chart</span></div>
-        <div class="img-zone" id="kb-term-img" data-imgkey="kb-term" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or + upload chart</div></div>
-      </div>
-    </div>
-    <div class="modal-actions" style="justify-content:flex-end">
-      <button class="btn btn-sm" onclick="closeModal('kbTermModal')">Close</button>
-      <button class="btn btn-primary" onclick="saveTermDetail()">✓ Save note</button>
-    </div>
-  </div>
+  <div id="kbList"></div>
+  <div id="kbDetail" class="kb-hide"></div>
 </div>
 
 <!-- LMR PSYCHOLOGY -->
@@ -6785,7 +6820,7 @@ function navTo(p){
   if(p==='notes') renderNotesList();
   if(p==='today') loadDaily();
   if(p==='settings') renderSettings();
-  if(p==='terminology') setTimeout(()=>loadKnowledge(),100);
+  if(p==='terminology') setTimeout(()=>{ if(window.loadKnowledgeCloud)loadKnowledgeCloud(); else if(window.renderKnowledge)renderKnowledge(); },100);
   if(p==='psychology')  setTimeout(()=>renderPsychology(),100);
   if(p==='observation') setTimeout(loadObservations,100);
   if(p==='achievements') setTimeout(loadAchievements,100);
@@ -9866,114 +9901,6 @@ const LMR_SECTION_TABLES = {
   terminology: 'lmr_terminology',
   psychology:  'lmr_psychology'
 };
-
-// ── LMR Knowledge base — shipped structure (design v2 glossary). ──────────────
-// This is the scaffold (groups + term names + short labels). User-authored notes
-// and charts per term live in state.knowledge and persist to lmr_terminology.
-const LMR_KNOWLEDGE_BASE = [
-  {id:'mechanics', title:'Mechanics of the Market Fluctuations', desc:'Chapter one of the LMR reference: what actually moves price before any array forms. Rates set the cost of money, bonds and yields reprice against it, and the ripple reaches the DXY and equity futures — read in that order, the macro tells you which side of the book to be on.', terms:[
-    ['Engine of Change','What moves interest rates?'],['Bond Price vs Yield','The core inverse relationship'],['Yield Futures','Tracking the rate directly'],['Treasury Futures','T-Notes and T-Bonds by maturity'],['The Global Ripple','DXY and equity futures'],['Rising Rates Protocol','The brake signal — expensive money'],['Declining Rates Protocol','The accelerator signal — cheap money'],['Why T-Note Yield Matters','The market’s real-time vote on policy'],['DXY / Yield SMT','Front-running equity futures']]},
-  {id:'mmmodels', title:'Market Maker Models', desc:'How the algorithm delivers a whole move — the phases and the bias behind them.', terms:[
-    ['AMD','Accumulation · Manipulation · Distribution'],['MMBM','Market Maker Buy Model'],['MMSM','Market Maker Sell Model'],['Power of 3','Open · manipulation · expansion'],['Judas Swing','False open move'],['SMT','Smart Money Technique'],['Premium','Above equilibrium'],['Discount','Below equilibrium']]},
-  {id:'timeassets', title:'Named & Time Assets', desc:'The sessions and windows the day is divided into, each with its own behaviour.', terms:[
-    ['Asian Open','20:00–22:00 ET'],['Midnight Open','00:00 ET'],['London Open','01:30–02:00 ET'],['London Kill-zone','02:00–05:00 ET'],['NY Pre-market','07:00–09:30 ET'],['NY AM Session','09:30–11:00 ET'],['NY Lunch','11:30–13:30 ET'],['NY PM Session','13:30–16:00 ET'],['Final Hour','16:00–17:00 ET']]},
-  {id:'pdarrays', title:'PD Arrays', desc:'Premium and discount arrays — the price levels the algorithm leaves behind and returns to.', terms:[
-    ['Order Block','Last opposing candle'],['Rejection Block','Wick-based array'],['Propulsion Block','Order block on an order block'],['Breaker Block','Failed order block'],['Mitigation Block','Loss-mitigation array'],['Suspension Block','Consolidation array'],['FVG','Fair Value Gap'],['IFVG','Inversion Fair Value Gap'],['Reclaimed FVG','Gap retaken in the original direction'],['BISI','Buyside Imbalance · Sellside Inefficiency'],['SIBI','Sellside Imbalance · Buyside Inefficiency']]},
-  {id:'entrymodels', title:'Entry Models', desc:'The same arrays read as triggers, and how to happen before you click.', terms:[
-    ['Turtle Soup','Failed breakout'],['Rejection Block','Wick-based array'],['Order Block','Last opposing candle'],['IFVG','Inversion Fair Value Gap'],['FVG','Fair Value Gap'],['Suspension Block','Consolidation array'],['Breaker Block','Failed order block'],['Mitigation Block','Loss-mitigation array'],['Reclaimed FVG','Gap retaken in the original direction'],['OTE','Optimal Trade Entry']]},
-  {id:'timeentry', title:'Time-Based Entry', desc:'Setups defined by the clock rather than the level — the window is the edge.', terms:[
-    ['18:00 Opening Price','Futures session open'],['Midnight Open','00:00 ET'],['London Silver Bullet','03:00–04:00 ET'],['AM Silver Bullet','10:00–11:00 ET'],['PM Silver Bullet','14:00–15:00 ET']]},
-  {id:'draws', title:'Draws / Run on Liquidity', desc:'Where price is being delivered to, and the stops it raids on the way.', terms:[
-    ['Equal H/L','Equal highs and lows'],['3-Day High / Low','Three-session extremes'],['LRLR','Low Resistance Liquidity Run'],['HRLR','High Resistance Liquidity Run'],['1st Presented FVG','First gap after the open'],['NWOG','New Week Opening Gap'],['NDOG','New Day Opening Gap'],['ERL / IRL','External · Internal Range Liquidity']]},
-  {id:'macrotimes', title:'LMR Macro Times', desc:'The named :50–:10 windows the day is tracked by, from the Asian open through to the close. Each trade carries the macro it was taken in, so the log can grade the windows as well as the models.', terms:[
-    ['ASIAN 1','20:50 – 21:10 ET (8:50 – 9:10 PM)'],['ASIAN 2','21:50 – 22:10 ET (9:50 – 10:10 PM)'],['LONDON 1','01:30 – 02:00 ET'],['LONDON 2','02:50 – 03:10 ET'],['LONDON 3','04:30 – 05:00 ET'],['NY AM','08:50 – 09:10 ET'],['NY AM1','09:50 – 10:10 ET'],['NY AM2','10:50 – 11:10 ET'],['LUNCH','11:50 – 12:10 ET'],['PM','13:50 – 14:10 ET'],['CLOSE','15:15 – 15:45 ET'],['FINAL','15:50 – 16:00 ET']]},
-  {id:'gaps', title:'Gaps', desc:'Price left untraded between one session’s close and the next one’s open. Nothing changed hands inside the gap, so its upper edge, lower edge and midpoint stay live as reference until price returns and rebalances them.', terms:[
-    ['NWOG','New Week Opening Gap'],['NDOG','New Day Opening Gap'],['RTH','Regular Trading Hours']]},
-  {id:'rangelevels', title:'Range & Levels', desc:'Subdivisions and projections of a dealing range — where inside it price is trading, and where it goes once the range breaks.', terms:[
-    ['Equilibrium','50% of the dealing range'],['Premium','Above equilibrium'],['Discount','Below equilibrium'],['OTE','Optimal Trade Entry'],['Consequent Encroachment','Midpoint of a gap or wick'],['Quadrant Levels','Range split into quarters'],['Octants Levels','Range split into eighths'],['Hexadecant Levels','Range split into sixteenths'],['Protraction Range','Fib 2 – 2.5 and 4.5 – 5 of the manipulation leg'],['Range Projection','Standard deviations beyond the range'],['RTH +0.5 Levels','Half-range projections off RTH'],['OHLC','Open · High · Low · Close']]}
-];
-function _kbState(){ if(!state.knowledge||typeof state.knowledge!=='object') state.knowledge={terms:{},sections:[],addedTerms:{}}; state.knowledge.terms=state.knowledge.terms||{}; state.knowledge.sections=state.knowledge.sections||[]; state.knowledge.addedTerms=state.knowledge.addedTerms||{}; return state.knowledge; }
-function _kbKey(sid,name){ return sid+'::'+name; }
-function _kbGroups(){ const kb=_kbState(); return [...LMR_KNOWLEDGE_BASE.map(g=>({...g,custom:false})), ...kb.sections.map(s=>({id:s.id,title:s.title,desc:s.desc||'',terms:[],custom:true}))]; }
-function _kbTermsFor(g){ const kb=_kbState(); return [...(g.terms||[]), ...((kb.addedTerms[g.id]||[]).map(t=>[t.name,t.short]))]; }
-let _kbCurKey=null, _kbCurImgKey=null;
-async function loadKnowledge(){
-  const kb=_kbState();
-  if(_sb && _sbUserId){
-    try{ const {data:row}=await _sb.from('lmr_terminology').select('data').eq('user_id',_sbUserId).single();
-      if(row&&row.data&&row.data.kb){ state.knowledge={terms:row.data.kb.terms||{},sections:row.data.kb.sections||[],addedTerms:row.data.kb.addedTerms||{}}; }
-    }catch(e){}
-  }
-  renderKnowledge();
-}
-async function saveKnowledge(silent){
-  const kb=_kbState();
-  try{ save&&save(); }catch(e){}
-  const st=document.getElementById('terminology-status'); if(st&&!silent){ st.textContent='Saving…'; }
-  if(_sb && _sbUserId){
-    try{
-      let existing={}; try{ const {data:row}=await _sb.from('lmr_terminology').select('data').eq('user_id',_sbUserId).single(); existing=(row&&row.data)||{}; }catch(e){}
-      await _sb.from('lmr_terminology').upsert({user_id:_sbUserId,data:{...existing,kb:{terms:kb.terms,sections:kb.sections,addedTerms:kb.addedTerms}}},{onConflict:'user_id'});
-      if(st&&!silent){ st.textContent='✓ Saved'; setTimeout(()=>{if(st)st.textContent='Auto-saves';},1500); }
-    }catch(e){ if(st&&!silent){ st.textContent='⚠ Save failed'; } }
-  } else if(st&&!silent){ st.textContent='Saved locally'; setTimeout(()=>{if(st)st.textContent='Auto-saves';},1500); }
-}
-function renderKnowledge(){
-  const box=document.getElementById('knowledge-groups'); if(!box) return;
-  const kb=_kbState();
-  const groups=_kbGroups();
-  let total=0;
-  box.innerHTML=groups.map(g=>{
-    const terms=_kbTermsFor(g); total+=terms.length;
-    const rows=terms.map(([name,short])=>{
-      const key=_kbKey(g.id,name); const has=kb.terms[key]&&(kb.terms[key].body||kb.terms[key].hasImg);
-      return `<div class="kb-term" onclick="openTermDetail('${g.id}',${JSON.stringify(name).replace(/"/g,'&quot;')},${JSON.stringify(short||'').replace(/"/g,'&quot;')})">
-        <span class="kb-term-name">${name}</span><span class="kb-term-short">${short||''}</span>
-        ${has?'<span class="kb-term-dot" title="You have notes on this"></span>':''}
-        <span class="kb-term-chev">›</span></div>`;
-    }).join('');
-    return `<div class="kb-group">
-      <div class="kb-group-head">
-        <div class="kb-group-title"><h3>${g.title}</h3><span class="kb-group-count">${terms.length} term${terms.length===1?'':'s'}</span>
-          <button class="kb-addterm" style="margin-left:auto" onclick="event.stopPropagation();addKnowledgeTerm('${g.id}')">+ Add term</button></div>
-        ${g.desc?`<div class="kb-group-desc">${g.desc}</div>`:''}
-      </div>
-      ${rows||'<div class="kb-term" style="cursor:default;color:var(--text3)">No terms yet — add one.</div>'}
-    </div>`;
-  }).join('');
-  const cnt=document.getElementById('kb-count'); if(cnt)cnt.textContent=total+' terms · open one to write and drop charts';
-}
-function openTermDetail(sid,name,short){
-  const kb=_kbState(); const key=_kbKey(sid,name); _kbCurKey=key;
-  document.getElementById('kb-term-title').textContent=name;
-  document.getElementById('kb-term-sub').textContent=short||'';
-  document.getElementById('kb-term-body').value=(kb.terms[key]&&kb.terms[key].body)||'';
-  const slug=key.replace(/[^a-zA-Z0-9]+/g,'-').toLowerCase();
-  _kbCurImgKey='kb-'+slug;
-  const z=document.getElementById('kb-term-img'); if(z){ z.dataset.imgkey=_kbCurImgKey; if(typeof renderImgZone==='function') renderImgZone(z); }
-  document.getElementById('kbTermModal').classList.add('show');
-}
-async function saveTermDetail(){
-  const kb=_kbState(); if(!_kbCurKey) return;
-  const body=document.getElementById('kb-term-body').value;
-  let hasImg=false; try{ hasImg=!!(await getImg(_kbCurImgKey)); }catch(e){}
-  kb.terms[_kbCurKey]={body,hasImg,updatedAt:new Date().toISOString()};
-  await saveKnowledge();
-  renderKnowledge();
-  closeModal('kbTermModal');
-}
-function addKnowledgeSection(){
-  const title=prompt('New section name:'); if(!title||!title.trim()) return;
-  const desc=prompt('Short description (optional):')||'';
-  const kb=_kbState(); kb.sections.push({id:'cust-'+Date.now(),title:title.trim(),desc:desc.trim()});
-  saveKnowledge(); renderKnowledge();
-}
-function addKnowledgeTerm(sid){
-  const name=prompt('New term name:'); if(!name||!name.trim()) return;
-  const short=prompt('Short label (optional):')||'';
-  const kb=_kbState(); kb.addedTerms[sid]=kb.addedTerms[sid]||[]; kb.addedTerms[sid].push({name:name.trim(),short:short.trim()});
-  saveKnowledge(); renderKnowledge();
-}
 
 // ── LMR Psychology — rule-based scoring graded live off real trades (design v2) ──
 const LMR_PSY_RULES=[
@@ -15800,6 +15727,522 @@ function resetAccount(id){
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', PD.render);
   else PD.render();
+})();
+</script>
+
+<script id="lmr-kb-js">
+(function(){
+'use strict';
+
+// ── DATA ───────────────────────────────────────────────────────
+// [key, abbr, gloss, seed paragraph]
+var TERMS = [
+['mmbm','MMBM','Market Maker Buy Model','Accumulation below an old low, manipulation through it to engineer sell-side liquidity, then distribution to the buy side. The model only counts when all three phases are visible on the timeframe you traded.'],
+['mmsm','MMSM','Market Maker Sell Model','The mirror of MMBM: accumulation above an old high, manipulation up through it to engineer buy-side liquidity, then distribution down. Look for the same three phases before calling it.'],
+['amd','AMD','Accumulation · Manipulation · Distribution','The three-phase cycle underneath every market maker model. Accumulation builds the position sideways, manipulation raids the opposite side to fill it, distribution delivers to the draw. Name the phase you are in before naming the setup.'],
+['po3','Power of 3','Open · manipulation · expansion','Every candle on every timeframe opens, manipulates against the intended direction, then expands. On a bullish day the open is near the high of the manipulation leg, not the low of the range.'],
+['judas','Judas Swing','False open move','The first move after an open runs the wrong way to trap early entries, then reverses into the true direction. Most visible at the London and New York opens.'],
+['smt','SMT','Smart Money Technique','Divergence between correlated indices. NQ makes the low, ES confirms, YM fails — the failure is the tell that the low is real.'],
+['prem','Premium','Above equilibrium','The upper half of the dealing range. You only sell here — buying at a premium means paying above the range midpoint and giving the algorithm room to reprice against you.'],
+['disc','Discount','Below equilibrium','The lower half of the dealing range. You only buy here — the discount is where the market maker accumulates before repricing to premium.'],
+['ob','Order Block','Last opposing candle','The final down-close candle before an up-move (or up-close before a down-move). Valid only when the move away from it displaced and left an imbalance.'],
+['rb','Rejection Block','Wick-based array','Built from the wicks, not the bodies — a cluster of failed highs or lows where price was rejected. Trades as a level when price returns to the wick zone with displacement behind it.'],
+['pb','Propulsion Block','Order block on an order block','Price returns to an existing order block and forms a new one inside its upper or lower half. The nested block propels the next leg — a continuation array, not a reversal one.'],
+['brkr','Breaker Block','Failed order block','An order block that price traded fully through. On the retest from the other side it flips polarity — the failure is what makes it tradeable.'],
+['mit','Mitigation Block','Loss-mitigation array','Formed where a prior position was underwater: price returns to the origin of the failed leg to mitigate before continuing in the original direction.'],
+['susp','Suspension Block','Consolidation array','A tight band where price suspends before continuing. Not an entry on its own — it marks where the algorithm paused, and its edges become reference on the return.'],
+['fvg','FVG','Fair Value Gap','A three-candle imbalance left behind by a displacement leg. Price returns to rebalance it — the entry is the first touch of the gap in the direction of the higher-timeframe draw.'],
+['ifvg','IFVG','Inversion Fair Value Gap','An FVG that price closed decisively through. It inverts — a bullish gap becomes resistance, a bearish gap becomes support, on the retest.'],
+['rcfvg','Reclaimed FVG','Gap retaken in the original direction','An FVG price traded through and then reclaimed — the close back inside restores it as a valid array. The reclaim is the confirmation; the retest of the reclaimed edge is the entry.'],
+['bisi','BISI','Buyside Imbalance · Sellside Inefficiency','An up-side gap: buying pressure left inefficiency below. Treated as a discount array — support on the first revisit while the draw stays higher.'],
+['sibi','SIBI','Sellside Imbalance · Buyside Inefficiency','The inverse of BISI: a down-side gap leaving inefficiency above. A premium array — resistance on the first revisit while the draw stays lower.'],
+['turtle','Turtle Soup','Failed breakout','A run past an obvious old high or low that immediately fails and closes back inside. The stops above the level were the liquidity the move was after.'],
+['ote','OTE','Optimal Trade Entry','The 62–79% retracement of a displacement leg. Deepest discount that still respects the leg, usually taken at the 70.5% level with the FVG confluent.'],
+['sb','AM Silver Bullet','10:00–11:00 ET','The New York AM window. Requires a displacement leg into the hour and an FVG left behind. Strongest of the three — it runs with the RTH open still in play.'],
+['sbpm','PM Silver Bullet','14:00–15:00 ET','The afternoon window. Same rules as the AM setup, but the draw is usually the session extreme rather than a new one — takes what the morning left unfinished.'],
+['sblo','London Silver Bullet','03:00–04:00 ET','The London window. Runs into the London open expansion, so the displacement is often steeper and the gap smaller — size accordingly.'],
+['t-18','18:00 Opening Price','Futures session open','Where the new futures day actually begins. Price relative to the 18:00 open frames the whole overnight session, and the gap it leaves against the 16:00 close is the NDOG.'],
+['t-mid','Midnight Open','00:00 ET','The true day open. Price above it puts the session in premium, below it in discount — the single most useful reference for whether the day is bullish or bearish.'],
+['dol','Equal H/L','Equal highs and lows','Two or more highs or lows sitting at the same price. The flat edge is where stops pool, which makes it the cleanest draw on the chart — price reaches for it before reversing or continuing.'],
+['d3hl','3-Day High / Low','Three-session extremes','The highest high and lowest low of the last three sessions. Short-term liquidity pools that the algorithm reaches for before committing to the weekly draw.'],
+['rfl','LRLR','Low Resistance Liquidity Run','A clean path with no arrays in the way — price runs freely to the draw. Low resistance means little to slow delivery, so the move is fast and the target is the pooled liquidity at the end of it.'],
+['hrlr','HRLR','High Resistance Liquidity Run','The opposite of LRLR: the path to the draw is littered with arrays and old levels, so delivery is slow and choppy. Trading into high resistance is how a good idea still loses.'],
+['ifed','1st Presented FVG','First gap after the open','The first fair value gap presented after the session open. Taken on its first touch, in line with the higher-timeframe draw, before any later gap in the same leg.'],
+['erl','ERL / IRL','External · Internal Range Liquidity','ERL is the old high or low; IRL is the arrays inside the range (FVGs, order blocks). Delivery alternates between them — ERL to IRL, then IRL back to ERL.'],
+['nwog','NWOG','New Week Opening Gap','The gap between Friday\u2019s 16:00 close and Sunday\u2019s 18:00 open. Its upper edge, lower edge and midpoint act as reference all week.'],
+['ndog','NDOG','New Day Opening Gap','The same idea daily: the gap between the 16:00 close and the 18:00 open. A short-term array that most often gets rebalanced inside the session.'],
+['rth','RTH','Regular Trading Hours','The 09:30–16:00 ET cash session. Its open, high, low and close form their own dealing range, and the RTH gap against the overnight session is where the delivery profile is read.'],
+['eq','Equilibrium','50% of the dealing range','The midpoint that splits premium from discount. Above it you are buying at a premium; below it you are selling at a discount.'],
+['ceq','Consequent Encroachment','Midpoint of a gap or wick','The 50% of an FVG, order block or wick — the level inside the array where price most often turns. When a gap only fills halfway, this is the line it respected.'],
+['quad','Quadrant Levels','Range split into quarters','The dealing range split into quarters. The 25% and 75% quadrants are where retracements stall inside premium and discount, and the quadrant a candle opens in tells you which half the algorithm is working.'],
+['fifth','Octants Levels','Range split into eighths','The dealing range divided into eight — 12.5%, 25%, 37.5%, 50%, 62.5%, 75%, 87.5%. Useful when price is delivering inside a tight range where the 0.5 does not give enough resolution.'],
+['hexa','Hexadecant Levels','Range split into sixteenths','The dealing range divided into sixteen — 6.25% increments. The finest subdivision in use: reach for it when the octants are too wide to read.'],
+['protr','Protraction Range','Fib 2 – 2.5 and 4.5 – 5 of the manipulation leg','Measure the manipulation leg and project it: the 2 – 2.5 band is where the first protraction exhausts, the 4.5 – 5 band where an extended one does. The raid is the point — treat them as where manipulation ends, not as targets.'],
+['proj','Range Projection','0.5 levels beyond the range','Once a range is taken, project it in 0.5 increments from the breach — 0.5, 1.0, 1.5, 2.0 of the original leg. Standard deviation targets for where expansion terminates.'],
+['rth05','RTH −0.5 Levels','Half-range projections off RTH','The RTH range projected in 0.5 increments below its low and above its high — −0.5, −1.0, +0.5, +1.0. Where the cash session terminates once it trades outside its own range.'],
+['ohlc','OHLC','Open · High · Low · Close','The four prices that define any candle. Which of the high or low forms first is the read — a bullish day tends to set the low before the high.'],
+['t-asian','Asian Open','20:00–22:00 ET','The Asian session opens and builds the overnight range. Low volume, tight delivery — its high and low become the range London manipulates through.'],
+['t-lo','London Open','01:30–02:00 ET','The London open expansion. Usually delivers the Judas leg against the daily bias before turning — the first real displacement of the day.'],
+['t-lkz','London Kill-zone','02:00–05:00 ET','The London killzone. Where the session high or low most often forms, and where the FVG that New York later respects gets left behind.'],
+['t-pre','NY Pre-market','07:00–09:30 ET','Pre-market positioning into the cash open. Sets up the RTH gap and often runs the overnight extremes before 09:30.'],
+['t-am','NY AM Session','09:30–11:00 ET','The highest-probability window of the day. The RTH open, the 09:30 purge, and the AM Silver Bullet all sit inside it.'],
+['t-lunch','NY Lunch','11:30–13:30 ET','Lunch-hour consolidation. Delivery slows and ranges tighten — the arrays formed here are for the PM session, not for trading during it.'],
+['t-pm','NY PM Session','13:30–16:00 ET','The afternoon drive. Either continues the AM direction or reverses it — the PM Silver Bullet and the final-hour run both live here.'],
+['t-final','Final Hour','16:00–17:00 ET','The last hour before the close. Positions get squared and the close prints, which sets the daily candle and the next day\u2019s reference.'],
+['m-as1','ASIAN 1','20:50 – 21:10 ET','First Asian macro, shortly after the 20:00 open. Where the Asian range starts being built — the raid here usually defines one edge of the range London later manipulates.'],
+['m-as2','ASIAN 2','21:50 – 22:10 ET','Second Asian macro, closing the session. Completes the Asian range: the high and low set across these two windows are the levels the London open trades away from.'],
+['m-lo1','LONDON 1','01:30 – 02:00 ET','The London open macro. Price is repriced away from the Asian range before the session proper — the first raid of the day and the one that sets London\u2019s direction.'],
+['m-lo2','LONDON 2','02:50 – 03:10 ET','Mid-session London macro. Continuation window: it extends the leg London 1 established rather than starting a new one.'],
+['m-lo3','LONDON 3','04:30 – 05:00 ET','The London close macro. Positions are unwound into the close, which often reverses the session leg and leaves the high or low of the London range.'],
+['m-am0','NY AM','08:50 – 09:10 ET','Pre-open macro, before the cash open. Sets the opening imbalance and frequently prints the level the 09:30 open then trades away from.'],
+['m-am1','NY AM1','09:50 – 10:10 ET','First post-open macro. The 09:30 push is either confirmed or reversed here — the highest-probability AM window when the daily bias is clear.'],
+['m-am2','NY AM2','10:50 – 11:10 ET','Second AM macro, overlapping the Silver Bullet hour. Late continuation or the AM session\u2019s final raid before lunch.'],
+['m-lunch','LUNCH','11:50 – 12:10 ET','Lunch macro. Thin liquidity, so moves are sharp but rarely hold — treat it as a rebalancing window, not a trend one.'],
+['m-pm','PM','13:50 – 14:10 ET','The PM session macro. Where the afternoon leg begins, typically delivering toward the level the AM session left unfinished.'],
+['m-close','CLOSE','15:15 – 15:45 ET','Closing macro. The last real repricing window — algorithmic delivery into the settlement, often the day\u2019s cleanest expansion.'],
+['m-final','FINAL','15:50 – 16:00 ET','The final ten minutes. Settlement print only: positioning and imbalance, not a window to enter on.']
+];
+
+// [title, [term keys], blurb]. A term may appear in more than one group.
+var CATS = [
+  ['Market maker models', ['amd','mmbm','mmsm','po3','judas','smt','prem','disc'],
+   'How the algorithm delivers a whole move — the phases and the bias behind them.'],
+  ['Named & time assets', ['t-asian','t-mid','t-lo','t-lkz','t-pre','t-am','t-lunch','t-pm','t-final'],
+   'The sessions and windows the day is divided into, each with its own behaviour.'],
+  ['PD arrays', ['ob','rb','pb','brkr','mit','susp','fvg','ifvg','rcfvg','bisi','sibi'],
+   'Premium and discount arrays — the price levels the algorithm leaves behind and returns to.'],
+  ['Entry models', ['turtle','rb','ob','ifvg','fvg','susp','brkr','mit','rcfvg','ote'],
+   'The same arrays read as triggers: what has to happen before you click.'],
+  ['Time-based entry', ['t-18','t-mid','sblo','sb','sbpm'],
+   'Setups defined by the clock rather than the level — the window is the edge.'],
+  ['Draws / run on liquidity', ['dol','d3hl','rfl','hrlr','ifed','nwog','ndog','erl'],
+   'Where price is being delivered to, and the stops it raids on the way.'],
+  ['LMR macro times', ['m-as1','m-as2','m-lo1','m-lo2','m-lo3','m-am0','m-am1','m-am2','m-lunch','m-pm','m-close','m-final'],
+   'The named :50\u2013:10 windows the day is tracked by, from the Asian open through to the close. Each trade carries the macro it was taken in, so the log can grade the windows as well as the models.'],
+  ['Gaps', ['nwog','ndog','rth'],
+   'Price left untraded between one session\u2019s close and the next one\u2019s open. Nothing changed hands inside the gap, so its upper edge, lower edge and midpoint stay live as reference until price returns and rebalances them.'],
+  ['Range & levels', ['eq','prem','disc','ote','ceq','quad','fifth','hexa','protr','proj','rth05','ohlc'],
+   'Subdivisions and projections of a dealing range — where inside it price is trading, and where it goes once the range breaks.']
+];
+
+var TYPES = {
+  h:  {label:'Heading',    ph:'Heading'},
+  p:  {label:'Text',       ph:'Write, or type / for blocks'},
+  b:  {label:'Bullet',     ph:'List item'},
+  q:  {label:'Quote',      ph:'Quote or rule'},
+  tg1:{label:'Toggle H1',  ph:'Toggle heading 1'},
+  tg2:{label:'Toggle H2',  ph:'Toggle heading 2'},
+  tg3:{label:'Toggle H3',  ph:'Toggle heading 3'},
+  img:{label:'Image',      ph:''},
+  div:{label:'Divider',    ph:''}
+};
+
+// ── PERSISTENCE ────────────────────────────────────────────────
+// Wire these three to the host app. Defaults fall back to
+// localStorage so this file also runs standalone.
+var KB_PERSIST = {
+  read: function(){
+    if (typeof state === 'object' && state) return state;
+    try { return JSON.parse(localStorage.getItem('lmr_kb') || '{}'); }
+    catch(e){ return {}; }
+  },
+  write: function(){
+    if (typeof save === 'function') { save(); }
+    else { try { localStorage.setItem('lmr_kb', JSON.stringify(S)); } catch(e){} }
+    // Cloud: persist the whole knowledge base to the dedicated lmr_terminology row.
+    try {
+      if (typeof _sb !== 'undefined' && _sb && typeof _sbUserId !== 'undefined' && _sbUserId) {
+        _sb.from('lmr_terminology').upsert({ user_id:_sbUserId, data:{ kb:{
+          termBlocks:S.termBlocks, customTerms:S.customTerms, customCats:S.customCats, builtinExtra:S.builtinExtra
+        } } }, { onConflict:'user_id' });
+      }
+    } catch(e){}
+  },
+  // Images: IndexedDB in the host app, data-URL fallback standalone.
+  saveImg: function(k,b){ return (typeof saveImg==='function') ? saveImg(k,b) : Promise.resolve(_memImg[k]=b); },
+  getImg:  function(k){   return (typeof getImg ==='function') ? getImg(k)    : Promise.resolve(_memImg[k]); }
+};
+var _memImg = {};
+
+var S = KB_PERSIST.read();
+S.termBlocks   = S.termBlocks   || {};
+S.customTerms  = S.customTerms  || [];
+S.customCats   = S.customCats   || [];
+S.builtinExtra = S.builtinExtra || {};
+var openTerm = '';
+var slashAt  = -1;   // index of the block whose / menu is open
+var focusUid = '';   // block to restore the caret into after a re-render
+
+function allTerms(){ return TERMS.concat(S.customTerms); }
+function find(k){ var a=allTerms(),i; for(i=0;i<a.length;i++) if(a[i][0]===k) return a[i]; return null; }
+function commit(){ KB_PERSIST.write(); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+// ── GLOSSARY LIST ──────────────────────────────────────────────
+function renderList(){
+  var cats = CATS.map(function(c){ return [c[0], c[1].slice(), c[2]]; });
+  S.customCats.forEach(function(c){ cats.push([c.title,(c.terms||[]).slice(),c.blurb||'']); });
+  // Terms the user added into a built-in section.
+  cats.forEach(function(c){
+    (S.builtinExtra[c[0]]||[]).forEach(function(k){ if(c[1].indexOf(k)<0) c[1].push(k); });
+  });
+
+  var placed = {}, out = '';
+  var groups = cats.map(function(c){
+    var terms = c[1].map(find).filter(Boolean);
+    terms.forEach(function(t){ placed[t[0]] = 1; });
+    return {title:c[0], blurb:c[2], terms:terms,
+            isCustom:S.customCats.some(function(x){return x.title===c[0];})};
+  });
+  // Anything in TERMS but not categorised still shows up.
+  var rest = allTerms().filter(function(t){ return !placed[t[0]]; });
+  if (rest.length) groups.push({title:'Other', blurb:'', terms:rest, isCustom:false});
+  // Keep user-made sections even while empty, or a new section vanishes
+  // before its "+ Add term" button can be reached.
+  groups = groups.filter(function(g){ return g.terms.length || g.isCustom; });
+
+  groups.forEach(function(g){
+    out += '<div class="kb-group"><div class="kb-ghead"><div class="kb-grow1">'
+        +  '<span class="kb-gtitle">'+esc(g.title)+'</span>'
+        +  '<span class="kb-gcount">'+g.terms.length+' terms</span>'
+        +  '<button class="kb-btn-ghost" style="margin-left:auto" data-add-term="'+esc(g.title)+'">+ Add term</button>'
+        +  (g.isCustom ? '<button class="kb-btn-del" data-del-sec="'+esc(g.title)+'">Delete section</button>' : '')
+        +  '</div>'
+        +  (g.blurb ? '<span class="kb-gblurb">'+esc(g.blurb)+'</span>' : '')
+        +  '</div>';
+    if (!g.terms.length)
+      out += '<div class="kb-empty">Empty section \u2014 use <strong>+ Add term</strong> above to put the first term in it.</div>';
+    g.terms.forEach(function(t){
+      var canDel = S.customTerms.some(function(x){return x[0]===t[0];});
+      out += '<div class="kb-row">'
+          +  '<button class="kb-open" data-open="'+esc(t[0])+'">'
+          +    '<span class="kb-abbr">'+esc(t[1])+'</span>'
+          +    '<span class="kb-gloss">'+esc(t[2])+'</span>'
+          +    '<svg class="kb-chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>'
+          +  '</button>'
+          +  (canDel ? '<button class="kb-xterm" data-del-term="'+esc(t[0])+'" title="Delete term">\u00d7</button>' : '')
+          +  '</div>';
+    });
+    out += '</div>';
+  });
+
+  document.getElementById('kbList').innerHTML =
+      '<div class="kb-wrap"><div class="kb-top">'
+    + '<span class="kb-eyebrow">Glossary</span>'
+    + '<span class="kb-sub">'+allTerms().length+' terms \u00b7 open one to write and drop charts</span>'
+    + '<button class="kb-btn-gold" id="kbAddSection">+ Add section</button>'
+    + '</div>' + out + '</div>';
+}
+
+// ── TERM DETAIL (block canvas) ─────────────────────────────────
+function blocksFor(key){
+  var t = find(key);
+  var raw = S.termBlocks[key] || [{uid:'b0', type:'p', text:(t?t[3]:'')}];
+  return raw.map(function(b,i){
+    return {uid:b.uid||('b'+i), type:b.type||'p', text:b.text||'',
+            // 'f' = full row; '2'..'5' = a cell in an n-column set.
+            w:(b.w==='h'?'2':(b.w||'f')), ci:b.ci||0, folded:!!b.folded};
+  });
+}
+function put(key,next){ S.termBlocks[key]=next; commit(); renderDetail(); }
+
+// Explicit grid rows: every column in a set starts on the set's own first
+// row and tracks its next row independently — so stacking under column 1
+// never pushes column 2 down.
+function gridRows(blocks){
+  var rows=[], cursor=1, setW=null, setBase=1, next={};
+  blocks.forEach(function(b,i){
+    if (b.w==='f'){ rows[i]=cursor++; setW=null; next={}; return; }
+    if (b.w!==setW){ setW=b.w; setBase=cursor; next={}; }
+    var ci=b.ci||0, r=(next[ci]==null?setBase:next[ci]);
+    rows[i]=r; next[ci]=r+1; cursor=Math.max(cursor,r+1);
+  });
+  return rows;
+}
+
+function renderDetail(){
+  var key=openTerm, t=find(key);
+  if(!t){ return; }
+  var blocks=blocksFor(key), rows=gridRows(blocks), out='';
+
+  blocks.forEach(function(b,i){
+    var span = b.w==='f' ? 60 : Math.round(60/parseInt(b.w,10));
+    var col  = b.w==='f' ? 1  : (b.ci*span)+1;
+    var pad  = b.w==='f' ? '' : (b.ci>0?'padding-left:10px;':'padding-right:10px;');
+    out += '<div class="kb-blk" id="kb-blk-'+b.uid+'" style="grid-column:'+col+' / span '+span+';grid-row:'+rows[i]+';'+pad+'">';
+
+    if (slashAt===i){
+      out += '<div class="kb-slash">';
+      Object.keys(TYPES).forEach(function(ty){
+        out += '<button data-pick="'+ty+'" data-at="'+i+'">'+TYPES[ty].label+'</button>';
+      });
+      [2,3,4,5].forEach(function(n){
+        out += '<button data-cols="'+n+'" data-at="'+i+'">'+n+' columns</button>';
+      });
+      out += '</div>';
+    }
+
+    if (b.type==='div'){
+      out += '<div class="kb-div"></div>';
+    } else if (b.type==='img'){
+      out += '<div class="kb-imgbox" data-img="'+b.uid+'">'
+          +  '<span class="kb-imgph">Click, drop or paste a chart</span>'
+          +  '<button class="kb-x" data-ximg="'+b.uid+'" title="Delete image or empty block">\u00d7</button>'
+          +  '</div>';
+    } else {
+      var isTg = b.type.indexOf('tg')===0;
+      out += '<div class="kb-blk-inner">'
+          +  (b.type==='b' ? '<span class="kb-bullet">\u2022</span>' : '')
+          +  (isTg ? '<button class="kb-caret" data-fold="'+b.uid+'" title="Collapse / expand">'+(b.folded?'\u25b8':'\u25be')+'</button>' : '')
+          +  '<textarea class="kb-ta" data-t="'+b.type+'" data-i="'+i+'" data-uid="'+b.uid+'" rows="1" '
+          +  'placeholder="'+esc(TYPES[b.type].ph)+'">'+esc(b.text)+'</textarea>'
+          +  '</div>';
+    }
+    out += '</div>';
+  });
+
+  document.getElementById('kbDetail').innerHTML =
+      '<div class="kb-dhead">'
+    + '<button class="kb-back" id="kbBack">'
+    +   '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>'
+    +   '<span>Glossary</span></button>'
+    + '<span class="kb-dtitle"><span class="kb-dabbr">'+esc(t[1])+'</span>'
+    +   '<span class="kb-dgloss">'+esc(t[2])+'</span></span>'
+    + '<button class="kb-addtext" id="kbAddText">+ Text block</button>'
+    + '</div>'
+    + '<div class="kb-canvas" id="kbCanvas">'+out+'</div>';
+
+  // Autosize every textarea, then restore the caret.
+  Array.prototype.forEach.call(document.querySelectorAll('#kbDetail .kb-ta'), grow);
+  if (focusUid){
+    var el=document.querySelector('#kb-blk-'+focusUid+' .kb-ta');
+    if(el){ el.focus(); el.setSelectionRange(el.value.length,el.value.length); }
+    focusUid='';
+  }
+  // Paint any images already stored for this term.
+  blocks.forEach(function(b){
+    if (b.type!=='img') return;
+    KB_PERSIST.getImg('term-'+key+'-'+b.uid).then(function(src){
+      if(!src) return;
+      var box=document.querySelector('[data-img="'+b.uid+'"]');
+      if(!box) return;
+      box.innerHTML = '<img src="'+src+'" alt=""><button class="kb-x" data-ximg="'+b.uid+'">\u00d7</button>';
+    });
+  });
+}
+
+function grow(el){ el.style.height='auto'; el.style.height=el.scrollHeight+'px'; }
+
+// ── BLOCK OPERATIONS ───────────────────────────────────────────
+function addBlock(type, at){
+  var b=blocksFor(openTerm), n={uid:'b'+Date.now().toString(36), type:type, text:'', w:'f', ci:0};
+  b.splice(at==null?b.length:at, 0, n);
+  focusUid=n.uid; slashAt=-1; put(openTerm,b);
+}
+function addCols(n, at){
+  var b=blocksFor(openTerm), stamp=Date.now().toString(36), cols=[];
+  for(var k=0;k<n;k++) cols.push({uid:'b'+stamp+k, type:'p', text:'', w:String(n), ci:k});
+  b.splice(at==null?b.length:at+1, 0, cols[0]);
+  for(var j=1;j<n;j++) b.splice((at==null?b.length:at+1)+j, 0, cols[j]);
+  focusUid=cols[0].uid; slashAt=-1; put(openTerm,b);
+}
+function setType(i, type){
+  var b=blocksFor(openTerm);
+  b[i]=Object.assign({}, b[i], {type:type, text:type==='img'||type==='div'?'':b[i].text});
+  focusUid=b[i].uid; slashAt=-1; put(openTerm,b);
+}
+function removeBlock(i){
+  var b=blocksFor(openTerm);
+  if(b.length<=1) return;
+  var prev=b[i-1];
+  b.splice(i,1);
+  focusUid = prev ? prev.uid : '';
+  put(openTerm,b);
+}
+
+// A paste anywhere in a term lands an image block right after the block
+// being typed in — inside a column set it takes that column's own width,
+// so the row keeps its column count instead of wrapping a new cell.
+function pasteImage(dataUrl, anchorUid){
+  var b=blocksFor(openTerm), uid='b'+Date.now().toString(36);
+  var at=-1,i;
+  for(i=0;i<b.length;i++) if(b[i].uid===anchorUid) at=i;
+  if(at<0) at=b.length-1;
+  var host=b[at], inCol=host&&host.w&&host.w!=='f';
+  // Only an EMPTY TEXT cell converts in place; an image or divider anchor
+  // must splice below it, or each paste would replace the previous chart.
+  var textish=['p','h','b','q','tg1','tg2','tg3'].indexOf(host?host.type:'')>=0;
+  if (inCol && textish && !(host.text||'').trim()){
+    b[at]={uid:uid, type:'img', text:'', w:host.w, ci:host.ci||0};
+  } else {
+    b.splice(at+1, 0, {uid:uid, type:'img', text:'',
+                       w:inCol?host.w:'f', ci:inCol?(host.ci||0):0});
+  }
+  KB_PERSIST.saveImg('term-'+openTerm+'-'+uid, dataUrl).then(function(){
+    put(openTerm,b);
+  });
+}
+
+// ── EVENTS ─────────────────────────────────────────────────────
+var panel=document.getElementById('p-terminology');
+
+panel.addEventListener('click', function(e){
+  var el=e.target.closest('[data-open],[data-del-term],[data-del-sec],[data-add-term],#kbAddSection,#kbBack,#kbAddText,[data-pick],[data-cols],[data-fold],[data-ximg],[data-img]');
+  if(!el) return;
+  var d=el.dataset;
+
+  if (d.open!=null){ openTerm=d.open; slashAt=-1; show(); return; }
+  if (el.id==='kbBack'){ openTerm=''; show(); return; }
+  if (el.id==='kbAddText'){ addBlock('p'); return; }
+  if (d.pick!=null){ setType(parseInt(d.at,10), d.pick); return; }
+  if (d.cols!=null){ addCols(parseInt(d.cols,10), parseInt(d.at,10)); return; }
+
+  if (d.fold!=null){
+    var b=blocksFor(openTerm);
+    b.forEach(function(x){ if(x.uid===d.fold) x.folded=!x.folded; });
+    put(openTerm,b); return;
+  }
+  if (d.ximg!=null){
+    e.stopPropagation();
+    var bb=blocksFor(openTerm), idx=-1;
+    bb.forEach(function(x,i){ if(x.uid===d.ximg) idx=i; });
+    KB_PERSIST.saveImg('term-'+openTerm+'-'+d.ximg, null);
+    if(idx>=0) removeBlock(idx);
+    return;
+  }
+  if (d.img!=null){
+    var inp=document.createElement('input');
+    inp.type='file'; inp.accept='image/*';
+    inp.onchange=function(){
+      var f=inp.files[0]; if(!f) return;
+      var r=new FileReader();
+      r.onload=function(){ KB_PERSIST.saveImg('term-'+openTerm+'-'+d.img, r.result).then(renderDetail); };
+      r.readAsDataURL(f);
+    };
+    inp.click(); return;
+  }
+
+  if (el.id==='kbAddSection'){
+    var title=window.prompt('Section name (e.g. "Risk & Sizing")');
+    if(!title||!title.trim()) return;
+    var blurb=window.prompt('One line describing what belongs in it')||'';
+    S.customCats.push({title:title.trim(), blurb:blurb.trim(), terms:[]});
+    commit(); renderList(); return;
+  }
+  if (d.addTerm!=null){
+    var abbr=window.prompt('Term name (e.g. "Order Block")');
+    if(!abbr||!abbr.trim()) return;
+    var gloss=window.prompt('Short gloss \u2014 the grey line beside the name')||'';
+    var k='u-'+abbr.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-')+'-'+Date.now().toString(36);
+    S.customTerms.push([k, abbr.trim(), gloss.trim(), '']);
+    var sec=d.addTerm;
+    S.customCats.forEach(function(x){ if(x.title===sec) x.terms=(x.terms||[]).concat([k]); });
+    S.builtinExtra[sec]=(S.builtinExtra[sec]||[]).concat([k]);
+    commit(); openTerm=k; show(); return;
+  }
+  if (d.delTerm!=null){
+    var tt=find(d.delTerm);
+    if(!window.confirm('Delete the term "'+(tt?tt[1]:d.delTerm)+'"?')) return;
+    S.customTerms=S.customTerms.filter(function(x){return x[0]!==d.delTerm;});
+    S.customCats.forEach(function(c){ c.terms=(c.terms||[]).filter(function(k){return k!==d.delTerm;}); });
+    Object.keys(S.builtinExtra).forEach(function(k){
+      S.builtinExtra[k]=(S.builtinExtra[k]||[]).filter(function(x){return x!==d.delTerm;});
+    });
+    if(openTerm===d.delTerm) openTerm='';
+    commit(); show(); return;
+  }
+  if (d.delSec!=null){
+    var sc=S.customCats.filter(function(x){return x.title===d.delSec;})[0];
+    var keys=sc?(sc.terms||[]):[];
+    if(!window.confirm('Delete the "'+d.delSec+'" section and its '+keys.length+' terms?')) return;
+    S.customCats=S.customCats.filter(function(x){return x.title!==d.delSec;});
+    S.customTerms=S.customTerms.filter(function(t2){return keys.indexOf(t2[0])<0;});
+    if(keys.indexOf(openTerm)>=0) openTerm='';
+    commit(); show(); return;
+  }
+});
+
+// Typing: autosize, save on change, "/" opens the block menu,
+// Enter adds the next block, Backspace on an empty block deletes it.
+panel.addEventListener('input', function(e){
+  var ta=e.target; if(!ta.classList||!ta.classList.contains('kb-ta')) return;
+  grow(ta);
+  var i=parseInt(ta.dataset.i,10), b=blocksFor(openTerm);
+  b[i]=Object.assign({}, b[i], {text:ta.value});
+  S.termBlocks[openTerm]=b; commit();
+  var wantSlash = ta.value.trim()==='/';
+  if (wantSlash!==(slashAt===i)){ slashAt = wantSlash?i:-1; focusUid=ta.dataset.uid; renderDetail(); }
+});
+
+panel.addEventListener('keydown', function(e){
+  var ta=e.target; if(!ta.classList||!ta.classList.contains('kb-ta')) return;
+  var i=parseInt(ta.dataset.i,10);
+  if (e.key==='Escape' && slashAt>=0){ slashAt=-1; focusUid=ta.dataset.uid; renderDetail(); return; }
+  if (e.key==='Enter' && !e.shiftKey){
+    e.preventDefault();
+    var b=blocksFor(openTerm);
+    // Enter inside a bullet keeps making bullets; everything else drops to text.
+    addBlock(b[i].type==='b'?'b':'p', i+1);
+    return;
+  }
+  if (e.key==='Backspace' && ta.value===''){
+    e.preventDefault(); removeBlock(i);
+  }
+});
+
+// Paste a chart anywhere in an open term.
+document.addEventListener('paste', function(e){
+  if(!openTerm) return;
+  if(!panel.contains(document.activeElement) && !panel.contains(e.target)) return;
+  var items=(e.clipboardData||{}).items||[], i;
+  for(i=0;i<items.length;i++){
+    if(items[i].type.indexOf('image')!==0) continue;
+    e.preventDefault();
+    var f=items[i].getAsFile(), r=new FileReader();
+    var anchor=(document.activeElement&&document.activeElement.dataset)?document.activeElement.dataset.uid:'';
+    r.onload=function(){ pasteImage(r.result, anchor); };
+    r.readAsDataURL(f);
+    return;
+  }
+});
+
+// Drop a chart onto an image block.
+panel.addEventListener('dragover', function(e){ if(e.target.closest('[data-img]')) e.preventDefault(); });
+panel.addEventListener('drop', function(e){
+  var box=e.target.closest('[data-img]'); if(!box) return;
+  e.preventDefault();
+  var f=(e.dataTransfer.files||[])[0]; if(!f||f.type.indexOf('image')!==0) return;
+  var r=new FileReader();
+  r.onload=function(){ KB_PERSIST.saveImg('term-'+openTerm+'-'+box.dataset.img, r.result).then(renderDetail); };
+  r.readAsDataURL(f);
+});
+
+// ── MOUNT ──────────────────────────────────────────────────────
+function show(){
+  var list=document.getElementById('kbList'), det=document.getElementById('kbDetail');
+  if(openTerm){ list.classList.add('kb-hide'); det.classList.remove('kb-hide'); renderDetail(); }
+  else        { det.classList.add('kb-hide'); list.classList.remove('kb-hide'); renderList(); }
+}
+// Call renderKnowledge() from the host app's panel switcher.
+window.renderKnowledge = show;
+window.loadKnowledgeCloud = async function(){
+  try{
+    if (typeof _sb !== 'undefined' && _sb && typeof _sbUserId !== 'undefined' && _sbUserId){
+      var row = await _sb.from('lmr_terminology').select('data').eq('user_id',_sbUserId).single();
+      var kb = row && row.data && row.data.data && row.data.data.kb;
+      if (kb){
+        if(kb.termBlocks)  state.termBlocks  = kb.termBlocks;
+        if(kb.customTerms) state.customTerms = kb.customTerms;
+        if(kb.customCats)  state.customCats  = kb.customCats;
+        if(kb.builtinExtra)state.builtinExtra= kb.builtinExtra;
+        S = state;
+      }
+    }
+  }catch(e){}
+  try{ show(); }catch(e){}
+};
+show();
 })();
 </script>
 
