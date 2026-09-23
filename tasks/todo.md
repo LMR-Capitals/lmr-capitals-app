@@ -31,11 +31,11 @@ data layer; verify (syntax → headless preview → data round-trip) → commit 
 - [x] 4.2 Account detail sheet (hero balance, profit/consistency/days rings, balance-vs-DD SVG, P&L calendar, ledger, trades table) — already matches design
 
 ## Phase 5 — Transactions
-- [ ] 5.1 Hero/KPI tiles + scope chips + 3 ledgers + signed rows + receipts
-- [ ] 5.2 + Transaction sheet (auto firm, receipt → Storage)
+- [x] 5.1 Hero/KPI tiles + 3 ledgers (Deposits&Fees/Payouts/Withdrawals) + signed rows — already built to design; theme applied
+- [x] 5.2 + Transaction sheet (Deposit/Fee/Payout/Withdrawal; receipt_key + image sync) — already matches design
 
 ## Phase 6 — Trades
-- [ ] 6.1 Stats strip + gallery + list
+- [x] 6.1 Stats strip (already) + filter toolbar (acc/side/model/emotion/phase/mmm/rth + result chips + Clear) + List/Gallery views
 - [ ] 6.2 Add/Edit sheet + new fields (pd_array/refs/grade/plan_followed/img_entry+exit)
 
 ## Phase 7 — Performance / Reports

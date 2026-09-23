@@ -129,6 +129,24 @@ h1,h2,h3,h4,.card-title,.tb-title,#tbTitle,.panel-title{font-family:'Space Grote
 .cd-leader{border:1px solid var(--gold-border);background:var(--gold-bg);border-radius:var(--r);padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .cd-tag{font-size:9px;font-weight:800;letter-spacing:.08em;color:var(--gold);background:var(--bg);border:1px solid var(--gold-border);border-radius:99px;padding:2px 8px}
 .cd-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 2px;border-top:1px solid var(--border);font-size:12px}
+/* Trade Log filter toolbar + gallery */
+.tl-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.tl-filters select{width:auto;min-width:130px;font-size:12px}
+.tl-viewtog{display:inline-flex;border:1px solid var(--border2);border-radius:99px;overflow:hidden}
+.tl-view{font-size:11px;font-weight:700;padding:5px 14px;color:var(--text3);background:var(--bg3)}
+.tl-view.on{color:var(--gold);background:var(--gold-bg)}
+.tl-resultchips{display:inline-flex;gap:6px}
+.tl-rchip{font-size:10px;font-weight:700;padding:4px 11px;border-radius:99px;border:1px solid var(--border2);color:var(--text3);background:var(--bg3)}
+.tl-rchip.on[data-res="win"]{color:var(--bull);border-color:var(--bull);background:var(--bull-bg)}
+.tl-rchip.on[data-res="loss"]{color:var(--bear);border-color:var(--bear);background:var(--bear-bg)}
+.tl-rchip.on[data-res="be"]{color:var(--text);border-color:var(--border3);background:var(--bg4)}
+.tl-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;padding:4px 2px}
+.tl-gcard{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;cursor:pointer;transition:border-color .2s,transform .15s}
+.tl-gcard:hover{border-color:var(--gold-border);transform:translateY(-2px)}
+.tl-gimg{height:130px;background:var(--bg4);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:11px;background-size:cover;background-position:center}
+.tl-gbody{padding:10px 12px}
+.tl-gtop{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:6px}
+.tl-gpnl{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:14px}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 input,textarea,select{font-family:inherit;font-size:13px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:var(--r);width:100%;outline:none}
 input:focus,textarea:focus,select:focus{border-color:var(--gold)}
@@ -2914,6 +2932,30 @@ Midnight Open $______"></textarea>
 <!-- TRADES -->
 <div class="panel" id="p-trades">
 <div class="panel-inner">
+  <!-- Filter toolbar + view toggle (design v2) -->
+  <div class="tl-filters">
+    <select id="tf-acc" class="m-focus" onchange="applyTradeFilters()"><option value="">All accounts</option></select>
+    <select id="tf-side" class="m-focus" onchange="applyTradeFilters()"><option value="">Long &amp; Short</option><option value="Long">Long</option><option value="Short">Short</option></select>
+    <select id="tf-model" class="m-focus" onchange="applyTradeFilters()"><option value="">All models</option></select>
+    <select id="tf-emotion" class="m-focus" onchange="applyTradeFilters()"><option value="">All emotions</option></select>
+    <select id="tf-phase" class="m-focus" onchange="applyTradeFilters()"><option value="">All phases</option></select>
+    <select id="tf-mmm" class="m-focus" onchange="applyTradeFilters()"><option value="">MMBM &amp; MMSM</option><option value="MMBM">MMBM</option><option value="MMSM">MMSM</option></select>
+    <select id="tf-rth" class="m-focus" onchange="applyTradeFilters()"><option value="">All RTH profiles</option></select>
+  </div>
+  <div class="tl-filters" style="margin-top:8px;align-items:center">
+    <button class="btn btn-ghost btn-sm" onclick="clearTradeFilters()">Clear filters</button>
+    <div class="tl-viewtog">
+      <button class="tl-view on" id="tl-view-list" onclick="setTradeView('list')">List</button>
+      <button class="tl-view" id="tl-view-gallery" onclick="setTradeView('gallery')">Gallery</button>
+    </div>
+    <div class="tl-resultchips">
+      <button class="tl-rchip" data-res="win" onclick="toggleResultFilter('win',this)">Win</button>
+      <button class="tl-rchip" data-res="loss" onclick="toggleResultFilter('loss',this)">Loss</button>
+      <button class="tl-rchip" data-res="be" onclick="toggleResultFilter('be',this)">BE</button>
+    </div>
+    <span class="ks-sub" id="tl-filter-count" style="margin-left:auto">0 trades</span>
+  </div>
+
   <div class="dash-grid">
     <div class="tile pur"><div class="tile-l">Total</div><div class="tile-v" id="tr-total">0</div></div>
     <div class="tile pos"><div class="tile-l">Win Rate</div><div class="tile-v" id="tr-wr">0%</div></div>
@@ -2980,6 +3022,7 @@ Midnight Open $______"></textarea>
         </tr></thead>
         <tbody id="tradeTable"><tr><td colspan="16" class="empty">No trades. Press T to log one.</td></tr></tbody>
       </table></div>
+      <div id="tradeGallery" class="tl-gallery" style="display:none"></div>
     </div>
   </div>
 </div>
@@ -7878,12 +7921,91 @@ function _leaderTradeMirrorCount(t){
   });
   return n;
 }
+// ── Trade Log filters + view toggle (design v2) ──────────────────
+let _tradeFilters={acc:'',side:'',model:'',emotion:'',phase:'',mmm:'',rth:'',results:new Set()};
+let _tradeView='list';
+function populateTradeFilters(){
+  const fill=(id,opts,keep)=>{const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML=`<option value="">${keep}</option>`+opts.map(o=>`<option value="${o}">${o}</option>`).join('');el.value=cur;};
+  fill('tf-acc',(state.accounts||[]).map(a=>a.name),'All accounts');
+  if(typeof MODELS!=='undefined')fill('tf-model',MODELS,'All models');
+  if(typeof EMOTIONS!=='undefined')fill('tf-emotion',EMOTIONS,'All emotions');
+  if(typeof MARKET_PHASES!=='undefined')fill('tf-phase',MARKET_PHASES,'All phases');
+  if(typeof RTH_PROFILES!=='undefined')fill('tf-rth',RTH_PROFILES,'All RTH profiles');
+}
+function applyTradeFilters(){
+  const v=id=>{const e=document.getElementById(id);return e?e.value:'';};
+  _tradeFilters.acc=v('tf-acc');_tradeFilters.side=v('tf-side');_tradeFilters.model=v('tf-model');
+  _tradeFilters.emotion=v('tf-emotion');_tradeFilters.phase=v('tf-phase');_tradeFilters.mmm=v('tf-mmm');_tradeFilters.rth=v('tf-rth');
+  renderTradeTable();
+}
+function clearTradeFilters(){
+  ['tf-acc','tf-side','tf-model','tf-emotion','tf-phase','tf-mmm','tf-rth'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  _tradeFilters={acc:'',side:'',model:'',emotion:'',phase:'',mmm:'',rth:'',results:new Set()};
+  document.querySelectorAll('.tl-rchip').forEach(c=>c.classList.remove('on'));
+  renderTradeTable();
+}
+function toggleResultFilter(res,btn){
+  if(_tradeFilters.results.has(res))_tradeFilters.results.delete(res);else _tradeFilters.results.add(res);
+  if(btn)btn.classList.toggle('on');
+  renderTradeTable();
+}
+function setTradeView(v){
+  _tradeView=v;
+  const l=document.getElementById('tl-view-list'),g=document.getElementById('tl-view-gallery');
+  if(l)l.classList.toggle('on',v==='list');if(g)g.classList.toggle('on',v==='gallery');
+  const tbl=document.querySelector('#p-trades .tw'),gal=document.getElementById('tradeGallery');
+  if(tbl)tbl.style.display=v==='list'?'':'none';
+  if(gal)gal.style.display=v==='gallery'?'grid':'none';
+  renderTradeTable();
+}
+function _filterTrades(list){
+  const f=_tradeFilters;
+  const accId=f.acc?(state.accounts.find(a=>a.name===f.acc)||{}).id:null;
+  return list.filter(t=>{
+    if(accId&&String(t.accountId)!==String(accId))return false;
+    if(f.side&&t.position!==f.side)return false;
+    if(f.model&&!(t.models||[]).includes(f.model))return false;
+    if(f.emotion&&!(t.emotions||[]).includes(f.emotion))return false;
+    if(f.phase&&!(t.phases||[]).includes(f.phase))return false;
+    if(f.mmm&&!(t.mmm||[]).includes(f.mmm))return false;
+    if(f.rth&&t.rth!==f.rth)return false;
+    if(f.results.size){const r=t.pnl>0?'win':t.pnl<0?'loss':'be';if(!f.results.has(r))return false;}
+    return true;
+  });
+}
+function renderTradeGallery(list){
+  const g=document.getElementById('tradeGallery');if(!g)return;
+  if(!list.length){g.innerHTML='<div class="empty" style="grid-column:1/-1">No trades match these filters.</div>';return;}
+  g.innerHTML=list.map(t=>{
+    const side=t.position||'—',model=(t.models||[])[0]||'-';
+    const pnlCls=t.pnl>=0?'txt-pos':'txt-neg';
+    const res=t.pnl>0?'<span class="win-pill">WIN</span>':t.pnl<0?'<span class="loss-pill">LOSS</span>':'<span class="tag tg-gray">BE</span>';
+    return `<div class="tl-gcard" onclick="openTradeModal(${t.id})">
+      <div class="tl-gimg" data-tgimg="${t.id}">📋 ${t.market||'—'} · ${(t.date||'').slice(0,10)}</div>
+      <div class="tl-gbody">
+        <div class="tl-gtop"><span class="tag tg-${side==='Long'?'bull':'bear'}">${side}</span>${res}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+          <span class="tag tg-pur">${model}</span>
+          <span class="tl-gpnl ${pnlCls}">${t.pnl>=0?'+':''}$${(t.pnl||0).toFixed(0)}</span>
+        </div>
+        <div class="ks-sub" style="margin-top:6px">${(t.session||'—')} · ${t.rr||0}R · risk $${t.risk||0}</div>
+      </div>
+    </div>`;
+  }).join('');
+  // Best-effort per-trade entry image (future img_entry); stays placeholder if absent
+  list.forEach(async t=>{
+    try{ const b=await getImg(`trade-${t.id}-entry`); if(b){ const el=g.querySelector(`[data-tgimg="${t.id}"]`); if(el){el.textContent='';el.style.backgroundImage=`url(${URL.createObjectURL(b)})`;} } }catch(e){}
+  });
+}
 function renderTradeTable(){
   const w=document.getElementById('tradeTable');
+  populateTradeFilters();
   // Copier mirror copies belong to their follower account (shown in that account's detail
   // + counted in that account's balance/payout) — NOT as duplicate rows in your journal.
   const {ids:mirrorIds,badge:mirrorCounts}=_mirrorTradeIds();
-  const ownTrades=state.trades.filter(t=>!mirrorIds.has(t.id));
+  const ownTrades=_filterTrades(state.trades.filter(t=>!mirrorIds.has(t.id)));
+  const _cnt=document.getElementById('tl-filter-count'); if(_cnt)_cnt.textContent=ownTrades.length+' trade'+(ownTrades.length===1?'':'s');
+  if(_tradeView==='gallery') renderTradeGallery([...ownTrades].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0)));
   if(!ownTrades.length){w.innerHTML='<tr><td colspan="16" class="empty">No trades.</td></tr>';return}
   // Always sort newest → oldest
   const sorted=[...ownTrades].sort((a,b)=>{
