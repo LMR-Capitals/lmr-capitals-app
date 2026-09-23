@@ -2018,6 +2018,81 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
   .card,.tile,.sb-item,.btn,input,textarea,select{transition:none!important}
 }
 </style>
+<style id="lmr-pd-css">
+#lmr-pd{
+  --pd-surface:var(--bg2,#101018); --pd-inset:var(--bg3,#14141C);
+  --pd-line:var(--border,rgba(255,255,255,0.08));
+  --pd-txt:var(--text1,#EDEDF2); --pd-mut:var(--text2,#A0A0B0); --pd-dim:var(--text3,#7A7A8C);
+  --pd-gold:var(--gold,#F5A623); --pd-rose:var(--bear,#FF4060);
+  font-family:'Inter',system-ui,sans-serif; color:var(--pd-txt);
+  display:flex; flex-direction:column; gap:12px;
+}
+#lmr-pd .pd-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+#lmr-pd .pd-eyebrow{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+#lmr-pd .pd-hint{font-size:12px;color:var(--pd-dim)}
+#lmr-pd .pd-sheet{border:1px solid var(--pd-gold);border-radius:10px;background:color-mix(in srgb,var(--pd-gold) 5%,var(--pd-surface));overflow:hidden}
+#lmr-pd .pd-sheet-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:13px 14px;border-bottom:1px solid var(--pd-line)}
+#lmr-pd .pd-badge{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.1em;padding:3px 9px;border-radius:99px;background:var(--pd-gold);color:#0A0A0F}
+#lmr-pd .pd-name{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:16px}
+#lmr-pd .pd-group{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--pd-dim)}
+#lmr-pd .pd-thesis{margin:0;padding:13px 14px 0;font-size:14px;line-height:1.65;color:var(--pd-mut)}
+#lmr-pd .pd-invalid{display:flex;align-items:flex-start;gap:9px;margin:12px 14px;padding:10px 12px;border-radius:8px;border:1px solid color-mix(in srgb,var(--pd-rose) 30%,transparent);background:color-mix(in srgb,var(--pd-rose) 8%,transparent)}
+#lmr-pd .pd-invalid b{flex:none;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--pd-rose);padding-top:2px}
+#lmr-pd .pd-invalid span{font-size:13px;line-height:1.55}
+#lmr-pd .pd-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1px;background:var(--pd-line);border-top:1px solid var(--pd-line);border-bottom:1px solid var(--pd-line)}
+#lmr-pd .pd-meta div{display:flex;flex-direction:column;gap:3px;padding:10px 14px;background:var(--pd-surface);min-width:0}
+#lmr-pd .pd-meta b{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--pd-dim)}
+#lmr-pd .pd-meta span{font-family:'JetBrains Mono',monospace;font-size:11px}
+#lmr-pd .pd-row{border-bottom:1px solid var(--pd-line)}
+#lmr-pd .pd-row-btn{width:100%;display:flex;align-items:center;gap:11px;text-align:left;padding:11px 14px;cursor:pointer;border:0;background:transparent;color:var(--pd-txt)}
+#lmr-pd .pd-row-btn:hover{background:var(--pd-inset)}
+#lmr-pd .pd-mark{flex:none;width:19px;height:19px;display:flex;align-items:center;justify-content:center;border-radius:5px;border:1px solid var(--pd-line);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--pd-gold)}
+#lmr-pd .pd-row-lbl{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;letter-spacing:.04em}
+#lmr-pd .pd-row-sub{font-size:11px;color:var(--pd-dim);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#lmr-pd .pd-body{padding:0 14px 13px 44px;display:none}
+#lmr-pd .pd-row.open .pd-body{display:block}
+#lmr-pd .pd-body ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px}
+#lmr-pd .pd-body li{display:flex;align-items:flex-start;gap:9px;font-size:13px;line-height:1.6;color:var(--pd-mut)}
+#lmr-pd .pd-body li::before{content:'';flex:none;width:4px;height:4px;border-radius:99px;background:var(--pd-gold);margin-top:8px}
+#lmr-pd .pd-body p{margin:0;font-size:13px;line-height:1.7;color:var(--pd-mut)}
+#lmr-pd .pd-shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:9px}
+#lmr-pd .pd-shots img{width:100%;display:block;border:1px solid var(--pd-line);border-radius:6px;background:var(--pd-inset)}
+#lmr-pd .pd-set{display:flex;flex-direction:column;gap:8px;margin-bottom:15px}
+#lmr-pd .pd-set-lbl{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;color:var(--pd-gold)}
+#lmr-pd .pd-switches{display:flex;flex-direction:column;gap:5px;padding:11px 14px}
+#lmr-pd .pd-switches b{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--pd-rose)}
+#lmr-pd .pd-switches span{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--pd-dim)}
+#lmr-pd .pd-pickhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:13px 0 9px}
+#lmr-pd .pd-pickhead b{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;letter-spacing:.06em}
+#lmr-pd .pd-grp{display:flex;flex-direction:column;gap:7px;margin-bottom:13px;min-width:0}
+#lmr-pd .pd-grp>b{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--pd-dim)}
+#lmr-pd .pd-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:7px}
+#lmr-pd .pd-card{display:flex;flex-direction:column;gap:3px;align-items:flex-start;text-align:left;padding:9px 12px;cursor:pointer;border-radius:8px;border:1px solid var(--pd-line);background:var(--pd-surface);color:var(--pd-txt);min-width:0}
+#lmr-pd .pd-card:hover{border-color:var(--pd-gold)}
+#lmr-pd .pd-card i{font-style:normal;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--pd-gold)}
+#lmr-pd .pd-card em{font-style:normal;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px}
+#lmr-pd .pd-card small{font-size:11px;line-height:1.45;color:var(--pd-dim)}
+#lmr-pd .pd-btn{padding:6px 13px;cursor:pointer;border-radius:99px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:10px;letter-spacing:.06em}
+#lmr-pd .pd-btn-gold{border:1px solid var(--pd-gold);background:color-mix(in srgb,var(--pd-gold) 12%,transparent);color:var(--pd-gold)}
+#lmr-pd .pd-btn-ghost{border:1px solid var(--pd-line);background:transparent;color:var(--pd-dim)}
+#lmr-pd .pd-confirm{margin-top:11px;padding:13px 14px;border:1px solid var(--pd-rose);border-radius:10px;background:color-mix(in srgb,var(--pd-rose) 7%,var(--pd-surface));display:flex;flex-direction:column;gap:9px}
+#lmr-pd .pd-confirm b{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:13px}
+#lmr-pd .pd-confirm p{margin:0;font-size:13px;line-height:1.6;color:var(--pd-mut)}
+#lmr-pd .pd-confirm .row{display:flex;gap:8px;flex-wrap:wrap}
+#lmr-pd .pd-go{padding:8px 17px;cursor:pointer;border:0;border-radius:99px;background:var(--pd-rose);color:#fff;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:11px}
+#lmr-pd .pd-keep{padding:8px 17px;cursor:pointer;border:1px solid var(--pd-line);border-radius:99px;background:transparent;color:var(--pd-txt);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px}
+#lmr-pd-block{position:fixed;z-index:9000;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:20px}
+#lmr-pd-block.on{display:flex}
+#lmr-pd-block .box{width:min(500px,100%);border:1px solid var(--bear,#FF4060);border-radius:12px;background:var(--bg2,#101018);overflow:hidden;font-family:'Inter',system-ui,sans-serif;color:var(--text1,#EDEDF2)}
+#lmr-pd-block .top{display:flex;align-items:center;gap:10px;padding:15px 18px;border-bottom:1px solid var(--border,rgba(255,255,255,.08));background:color-mix(in srgb,var(--bear,#FF4060) 9%,transparent)}
+#lmr-pd-block .bang{flex:none;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:99px;background:var(--bear,#FF4060);color:#fff;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:13px}
+#lmr-pd-block h4{margin:0;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:15px}
+#lmr-pd-block p{margin:0;padding:16px 18px;font-size:14px;line-height:1.7;color:var(--text2,#A0A0B0)}
+#lmr-pd-block .acts{display:flex;gap:9px;flex-wrap:wrap;padding:0 18px 17px}
+#lmr-pd-block .acts button{padding:10px 19px;cursor:pointer;border-radius:99px;font-family:'Space Grotesk',sans-serif;font-size:12px}
+#lmr-pd-block .primary{border:0;background:var(--gold,#F5A623);color:#0A0A0F;font-weight:800}
+#lmr-pd-block .secondary{border:1px solid var(--border,rgba(255,255,255,.08));background:transparent;color:var(--text1,#EDEDF2);font-weight:700}
+</style>
 </head>
 <body>
 
@@ -2557,16 +2632,9 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
           </div>
         </div>
 
-        <div class="prop-block p-pdarray" style="padding:0;display:block">
-          <div style="margin:8px 16px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);overflow:hidden">
-            <div style="padding:10px 14px;border-bottom:1px solid var(--border);font-size:10px;letter-spacing:.12em;color:var(--text3);font-weight:800">P/D ARRAY COMMITMENT</div>
-            <div style="padding:14px">
-              <div style="font-size:13px;font-weight:700;color:var(--text)">Today's P/D array</div>
-              <div style="font-size:11px;color:var(--text3);margin:2px 0 10px">Committed — trades are validated against it</div>
-              <select id="ch-pdarray" style="font-size:12px;width:100%;max-width:440px" onchange="commitPdArray(this)"><option value="">Commit today's P/D array…</option></select>
-              <div id="ch-pdarray-detail" style="margin-top:12px"></div>
-            </div>
-          </div>
+        <!-- P/D ARRAY COMMITMENT — drop-in section from the design (design/handoff/pd-arrays-section.html) -->
+        <div class="prop-block p-pdarray" style="padding:8px 16px;display:block">
+          <div id="lmr-pd"></div>
         </div>
 
         <!-- RESULT PROPERTIES -->
@@ -6990,8 +7058,7 @@ function loadDaily(){
   _priceRefOrder=(Array.isArray(d.price)?d.price:(Array.isArray(d.priceRefs)?d.priceRefs:[])).slice(); // preserve click order
   _renderPriceOrder();
   if(typeof buildPdArrayOptions==='function')buildPdArrayOptions();
-  const _pdEl=document.getElementById('ch-pdarray'); const _pdv=d.pdArray||d.pd_array||''; if(_pdEl)_pdEl.value=_pdv; _pdArrayCommitted=_pdv;
-  if(typeof renderPdArrayDetail==='function')renderPdArrayDetail(_pdv);
+  if(window.PD&&typeof PD.render==='function')PD.render(); // design PD-array commitment card
   setChipsValues('session',d.session||'');
   setChipsValues('plan',d.plan||'');
   setChipsValues('pred',d.pred||'');
@@ -7016,6 +7083,9 @@ function saveDaily(){
   const ds=todayStr();
   // Assign new sequential day count if this is the first save for this date
   const existingCount=state.daily[ds]?.dayCount;
+  // Preserve the design PD-array commitment + switch log (owned by window.PD, not a form field)
+  const _prevPdArray=state.daily[ds]?.pdArray||'';
+  const _prevPdSwitches=state.daily[ds]?.pdSwitches;
   const dayCount=existingCount||getNextDayCount();
   const weeklyKey=getWeeklyKeyForDate(ds)||`${ds.slice(0,7)}-W1`;
   state.daily[ds]={
@@ -7031,7 +7101,8 @@ function saveDaily(){
     asianSingle:getChipsValues('asianRange',false),
     priceRefs:[..._priceRefOrder],
     price:[..._priceRefOrder],   // ORDERED (click order is data); saved as BOTH keys so Daily modal can read it
-    pdArray:document.getElementById('ch-pdarray')?document.getElementById('ch-pdarray').value:'',
+    pdArray:_prevPdArray,
+    pdSwitches:_prevPdSwitches,
     session:getChipsValues('session',false),
     plan:getChipsValues('plan',false),
     pred:getChipsValues('pred',false),
@@ -7933,6 +8004,8 @@ function saveTradeAndClose(){
   const pnl=document.getElementById('tm-pnl').value;
   const date=document.getElementById('tm-date').value;
   if(!date&&!pnl&&!_tmEditId){closeModal('tradeModal');return;}
+  // Design hard block: a new trade must be validated against today's committed P/D array.
+  if(!_tmEditId && window.PD && typeof PD.check==='function' && !PD.check(getChipsValues('modelChips',true))){ return; }
   const editId=_tmEditId;
   saveTrade();
   // Auto AI analysis if enabled
@@ -15267,6 +15340,467 @@ function resetAccount(id){
   renderAccountCards(); if(typeof renderAccSummary==='function')renderAccSummary(); if(typeof updateAllStats==='function')updateAllStats();
   flash('↺ '+a.name+' reset');
 }
+</script>
+
+<div id="lmr-pd-block">
+  <div class="box">
+    <div class="top"><span class="bang">!</span><h4 id="lmr-pd-block-title">—</h4></div>
+    <p id="lmr-pd-block-body">—</p>
+    <div class="acts">
+      <button class="primary" onclick="PD.goCommit()">Open the chain</button>
+      <button class="secondary" onclick="PD.closeBlock()">Cancel the trade</button>
+    </div>
+  </div>
+</div>
+
+<script id="lmr-pd-js">
+/* ============================================================
+   LMR CAPITALS · P/D ARRAY COMMITMENT
+   One array per trading day. Committing it hides the other
+   fifteen and arms a hard block on trade entry; switching is
+   allowed but confirmed and logged.
+
+   Reads / writes:  state.chain.pdArray, state.chain.pdSwitches
+   Call PD.check(models) from your Add Trade save handler.
+   Persistence hook: PD_PERSIST at the bottom.
+   ============================================================ */
+(function () {
+  var ARRAYS = [
+      { id:'rb',
+        charts:['kb/n00.png','kb/n01.png','kb/n02.png'], name:'Rejection Block', group:'Rejection', short:'RB',
+        thesis:'Price violently rejects a level after displacement — aggressive institutional rejection, then continuation in the opposite direction.',
+        invalid:'No untouched or engineered liquidity is resting above/below after the block forms.',
+        formation:['Violent rejection of a level immediately after displacement.',
+                   'Valid only when price respected the 50% to 75% quadrant levels.',
+                   'The rejection wick, not the body, defines the block.'],
+        entry:['Untouched liquidity, or engineered liquidity, resting above/below once the RB is formed.',
+               'Enter on the return into the block, in the direction opposite the rejection.'],
+        confirm:['Resting liquidity still unpurged on the side you are delivering toward.',
+                 'Quadrant respect between 50% and 75% — outside that range the block is not valid.'],
+        why:'A violent rejection after displacement is the algorithm refusing price at a level it has already priced in. The rejection itself is the footprint; the untouched liquidity beyond it is the reason price must come back. Without that resting liquidity there is nothing drawing price, and the block is only a wick.',
+        sessions:['London 1','London 2','NY AM','NY PM'], timeframes:['15m','1H','4H'],
+        models:['Turtle Soup','OB','IOFED','Breaker Block'] },
+
+      { id:'ob',
+        charts:['kb/n03.png','kb/n04.png','kb/n05.png','kb/n06.png','kb/n07.png','kb/n08.png','kb/n09.png','kb/n10.png','kb/n11.png','kb/n12.png'], name:'Order Block', group:'Order flow', short:'OB',
+        thesis:'The last opposing candle before displacement, taken only once liquidity has been purged in the determined bias.',
+        invalid:'HTF key levels absent, bias unclear, or the recent short-term high/low did not close after the OB formed.',
+        formation:['The last opposing candle before displacement — the last down candle before an up move, the last up candle before a down move.',
+                   'Not necessarily a single candle: a series of closed candles in one direction for the opposite run.',
+                   'Formed as the last closed candles inside a P/D area.',
+                   'HTF key levels must already be present before the displacement.'],
+        entry:['OB must sit below/above swings, after stop hunts.',
+               'Recent short-term high/low has to close after the OB forms.',
+               'Market structure shift present — the setup is mostly ideal only with it.',
+               'Liquidity-purged candles are the ideal ones; unpurged candles are not.'],
+        confirm:['Daily bias / 4H bias follows the narrative.',
+                 'Clean direction and draws — these enhance the OB.',
+                 'Draws and bias both clear and valid.'],
+        why:'An order block marks where institutions had to leave unfilled orders before moving price away. That is only true when liquidity was purged first — the purge is what funded the move. If the structure never shifted and the short-term high or low never closed beyond it, the candle you are looking at was not the last opposing candle; price simply has not finished delivering yet.',
+        sessions:['London 1','London 2','NY AM','NY PM'], timeframes:['15m','1H','4H','Daily'],
+        models:['OB','Breaker Block','IOFED','CSID'] },
+
+      { id:'pb',
+        charts:['kb/n13.png','kb/n14.png','kb/n15.png'], name:'Propulsion Block', group:'Order flow', short:'PB',
+        thesis:'Price returns to a prior candle body after displacement and continues in the same direction.',
+        invalid:'Conditions are not trending — a propulsion block is a continuation tool only.',
+        formation:['Displacement away from a candle body.','Price returns into that same body.','Delivery continues in the original direction.'],
+        entry:['Continuation entry on the return into the prior body, during trending conditions.'],
+        confirm:['An established trend — this is not a reversal array.'],
+        why:'The body being revisited already holds positions in the direction of travel. Returning to it lets the algorithm add without giving up the level, which is why continuation from a propulsion block is cleaner in a trend and meaningless in a range.',
+        sessions:['London 2','NY AM','NY PM'], timeframes:['5m','15m','1H'],
+        models:['OB','IOFED','CSID'] },
+
+      { id:'fvg',
+        charts:['kb/n16.png','kb/n17.png','kb/n18.png','kb/n19.png','kb/n20.png','kb/n21.png','kb/n22.png'], name:'Fair Value Gap', group:'Imbalance', short:'FVG',
+        thesis:'A three-candle imbalance left by displacement — inefficient delivery that price returns to rebalance before continuing.',
+        invalid:'No stop hunt after the displacement, price not at a deep P/D array, or the gap sits at EQ.',
+        formation:['Three-candle imbalance created during displacement.',
+                   'Liquidity purged in HTF delivery, then a displacing gap.',
+                   'Equal resting liquidity after displacement is the highest-probability version.'],
+        entry:['Trade only an FVG created with a stop hunt after displacing.',
+               'Discount FVG below EQ; premium FVG above EQ — never the inverse.',
+               'Best scenarios come after a continuation FVG, or inside an OB.'],
+        confirm:['HTF key levels present.','Price at a deep P/D array.',
+                 'Draws aligned with HTF key levels.','Daily / 4H bias following the narrative.'],
+        why:'A gap is where price moved too fast for both sides to trade. The algorithm returns to rebalance it — but only when the gap was created by a move that took liquidity first. At EQ there is no premium or discount edge, and an FVG approaching an HTF key level has no room left to deliver, which is why both are avoided regardless of how clean the gap looks.',
+        sessions:['London 1','London 2','NY AM','NY PM'], timeframes:['5m','15m','1H','4H'],
+        models:['IFVG','OB','Breaker Block','IOFED','CSID','OTE'] },
+
+      { id:'bisi',
+        charts:['kb/n24.png'], name:'BISI', group:'Imbalance', short:'BISI',
+        thesis:'Buy-side imbalance, sell-side inefficiency — a bullish gap where discount dominated and price delivered upward too quickly.',
+        invalid:'Price is in premium rather than discount, or the upward move took no liquidity.',
+        formation:['Price moves upward aggressively.','Sell-side trading did not occur efficiently.','Discount market dominated.'],
+        entry:['Retracement into the gap to rebalance, then continuation higher.'],
+        confirm:['Institutional buying pressure visible.','Algorithm seeking buy-side liquidity above.'],
+        why:'The inefficiency is one-directional: buyers were filled, sellers were not. Price returns to offer those sellers a fill, which is what makes the retracement predictable — and why it only works from discount, where there is somewhere above to deliver to.',
+        sessions:['London 1','NY AM'], timeframes:['5m','15m','1H'],
+        models:['IFVG','OB','OTE','IOFED','CSID'] },
+
+      { id:'sibi',
+        charts:['kb/n23.png'], name:'SIBI', group:'Imbalance', short:'SIBI',
+        thesis:'Sell-side imbalance, buy-side inefficiency — a bearish gap where premium dominated and price delivered downward too quickly.',
+        invalid:'Price is in discount rather than premium, or the downward move took no liquidity.',
+        formation:['Price delivers aggressively to the downside.','Buy-side trading did not occur efficiently.','Premium market dominated.'],
+        entry:['Retracement into the SIBI, then continuation lower.'],
+        confirm:['Strong bearish institutional order flow.','Algorithm delivering price to sell-side targets below.'],
+        why:'The mirror of BISI. Sellers were filled on the way down and buyers were not, so price retraces into the gap to fill them before continuing. From premium there is sell-side liquidity below worth delivering to; from discount there is not.',
+        sessions:['London 1','NY AM'], timeframes:['5m','15m','1H'],
+        models:['IFVG','OB','OTE','IOFED','CSID'] },
+
+      { id:'bpr',
+        charts:['kb/n25.png','kb/n26.png'], name:'Balance Price Range', group:'Imbalance', short:'BPR',
+        thesis:'Buyers and sellers have both left inefficiencies in the same area — an overlapping two-sided imbalance.',
+        invalid:'Only one side has delivered an inefficiency; that is a plain FVG, not a BPR.',
+        formation:['A bullish and a bearish imbalance overlap in the same price area.','Both sides delivered inefficiently.'],
+        entry:['Treat the overlap as support or resistance.','Trade the reaction from the zone, or the expansion away from it.'],
+        confirm:['Consolidation and order accumulation inside the range.','Signs of re-accumulation before the next displacement.'],
+        why:'Two opposing inefficiencies in one place means neither side was satisfied. That makes the zone a natural place for orders to accumulate — it holds as support or resistance while the algorithm builds, then releases into the next displacement.',
+        sessions:['London 2','NY AM','NY PM'], timeframes:['15m','1H','4H'],
+        models:['IFVG','OB','Breaker Block','CSID'] },
+
+      { id:'ifvg',
+        charts:['kb/n27.png','kb/n28.png','kb/n29.png'], name:'Inversion FVG', group:'Imbalance', short:'IFVG',
+        thesis:'A prior FVG has been violated and flipped — the market now uses it as opposite-side liquidity.',
+        invalid:'The original gap was never actually violated; it is still an FVG in its first direction.',
+        formation:['A previously respected FVG gets violated.','The imbalance is invalidated and flips direction.'],
+        entry:['Trade the flipped gap as the opposite side, in the new direction of order flow.'],
+        confirm:['A shift in order flow.','Market structure shift.','Reversal context rather than continuation.'],
+        why:'When price trades fully through a gap that should have held, the thesis behind that gap is dead. The level does not disappear — it changes sides, and becomes the reference the algorithm uses to deliver the other way. The violation itself is the signal.',
+        sessions:['London 2','NY AM','NY PM'], timeframes:['5m','15m','1H'],
+        models:['IFVG','Breaker Block','CSID','IOFED'] },
+
+      { id:'lvoid',
+        charts:['kb/n30.png','kb/n31.png'], name:'Liquidity Void', group:'Imbalance', short:'Void',
+        thesis:'Large displacement candles move rapidly with almost no retracement — trading levels were skipped entirely.',
+        invalid:'The move retraced as it went; there is no genuine void.',
+        formation:['Large displacement candles in sequence.','Almost no retracement within the move.'],
+        entry:['Expect the void to be rebalanced; trade the return through it toward the draw.'],
+        confirm:['The algorithm clearly delivered price aggressively through the range.'],
+        why:'A void is the most extreme form of inefficiency — whole levels with no two-sided trade. Price eventually revisits because those levels were never auctioned, but the aggression that created it means it can stay unfilled far longer than an ordinary gap.',
+        sessions:['London 1','NY AM'], timeframes:['15m','1H','4H'],
+        models:['IOFED','CSID','OB'] },
+
+      { id:'susp',
+        charts:['kb/n32.png','kb/n33.png','kb/n34.png','kb/n35.png','kb/n36.png','kb/n37.png','kb/n38.png','kb/n39.png','kb/n40.png'], name:'Suspension Block', group:'Suspension', short:'SB',
+        thesis:'A three-candle structure where the middle body leaves voids on both sides while the wicks overlap — price is suspended between acceptance levels.',
+        invalid:'You are attempting to trade inside the block. Trade only its break or mitigation.',
+        formation:['Candle 2\u2019s body gaps relative to both Candle 1 and Candle 3 bodies.',
+                   'The wicks still overlap — price traded through, but body acceptance was absent.',
+                   'Price becomes suspended between acceptance levels and repeatedly returns to the imbalance boundaries.'],
+        entry:['Do NOT trade inside the suspension block. Trade the break, or the mitigation, of it.',
+               'Label the levels in quadrants — 25%, 50% and 75% liquidity is always crucial for stop hunts.',
+               'Wait until liquidity is observed in the opposite direction on HTF, then it continues in its direction.'],
+        confirm:['Accumulation inside the void, choppy consolidation, spider-web price action.',
+                 'Liquidity building around the block.',
+                 'It will not trade to HTF key levels — it plays around the suspension levels and inside arrays.'],
+        why:'Body acceptance never happened, so the market has no agreed value there. That is why it chops: stops pile above and below while the algorithm builds, and the range itself becomes the liquidity pool. Trading inside it means trading the accumulation; the edge is in the expansion away from it.',
+        sessions:['London 1','NY Lunch','NY PM'], timeframes:['5m','15m','1H'],
+        models:['Breaker Block','Turtle Soup','CSID','IOFED'] },
+
+      { id:'vi',
+        charts:['kb/n41.png','kb/n42.png','kb/n43.png','kb/n44.png'], name:'Volume Imbalance', group:'Imbalance', short:'VI',
+        thesis:'Two consecutive candles whose bodies do not overlap — price visits to rebalance delivery toward the draw.',
+        invalid:'HTF key-level volatility absent, or price is not clearly one-sided.',
+        formation:['The body of one candle does not overlap the body of the next.','Exists as both HTF and LTF imbalances.'],
+        entry:['HTF key-level volatility must be present.',
+               'Price must be extremely one-sided or bias-based.',
+               'Best setups form at EQ levels on LTF.',
+               'Price must respect the 75%\u2013100% level; if crossed, wait for displacement above 50%.',
+               'Participate in the same direction as the volume imbalance.'],
+        confirm:['Price reacts at a specific time — not all P/D arrays will be respected.',
+                 'Liquidity around quadrant levels are the draws in macro times.',
+                 'Price leaves on a validated time and on validated days.'],
+        why:'A body gap is a smaller inefficiency than an FVG, so it rarely justifies a trade alone — most of the time it is a seek-and-destroy profile. Its value is as a draw: it tells you where price is headed to rebalance, and the quadrant levels tell you when.',
+        sessions:['London 1','London 2','NY AM'], timeframes:['1m','5m','15m'],
+        models:['OTE','CSID','IOFED'] },
+
+      { id:'nwog',
+        charts:['kb/n45.png','kb/n46.png','kb/n47.png','kb/n48.png','kb/n49.png','kb/n50.png','kb/n51.png'], name:'New Week Opening Gap', group:'Opening gaps', short:'NWOG',
+        thesis:'The gap between the previous week\u2019s close and the new week\u2019s open — a zone, not a single price, that the algorithm rebalances frequently.',
+        invalid:'Traded on its own. NWOG is a confirmation, not a setup.',
+        formation:['Previous week\u2019s close to the new week\u2019s open.','Always a gap zone, never one price.',
+                   'Acts as a support and resistance zone in algorithmic price action; on LTF it is the best draw on liquidity.'],
+        entry:['Always label NWOG in quadrant levels, or deep quadrant levels.',
+               'CME of the NWOG is the most focal point — it has gravity, and price usually gravitates toward it.',
+               'The 25% and 75% levels usually have swings right below or above — the best draws to find.'],
+        confirm:['HTF draws or bias, and HTF P/D arrays, decide whether the level is used for a draw or a setup.',
+                 'Do not trade with NWOG levels alone — it confirms when blended with time and price and P/D arrays.'],
+        why:'A week\u2019s worth of orders sits unmatched across that gap, which is why the algorithm keeps returning to it and why the CME level inside it behaves like a magnet. But the gap has no timing information of its own — blended with a macro time and an array it is powerful; alone it is just a line.',
+        sessions:['London 1','NY AM'], timeframes:['15m','1H','4H','Daily'],
+        models:['OTE','OB','IOFED','CSID'] },
+
+      { id:'ndog',
+        charts:['kb/n52.png','kb/n53.png','kb/n54.png','kb/n55.png','kb/n56.png','kb/n57.png'], name:'New Day Opening Gap', group:'Opening gaps', short:'NDOG',
+        thesis:'The gap between the previous day\u2019s close and the new day\u2019s open — a magnet for price to find support and resistance.',
+        invalid:'Treated like an NWOG. It is a completely different gap with a different use.',
+        formation:['Previous day\u2019s close to the new day\u2019s open, formed at the daily market transition.'],
+        entry:['HTF key-level volatility must be present.',
+               'Price extremely one-sided or bias-based, to follow continuations.',
+               'Best setups form at EQ levels on LTF, blending with SMT specifically.',
+               'Use the NDOG where HTF liquidity is resting — that gives the clear direction.'],
+        confirm:['Most useful for intraday draws and runs on liquidity aligned with P/D arrays.',
+                 'For draws in a directional trade it is useful for partials.'],
+        why:'One session of unmatched orders rather than a week\u2019s, so it carries less weight but more immediacy — it is an intraday magnet. Its real use is directional: read it against where HTF liquidity is resting and it tells you which way the day wants to deliver.',
+        sessions:['NY AM','NY PM'], timeframes:['5m','15m','1H'],
+        models:['OTE','CSID','IOFED','OB'] },
+
+      { id:'rth',
+        charts:['kb/n58.png','kb/n59.png','kb/n60.png'],
+        chartSets:[
+          ['1st Presented FVG', ['kb/n58.png','kb/n59.png','kb/n60.png']],
+          ['Bullish 1 \u00b7 Respects the gap, no retrace into RTH ORG', ['kb/n61.png']],
+          ['Bullish 2 \u00b7 Discount delivery disrespects the gap to seek premium', ['kb/n62.png','kb/n63.png']],
+          ['Bullish 3 \u00b7 Sell-side purged below the 1st FVG, used as discount array', ['kb/n64.png','kb/n65.png']],
+          ['Bullish 4 \u00b7 Premium gap retracement above the 75% quadrant', ['kb/n66.png','kb/n67.png']],
+          ['Bullish 5 \u00b7 Lower-quadrant discount retracement', ['kb/n68.png']],
+          ['Bearish 1 \u00b7 Respects the gap, no retrace into RTH ORG', ['kb/n69.png']],
+          ['Bearish 2 \u00b7 Discount disrespects the gap to seek discount draws', ['kb/n70.png','kb/n71.png']],
+          ['Bearish 3 \u00b7 Buy-side purged above the 1st FVG, used as premium array', ['kb/n72.png','kb/n73.png','kb/n74.png','kb/n75.png','kb/n76.png','kb/n77.png']],
+          ['Bearish 4 \u00b7 Higher-quadrant premium retracement above the 1st FVG', ['kb/n78.png']],
+          ['Bearish 5 \u00b7 Premium gap CME and lower quadrant levels', ['kb/n79.png','kb/n80.png','kb/n81.png','kb/n82.png','kb/n83.png','kb/n84.png']]
+        ], name:'RTH ORG + 1st Presented FVG', group:'Opening gaps', short:'RTH ORG',
+        thesis:'The Regular Trading Hours opening gap, and the first imbalance created after the 9:30 NY displacement — the start of true daily delivery.',
+        invalid:'Traded on the basis of the RTH open alone, without blending time, price and arrays.',
+        formation:['Gaps between RTH, 9:30am to 16:14pm, on the equity exchange.',
+                   'At 9:30 institutional volume enters, pre-market liquidity gets targeted, and true intraday direction begins.',
+                   'The First Presented FVG is the first imbalance immediately after the 9:30 open displacement.',
+                   'It can be an FVG, BPR, IFVG, measuring gap, breakaway gap or suspension gap — use as conditions require.'],
+        entry:['HTF bias and draws must be present.',
+               '9:30 open is a run for liquidity or a stop hunt — NY Judas, distribution or re-distribution.',
+               'Always seek premium or discount price and arrays.',
+               '15-minute closure or sweep is the main characteristic inside the RTH gap.',
+               'Most trades occur on a 15m candle sweeping liquidity, or continuing without a sweep.'],
+        confirm:['The 9:30 open can be distribution, re-distribution, retracement, reversal or consolidation — read the HTF narrative.',
+                 'Use 15m candles as the reference for direction and draws.',
+                 'The 1st FVG can serve as a continuation FVG, or as an IFVG while purging opposite liquidity.',
+                 'Draws found at the 25%, 50% and 75% levels with time, price and P/D arrays.'],
+        why:'9:30 is when the day\u2019s real auction starts, so the first imbalance after it is the algorithm\u2019s opening statement about direction. The gap gives you the level and the 15-minute candle gives you the timing — which is why neither works alone, and why the open is so often a Judas move before the true delivery.',
+        sessions:['NY AM','NY AM1','NY AM2'], timeframes:['5m','15m','1H'],
+        models:['ICT 2022 Modle','IFVG','OB','CSID','OTE','Sliver Bullet'] },
+
+      { id:'smt',
+        charts:['kb/n85.png','kb/n86.png','kb/n87.png'], name:'SMT Divergence', group:'Correlation', short:'SMT',
+        thesis:'Comparative analysis of correlated markets to reveal relative strength, weakness and capital rotation. SMT tells you WHERE to trade, not when.',
+        invalid:'Used as an entry signal. SMT exposes intent, not entry — it is context, not a trade.',
+        formation:['Correlated markets: indices NQ/ES/YM, FX pairs EUR/USD vs GBP/USD, bonds vs equities.',
+                   'A common liquidity reference: prior high/low, equal high/low, or weekly/monthly PD arrays.',
+                   'Asymmetry in delivery: one market reaches liquidity, another fails, delays or rejects.',
+                   'All three must be present.'],
+        entry:['Use SMT to select the instrument, then take the entry from a P/D array on that instrument.',
+               'Strong asset: reaches the liquidity objective first and holds structure.',
+               'Weak asset: fails to reach the objective, or rejects from premium/discount early.',
+               'Lagging asset: follows with delay, poor structure and less displacement.'],
+        confirm:['Informational SMT — during accumulation or balance, for bias building, no immediate trade.',
+                 'Displacement SMT — during manipulation or expansion, confirms directional delivery.',
+                 'Distribution SMT — near HTF premium/discount, signals offloading, often precedes reversals.',
+                 'Also watch DXY against yields: one making a higher high while the other fails can front-run equity futures.'],
+        why:'When correlated markets fail to reach the same liquidity objective at the same time, smart money is reallocating risk rather than exiting it. That asymmetry is the clearest read available on where capital is rotating before price delivers — which is exactly why it answers instrument selection and never timing.',
+        sessions:['London 1','London 2','NY AM','NY PM'], timeframes:['15m','1H','4H'],
+        models:['Breaker Block','OB','OTE','CSID','IOFED','Sliver Bullet','Turtle Soup','IFVG','ICT 2022 Modle'] },
+
+      { id:'po3',
+        charts:['kb/npo3.png','kb/n88.png','kb/n89.png','kb/n90.png','kb/n91.png','kb/n92.png'], name:'Power of 3 (AMD)', group:'Delivery cycle', short:'PO3',
+        thesis:'The algorithmic delivery cycle — Accumulation, Manipulation, Distribution — engineering liquidity before expanding toward HTF objectives.',
+        invalid:'Expecting distribution without a manipulation leg having taken liquidity first.',
+        formation:['Accumulation — tight consolidation while institutions build; buy stops above the highs, sell stops below the lows form resting liquidity pools. Small candles, equal highs/lows, low volatility, repeated range tests.',
+                   'Manipulation — a fake breakout outside the range to capture that liquidity and trap participants. The stop hunt, liquidity grab, or Judas swing.',
+                   'Distribution — the real directional move toward a liquidity target.'],
+        entry:['Enter after the manipulation leg, in the direction of distribution.',
+               'Targets: previous session highs/lows, equal highs/lows, daily or weekly liquidity levels.'],
+        confirm:['PO3 is fractal — weekly to daily, 4H to 1H, 15m, 5m, even 1m.',
+                 'Time is fractal: LTF leads to HTF designated price runs with the time cycle.'],
+        why:'Institutions cannot fill size without liquidity, so it has to be engineered before it can be used. Accumulation builds the pool, manipulation harvests it, distribution spends it. That order never changes — which is why a move that expands without first taking liquidity is usually the manipulation you are about to be trapped by.',
+        sessions:['London 1','London 2','NY AM','NY PM'], timeframes:['1m','5m','15m','1H','4H','Daily','Weekly'],
+        models:['Turtle Soup','OB','IFVG','Breaker Block','CSID','OTE','ICT 2022 Modle'] }
+    ];
+
+  var PD = window.PD = { open: {}, picking: false, pending: null };
+
+  function chain() {
+    window.state = window.state || {};
+    state.daily = state.daily || {};
+    var ds = (typeof todayStr === 'function') ? todayStr() : 'today';
+    state.daily[ds] = state.daily[ds] || {};
+    return state.daily[ds];
+  }
+  function byId(id) { for (var i = 0; i < ARRAYS.length; i++) if (ARRAYS[i].id === id) return ARRAYS[i]; return null; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  PD.commit = function (id) {
+    var a = byId(id); if (!a) return;
+    chain().pdArray = id; PD.picking = false; PD.pending = null;
+    PD_PERSIST(); PD.render();
+    PD.toast('Committed to ' + a.name + ' \u2014 trades are now validated against it.');
+  };
+
+  PD.askSwitch = function (id) { PD.pending = id; PD.render(); };
+
+  PD.doSwitch = function (id) {
+    var c = chain(), from = byId(c.pdArray), to = byId(id); if (!to) return;
+    c.pdSwitches = c.pdSwitches || [];
+    var at = new Date().toTimeString().slice(0, 5);
+    c.pdSwitches.push({ from: from ? from.name : '\u2014', to: to.name, at: at });
+    c.pdArray = id; PD.pending = null; PD.picking = false;
+    PD_PERSIST(); PD.render();
+    PD.toast('Switched to ' + to.name + ' \u2014 logged at ' + at + '.');
+  };
+
+  PD.release = function () {
+    chain().pdArray = ''; PD.pending = null; PD.picking = false;
+    PD_PERSIST(); PD.render();
+    PD.toast('Array released \u2014 commit one before logging a trade.');
+  };
+
+  PD.toggleRow = function (k) { PD.open[k] = !PD.open[k]; PD.render(); };
+  PD.openPicker = function () { PD.picking = true; PD.render(); };
+  PD.closePicker = function () { PD.picking = false; PD.pending = null; PD.render(); };
+  PD.cancelSwitch = function () { PD.pending = null; PD.render(); };
+
+  /* The hard block. In your Add Trade save handler, first line:
+       if (!PD.check(selectedModels)) return;
+     Returns true when the trade is allowed. */
+  PD.check = function (models) {
+    var id = chain().pdArray;
+    if (!id) {
+      PD.showBlock('No array committed',
+        'Commit today\u2019s P/D array in the chain before logging a trade. ' +
+        'The commitment is what the trade is validated against.');
+      return false;
+    }
+    var a = byId(id); if (!a) return true;
+    var picked = (models || []).filter(Boolean);
+    if (!picked.length) return true;
+    var off = picked.filter(function (m) { return a.models.indexOf(m) < 0; });
+    if (!off.length) return true;
+    PD.showBlock(off.join(', ') + ' is not part of ' + a.name,
+      'Today is committed to ' + a.name + ', which covers ' + a.models.join(', ') +
+      '. To take this trade, switch the day\u2019s array \u2014 the switch is logged.');
+    return false;
+  };
+
+  PD.showBlock = function (title, body) {
+    document.getElementById('lmr-pd-block-title').textContent = title;
+    document.getElementById('lmr-pd-block-body').textContent = body;
+    document.getElementById('lmr-pd-block').classList.add('on');
+  };
+  PD.closeBlock = function () { document.getElementById('lmr-pd-block').classList.remove('on'); };
+  PD.goCommit = function () {
+    PD.closeBlock(); PD.picking = true; PD.render();
+    if (typeof showPanel === 'function') showPanel('chain');
+    var el = document.getElementById('lmr-pd');
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' });
+  };
+
+  PD.toast = function (msg) {
+    if (typeof toast === 'function') { toast(msg); return; }
+    if (typeof showToast === 'function') { showToast(msg); return; }
+    console.log('[PD]', msg);
+  };
+
+  function rowHtml(key, label, sub, items, prose, sets) {
+    var open = !!PD.open[key], inner = '';
+    if (sets) {
+      for (var s = 0; s < sets.length; s++) {
+        inner += '<div class="pd-set">' +
+          (sets[s].label ? '<span class="pd-set-lbl">' + esc(sets[s].label) + '</span>' : '') +
+          '<div class="pd-shots">' + sets[s].shots.map(function (src) {
+            return '<img loading="lazy" onerror="this.style.display=\'none\'" src="' + esc(src) + '" alt="">'; }).join('') + '</div></div>';
+      }
+    } else if (prose) {
+      inner = '<p>' + esc(prose) + '</p>';
+    } else {
+      inner = '<ul>' + (items || []).map(function (x) { return '<li><span>' + esc(x) + '</span></li>'; }).join('') + '</ul>';
+    }
+    return '<div class="pd-row' + (open ? ' open' : '') + '">' +
+      '<button class="pd-row-btn" onclick="PD.toggleRow(&quot;' + key + '&quot;)">' +
+        '<span class="pd-mark">' + (open ? '\u2212' : '+') + '</span>' +
+        '<span class="pd-row-lbl">' + esc(label) + '</span>' +
+        '<span class="pd-row-sub">' + esc(sub) + '</span>' +
+      '</button><div class="pd-body">' + inner + '</div></div>';
+  }
+
+  PD.render = function () {
+    var host = document.getElementById('lmr-pd'); if (!host) return;
+    var c = chain(), cur = byId(c.pdArray), picking = !cur || PD.picking;
+    var h = '<div class="pd-head"><span class="pd-eyebrow">Today\u2019s P/D array</span>' +
+      '<span class="pd-hint">' + (cur ? 'Committed \u2014 trades are validated against it'
+        : 'Commit one array; the rest are then hidden') + '</span></div>';
+
+    if (cur) {
+      h += '<div class="pd-sheet"><div class="pd-sheet-top">' +
+        '<span class="pd-badge">' + esc(cur.short) + '</span>' +
+        '<span class="pd-name">' + esc(cur.name) + '</span>' +
+        '<span class="pd-group">' + esc(cur.group) + '</span>' +
+        '<button class="pd-btn pd-btn-gold" style="margin-left:auto" onclick="PD.openPicker()">Switch array</button>' +
+        '<button class="pd-btn pd-btn-ghost" onclick="PD.release()">Release</button></div>' +
+        '<p class="pd-thesis">' + esc(cur.thesis) + '</p>' +
+        '<div class="pd-invalid"><b>Invalid</b><span>' + esc(cur.invalid) + '</span></div>' +
+        '<div class="pd-meta">' +
+          '<div><b>Sessions</b><span>' + esc(cur.sessions.join(' \u00b7 ')) + '</span></div>' +
+          '<div><b>Timeframes</b><span>' + esc(cur.timeframes.join(' \u00b7 ')) + '</span></div>' +
+          '<div><b>Models allowed</b><span>' + esc(cur.models.join(' \u00b7 ')) + '</span></div>' +
+        '</div>';
+      h += rowHtml('formation', 'Formation', 'What must have happened for this array to exist', cur.formation);
+      h += rowHtml('entry', 'Entry', 'The precise conditions for taking it', cur.entry);
+      h += rowHtml('confirm', 'Confirmation', 'What must align \u2014 session, timeframe, confluence', cur.confirm);
+      h += rowHtml('why', 'Why it works', 'The reasoning, in full', null, cur.why);
+      var sets = cur.chartSets || (cur.charts && cur.charts.length ? [{ label: '', shots: cur.charts }] : null);
+      if (sets) {
+        var total = 0; sets.forEach(function (s) { total += s.shots.length; });
+        h += rowHtml('charts', 'Charts', total + ' from the LMR reference', null, null, sets);
+      }
+      if ((c.pdSwitches || []).length) {
+        h += '<div class="pd-switches"><b>Switched today</b>' + c.pdSwitches.map(function (s) {
+          return '<span>' + esc(s.at + '  ' + s.from + ' \u2192 ' + s.to) + '</span>'; }).join('') + '</div>';
+      }
+      h += '</div>';
+    }
+
+    if (PD.pending) {
+      var p = byId(PD.pending);
+      h += '<div class="pd-confirm"><b>Switch today to ' + esc(p.name) + '?</b>' +
+        '<p>Switching the day\u2019s array mid-session is logged and shows in the daily review. ' +
+        'Trades already logged keep the array they were taken under.</p><div class="row">' +
+        '<button class="pd-go" onclick="PD.doSwitch(&quot;' + p.id + '&quot;)">Switch and log it</button>' +
+        '<button class="pd-keep" onclick="PD.cancelSwitch()">Keep current</button></div></div>';
+    }
+
+    if (picking) {
+      h += '<div class="pd-pickhead"><b>' + (cur ? 'Choose the array to switch to' : 'Commit one array for today') + '</b>' +
+        (cur ? '<button class="pd-btn pd-btn-ghost" onclick="PD.closePicker()">Cancel</button>' : '') + '</div>';
+      var groups = [], gi = {};
+      ARRAYS.forEach(function (a) {
+        if (cur && a.id === cur.id) return;
+        if (gi[a.group] == null) { gi[a.group] = groups.length; groups.push({ name: a.group, items: [] }); }
+        groups[gi[a.group]].items.push(a);
+      });
+      groups.forEach(function (g) {
+        h += '<div class="pd-grp"><b>' + esc(g.name) + '</b><div class="pd-cards">' +
+          g.items.map(function (a) {
+            return '<button class="pd-card" onclick="PD.' + (cur ? 'askSwitch' : 'commit') +
+              '(&quot;' + a.id + '&quot;)">' +
+              '<span><i>' + esc(a.short) + '</i> <em>' + esc(a.name) + '</em></span>' +
+              '<small>' + esc(a.thesis) + '</small></button>';
+          }).join('') + '</div></div>';
+      });
+    }
+    host.innerHTML = h;
+  };
+
+  /* PERSISTENCE \u2014 the only place that touches your storage. */
+  function PD_PERSIST() {
+    if (typeof save === 'function') save();
+    if (typeof sbSyncRecord === 'function' && typeof _mapDaily === 'function' && typeof todayStr === 'function') {
+      try { sbSyncRecord('daily', _mapDaily(todayStr(), chain(), (typeof _sbUserId !== 'undefined' ? _sbUserId : null))); } catch (e) {}
+    }
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', PD.render);
+  else PD.render();
+})();
 </script>
 
 </body></html>
