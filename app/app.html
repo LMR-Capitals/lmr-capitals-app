@@ -10028,19 +10028,29 @@ ${ctx}`}],'report');
   if(btn){btn.textContent='✦ AI Performance Review';btn.disabled=false;}
 }
 
+// Design chart theme (charts.jsx aesthetic): monochrome ink, red only for
+// negatives, hairline dashed horizontal grid, no axis lines, muted ticks.
+function _dcT(){
+  const cs=getComputedStyle(document.documentElement);
+  const g=(n,f)=>{const v=cs.getPropertyValue(n);return (v&&v.trim())||f;};
+  return {ink:g('--text','#EDEDF2'),muted:g('--text3','#7A7A8C'),grid:g('--border','rgba(255,255,255,.08)'),
+          neg:g('--bear','#FF4060'),surface:g('--bg2','#101018'),bg:g('--bg','#0A0A0F'),font:"'Inter',system-ui,sans-serif"};
+}
+function _dcMoney(n){const v=Math.abs(Math.round(n));const s=v>=1000?(v/1000).toFixed(v>=10000?0:1)+'k':String(v);return (n<0?'−$':'$')+s;}
 function drawBar(id,labels,data,isPercent=false,suffix=''){
   if(perfCharts[id])perfCharts[id].destroy();
   const ctx=document.getElementById(id);if(!ctx)return;
   if(!data.length){data=[0];labels=['No data'];}
+  const t=_dcT();
   perfCharts[id]=new Chart(ctx,{
     type:'bar',
-    data:{labels,datasets:[{data,backgroundColor:data.map(v=>v>=0?'rgba(0,212,164,.75)':'rgba(255,64,96,.75)'),borderRadius:4,borderSkipped:false}]},
+    data:{labels,datasets:[{data,backgroundColor:data.map(v=>v<0?t.neg:t.ink),borderRadius:1,borderSkipped:false,maxBarSize:42}]},
     options:{
       maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>isPercent?ctx.raw+'%':'$'+ctx.raw.toFixed(0)}}},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:t.surface,borderColor:t.grid,borderWidth:1,titleColor:t.muted,bodyColor:t.ink,cornerRadius:0,callbacks:{label:c=>isPercent?c.raw+'%':_dcMoney(c.raw)}}},
       scales:{
-        x:{ticks:{color:'#7A9AC0',font:{size:9},maxRotation:30},grid:{display:false}},
-        y:{ticks:{color:'#7A9AC0',font:{size:9},callback:v=>isPercent?v+'%':'$'+v},grid:{color:'rgba(255,255,255,.05)'}}
+        x:{ticks:{color:t.muted,font:{size:10,family:t.font},maxRotation:30},grid:{display:false},border:{display:false}},
+        y:{ticks:{color:t.muted,font:{size:10,family:t.font},callback:v=>isPercent?v+'%':_dcMoney(v)},grid:{color:t.grid,drawTicks:false},border:{display:false}}
       }
     }
   });
@@ -10088,21 +10098,22 @@ function icon(name,size){
 function drawHistogram(id,labels,data,colors){
   if(perfCharts[id])perfCharts[id].destroy();
   const ctx=document.getElementById(id);if(!ctx)return;
+  const t=_dcT();
   perfCharts[id]=new Chart(ctx,{
     type:'bar',
-    data:{labels,datasets:[{data,backgroundColor:colors,borderRadius:4,borderSkipped:false}]},
+    data:{labels,datasets:[{data,backgroundColor:colors||data.map(v=>v<0?t.neg:t.ink),borderRadius:1,borderSkipped:false,maxBarSize:42}]},
     options:{
       maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.raw+' trade'+(ctx.raw===1?'':'s')}}},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:t.surface,borderColor:t.grid,borderWidth:1,titleColor:t.muted,bodyColor:t.ink,cornerRadius:0,callbacks:{label:c=>c.raw+' trade'+(c.raw===1?'':'s')}}},
       scales:{
-        x:{ticks:{color:'#7A9AC0',font:{size:9}},grid:{display:false}},
-        y:{ticks:{color:'#7A9AC0',font:{size:9},stepSize:1,precision:0},grid:{color:'rgba(255,255,255,.05)'}}
+        x:{ticks:{color:t.muted,font:{size:10,family:t.font}},grid:{display:false},border:{display:false}},
+        y:{ticks:{color:t.muted,font:{size:10,family:t.font},stepSize:1,precision:0},grid:{color:t.grid,drawTicks:false},border:{display:false}}
       }
     }
   });
 }
-function drawDonut(id,labels,data){if(perfCharts[id])perfCharts[id].destroy();const ctx=document.getElementById(id);if(!ctx)return;if(!data.length){data=[1];labels=['No data']}perfCharts[id]=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:['#5dba80','#c8a84b','#9b8aff','#d45c5c','#5d9ee8','#c49b4a','#888'],borderColor:'#141414',borderWidth:2}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#9a9690',font:{size:9},boxWidth:8}}}}})}
-function drawLine(id,labels,data){if(perfCharts[id])perfCharts[id].destroy();if(dashCharts[id])dashCharts[id].destroy();const ctx=document.getElementById(id);if(!ctx)return;if(!data.length){data=[0];labels=['0']}const last=data[data.length-1]||0;const chart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data,borderColor:last>=0?'#5dba80':'#d45c5c',backgroundColor:last>=0?'rgba(93,186,128,0.1)':'rgba(212,92,92,0.1)',fill:true,tension:0.3,pointRadius:0}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#9a9690',font:{size:9}},grid:{display:false}},y:{ticks:{color:'#9a9690',font:{size:9},callback:v=>'$'+v},grid:{color:'#262626'}}}}});if(id.startsWith('dash'))dashCharts[id]=chart;else perfCharts[id]=chart}
+function drawDonut(id,labels,data){if(perfCharts[id])perfCharts[id].destroy();const ctx=document.getElementById(id);if(!ctx)return;if(!data.length){data=[1];labels=['No data']}const t=_dcT();const pal=[t.ink,t.neg,t.muted,'#aab1bd','#59616f','#ff9d85','#666'];perfCharts[id]=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:pal,borderColor:t.bg,borderWidth:2}]},options:{maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'right',labels:{color:t.muted,font:{size:11,family:t.font},boxWidth:8}},tooltip:{backgroundColor:t.surface,borderColor:t.grid,borderWidth:1,titleColor:t.muted,bodyColor:t.ink,cornerRadius:0}}}})}
+function drawLine(id,labels,data){if(perfCharts[id])perfCharts[id].destroy();if(dashCharts[id])dashCharts[id].destroy();const ctx=document.getElementById(id);if(!ctx)return;if(!data.length){data=[0];labels=['0']}const t=_dcT();const last=data[data.length-1]||0;const neg=last<0;const chart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data,borderColor:neg?t.neg:t.ink,backgroundColor:'transparent',fill:false,tension:0.28,pointRadius:0,borderWidth:2}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:t.surface,borderColor:t.grid,borderWidth:1,titleColor:t.muted,bodyColor:t.ink,cornerRadius:0,callbacks:{label:c=>_dcMoney(c.raw)}}},scales:{x:{ticks:{color:t.muted,font:{size:10,family:t.font}},grid:{display:false},border:{display:false}},y:{ticks:{color:t.muted,font:{size:10,family:t.font},callback:v=>_dcMoney(v)},grid:{color:t.grid,drawTicks:false},border:{display:false}}}}});if(id.startsWith('dash'))dashCharts[id]=chart;else perfCharts[id]=chart}
 
 // ============= LMR SIMPLE EDITORS (Terminology / Psychology / Observation) =============
 // Clean contenteditable approach — no external dependencies
