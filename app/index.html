@@ -2355,8 +2355,8 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
 
         <div class="prop-block p-htf" style="padding:8px 16px">
           <div class="prop-left">
-            <div class="prop-label">HTF POI →</div>
-            <div class="prop-type">Text · Price level</div>
+            <div class="prop-label">Premarket →</div>
+            <div class="prop-type">Text · Pre-market HTF levels</div>
           </div>
           <div class="prop-right">
             <input id="ch-poi" placeholder="$______" style="font-size:13px;font-family:'JetBrains Mono',monospace" oninput="autoSaveDaily()">
@@ -2375,14 +2375,18 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
 
         <div class="prop-block p-london" style="padding:8px 16px">
           <div class="prop-left">
-            <div class="prop-label">London →</div>
-            <div class="prop-type">Select · Session type</div>
+            <div class="prop-label">London Killzone →</div>
+            <div class="prop-type">Select · Judas + session</div>
           </div>
           <div class="prop-right">
             <div class="chips" style="padding:2px 0">
               <button class="chip bull" data-grp="london" data-val="Accumulation">Accumulation</button>
               <button class="chip bear" data-grp="london" data-val="Manipulation">Manipulation</button>
               <button class="chip" data-grp="london" data-val="Distribution" style="color:var(--blue);border-color:rgba(91,168,255,.35)">Distribution</button>
+              <button class="chip" data-grp="london" data-val="Judas London">Judas London</button>
+              <button class="chip" data-grp="london" data-val="Judas NY">Judas NY</button>
+              <button class="chip" data-grp="london" data-val="Judas Both">Judas Both</button>
+              <button class="chip" data-grp="london" data-val="No Judas">No Judas</button>
             </div>
           </div>
         </div>
