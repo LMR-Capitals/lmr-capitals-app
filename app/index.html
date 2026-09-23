@@ -72,6 +72,36 @@ body{
 }
 /* Modernist headings — Space Grotesk, tight tracking */
 h1,h2,h3,h4,.card-title,.tb-title,#tbTitle,.panel-title{font-family:'Space Grotesk','Inter',sans-serif;letter-spacing:-.01em}
+
+/* ═══════════ Modernist design-system components (v2) ═══════════
+   Reusable, tokenized classes — screens compose these instead of inline styles. */
+.m-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);overflow:hidden}
+.m-card-pad{padding:14px 16px}
+.m-sec{font-size:10px;font-weight:800;letter-spacing:.12em;color:var(--text3);text-transform:uppercase}
+.m-sec-row{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.m-label{font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase}
+.m-val{font-size:13px;color:var(--text);margin-top:3px}
+.m-val.bull{color:var(--bull)} .m-val.bear{color:var(--bear)} .m-val.blue{color:var(--blue)}
+.m-grid{display:grid;gap:10px}
+.m-grid-2{grid-template-columns:repeat(2,1fr)} .m-grid-3{grid-template-columns:repeat(3,1fr)} .m-grid-4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:760px){.m-grid-4{grid-template-columns:repeat(2,1fr)}.m-grid-3{grid-template-columns:1fr}}
+.m-field label,.m-field .m-flabel{display:block;font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px}
+.m-field .m-fhint{font-size:11px;color:var(--text3);margin-bottom:6px}
+.m-field select,.m-field input,.m-field textarea{width:100%}
+.m-pill{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:800;letter-spacing:.06em;border-radius:99px;padding:3px 10px;text-transform:uppercase}
+.m-pill.mo{color:var(--pur);background:var(--pur-bg);border:1px solid var(--pur)}
+.m-pill.wk{color:var(--blue);background:var(--blue-bg);border:1px solid var(--blue)}
+.m-pill.gold{color:var(--gold);background:var(--gold-bg);border:1px solid var(--gold-border)}
+.m-keylevel{margin-top:12px;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:var(--r);padding:8px 12px}
+.m-badge{width:30px;height:30px;border-radius:50%;background:var(--gold-bg);border:1px solid var(--gold-border);color:var(--gold);font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.m-invalid{background:var(--bear-bg);border:1px solid var(--bear);border-radius:var(--r);padding:8px 12px;font-size:12px;color:var(--text2)}
+.m-invalid b{color:var(--bear)}
+/* Donut ring (r=16.5, stroke 3.5, circumference 103.67) — set --p (0..1) inline */
+.m-ring{width:40px;height:40px;transform:rotate(-90deg)}
+.m-ring circle{fill:none;stroke-width:3.5;stroke-linecap:round}
+.m-ring .trk{stroke:var(--bg5)}
+.m-ring .val{stroke:var(--gold);stroke-dasharray:103.67;stroke-dashoffset:calc(103.67 - 103.67 * var(--p,0))}
+.m-focus:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 input,textarea,select{font-family:inherit;font-size:13px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:var(--r);width:100%;outline:none}
 input:focus,textarea:focus,select:focus{border-color:var(--gold)}
