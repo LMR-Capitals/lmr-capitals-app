@@ -27,8 +27,8 @@ data layer; verify (syntax → headless preview → data round-trip) → commit 
 - [x] 3.3 Daily Heatmap (leader/all toggle, 9-week Mon–Fri) + Copier Distribution card (leader + derived followers)
 
 ## Phase 4 — Accounts
-- [ ] 4.1 Filter tabs + 4-tile strip + ring cards + BREACHED derived
-- [ ] 4.2 Account detail sheet (balance/DD SVG, P&L calendar, ledger, trades table)
+- [x] 4.1 Filter tabs + 4-tile strip + ring cards + BREACHED derived (already built to design; theme applied + design copy synced)
+- [x] 4.2 Account detail sheet (hero balance, profit/consistency/days rings, balance-vs-DD SVG, P&L calendar, ledger, trades table) — already matches design
 
 ## Phase 5 — Transactions
 - [ ] 5.1 Hero/KPI tiles + scope chips + 3 ledgers + signed rows + receipts
