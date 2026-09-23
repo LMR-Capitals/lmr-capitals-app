@@ -102,6 +102,19 @@ h1,h2,h3,h4,.card-title,.tb-title,#tbTitle,.panel-title{font-family:'Space Grote
 .m-ring .trk{stroke:var(--bg5)}
 .m-ring .val{stroke:var(--gold);stroke-dasharray:103.67;stroke-dashoffset:calc(103.67 - 103.67 * var(--p,0))}
 .m-focus:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+/* Dashboard key-stats row + column grids (design v2) */
+.ks-row{display:grid;grid-template-columns:repeat(5,1fr)}
+.ks-tile{padding:14px 16px;border-right:1px solid var(--border)}
+.ks-tile:last-child{border-right:none}
+.ks-label{font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase}
+.ks-val{font-size:22px;font-weight:800;color:var(--text);font-family:'JetBrains Mono',monospace;margin:6px 0 3px;line-height:1}
+.ks-val.pos{color:var(--bull)} .ks-val.neg{color:var(--bear)}
+.ks-sub{font-size:11px;color:var(--text3)}
+.dash-cols{display:grid;grid-template-columns:1.6fr 1fr;gap:14px;align-items:start}
+.dash-chain-foot{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap}
+.m-badge-flag{font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:99px;background:var(--bear-bg);border:1px solid var(--bear);color:var(--bear)}
+.m-badge-flag.ok{background:var(--bull-bg);border-color:var(--bull);color:var(--bull)}
+@media(max-width:900px){.ks-row{grid-template-columns:repeat(2,1fr)}.ks-tile{border-bottom:1px solid var(--border)}.dash-cols{grid-template-columns:1fr}}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 input,textarea,select{font-family:inherit;font-size:13px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:var(--r);width:100%;outline:none}
 input:focus,textarea:focus,select:focus{border-color:var(--gold)}
@@ -2206,129 +2219,85 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
     <span class="ticker-badge">JOURNAL</span>
   </div>
 
-  <!-- Prop-firm performance row -->
-  <div class="dash-grid" style="margin-bottom:12px">
-    <div class="tile" id="pf-pnl-tile">
-      <div class="tile-l">💰 Net P&amp;L</div>
-      <div class="tile-v" id="pf-net-pnl">$0</div>
-      <div class="tile-sub" id="pf-pnl-sub">All accounts</div>
-    </div>
-    <div class="tile" id="pf-wr-tile">
-      <div class="tile-l">🎯 Win Rate</div>
-      <div class="tile-v" id="pf-winrate">0%</div>
-      <div class="tile-sub" id="pf-wr-sub">0W · 0L</div>
-    </div>
-    <div class="tile" id="pf-pf-tile">
-      <div class="tile-l">⚖️ Profit Factor</div>
-      <div class="tile-v" id="pf-pf">0</div>
-      <div class="tile-sub" id="pf-pf-sub">Profit / Loss</div>
-    </div>
-    <div class="tile" id="pf-dd-tile">
-      <div class="tile-l">📉 Max Drawdown</div>
-      <div class="tile-v" id="pf-dd">$0</div>
-      <div class="tile-sub" id="pf-dd-sub">Peak to trough</div>
-    </div>
-  </div>
-
-  <!-- Context tiles: Day → Monthly → Weekly → Account -->
-  <div class="dash-grid" style="margin-bottom:12px">
-    <div class="tile gold">
-      <div class="tile-l">📍 Current Day</div>
-      <div class="tile-v" id="t-day">—</div>
-      <div class="tile-sub">Trading day · <span id="t-date">Today</span></div>
-    </div>
-    <div class="tile pur">
-      <div class="tile-l">📊 Monthly Bias</div>
-      <div class="tile-v sm" id="t-monthly">LTS Bullish</div>
-      <div class="tile-sub" id="t-monthly-sub">Q2 Expansion</div>
-    </div>
-    <div class="tile blue">
-      <div class="tile-l">📋 Weekly Model</div>
-      <div class="tile-v sm" id="t-weekly">Not set</div>
-      <div class="tile-sub" id="t-weekly-sub">Set on Sunday</div>
-    </div>
-    <div class="tile pos" style="cursor:pointer" onclick="navTo('accounts')">
-      <div class="tile-l">💼 Active Account</div>
-      <div class="tile-v sm" id="t-acc">None</div>
-      <div class="tile-sub" id="t-acc-bal">— click to set</div>
-    </div>
-  </div>
-
-  <!-- Goal progress bars -->
-  <div id="dash-goals" style="display:none;margin-bottom:16px;grid-template-columns:1fr 1fr;gap:10px">
-    <div style="padding:12px 14px;background:var(--bg2);border:1px solid rgba(245,166,35,.15);border-radius:10px">
-      <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:6px">Today's P&L Goal</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-        <span id="dash-daily-pnl" style="font-size:15px;font-weight:800;color:var(--text)">$0</span>
-        <span id="dash-daily-goal-v" style="font-size:10px;color:var(--text3)">/ $0</span>
+  <!-- KEY STATS — 5-tile row (design v2) -->
+  <div class="m-card" style="margin-bottom:14px">
+    <div class="m-sec-row"><span class="m-sec">Key Stats</span></div>
+    <div class="ks-row">
+      <div class="ks-tile">
+        <div class="ks-label">Net P&amp;L · Leader</div>
+        <div class="ks-val" id="ks-net">+$0</div>
+        <div class="ks-sub" id="ks-net-sub">0 trades · de-duped</div>
       </div>
-      <div style="height:4px;background:var(--bg3);border-radius:2px;overflow:hidden">
-        <div id="dash-daily-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:2px;transition:width .5s"></div>
+      <div class="ks-tile">
+        <div class="ks-label">Combined · All accounts</div>
+        <div class="ks-val" id="ks-combined">+$0</div>
+        <div class="ks-sub">Every account</div>
       </div>
-    </div>
-    <div style="padding:12px 14px;background:var(--bg2);border:1px solid rgba(245,166,35,.15);border-radius:10px">
-      <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:6px">Monthly Goal</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-        <span id="dash-monthly-pnl" style="font-size:15px;font-weight:800;color:var(--text)">$0</span>
-        <span id="dash-monthly-goal-v" style="font-size:10px;color:var(--text3)">/ $0</span>
+      <div class="ks-tile">
+        <div class="ks-label">Win rate</div>
+        <div class="ks-val" id="ks-wr">0%</div>
+        <div class="ks-sub" id="ks-wr-sub">0 of 0</div>
       </div>
-      <div style="height:4px;background:var(--bg3);border-radius:2px;overflow:hidden">
-        <div id="dash-monthly-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:2px;transition:width .5s"></div>
+      <div class="ks-tile">
+        <div class="ks-label">Avg R:R on wins</div>
+        <div class="ks-val" id="ks-rr">0.00</div>
+        <div class="ks-sub" id="ks-rr-sub">Expectancy +0.00R all trades</div>
+      </div>
+      <div class="ks-tile">
+        <div class="ks-label">Paid out</div>
+        <div class="ks-val" id="ks-paid">$0</div>
+        <div class="ks-sub" id="ks-paid-sub">Last —</div>
       </div>
     </div>
   </div>
 
-  <div class="dash-grid-2">
-    <div>
-      <!-- Previous Day Chain -->
-      <div class="card">
-        <div class="card-head">
-          <span class="card-tag t-d">Previous Day</span>
-          <div class="card-title">Yesterday's Chain</div>
-          <div class="card-meta" id="dash-chain-status">—</div>
-        </div>
-        <div class="card-body" id="dash-chain"></div>
-      </div>
-
-      <!-- Last 5 trades — win=green / loss=red -->
-      <div class="card">
-        <div class="card-head">
-          <span class="card-tag t-r">Recent Trades</span>
-          <div class="card-title">Last 5 trades</div>
-        </div>
-        <div class="card-body">
-          <div class="tw"><table class="tbl">
-            <thead><tr><th>Day</th><th>Date</th><th>Model</th><th>Emotion</th><th>Result</th><th>P&amp;L</th><th>R:R</th></tr></thead>
-            <tbody id="dash-trades"><tr><td colspan="7" class="empty">No trades. Press T to log one.</td></tr></tbody>
-          </table></div>
+  <!-- TODAY'S CHAIN summary + TODAY'S NEWS -->
+  <div class="dash-cols" style="margin-bottom:14px">
+    <div class="m-card">
+      <div class="m-sec-row"><span class="m-sec">Today's Chain</span></div>
+      <div class="m-card-pad">
+        <div class="m-grid m-grid-4" id="dash-chain-grid"></div>
+        <div class="dash-chain-foot">
+          <span class="m-badge-flag" id="dash-plan-flag">PLAN Not set</span>
+          <span class="m-badge-flag" id="dash-pred-flag">PREDICTION Not set</span>
+          <span class="ks-sub" id="dash-chain-saved" style="margin-left:2px">Unsaved</span>
+          <button class="btn btn-sm" style="margin-left:auto" onclick="navTo('today')">Open the chain →</button>
         </div>
       </div>
     </div>
-    <div>
-      <!-- Performance summary -->
-      <div class="card">
-        <div class="card-head"><span class="card-tag t-g">Performance</span><div class="card-title">Summary</div></div>
-        <div class="card-body">
-          <div class="kv"><span class="kv-k">Total trades</span><span class="kv-v" id="d-total">0</span></div>
-          <div class="kv"><span class="kv-k">Win rate</span><span class="kv-v txt-pos" id="d-wr">0%</span></div>
-          <div class="kv"><span class="kv-k">Net P&amp;L</span><span class="kv-v" id="d-pnl">$0</span></div>
-          <div class="kv"><span class="kv-k">Best trade</span><span class="kv-v txt-pos" id="d-best">$0</span></div>
-          <div class="kv"><span class="kv-k">Worst trade</span><span class="kv-v txt-neg" id="d-worst">$0</span></div>
-          <div class="kv"><span class="kv-k">Avg R:R</span><span class="kv-v" id="d-rr">0</span></div>
-          <div class="kv"><span class="kv-k">Profit Factor</span><span class="kv-v" id="d-pf">0</span></div>
+    <div class="m-card">
+      <div class="m-sec-row"><span class="m-sec">Today's News</span></div>
+      <div class="m-card-pad" id="dash-news"><div class="empty">No 2★+ events today</div></div>
+    </div>
+  </div>
+
+  <!-- EQUITY CURVE + TRAILING DRAWDOWN -->
+  <div class="dash-cols" style="margin-bottom:14px">
+    <div class="m-card">
+      <div class="m-sec-row"><span class="m-sec">Equity Curve</span></div>
+      <div class="m-card-pad">
+        <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:8px">
+          <span class="ks-val" id="dash-eq-total" style="font-size:24px">+$0</span>
+          <span class="ks-sub" id="dash-eq-sub">Peak +$0 · Max drawdown $0</span>
         </div>
+        <div style="height:220px"><canvas id="dash-equity"></canvas></div>
       </div>
-      <!-- Today's News from Calendar -->
-      <div class="card">
-        <div class="card-head"><span class="card-tag t-m">Today's News</span><div class="card-title">USA 2★+ Events</div></div>
-        <div class="card-body" id="dash-news"><div class="empty">No high-impact events today</div></div>
+    </div>
+    <div class="m-card">
+      <div class="m-sec-row"><span class="m-sec">Trailing Drawdown</span></div>
+      <div class="m-card-pad">
+        <div style="height:250px"><canvas id="dash-trailing-dd"></canvas></div>
       </div>
     </div>
   </div>
 
-  <div class="chart-grid">
-    <div class="chart-card"><div class="chart-title">Equity Curve</div><div class="chart-canvas"><canvas id="dash-equity"></canvas></div></div>
-    <div class="chart-card"><div class="chart-title">P&amp;L by Model</div><div class="chart-canvas"><canvas id="dash-model"></canvas></div></div>
+  <!-- RECENT TRADES -->
+  <div class="m-card">
+    <div class="m-sec-row"><span class="m-sec">Recent Trades</span><span class="ks-sub" id="dash-trades-count" style="margin-left:auto">Latest 5 of 0</span></div>
+    <div class="tw"><table class="tbl">
+      <thead><tr><th>Date</th><th>Time</th><th>Side</th><th>Market</th><th>Qty</th><th>Model</th><th>R:R</th><th style="text-align:right">P&amp;L</th></tr></thead>
+      <tbody id="dash-trades"><tr><td colspan="8" class="empty">No trades. Press T to log one.</td></tr></tbody>
+    </table></div>
   </div>
 
 </div>
@@ -8925,167 +8894,82 @@ function renderWeekNews(){
 
 // ============= DASHBOARD =============
 function renderDashboard(){
-  if(typeof checkBlownAccounts==='function') checkBlownAccounts(); // catch any trailing-DD breach on app open
-  const day=dayCountFor(todayStr())||getNextDayCount();
-  document.getElementById('t-day').textContent=day;
-  document.getElementById('t-date').textContent=fmtDate(todayStr());
-  
-  // active account
-  const acc=state.accounts.find(a=>String(a.id)===String(state.currentAcc));
-  document.getElementById('t-acc').textContent=acc?acc.name:'None';
-  if(acc){
-    const ts=state.trades.filter(t=>String(t.accountId)===String(acc.id));
-    const pnl=ts.reduce((s,t)=>s+t.pnl,0);
-    document.getElementById('t-acc-bal').textContent=`$${(acc.deposit+pnl).toFixed(2)} · ${ts.length}T`;
-  }
-  
-  // monthly
-  const m=state.monthly[state.currentMonth]||{};
-  document.getElementById('t-monthly').textContent=m['m-qshift']||'LTS Bullish';
-  document.getElementById('t-monthly-sub').textContent=`${m['m-profile']||'Trending'} · ${m['m-keylevels']?m['m-keylevels'].split('\n')[0].split(':')[1]||'$28,808.75':'$28,808.75'}`;
-  
-  // weekly
-  const wk=state.weekly[`${state.currentMonth}-W${state.currentWeek}`]||{};
-  document.getElementById('t-weekly').textContent=wk['w-model']||'Not set';
-  document.getElementById('t-weekly-sub').textContent=wk['w-phase']?`${wk['w-phase']} · ${wk['w-range']||''}`:'Set on Sunday';
-  
-  // previous day chain
-  const prevDs=getPrevTradingDay(todayStr());
-  const prevD=state.daily[prevDs];
-  const chainBox=document.getElementById('dash-chain');
-  if(prevD){
-    const statusCls=prevD.daystatus==='Passed'?'status-passed':prevD.daystatus==='Blown'?'status-blown':prevD.daystatus==='In Process'?'status-inprogress':'';
-    chainBox.innerHTML=`
-      <div class="prev-chain-card">
-        <div class="pdc-head">📅 Previous Day — <span>D${prevD.dayCount||dayCountFor(prevDs)} · ${fmtDate(prevDs)}</span>
-          ${prevD.daystatus?`<span class="${statusCls}" style="margin-left:auto">${prevD.daystatus}</span>`:''}
-        </div>
-        ${prevD.weekly?`<div class="pdc-row"><span class="pdc-key">Weekly</span><span class="pdc-val">${prevD.weekly}</span></div>`:''}
-        ${prevD.bias?`<div class="pdc-row"><span class="pdc-key">Bias</span><span class="tag tg-${prevD.bias==='Bullish'?'bull':prevD.bias==='Bearish'?'bear':'gray'}">${prevD.bias}</span></div>`:''}
-        ${prevD.htfpoi?`<div class="pdc-row"><span class="pdc-key">HTF POI</span><span class="pdc-val">${prevD.htfpoi}</span></div>`:''}
-        ${prevD.london?`<div class="pdc-row"><span class="pdc-key">London</span><span class="pdc-val">${prevD.london}${prevD.ny?' → NY '+prevD.ny:''}</span></div>`:''}
-        ${prevD.plan?`<div class="pdc-row"><span class="pdc-key">Plan</span><span class="tag tg-${prevD.plan==='Followed'?'bull':'bear'}">${prevD.plan}</span></div>`:''}
-        ${prevD.rth?`<div class="pdc-row"><span class="pdc-key">RTH</span><span class="pdc-val" style="font-size:10px">${prevD.rth}</span></div>`:''}
-      </div>
-      <div style="margin-top:8px;padding:6px 12px;background:rgba(245,166,35,.04);border:1px dashed rgba(245,166,35,.2);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:11px;color:var(--text3)">Today's chain not filled yet</span>
-        <button class="btn btn-primary btn-sm" onclick="navTo('today')">Fill Chain →</button>
-      </div>`;
-    document.getElementById('dash-chain-status').textContent=`Prev: ${fmtDate(prevDs)}`;
-  } else {
-    chainBox.innerHTML=`<div style="color:var(--text3);font-size:11px;padding:8px 0">No previous day data.</div>
-      <div style="margin-top:8px"><button class="btn btn-primary btn-sm" onclick="navTo('today')">Fill Today's Chain →</button></div>`;
-    document.getElementById('dash-chain-status').textContent='No prev data';
-  }
-
-  // recent trades — active account trades first, then all, newest first
-  const trBox=document.getElementById('dash-trades');
-  const accId=String(state.currentAcc||'');
-  // Show active account trades first, fill remaining with all trades (copier mirrors excluded)
+  if(typeof checkBlownAccounts==='function') checkBlownAccounts();
   const _mids=_mirrorTradeIds().ids;
-  const _own=state.trades.filter(t=>!_mids.has(t.id));
-  const accTrades=[..._own].filter(t=>accId&&String(t.accountId)===accId)
-    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
-  const otherTrades=[..._own].filter(t=>!accId||String(t.accountId)!==accId)
-    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
+  const own=state.trades.filter(t=>!_mids.has(t.id));   // your real, de-duped trades
+  const wins=own.filter(t=>t.pnl>0), losses=own.filter(t=>t.pnl<0);
+  const net=own.reduce((s,t)=>s+(t.pnl||0),0);
+  const wr=own.length?Math.round(wins.length/own.length*100):0;
+  const winRRs=wins.filter(t=>t.risk>0).map(t=>parseFloat(t.rr)||0);
+  const avgWinRR=winRRs.length?(winRRs.reduce((a,b)=>a+b,0)/winRRs.length):0;
+  const allRRs=own.filter(t=>t.risk>0).map(t=>parseFloat(t.rr)||0);
+  const expR=allRRs.length?(allRRs.reduce((a,b)=>a+b,0)/allRRs.length):0;
+  // Combined P&L across ALL accounts incl. breached — _accMetrics is the single source of truth
+  const combined=(state.accounts||[]).reduce((s,a)=>s+((typeof _accMetrics==='function')?(_accMetrics(a).profit||0):0),0);
+  const payouts=(state.transactions||[]).filter(x=>x.type==='Payout');
+  const paidOut=payouts.reduce((s,x)=>s+Math.abs(parseFloat(x.amount)||0),0);
+  const lastPayout=payouts.map(x=>x.date).filter(Boolean).sort().pop();
+
+  const money=v=>(v>=0?'+':'-')+'$'+Math.abs(v).toFixed(2);
+  const setTxt=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  const setVal=(id,v)=>{const e=document.getElementById(id);if(!e)return;e.textContent=money(v);e.classList.remove('pos','neg');e.classList.add(v>=0?'pos':'neg');};
+
+  setVal('ks-net',net); setTxt('ks-net-sub',own.length+' trades · de-duped');
+  setVal('ks-combined',combined);
+  setTxt('ks-wr',wr+'%'); setTxt('ks-wr-sub',wins.length+' of '+own.length);
+  setTxt('ks-rr',avgWinRR.toFixed(2)); setTxt('ks-rr-sub','Expectancy '+(expR>=0?'+':'')+expR.toFixed(2)+'R all trades');
+  { const e=document.getElementById('ks-paid'); if(e) e.textContent='$'+paidOut.toFixed(0); }
+  setTxt('ks-paid-sub','Last '+(lastPayout?fmtDate(lastPayout):'—'));
+
+  // Today's Chain summary grid
+  const ds=todayStr(); const d=state.daily[ds]||{};
+  const cell=(label,val)=>`<div class="m-field"><span class="m-label">${label}</span><div class="m-val">${val||'—'}</div></div>`;
+  const grid=document.getElementById('dash-chain-grid');
+  if(grid){
+    const refs=Array.isArray(d.priceRefs)?d.priceRefs.length:(Array.isArray(d.price)?d.price.length:0);
+    grid.innerHTML=[
+      cell('Premarket',d.htfpoi), cell('Weekly DOL',d.weekdraws), cell('Daily run for',d.dailyRol), cell('Daily DOL',d.dailyDol),
+      cell('Daily bias',d.bias), cell('London',d.london), cell('NY',d.ny), cell('Asian range',d.asianSingle||(Array.isArray(d.asianRange)?d.asianRange[0]:'')),
+      cell('Session',d.session), cell('RTH profile',d.rth), cell('References',refs?refs+' in play':'0 in play'), ''
+    ].join('');
+  }
+  const planFlag=document.getElementById('dash-plan-flag');
+  if(planFlag){ const ok=!!d.plan; planFlag.textContent=ok?('PLAN '+d.plan):'PLAN Not set'; planFlag.classList.toggle('ok',ok); }
+  const predFlag=document.getElementById('dash-pred-flag');
+  if(predFlag){ const ok=!!d.pred; predFlag.textContent=ok?('PREDICTION '+d.pred):'PREDICTION Not set'; predFlag.classList.toggle('ok',ok); }
+  setTxt('dash-chain-saved', d.savedAt?('Saved '+new Date(d.savedAt).toLocaleTimeString()):'Unsaved');
+
+  // Recent trades — active account first, then the rest; newest first
+  const accId=String(state.currentAcc||'');
+  const bySort=(a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0);
+  const accTrades=own.filter(t=>accId&&String(t.accountId)===accId).sort(bySort);
+  const otherTrades=own.filter(t=>!accId||String(t.accountId)!==accId).sort(bySort);
   const recent=[...accTrades,...otherTrades].slice(0,5);
-  if(!recent.length){trBox.innerHTML='<tr><td colspan="7" class="empty">No trades. Press T.</td></tr>'}
-  else trBox.innerHTML=recent.map(t=>{
-    const isActiveAcc=accId&&String(t.accountId)===accId;
-    const accName=state.accounts.find(a=>String(a.id)===String(t.accountId))?.name||'';
-    return `<tr class="${t.pnl>0?'trade-win':t.pnl<0?'trade-loss':''}" style="${isActiveAcc?'border-left:2px solid var(--gold)':''}">
-      <td class="mono" style="color:var(--text3)">${(t.dayCount||dayCountFor(t.date))?`D${t.dayCount||dayCountFor(t.date)}`:'—'}</td>
-      <td class="mono">${(t.date||'').slice(0,10)}</td>
-      <td><span class="tag tg-pur">${t.models?.[0]||'-'}</span></td>
-      <td style="font-size:10px;max-width:80px;overflow:hidden;text-overflow:ellipsis">${(t.emotions||[])[0]||'-'}</td>
-      <td>${t.pnl>0?`<span class="win-pill">WIN</span>`:t.pnl<0?`<span class="loss-pill">LOSS</span>`:`<span class="tag tg-gray">BE</span>`}</td>
-      <td class="mono ${t.pnl>=0?'txt-pos':'txt-neg'}" style="font-weight:700">${t.pnl>=0?'+':''}$${t.pnl.toFixed(2)}</td>
-      <td class="mono ${parseFloat(t.rr)>=0?'txt-pos':'txt-neg'}">${t.rr}R</td>
-    </tr>`;
-  }).join('');
-  
-  // stats — your real trades only (copier mirror copies are per-account, excluded here)
-  const ts=state.trades.filter(t=>!_mids.has(t.id));
-  const wins=ts.filter(t=>t.win).length;
-  const losses=ts.filter(t=>t.pnl<0).length;
-  const wr=ts.length?Math.round(wins/ts.length*100):0;
-  const pnl=ts.reduce((s,t)=>s+t.pnl,0);
-  const best=ts.length?Math.max(...ts.map(t=>t.pnl)):0;
-  const worst=ts.length?Math.min(...ts.map(t=>t.pnl)):0;
-  const rrs=ts.filter(t=>t.risk>0).map(t=>parseFloat(t.rr));
-  const grossProfit=ts.filter(t=>t.pnl>0).reduce((s,t)=>s+t.pnl,0);
-  const grossLoss=Math.abs(ts.filter(t=>t.pnl<0).reduce((s,t)=>s+t.pnl,0));
-  const pf=grossLoss>0?(grossProfit/grossLoss).toFixed(2):'∞';
-  // Max drawdown calc
-  const sorted=[...ts].sort((a,b)=>new Date(a.date)-new Date(b.date));
-  let peak=0, run=0, maxDD=0;
-  sorted.forEach(t=>{run+=t.pnl;if(run>peak)peak=run;const dd=peak-run;if(dd>maxDD)maxDD=dd;});
-
-  document.getElementById('d-total').textContent=ts.length;
-  document.getElementById('d-wr').textContent=wr+'%';
-  document.getElementById('d-pnl').textContent=(pnl>=0?'+':'-')+'$'+Math.abs(pnl).toFixed(2);
-  document.getElementById('d-pnl').className='kv-v '+(pnl>=0?'txt-pos':'txt-neg');
-  document.getElementById('d-best').textContent='+$'+best.toFixed(2);
-  document.getElementById('d-worst').textContent='-$'+Math.abs(worst).toFixed(2);
-  document.getElementById('d-rr').textContent=rrs.length?(rrs.reduce((a,b)=>a+b,0)/rrs.length).toFixed(2):'0';
-  const dpfEl=document.getElementById('d-pf');
-  if(dpfEl){dpfEl.textContent=pf;dpfEl.className='kv-v '+(parseFloat(pf)>=1?'txt-pos':'txt-neg');}
-
-  // Prop-firm tiles
-  const pfPnlEl=document.getElementById('pf-net-pnl');
-  if(pfPnlEl){
-    pfPnlEl.textContent=(pnl>=0?'+':'-')+'$'+Math.abs(pnl).toFixed(2);
-    pfPnlEl.className='tile-v '+(pnl>=0?'txt-pos':'txt-neg');
-    document.getElementById('pf-pnl-tile').className='tile '+(pnl>=0?'pos':'neg');
-    document.getElementById('pf-pnl-sub').textContent=ts.length+' trades';
-  }
-  const pfWrEl=document.getElementById('pf-winrate');
-  if(pfWrEl){
-    pfWrEl.textContent=wr+'%';
-    pfWrEl.className='tile-v '+(wr>=50?'txt-pos':'txt-neg');
-    document.getElementById('pf-wr-tile').className='tile '+(wr>=50?'pos':'neg');
-    document.getElementById('pf-wr-sub').textContent=wins+'W · '+losses+'L';
-  }
-  const pfPfEl=document.getElementById('pf-pf');
-  if(pfPfEl){
-    pfPfEl.textContent=pf;
-    const pfNum=parseFloat(pf);
-    pfPfEl.className='tile-v '+(pfNum>=1?'txt-pos':'txt-neg');
-    document.getElementById('pf-pf-tile').className='tile '+(pfNum>=1?'pos':'neg');
-    document.getElementById('pf-pf-sub').textContent='+$'+grossProfit.toFixed(0)+' / -$'+grossLoss.toFixed(0);
-  }
-  const pfDdEl=document.getElementById('pf-dd');
-  if(pfDdEl){
-    pfDdEl.textContent='-$'+maxDD.toFixed(2);
-    pfDdEl.className='tile-v txt-neg';
-    document.getElementById('pf-dd-tile').className='tile neg';
-    const pct=peak>0?((maxDD/peak)*100).toFixed(1):0;
-    document.getElementById('pf-dd-sub').textContent=pct+'% from peak';
-  }
-
-  // Goal progress bars
-  const prof=state.profile||{};
-  // Raw Trade-Log P&L only — copier mirror copies excluded (dashboard shows YOUR real trades, not per-account).
-  const todayPnl=_own.filter(t=>t.date===todayStr()).reduce((s,t)=>s+t.pnl,0);
-  const monthPnl=_own.filter(t=>t.date&&t.date.startsWith(todayStr().slice(0,7))).reduce((s,t)=>s+t.pnl,0);
-  const dailyGoal=parseFloat(prof.dailyGoal)||0;
-  const monthlyGoal=parseFloat(prof.monthlyGoal||prof.monthGoal)||0;
-  const goalsDiv=document.getElementById('dash-goals');
-  if(goalsDiv&&(dailyGoal||monthlyGoal)){
-    goalsDiv.style.display='grid';
-    const dp=document.getElementById('dash-daily-pnl');if(dp)dp.textContent=(todayPnl>=0?'+':'')+`$${Math.abs(todayPnl).toFixed(0)}`;
-    const dg=document.getElementById('dash-daily-goal-v');if(dg)dg.textContent=`/ $${dailyGoal}`;
-    const db=document.getElementById('dash-daily-bar');if(db)db.style.width=dailyGoal>0?Math.min(100,(todayPnl/dailyGoal*100))+'%':'0%';
-    const mp=document.getElementById('dash-monthly-pnl');if(mp)mp.textContent=(monthPnl>=0?'+':'')+`$${Math.abs(monthPnl).toFixed(0)}`;
-    const mg=document.getElementById('dash-monthly-goal-v');if(mg)mg.textContent=`/ $${monthlyGoal}`;
-    const mb=document.getElementById('dash-monthly-bar');if(mb)mb.style.width=monthlyGoal>0?Math.min(100,(monthPnl/monthlyGoal*100))+'%':'0%';
-  } else if(goalsDiv){
-    goalsDiv.style.display='none';
+  setTxt('dash-trades-count','Latest '+recent.length+' of '+own.length);
+  const trBox=document.getElementById('dash-trades');
+  if(trBox){
+    if(!recent.length){ trBox.innerHTML='<tr><td colspan="8" class="empty">No trades. Press T to log one.</td></tr>'; }
+    else trBox.innerHTML=recent.map(t=>{
+      const side=t.position||t.side||'—';
+      const sideCls=/long|buy/i.test(side)?'txt-pos':/short|sell/i.test(side)?'txt-neg':'';
+      const time=(t.openTime||t.open_time||'')||'—';
+      return `<tr class="${t.pnl>0?'trade-win':t.pnl<0?'trade-loss':''}">
+        <td class="mono">${(t.date||'').slice(0,10)||'—'}</td>
+        <td class="mono" style="color:var(--text3)">${time}</td>
+        <td class="${sideCls}" style="font-weight:700">${side}</td>
+        <td>${t.market||'—'}</td>
+        <td class="mono">${t.lots||'—'}</td>
+        <td><span class="tag tg-pur">${(t.models&&t.models[0])||'-'}</span></td>
+        <td class="mono ${parseFloat(t.rr)>=0?'txt-pos':'txt-neg'}">${t.rr||0}R</td>
+        <td class="mono ${t.pnl>=0?'txt-pos':'txt-neg'}" style="font-weight:700;text-align:right">${t.pnl>=0?'+':''}$${(t.pnl||0).toFixed(2)}</td>
+      </tr>`;
+    }).join('');
   }
 
   renderTodayNewsForDash();
   setTimeout(renderDashCharts,50);
 }
+
 function renderTodayNewsForDash(){
   const events=getEventsForDate(todayStr(),1);
   const w=document.getElementById('dash-news');
@@ -9099,15 +8983,19 @@ function renderTodayNewsForDash(){
 }
 let dashCharts={};
 function renderDashCharts(){
-  if(!window.Chart)return;
-  const ts=state.trades;
+  const _mids=_mirrorTradeIds().ids;
+  const ts=state.trades.filter(t=>!_mids.has(t.id));
   const sorted=[...ts].sort((a,b)=>new Date(a.date)-new Date(b.date));
-  const cum=[];let run=0;sorted.forEach(t=>{run+=t.pnl;cum.push(run)});
+  let run=0,peak=0,maxDD=0; const cum=[],dd=[];
+  sorted.forEach(t=>{run+=(t.pnl||0);cum.push(run);if(run>peak)peak=run;const g=peak-run;if(g>maxDD)maxDD=g;dd.push(-g);});
+  // Header numbers always render (independent of Chart.js availability)
+  const eqTot=document.getElementById('dash-eq-total');
+  if(eqTot){eqTot.textContent=(run>=0?'+':'-')+'$'+Math.abs(run).toFixed(2);eqTot.classList.remove('pos','neg');eqTot.classList.add(run>=0?'pos':'neg');}
+  const eqSub=document.getElementById('dash-eq-sub'); if(eqSub)eqSub.textContent='Peak +$'+peak.toFixed(0)+' · Max drawdown $'+maxDD.toFixed(0);
+  if(!window.Chart)return;
   drawLine('dash-equity',sorted.map((_,i)=>i+1),cum);
-  const byModel={};ts.forEach(t=>{const m=t.models?.[0]||'?';byModel[m]=(byModel[m]||0)+t.pnl});
-  drawBar('dash-model',Object.keys(byModel),Object.values(byModel));
+  drawLine('dash-trailing-dd',sorted.map((_,i)=>i+1),dd);
 }
-
 // ============= PERFORMANCE CHARTS =============
 let perfCharts={};
 function renderPerfCharts(){

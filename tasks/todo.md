@@ -22,8 +22,9 @@ data layer; verify (syntax → headless preview → data round-trip) → commit 
 - [x] 2.7 Chart-slot row order (Daily/Weekly full → 3-up row → Summary full); no Today trades block exists to move
 
 ## Phase 3 — Dashboard
-- [ ] 3.1 KEY STATS card row
-- [ ] 3.2 Chain summary · news · equity curve · trailing DD · recent 5 trades
+- [x] 3.1 KEY STATS card row (Net P&L·Leader · Combined · Win rate · Avg R:R on wins · Paid out)
+- [x] 3.2 Today's Chain summary grid · Today's News · Equity curve · Trailing DD · Recent 5 trades
+- [ ] 3.3 Daily Heatmap (leader/all toggle) + Copier Distribution card (design extras)
 
 ## Phase 4 — Accounts
 - [ ] 4.1 Filter tabs + 4-tile strip + ring cards + BREACHED derived
