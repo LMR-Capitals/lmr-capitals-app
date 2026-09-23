@@ -2163,6 +2163,197 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
 #p-terminology .kb-slash button:hover{background:var(--kb-chip)}
 #p-terminology .kb-hide{display:none}
 </style>
+<style id="lmr-psy-css">
+#p-psychology{
+  --p-bg:var(--bg1,#0A0A0F); --p-surface:var(--bg2,#101018);
+  --p-inset:var(--bg3,#14141C); --p-chip:#1A1A24;
+  --p-line:var(--border,rgba(255,255,255,0.08));
+  --p-txt:var(--text1,#EDEDF2); --p-mut:var(--text2,#A0A0B0);
+  --p-dim:var(--text3,#7A7A8C);
+  --p-gold:var(--gold,#F5A623); --p-rose:var(--bear,#FF4060);
+  --p-green:var(--bull,#3fb950); --p-blue:#6ea8fe;
+  font-family:'Inter',system-ui,sans-serif; color:var(--p-txt);
+}
+#p-psychology .p-wrap{padding:20px 24px 48px;display:flex;flex-direction:column;gap:16px;max-width:1000px}
+#p-psychology .p-eyebrow{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+#p-psychology .p-sub{font-size:12px;color:var(--p-dim)}
+#p-psychology .p-lab{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--p-dim)}
+
+/* score header */
+#p-psychology .p-score{border:1px solid var(--p-line);background:var(--p-surface);display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;padding:18px;align-items:center}
+#p-psychology .p-ring{position:relative;width:120px;height:120px;flex:none}
+#p-psychology .p-ring svg{transform:rotate(-90deg);display:block}
+#p-psychology .p-ringv{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+#p-psychology .p-rn{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;line-height:1}
+#p-psychology .p-rl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--p-dim)}
+#p-psychology .p-sright{display:flex;flex-direction:column;gap:9px;min-width:0}
+#p-psychology .p-band{align-self:flex-start;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:4px 11px;border-radius:99px}
+#p-psychology .p-verdict{font-size:14px;line-height:1.65;color:var(--p-mut);text-wrap:pretty}
+#p-psychology .p-evid{display:flex;gap:16px;flex-wrap:wrap;padding-top:2px}
+#p-psychology .p-ev{display:flex;flex-direction:column;gap:2px}
+#p-psychology .p-evv{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700}
+#p-psychology .p-evk{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--p-dim)}
+
+/* date bar */
+#p-psychology .p-bar{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+#p-psychology .p-in{background:var(--p-chip);border:1px solid var(--p-line);border-radius:3px;padding:8px 11px;color:var(--p-txt);font-family:'Inter',sans-serif;font-size:13px;outline:0}
+#p-psychology .p-btn{background:transparent;border:1px solid var(--p-line);padding:8px 14px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;color:var(--p-txt)}
+#p-psychology .p-btn:hover{background:var(--p-chip)}
+#p-psychology .p-ai{margin-left:auto;background:var(--p-gold);border:0;padding:9px 18px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:12px;color:var(--p-bg)}
+#p-psychology .p-ai[disabled]{opacity:.5;cursor:not-allowed}
+
+/* rules */
+#p-psychology .p-rules{border:1px solid var(--p-line);background:var(--p-surface)}
+#p-psychology .p-rule{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:12px;align-items:start;padding:13px 15px;border-bottom:1px solid var(--p-line)}
+#p-psychology .p-rule:last-child{border-bottom:0}
+#p-psychology .p-mark{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:13px;flex:none;margin-top:1px}
+#p-psychology .p-mark.is-met{background:rgba(63,185,80,.14);color:var(--p-green);border:1px solid rgba(63,185,80,.35)}
+#p-psychology .p-mark.is-miss{background:rgba(255,64,96,.12);color:var(--p-rose);border:1px solid rgba(255,64,96,.32)}
+#p-psychology .p-mark.is-na{background:var(--p-chip);color:var(--p-dim);border:1px solid var(--p-line)}
+#p-psychology .p-rtext{display:flex;flex-direction:column;gap:3px;min-width:0}
+#p-psychology .p-rt{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;text-wrap:pretty}
+#p-psychology .p-rw{font-size:12px;line-height:1.6;color:var(--p-mut);text-wrap:pretty}
+#p-psychology .p-rs{flex:none;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:var(--p-dim);white-space:nowrap;margin-top:3px}
+
+/* ai summary */
+#p-psychology .p-doc{border:1px solid var(--p-line);background:var(--p-surface);display:flex;flex-direction:column}
+#p-psychology .p-dhead{display:flex;align-items:center;gap:10px;padding:13px 15px;border-bottom:1px solid var(--p-line);background:var(--p-inset)}
+#p-psychology .p-dbody{padding:15px;font-size:14px;line-height:1.75;color:var(--p-mut);white-space:pre-wrap;text-wrap:pretty}
+#p-psychology .p-note{width:100%;box-sizing:border-box;background:var(--p-chip);border:1px solid var(--p-line);border-radius:3px;padding:11px;color:var(--p-txt);font-family:'Inter',sans-serif;font-size:13px;line-height:1.6;outline:0;resize:vertical;min-height:80px}
+#p-psychology .p-none{border:1px dashed var(--p-line);padding:26px 16px;text-align:center;font-size:13px;color:var(--p-dim)}
+
+/* streak */
+#p-psychology .p-streak{display:flex;gap:3px;flex-wrap:wrap}
+#p-psychology .p-day{width:26px;height:26px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;border:1px solid var(--p-line)}
+</style>
+<style id="lmr-obs-css">
+#p-observation{
+  --o-bg:var(--bg1,#0A0A0F); --o-surface:var(--bg2,#101018);
+  --o-inset:var(--bg3,#14141C); --o-chip:#1A1A24;
+  --o-line:var(--border,rgba(255,255,255,0.08));
+  --o-txt:var(--text1,#EDEDF2); --o-mut:var(--text2,#A0A0B0);
+  --o-dim:var(--text3,#7A7A8C);
+  --o-gold:var(--gold,#F5A623); --o-rose:var(--bear,#FF4060);
+  --o-green:var(--bull,#3fb950); --o-blue:#6ea8fe;
+  --o-discord:#5865F2;
+  font-family:'Inter',system-ui,sans-serif; color:var(--o-txt);
+}
+#p-observation .o-wrap{padding:20px 24px 48px;display:flex;flex-direction:column;gap:16px;max-width:1000px}
+#p-observation .o-eyebrow{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+#p-observation .o-sub{font-size:12px;color:var(--o-dim)}
+#p-observation .o-lab{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--o-dim)}
+
+/* ── composer ──────────────────────────────────────────────── */
+#p-observation .o-comp{border:1px solid var(--o-line);background:var(--o-surface);display:flex;flex-direction:column}
+#p-observation .o-chead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--o-line);background:var(--o-inset)}
+#p-observation .o-cbody{display:flex;flex-direction:column;gap:12px;padding:14px}
+#p-observation .o-row{display:grid;grid-template-columns:130px minmax(0,1fr);gap:10px;align-items:center}
+#p-observation .o-in{width:100%;box-sizing:border-box;background:var(--o-chip);border:1px solid var(--o-line);border-radius:3px;padding:9px 11px;color:var(--o-txt);font-family:'Inter',sans-serif;font-size:13px;outline:0}
+#p-observation .o-in:focus{border-color:var(--o-gold)}
+#p-observation .o-ta{width:100%;box-sizing:border-box;background:var(--o-chip);border:1px solid var(--o-line);border-radius:3px;padding:11px;color:var(--o-txt);font-family:'Inter',sans-serif;font-size:14px;line-height:1.65;outline:0;resize:vertical;min-height:112px}
+#p-observation .o-ta:focus{border-color:var(--o-gold)}
+#p-observation .o-chips{display:flex;gap:7px;flex-wrap:wrap}
+#p-observation .o-chip{background:var(--o-chip);border:1px solid var(--o-line);padding:6px 13px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;letter-spacing:.04em;color:var(--o-mut)}
+#p-observation .o-chip[aria-pressed="true"]{color:var(--o-bg);border-color:transparent}
+#p-observation .o-tagchip{background:transparent;border:1px solid var(--o-line);padding:5px 11px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;color:var(--o-dim)}
+#p-observation .o-tagchip[aria-pressed="true"]{color:var(--o-txt);border-color:var(--o-gold);background:rgba(245,166,35,.10)}
+#p-observation .o-drop{position:relative;width:100%;aspect-ratio:16/9;max-height:250px;background:var(--o-inset);border:1px dashed #2E2E3A;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer}
+#p-observation .o-drop.is-over{border-color:var(--o-gold);background:rgba(245,166,35,.06)}
+#p-observation .o-drop img{width:100%;height:100%;object-fit:cover;display:block}
+#p-observation .o-dph{font-size:12px;color:var(--o-dim);text-align:center;padding:0 16px;line-height:1.6}
+#p-observation .o-x{position:absolute;top:6px;right:6px;z-index:4;width:24px;height:24px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;border:1px solid rgba(255,255,255,.25);border-radius:3px;background:rgba(0,0,0,.62);color:#fff;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px}
+#p-observation .o-cfoot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-top:1px solid var(--o-line)}
+#p-observation .o-btn{background:transparent;border:1px solid var(--o-line);padding:8px 13px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;color:var(--o-txt)}
+#p-observation .o-btn:hover{background:var(--o-chip)}
+#p-observation .o-post{margin-left:auto;background:var(--o-gold);border:0;padding:9px 20px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:12px;color:var(--o-bg)}
+#p-observation .o-post[disabled]{opacity:.4;cursor:not-allowed}
+#p-observation .o-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--o-dim)}
+
+/* ── feed ──────────────────────────────────────────────────── */
+#p-observation .o-feedhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+#p-observation .o-filters{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+#p-observation .o-feed{display:flex;flex-direction:column;gap:12px}
+#p-observation .o-card{border:1px solid var(--o-line);border-left-width:3px;background:var(--o-surface);display:flex;flex-direction:column}
+#p-observation .o-khead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--o-line)}
+#p-observation .o-tag{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:99px}
+#p-observation .o-ktitle{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#p-observation .o-kdate{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--o-dim);flex:none}
+#p-observation .o-kdel{flex:none;background:transparent;border:1px solid var(--o-line);width:26px;height:26px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;border-radius:99px;color:var(--o-rose);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px}
+#p-observation .o-ktext{margin:0;padding:14px;font-size:14px;line-height:1.7;color:var(--o-mut);white-space:pre-wrap;text-wrap:pretty}
+#p-observation .o-kimg{margin:0 14px 14px;border:1px solid var(--o-line);border-radius:8px;overflow:hidden;background:var(--o-inset)}
+#p-observation .o-kimg img{width:100%;display:block}
+#p-observation .o-ktags{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 12px}
+#p-observation .o-ktag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--o-dim);border:1px solid var(--o-line);border-radius:99px;padding:2px 8px}
+#p-observation .o-kfoot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:0 14px 13px}
+#p-observation .o-share{background:transparent;border:1px solid var(--o-line);border-radius:99px;padding:5px 12px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:10px;letter-spacing:.06em;color:var(--o-dim)}
+#p-observation .o-share:hover{color:var(--o-txt);border-color:var(--o-gold)}
+#p-observation .o-sent{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--o-green)}
+#p-observation .o-none{border:1px dashed var(--o-line);padding:26px 16px;text-align:center;font-size:13px;color:var(--o-dim)}
+
+/* ── webhook bar ───────────────────────────────────────────── */
+#p-observation .o-hook{border:1px solid var(--o-line);background:var(--o-surface);display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px}
+#p-observation .o-hook .o-in{flex:1;min-width:220px}
+#p-observation .o-dot{width:8px;height:8px;border-radius:99px;flex:none}
+</style>
+<style id="lmr-jn-css">
+#p-journal, #p-notes{
+  --jn-bg:var(--bg1,#0A0A0F); --jn-surface:var(--bg2,#101018);
+  --jn-inset:var(--bg3,#14141C); --jn-chip:#1A1A24;
+  --jn-line:var(--border,rgba(255,255,255,0.08));
+  --jn-txt:var(--text1,#EDEDF2); --jn-mut:var(--text2,#A0A0B0);
+  --jn-dim:var(--text3,#7A7A8C);
+  --jn-gold:var(--gold,#F5A623); --jn-rose:var(--bear,#FF4060);
+  --jn-green:var(--bull,#3fb950); --jn-blue:#6ea8fe;
+  font-family:'Inter',system-ui,sans-serif; color:var(--jn-txt);
+}
+#p-journal .jn-wrap, #p-notes .jn-wrap{padding:20px 24px 48px;display:flex;flex-direction:column;gap:16px;max-width:1000px}
+
+/* ── composer ──────────────────────────────────────────────── */
+#p-journal .jn-comp, #p-notes .jn-comp{border:1px solid var(--jn-line);background:var(--jn-surface);display:flex;flex-direction:column}
+#p-journal .jn-chead, #p-notes .jn-chead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--jn-line);background:var(--jn-inset)}
+#p-journal .jn-eyebrow, #p-notes .jn-eyebrow{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+#p-journal .jn-cbody, #p-notes .jn-cbody{display:flex;flex-direction:column;gap:12px;padding:14px}
+#p-journal .jn-types{display:flex;gap:7px;flex-wrap:wrap}
+#p-journal .jn-type{background:var(--jn-chip);border:1px solid var(--jn-line);padding:6px 13px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;letter-spacing:.04em;color:var(--jn-mut)}
+#p-journal .jn-type[aria-pressed="true"]{color:var(--jn-bg);border-color:transparent}
+#p-journal .jn-fields, #p-notes .jn-fields{display:grid;grid-template-columns:130px minmax(0,1fr);gap:10px;align-items:center}
+#p-journal .jn-lab, #p-notes .jn-lab{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--jn-dim)}
+#p-journal .jn-in, #p-notes .jn-in{width:100%;box-sizing:border-box;background:var(--jn-chip);border:1px solid var(--jn-line);border-radius:3px;padding:9px 11px;color:var(--jn-txt);font-family:'Inter',sans-serif;font-size:13px;outline:0}
+#p-journal .jn-in:focus, #p-notes .jn-in:focus{border-color:var(--jn-gold)}
+#p-journal .jn-ta, #p-notes .jn-ta{width:100%;box-sizing:border-box;background:var(--jn-chip);border:1px solid var(--jn-line);border-radius:3px;padding:11px;color:var(--jn-txt);font-family:'Inter',sans-serif;font-size:14px;line-height:1.65;outline:0;resize:vertical;min-height:96px}
+#p-journal .jn-ta:focus, #p-notes .jn-ta:focus{border-color:var(--jn-gold)}
+#p-journal .jn-drop, #p-notes .jn-drop{position:relative;width:100%;aspect-ratio:16/9;max-height:230px;background:var(--jn-inset);border:1px dashed #2E2E3A;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer}
+#p-journal .jn-drop.is-over, #p-notes .jn-drop.is-over{border-color:var(--jn-gold);background:rgba(245,166,35,.06)}
+#p-journal .jn-drop img, #p-notes .jn-drop img{width:100%;height:100%;object-fit:cover;display:block}
+#p-journal .jn-dph, #p-notes .jn-dph{font-size:12px;color:var(--jn-dim);text-align:center;padding:0 16px;line-height:1.6}
+#p-journal .jn-x, #p-notes .jn-x{position:absolute;top:6px;right:6px;z-index:4;width:24px;height:24px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;border:1px solid rgba(255,255,255,.25);border-radius:3px;background:rgba(0,0,0,.62);color:#fff;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px}
+#p-journal .jn-cfoot, #p-notes .jn-cfoot{display:flex;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid var(--jn-line)}
+#p-journal .jn-save, #p-notes .jn-save{margin-left:auto;background:var(--jn-gold);border:0;padding:9px 20px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:12px;color:var(--jn-bg)}
+#p-journal .jn-save[disabled], #p-notes .jn-save[disabled]{opacity:.4;cursor:not-allowed}
+#p-journal .jn-shot, #p-notes .jn-shot{background:transparent;border:1px solid var(--jn-line);padding:8px 13px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;color:var(--jn-txt)}
+#p-journal .jn-shot:hover, #p-notes .jn-shot:hover{background:var(--jn-chip)}
+
+/* ── feed ──────────────────────────────────────────────────── */
+#p-journal .jn-feedhead, #p-notes .jn-feedhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+#p-journal .jn-sub, #p-notes .jn-sub{font-size:12px;color:var(--jn-dim)}
+#p-journal .jn-filters{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+#p-journal .jn-filter{background:transparent;border:1px solid var(--jn-line);padding:5px 11px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;color:var(--jn-dim)}
+#p-journal .jn-filter[aria-pressed="true"]{color:var(--jn-txt);border-color:var(--jn-gold);background:rgba(245,166,35,.10)}
+#p-journal .jn-feed, #p-notes .jn-feed{display:flex;flex-direction:column;gap:12px}
+
+/* The left border carries the entry type — the one place colour is used. */
+#p-journal .jn-card, #p-notes .jn-card{border:1px solid var(--jn-line);border-left-width:3px;background:var(--jn-surface);display:flex;flex-direction:column}
+#p-journal .jn-khead, #p-notes .jn-khead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--jn-line)}
+#p-journal .jn-tag{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:99px}
+#p-journal .jn-ktitle, #p-notes .jn-ktitle{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#p-journal .jn-kdate, #p-notes .jn-kdate{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--jn-dim);flex:none}
+#p-journal .jn-kdel, #p-notes .jn-kdel{flex:none;background:transparent;border:1px solid var(--jn-line);width:26px;height:26px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;border-radius:99px;color:var(--jn-rose);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px}
+#p-journal .jn-ktext, #p-notes .jn-ktext{margin:0;padding:14px;font-size:14px;line-height:1.7;color:var(--jn-mut);white-space:pre-wrap;text-wrap:pretty}
+/* Chart sits directly beneath the text, inside the same card. */
+#p-journal .jn-kimg, #p-notes .jn-kimg{margin:0 14px 14px;border:1px solid var(--jn-line);border-radius:8px;overflow:hidden;background:var(--jn-inset)}
+#p-journal .jn-kimg img, #p-notes .jn-kimg img{width:100%;display:block}
+#p-journal .jn-none, #p-notes .jn-none{border:1px dashed var(--jn-line);padding:26px 16px;text-align:center;font-size:13px;color:var(--jn-dim)}
+</style>
 </head>
 <body>
 
@@ -2355,7 +2546,8 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
     <button class="sb-item" data-panel="accounts"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg></span> Accounts</button>
     <button class="sb-item" data-panel="trans"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg></span> Transactions</button>
     <div class="sb-sec">Knowledge</div>
-    <button class="sb-item" data-panel="notes"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M9 7h6M9 11h4"/></svg></span> Journal</button>
+    <button class="sb-item" data-panel="journal"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M9 7h6M9 11h4"/></svg></span> Journal</button>
+    <button class="sb-item" data-panel="notes"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M9 7h6M9 11h4"/></svg></span> Notes</button>
     <button class="sb-item" data-panel="terminology"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M10 2v8l3-2 3 2V2"/></svg></span> LMR Terminology</button>
     <button class="sb-item" data-panel="psychology"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 0 0-5.9.7A2.5 2.5 0 0 0 4 8.5 2.5 2.5 0 0 0 5.5 13 2.5 2.5 0 0 0 9 18a3 3 0 0 0 3 1 3 3 0 0 0 3-1 2.5 2.5 0 0 0 3.5-5A2.5 2.5 0 0 0 20 8.5a2.5 2.5 0 0 0-2.1-2.8A3 3 0 0 0 12 5Z"/><path d="M12 5v14"/></svg></span> LMR Psychology</button>
     <button class="sb-item" data-panel="observation"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span> LMR Observation</button>
@@ -3354,137 +3546,115 @@ Midnight Open $______"></textarea>
 </div>
 
 <!-- NOTES (renamed to JOURNAL) -->
-<div class="panel" id="p-notes">
-<div class="panel-inner">
-  <div class="card">
-    <div class="card-head">
-      <span class="card-tag t-w">📔 New Journal Entry</span>
-      <div class="card-title">Journal — Trade Psychology &amp; Notes</div>
-      <button class="btn btn-primary btn-sm" onclick="openNoteModal()">+ Entry <span class="sb-key" style="background:rgba(0,0,0,.2);color:var(--bg)">N</span></button>
+<div class="panel" id="p-journal"><div class="jn-wrap">
+  <div class="jn-comp">
+    <div class="jn-chead">
+      <span class="jn-eyebrow">New journal entry</span>
+      <span class="jn-sub" id="jDayHint"></span>
     </div>
-    <div class="card-body">
-      <div class="form-row"><label class="form-label">Type</label>
-        <select id="nm-jtype">
-          <option value="lesson">💡 Lesson</option>
-          <option value="bull">✅ Win / Plan Followed</option>
-          <option value="bear">❌ Loss / Mistake</option>
-          <option value="neutral">📝 Note</option>
-        </select>
+    <div class="jn-cbody">
+      <div class="jn-types" id="jTypes"></div>
+      <div class="jn-fields">
+        <span class="jn-lab">Date</span>
+        <input class="jn-in" type="date" id="jDate">
+        <span class="jn-lab">Title</span>
+        <input class="jn-in" type="text" id="jTitle" placeholder="One line — what this entry is about">
       </div>
-      <div class="form-row"><label class="form-label">Title</label><input id="nm-title" placeholder="Quick summary…"></div>
-      <div class="form-row"><label class="form-label">Linked Day</label><input id="nm-date" type="date"></div>
-      <div class="form-row"><label class="form-label">Content</label><textarea id="nm-text" rows="5" placeholder="Write your journal entry…"></textarea></div>
-      <div style="margin-top:8px">
-        <div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.09em;margin-bottom:6px">Attach Image</div>
-        <div class="img-zone" id="nm-img-zone" data-imgkey="note-img-placeholder" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or click to attach image</div></div>
+      <textarea class="jn-ta" id="jText" placeholder="What happened, what you did, and what you will do differently."></textarea>
+      <div class="jn-drop" id="jDrop">
+        <span class="jn-dph">Click, drop or paste the chart this entry is about<br>It saves with the entry and shows inside the card</span>
       </div>
-      <div style="margin-top:12px"><button class="btn btn-primary" onclick="saveNote()">+ Save Entry</button></div>
+    </div>
+    <div class="jn-cfoot">
+      <button class="jn-shot" id="jShot">Screenshot</button>
+      <button class="jn-save" id="jSave" disabled>Save entry</button>
     </div>
   </div>
-  <div class="card">
-    <div class="card-head"><span class="card-tag t-m">History</span><div class="card-title">All journal entries — newest first</div></div>
-    <div class="card-body" id="notesList"></div>
+
+  <div class="jn-feedhead">
+    <span class="jn-eyebrow">Entries</span>
+    <span class="jn-sub" id="jCount"></span>
+    <div class="jn-filters" id="jFilters"></div>
   </div>
-</div>
-</div>
+  <div class="jn-feed" id="jFeed"></div>
+</div></div>
 
-<!-- OBSERVATIONS (old Journal) -->
-<!-- Observations panel removed -->
+<!-- ==== 3. NOTES PANEL ==== -->
+<div class="panel" id="p-notes"><div class="jn-wrap">
+  <div class="jn-comp">
+    <div class="jn-chead">
+      <span class="jn-eyebrow">New note</span>
+      <span class="jn-sub" id="nDayHint"></span>
+    </div>
+    <div class="jn-cbody">
+      <div class="jn-fields">
+        <span class="jn-lab">Date</span>
+        <input class="jn-in" type="date" id="nDate">
+        <span class="jn-lab">Title</span>
+        <input class="jn-in" type="text" id="nTitle" placeholder="Short label">
+      </div>
+      <textarea class="jn-ta" id="nText" placeholder="Quick note — a level, a reminder, something to check tomorrow."></textarea>
+      <div class="jn-drop" id="nDrop">
+        <span class="jn-dph">Click, drop or paste a chart<br>Optional — the note saves either way</span>
+      </div>
+    </div>
+    <div class="jn-cfoot">
+      <button class="jn-shot" id="nShot">Screenshot</button>
+      <button class="jn-save" id="nSave" disabled>Save note</button>
+    </div>
+  </div>
 
-<!-- LMR TERMINOLOGY -->
-<style id="lmrb-css">
-.lmrb-editor{min-height:500px;padding-bottom:120px}
-.lmrb-row{position:relative;display:flex;align-items:flex-start;gap:4px;margin:1px 0;border-radius:6px}
-.lmrb-row:hover{background:rgba(255,255,255,.02)}
-.lmrb-gut{opacity:0;background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;line-height:1.7;padding:2px;flex-shrink:0;width:16px;text-align:center;transition:opacity .12s}
-.lmrb-row:hover .lmrb-gut{opacity:.55}
-.lmrb-gut:hover{opacity:1;color:var(--gold)}
-.lmrb-ce{flex:1;outline:none;color:var(--text);font-size:14px;line-height:1.75;min-height:1.6em;padding:1px 2px;word-break:break-word}
-.lmrb-ce:empty::before{content:attr(data-ph);color:var(--text3);opacity:.5;pointer-events:none}
-.lmrb-h1{font-size:25px;font-weight:800;color:var(--gold);line-height:1.3;margin-top:6px}
-.lmrb-h2{font-size:19px;font-weight:700;color:var(--text);line-height:1.3;margin-top:4px}
-.lmrb-h3{font-size:16px;font-weight:700;color:var(--blue)}
-.lmrb-h4{font-size:14px;font-weight:700;color:var(--text2)}
-.lmrb-quote{border-left:3px solid var(--gold);padding-left:12px!important;color:var(--text2);font-style:italic}
-.lmrb-callout{background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.2);border-radius:8px;padding:9px 12px!important}
-.lmrb-code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px!important;color:var(--text2);white-space:pre-wrap}
-.lmrb-todo.done{text-decoration:line-through;color:var(--text3)}
-.lmrb-mark{color:var(--text3);flex-shrink:0;min-width:16px;text-align:right;font-size:14px;line-height:1.75;user-select:none}
-.lmrb-cb{margin-top:6px;flex-shrink:0;accent-color:var(--gold);width:15px;height:15px;cursor:pointer}
-.lmrb-tog{background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;flex-shrink:0;padding:3px 2px 0;line-height:1.6}
-.lmrb-tog:hover{color:var(--gold)}
-.lmrb-hr{flex:1;height:0;border-top:1px solid var(--border2);margin:12px 0}
-.lmrb-img{flex:1}
-.lmrb-img img{max-width:100%;border-radius:10px;border:1px solid var(--border);display:block}
-.lmrb-imgbtn{background:var(--bg3);border:1px dashed var(--border2);border-radius:10px;color:var(--text3);padding:16px;width:100%;cursor:pointer;font-size:13px}
-.lmrb-imgbtn:hover{border-color:var(--gold);color:var(--gold)}
-.lmrb-cap{outline:none;color:var(--text3);font-size:11px;margin-top:4px;text-align:center}
-.lmrb-cap:empty::before{content:attr(data-ph);opacity:.5}
-.lmrb-menu{position:fixed;z-index:9000;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;box-shadow:0 12px 34px rgba(0,0,0,.5);padding:6px;width:222px;max-height:340px;overflow-y:auto}
-.lmrb-menu button{display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:var(--text);padding:7px 10px;border-radius:7px;cursor:pointer;font-size:13px;text-align:left}
-.lmrb-menu button:hover{background:var(--bg3)}
-.lmrb-mi{width:22px;text-align:center;color:var(--text3);font-size:12px;font-weight:700}
-.lmrb-toolbar{position:fixed;z-index:9100;display:none;align-items:center;gap:3px;background:var(--bg2);border:1px solid var(--border2);border-radius:9px;box-shadow:0 8px 24px rgba(0,0,0,.5);padding:5px 7px}
-.lmrb-toolbar button{width:24px;height:24px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);cursor:pointer;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;padding:0}
-.lmrb-toolbar button:hover{border-color:var(--gold)}
-.lmrb-tsep{width:1px;height:18px;background:var(--border2);margin:0 3px}
-.lmrb-th1{font-size:22px;font-weight:800;color:var(--gold)}
-.lmrb-th2{font-size:18px;font-weight:700;color:var(--text)}
-.lmrb-th3{font-size:15px;font-weight:700;color:var(--blue)}
-.lmrb-page{flex:1;display:flex;align-items:center;gap:8px}
-.lmrb-pico{flex-shrink:0;font-size:14px}
-.lmrb-pagece{flex:1;outline:none;color:var(--blue);font-size:14px;font-weight:600;border-bottom:1px solid var(--border2);padding:2px 0}
-.lmrb-pagece:empty::before{content:attr(data-ph);color:var(--text3);opacity:.5}
-.lmrb-tablewrap{flex:1;overflow-x:auto}
-.lmrb-table{border-collapse:collapse;width:100%}
-.lmrb-table td{border:1px solid var(--border2);padding:0;vertical-align:top;min-width:70px}
-.lmrb-tcell{outline:none;color:var(--text);font-size:13px;padding:6px 9px;min-height:1.4em}
-.lmrb-tctrl{display:flex;gap:6px;margin-top:5px}
-.lmrb-tctrl button{background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text3);font-size:10px;padding:3px 10px;cursor:pointer}
-.lmrb-tctrl button:hover{border-color:var(--gold);color:var(--gold)}
-.lmrb-bookmark{flex:1;display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px}
-.lmrb-bmico{flex-shrink:0}
-.lmrb-bmurl{flex:1;outline:none;color:var(--blue);font-size:13px;word-break:break-all}
-.lmrb-bmurl:empty::before{content:attr(data-ph);color:var(--text3);opacity:.5}
-.lmrb-bmopen{flex-shrink:0;color:var(--gold);text-decoration:none;font-weight:800}
-.lmrb-img video{max-width:100%;border-radius:10px;display:block}
-.lmrb-file{display:inline-block;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text2);padding:9px 14px;text-decoration:none;font-size:13px}
-.lmrb-file:hover{border-color:var(--gold);color:var(--gold)}
-.lmrb-img audio{width:100%;margin:4px 0}
-.lmrb-mrow{display:flex;gap:4px;padding:2px 2px 4px}
-.lmrb-mact{flex:1;justify-content:center!important;background:var(--bg3)!important;font-size:12px!important;padding:6px 8px!important}
-.lmrb-mact.del:hover{background:rgba(255,68,102,.15)!important;color:var(--bear)!important}
-.lmrb-msep{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:6px 10px 3px;border-top:1px solid var(--border);margin-top:2px}
-</style>
-<!-- KNOWLEDGE (LMR Terminology) — drop-in section from design/handoff/knowledge-section.html -->
+  <div class="jn-feedhead">
+    <span class="jn-eyebrow">Notes</span>
+    <span class="jn-sub" id="nCount"></span>
+  </div>
+  <div class="jn-feed" id="nFeed"></div>
+</div></div>
+
+<!-- ==== 4. LOGIC ==== -->
+
 <div class="panel" id="p-terminology">
   <div id="kbList"></div>
   <div id="kbDetail" class="kb-hide"></div>
 </div>
 
 <!-- LMR PSYCHOLOGY -->
-<div class="panel" id="p-psychology">
-<div class="panel-inner">
-  <!-- KPI strip -->
-  <div class="ks-row" style="border:1px solid var(--border2);border-radius:var(--r2);background:var(--bg2);margin-bottom:14px;grid-template-columns:repeat(4,1fr)">
-    <div class="ks-tile"><div class="ks-label">Clean sessions</div><div class="ks-val" id="psy-clean">0 / 0</div><div class="ks-sub" id="psy-clean-sub">Sessions with zero breaches · 0%</div></div>
-    <div class="ks-tile"><div class="ks-label">Avg on clean sessions</div><div class="ks-val" id="psy-avg">+$0</div><div class="ks-sub">Every rule held</div></div>
-    <div class="ks-tile"><div class="ks-label">Sessions with a breach</div><div class="ks-val" id="psy-breach">0</div><div class="ks-sub" id="psy-breach-sub">avg per session</div></div>
-    <div class="ks-tile"><div class="ks-label">Rules never breached</div><div class="ks-val" id="psy-neverbr">5 / 5</div><div class="ks-sub">Graded live off real trades</div></div>
+<div class="panel" id="p-psychology"><div class="p-wrap">
+
+  <div class="p-bar">
+    <span class="p-lab">Day</span>
+    <input class="p-in" type="date" id="pDate">
+    <button class="p-btn" id="pPrev">◀</button>
+    <button class="p-btn" id="pToday">Today</button>
+    <button class="p-btn" id="pNext">▶</button>
+    <button class="p-ai" id="pReview">AI review this day</button>
   </div>
-  <!-- AI feedback -->
-  <div class="m-card" style="margin-bottom:14px;border-color:var(--bear-border,var(--border2))">
-    <div class="m-sec-row"><span class="m-sec" style="color:var(--rose,var(--bear))">✦ AI Feedback Summary</span>
-      <button class="btn btn-bear btn-sm" style="margin-left:auto" onclick="runPsychologyReview()">Run AI review</button></div>
-    <div class="m-card-pad"><div id="psy-feedback" class="m-val" style="color:var(--text2)">Log trades to grade your process rules.</div></div>
+
+  <div class="p-score" id="pScore"></div>
+
+  <div>
+    <span class="p-eyebrow" style="display:block;margin-bottom:9px">Rules · earned from the day's trades</span>
+    <div class="p-rules" id="pRules"></div>
   </div>
-  <!-- Graded rules -->
-  <div class="m-card">
-    <div class="m-sec-row"><span class="m-sec">Process Rules — Graded</span></div>
-    <div id="psy-rules"></div>
+
+  <div>
+    <span class="p-eyebrow" style="display:block;margin-bottom:9px">Last 20 sessions</span>
+    <div class="p-streak" id="pStreak"></div>
   </div>
-</div>
-</div>
+
+  <div class="p-doc">
+    <div class="p-dhead"><span class="p-eyebrow">AI review</span>
+      <span class="p-sub" id="pAiMeta" style="margin-left:auto"></span></div>
+    <div class="p-dbody" id="pAiBody"></div>
+  </div>
+
+  <div>
+    <span class="p-eyebrow" style="display:block;margin-bottom:9px">Your own note</span>
+    <textarea class="p-note" id="pNote" placeholder="What the numbers do not show \u2014 how the day felt, and what you will change."></textarea>
+  </div>
+</div></div>
+
+<!-- ==== 3. LOGIC ==== -->
 
 <!-- PERFORMANCE -->
 <div class="panel" id="p-perf">
@@ -3684,47 +3854,58 @@ Midnight Open $______"></textarea>
 
 <!-- Settings moved to side panel -->
 <!-- ── LMR OBSERVATION (journal — newest first) ── -->
-<div class="panel" id="p-observation">
-<div style="height:100%;overflow-y:auto;padding:20px 24px 60px">
+<div class="panel" id="p-observation"><div class="o-wrap">
 
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
-    <div style="font-size:18px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:6px">
-      LMR Observation
-      <span style="display:inline-flex;width:15px;height:15px;border-radius:50%;border:1px solid var(--border3);color:var(--text3);font-size:10px;font-weight:700;align-items:center;justify-content:center;cursor:help;flex-shrink:0" title="A running journal of market observations — setups, confluences, pre/post-session notes. Each saved entry becomes a post below, newest first. Use the share icons to post an entry to Discord or X.">i</span>
+  <div class="o-comp">
+    <div class="o-chead">
+      <span class="o-eyebrow">New observation</span>
+      <span class="o-sub" id="oDayHint"></span>
+      <span class="o-count" id="oChars" style="margin-left:auto">0</span>
     </div>
-    <button class="btn btn-primary btn-sm" onclick="obsNewEntry()" style="margin-left:auto">+ New</button>
-  </div>
-
-  <!-- Current entry editor -->
-  <div class="card">
-    <div class="card-body">
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
-        <input id="obs-title-input" placeholder="Heading…" oninput="obsAutoSave()" style="flex:1;min-width:160px;background:none;border:none;font-size:18px;font-weight:800;color:var(--text);padding:4px 0;outline:none">
-        <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
-          <span class="canvas-status" id="observation-status" style="font-size:10px;color:var(--text3)">Auto-saves</span>
-          <span id="obs-share-btns"></span>
-          <button class="btn btn-sm" onclick="obsDeleteEntry()" style="color:var(--bear);border-color:rgba(255,64,96,.25)" title="Delete this observation">✗</button>
-          <button class="btn btn-primary btn-sm" onclick="obsSaveEntry()" style="display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save</button>
-        </div>
+    <div class="o-cbody">
+      <div class="o-chips" id="oKinds"></div>
+      <div class="o-row">
+        <span class="o-lab">Date</span>
+        <input class="o-in" type="date" id="oDate">
+        <span class="o-lab">Market</span>
+        <input class="o-in" type="text" id="oMarket" placeholder="NQ, ES, GC …">
+        <span class="o-lab">Headline</span>
+        <input class="o-in" type="text" id="oTitle" placeholder="What you are calling — one line">
       </div>
-      <div id="observation-content"
-           class="obs-img-grid"
-           contenteditable="true"
-           spellcheck="false"
-           data-placeholder="Write your market observations and paste chart images…&#10;&#10;2 images become 2 columns, 3 become 3, and so on."
-           style="min-height:120px;color:var(--text);font-size:14px;line-height:1.8;outline:none"
-           oninput="obsAutoSave()"
-           onpaste="obsHandlePaste(event)"
-      ></div>
-
-      <!-- Previous posts (newest first), embedded in the same card -->
-      <div id="obs-feed"></div>
+      <textarea class="o-ta" id="oText" placeholder="The read: where price is in the delivery, which array is in play, and what invalidates it."></textarea>
+      <div>
+        <span class="o-lab" style="display:block;margin-bottom:7px">Concepts</span>
+        <div class="o-chips" id="oTags"></div>
+      </div>
+      <div class="o-drop" id="oDrop">
+        <span class="o-dph">Click, drop or paste the chart<br>It posts with the observation and shows inside the card</span>
+      </div>
+    </div>
+    <div class="o-cfoot">
+      <button class="o-btn" id="oShot">Screenshot</button>
+      <button class="o-btn" id="oClear">Clear</button>
+      <button class="o-post" id="oPost" disabled>Post observation</button>
     </div>
   </div>
-</div>
-</div>
 
-<!-- ── ACHIEVEMENTS PANEL ──────────────────────────────── -->
+  <div class="o-hook">
+    <span class="o-dot" id="oHookDot"></span>
+    <span class="o-lab">Discord webhook</span>
+    <input class="o-in" type="text" id="oHook" placeholder="https://discord.com/api/webhooks/…">
+    <button class="o-btn" id="oHookSave">Save</button>
+    <button class="o-btn" id="oHookTest">Test</button>
+  </div>
+
+  <div class="o-feedhead">
+    <span class="o-eyebrow">Posted</span>
+    <span class="o-sub" id="oCount"></span>
+    <div class="o-filters" id="oFilters"></div>
+  </div>
+  <div class="o-feed" id="oFeed"></div>
+</div></div>
+
+<!-- ==== 3. LOGIC ==== -->
+
 <div class="panel" id="p-achievements">
 <div style="height:100%;overflow-y:auto;padding:20px 24px 60px">
 
@@ -6363,7 +6544,7 @@ function filterReports(type, tabEl){
 }
 
 // ============= NAVIGATION =============
-const panels=['dash','today','cal','perf','monthly','weekly','daily','trades','accounts','cockpit','trans','notes','terminology','psychology','observation','achievements','payout','ai-coach','reports'];
+const panels=['dash','today','cal','perf','monthly','weekly','daily','trades','accounts','cockpit','trans','journal','notes','terminology','psychology','observation','achievements','payout','ai-coach','reports'];
 const titles={
   dash:['Dashboard','Welcome back · Day '],
   today:['Today','Fill the chain · Day '],
@@ -6376,7 +6557,8 @@ const titles={
   accounts:['Accounts','Funded · Live · Eval'],
   cockpit:['Copier Cockpit','Lead → Follow · Multi-account trade copier'],
   trans:['Transactions','Deposits · Withdrawals · Payouts · Fees'],
-  notes:['Journal','Trade psychology · lessons · notes'],
+  journal:['Journal','Trade psychology · lessons · notes'],
+  notes:['Notes','Quick notes · ideas · reminders'],
   terminology:['LMR Terminology','ICT concepts · PD Arrays · Models'],
   psychology:['LMR Psychology','Mindset · Discipline · Trade psychology'],
   observation:['LMR Observation','Market notes · Setups · Confluences'],
@@ -6804,7 +6986,7 @@ function navTo(p){
     if(pShareEl) pShareEl.innerHTML=shareButtonsHTML('sharePerformance');
   }
   if(p==='trades') renderTradeTable();
-  if(p==='journal') renderJournalList();
+  if(p==='journal') setTimeout(()=>{ if(window.renderJournalSection)renderJournalSection(); },80);
   if(p==='monthly') loadMonthly();
   if(p==='weekly') loadWeekly();
   if(p==='daily'){
@@ -6817,12 +6999,12 @@ function navTo(p){
   if(p==='accounts'){renderAccountCards();renderAccSummary();renderPayoutTracker();}
   if(p==='cockpit') setTimeout(renderCopierCockpit,40);
   if(p==='trans'){renderTransTable();renderTransSummary();}
-  if(p==='notes') renderNotesList();
+  if(p==='notes') setTimeout(()=>{ if(window.renderNotesSection)renderNotesSection(); },80);
   if(p==='today') loadDaily();
   if(p==='settings') renderSettings();
   if(p==='terminology') setTimeout(()=>{ if(window.loadKnowledgeCloud)loadKnowledgeCloud(); else if(window.renderKnowledge)renderKnowledge(); },100);
-  if(p==='psychology')  setTimeout(()=>renderPsychology(),100);
-  if(p==='observation') setTimeout(loadObservations,100);
+  if(p==='psychology')  setTimeout(()=>{ if(window.loadPsychologyCloud)loadPsychologyCloud(); else if(window.renderPsychologySection)renderPsychologySection(); },100);
+  if(p==='observation') setTimeout(()=>{ if(window.loadObservationsCloud)loadObservationsCloud(); else if(window.renderObservationSection)renderObservationSection(); },100);
   if(p==='achievements') setTimeout(loadAchievements,100);
   if(p==='payout') setTimeout(renderPayoutModule,60);
   if(p==='ai-coach') { setTimeout(loadAndRenderAIHistory, 300); }
@@ -9902,72 +10084,7 @@ const LMR_SECTION_TABLES = {
   psychology:  'lmr_psychology'
 };
 
-// ── LMR Psychology — rule-based scoring graded live off real trades (design v2) ──
-const LMR_PSY_RULES=[
-  {id:'twoloss', title:'Stop after two losses', desc:'Hard stop — close the platform.',
-   grade:(day)=>{ let losses=0; for(const t of day){ if(losses>=2) return false; if((t.pnl||0)<0) losses++; } return true; }},
-  {id:'risk', title:'Risk never exceeds the default', desc:'Size stays constant regardless of conviction.',
-   grade:(day,ctx)=>{ if(!ctx.defRisk) return true; return day.every(t=>!(t.risk>0) || t.risk<=ctx.defRisk+0.01); }},
-  {id:'onemodel', title:'One setup, one model, per session', desc:'No switching models mid-session.',
-   grade:(day)=>{ const models=new Set(day.map(t=>(t.models&&t.models[0])||'').filter(Boolean)); return models.size<=1; }},
-  {id:'first5', title:'No trades in the first 5 minutes', desc:'Let the open resolve (09:30–09:35 ET).',
-   grade:(day)=>day.every(t=>{ const m=_psyMin(t.openTime); return m===null || m<570 || m>574; })},
-  {id:'noreentry', title:'No re-entry after a loss inside 15 minutes', desc:'A re-entry is not a new setup.',
-   grade:(day)=>{ for(let i=0;i<day.length;i++){ if((day[i].pnl||0)<0){ const lt=_psyMin(day[i].closeTime||day[i].openTime); if(lt===null) continue; for(let j=i+1;j<day.length;j++){ const nt=_psyMin(day[j].openTime); if(nt!==null && nt-lt>=0 && nt-lt<15) return false; } } } return true; }}
-];
-function _psyMin(hhmm){ if(!hhmm||typeof hhmm!=='string'||hhmm.indexOf(':')<0) return null; const [h,m]=hhmm.split(':').map(Number); if(isNaN(h)||isNaN(m)) return null; return h*60+m; }
-function renderPsychology(){
-  const _mids=(typeof _mirrorTradeIds==='function')?_mirrorTradeIds().ids:new Set();
-  const own=state.trades.filter(t=>!_mids.has(t.id));
-  // group into sessions by date, sort each by open time
-  const byDay={}; own.forEach(t=>{ const d=(t.date||'').slice(0,10); if(!d) return; (byDay[d]=byDay[d]||[]).push(t); });
-  const days=Object.keys(byDay).sort();
-  days.forEach(d=>byDay[d].sort((a,b)=>(_psyMin(a.openTime)??9999)-(_psyMin(b.openTime)??9999)||(a.id||0)-(b.id||0)));
-  // default risk = most common risk value among risk>0 trades
-  const riskCounts={}; own.forEach(t=>{ if(t.risk>0){ const k=Math.round(t.risk); riskCounts[k]=(riskCounts[k]||0)+1; } });
-  const defRisk=Object.keys(riskCounts).sort((a,b)=>riskCounts[b]-riskCounts[a]).map(Number)[0]||0;
-  const ctx={defRisk};
-  // per-rule breach counts + per-session breach tally
-  const ruleBreaches={}; LMR_PSY_RULES.forEach(r=>ruleBreaches[r.id]=0);
-  let cleanSessions=0, cleanPnl=0, sessionsWithBreach=0, totalBreaches=0;
-  days.forEach(d=>{ const day=byDay[d]; let breaches=0;
-    LMR_PSY_RULES.forEach(r=>{ const held=r.grade(day,ctx); if(!held){ ruleBreaches[r.id]++; breaches++; } });
-    const pnl=day.reduce((s,t)=>s+(t.pnl||0),0);
-    if(breaches===0){ cleanSessions++; cleanPnl+=pnl; } else { sessionsWithBreach++; totalBreaches+=breaches; }
-  });
-  const nSessions=days.length;
-  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
-  set('psy-clean',cleanSessions+' / '+nSessions);
-  set('psy-clean-sub','Sessions with zero breaches · '+(nSessions?Math.round(cleanSessions/nSessions*100):0)+'%');
-  const avgClean=cleanSessions?cleanPnl/cleanSessions:0;
-  set('psy-avg',(avgClean>=0?'+':'-')+'$'+Math.abs(avgClean).toFixed(0));
-  set('psy-breach',sessionsWithBreach);
-  set('psy-breach-sub',(sessionsWithBreach?(totalBreaches/sessionsWithBreach).toFixed(1):'0')+' rules avg per session');
-  const neverBr=LMR_PSY_RULES.filter(r=>ruleBreaches[r.id]===0).length;
-  set('psy-neverbr',neverBr+' / '+LMR_PSY_RULES.length);
-  // rule rows
-  const box=document.getElementById('psy-rules');
-  if(box) box.innerHTML=LMR_PSY_RULES.map(r=>{
-    const br=ruleBreaches[r.id]; const held=nSessions-br;
-    const pct=nSessions?Math.round(br/nSessions*100):0;
-    const ok=br===0;
-    return `<div class="kb-term" style="cursor:default;align-items:flex-start;flex-direction:column;gap:4px">
-      <div style="display:flex;align-items:center;gap:10px;width:100%">
-        <span class="kb-term-name">${r.title}</span>
-        <span class="m-badge-flag ${ok?'ok':''}" style="margin-left:auto">${ok?'HELD':br+' BREACH'+(br===1?'':'ES')}</span>
-        <span class="ks-sub" style="min-width:38px;text-align:right">${pct}%</span>
-      </div>
-      <div class="kb-term-short">${r.desc} — ${nSessions?(ok?'Clean across all '+nSessions+' session'+(nSessions===1?'':'s'):held+' of '+nSessions+' sessions held'):'No sessions yet'}.</div>
-    </div>`;
-  }).join('');
-  // feedback
-  const fb=document.getElementById('psy-feedback');
-  if(fb){ if(!nSessions){ fb.textContent='Log trades to grade your process rules.'; }
-    else if(sessionsWithBreach===0){ fb.textContent='Every process rule held across all '+nSessions+' session'+(nSessions===1?'':'s')+'. Nothing to correct — keep the sizing and stop-out discipline exactly where it is.'; }
-    else { const worst=LMR_PSY_RULES.slice().sort((a,b)=>ruleBreaches[b.id]-ruleBreaches[a.id])[0]; fb.textContent=`${sessionsWithBreach} of ${nSessions} sessions had a breach. Most broken rule: “${worst.title}” (${ruleBreaches[worst.id]}×). Fix that one first — it is the cheapest edge you are leaving on the table.`; }
-  }
-}
-function runPsychologyReview(){ renderPsychology(); try{ flash('✓ Psychology re-graded from your latest trades'); }catch(e){} }
+// (LMR Psychology now provided by the design drop-in section — see #lmr-psy-js)
 const _lmrSaveTimers = {};
 const _lmrEditors = {}; // kept for compat
 
@@ -16243,6 +16360,1116 @@ window.loadKnowledgeCloud = async function(){
   try{ show(); }catch(e){}
 };
 show();
+})();
+</script>
+
+<script id="lmr-psy-js">
+(function(){
+'use strict';
+
+// ── PERSISTENCE ────────────────────────────────────────────────
+var PSY_PERSIST = {
+  read: function(){
+    if (typeof state === 'object' && state) return state;
+    try { return JSON.parse(localStorage.getItem('lmr_psy') || '{}'); }
+    catch(e){ return {}; }
+  },
+  write: function(rec){
+    if (typeof save === 'function') save();
+    else { try { localStorage.setItem('lmr_psy', JSON.stringify({psychology:S.psychology})); } catch(e){} }
+    try {
+      if (typeof _sb !== 'undefined' && _sb && typeof _sbUserId !== 'undefined' && _sbUserId) {
+        _sb.from('lmr_psychology').upsert({ user_id:_sbUserId, data:{ psychology:S.psychology } }, { onConflict:'user_id' });
+      }
+    } catch(e){}
+  }
+};
+
+var S = PSY_PERSIST.read();
+S.psychology = S.psychology || {};
+S.trades = S.trades || [];
+
+var day = new Date().toISOString().slice(0,10);
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function fmtDate(iso){
+  var d=new Date(iso+'T00:00:00');
+  return isNaN(d) ? iso : d.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+}
+function money(n){
+  if (typeof fmtMoney==='function'){ try { return fmtMoney(n); } catch(e){} }
+  return (n<0?'-$':'+$')+Math.abs(Math.round(n)).toLocaleString('en-US');
+}
+function dayCount(iso){
+  if (typeof dayCountFor==='function'){ try { return dayCountFor(iso); } catch(e){} }
+  return null;
+}
+function tradesFor(iso){
+  return (S.trades||[]).filter(function(t){ return t.date===iso; });
+}
+function dailyFor(iso){
+  return (S.daily && S.daily[iso]) || (S.chain && S.chain.date===iso ? S.chain : null) || null;
+}
+function riskDefault(){
+  var p=S.profile||S.settings||{};
+  return Number(p.risk_default || p.riskDefault || 0) || null;
+}
+function minutes(hhmm){
+  if(!hhmm || hhmm.indexOf(':')<0) return null;
+  var a=hhmm.split(':');
+  return (parseInt(a[0],10)||0)*60 + (parseInt(a[1],10)||0);
+}
+
+// ── THE RULES ─────────────────────────────────────────────────
+// Each detector returns 'met' | 'miss' | 'na', plus the evidence line
+// that justifies the mark. 'na' means the day gave no chance to break
+// it — those are excluded from the score rather than counted as wins.
+var RULES = [
+  { id:'one-model', title:'One setup, one model, per session',
+    why:'Switching models mid-session means the thesis changed after the entry, not before it.',
+    test:function(ts){
+      if(!ts.length) return ['na','No trades'];
+      var bySess={};
+      ts.forEach(function(t){
+        var k=t.session||'—';
+        bySess[k]=bySess[k]||{};
+        (t.models||[]).forEach(function(m){ bySess[k][m]=1; });
+      });
+      var worst=0, where='';
+      Object.keys(bySess).forEach(function(k){
+        var n=Object.keys(bySess[k]).length;
+        if(n>worst){ worst=n; where=k; }
+      });
+      return worst>1 ? ['miss', worst+' models in '+where] : ['met','1 model per session'];
+    } },
+
+  { id:'two-loss-stop', title:'Stop after two losses',
+    why:'The third trade after two losses is the one that turns a bad day into a breach.',
+    test:function(ts){
+      var losses=0, after=0;
+      ts.slice().sort(function(a,b){ return String(a.openTime||'').localeCompare(String(b.openTime||'')); })
+        .forEach(function(t){
+          if (losses>=2) after++;
+          if ((Number(t.pnl)||0) < 0) losses++;
+        });
+      if (losses<2) return ['na', losses+' losses'];
+      return after ? ['miss', after+' trade'+(after>1?'s':'')+' after the 2nd loss'] : ['met','Stopped at 2'];
+    } },
+
+  { id:'risk-cap', title:'Risk never exceeds the default',
+    why:'Conviction is not a reason to size up. The default is the whole point of having one.',
+    test:function(ts){
+      var cap=riskDefault();
+      if(!cap) return ['na','No default set'];
+      var over=ts.filter(function(t){ return Number(t.risk)>cap; });
+      return over.length ? ['miss', over.length+' over '+money(cap)] : ['met','All within '+money(cap)];
+    } },
+
+  { id:'no-open-5', title:'No trades in the first 5 minutes',
+    why:'9:30 to 9:35 is the Judas move. Let the open resolve before committing.',
+    test:function(ts){
+      var timed=ts.filter(function(t){ return minutes(t.openTime)!=null; });
+      if(!timed.length) return ['na','No entry times'];
+      var early=timed.filter(function(t){ var m=minutes(t.openTime); return m>=570 && m<575; });
+      return early.length ? ['miss', early.length+' inside 9:30\u20139:35'] : ['met','Waited out the open'];
+    } },
+
+  { id:'on-array', title:'Traded the committed P/D array',
+    why:'The array you committed to in the chain is the day\u2019s thesis. Off-array trades are a different day\u2019s idea.',
+    test:function(ts, rec, d){
+      var arr = d && (d.pdArray || d.pd_array);
+      if(!arr) return ['na','No array committed'];
+      if(!ts.length) return ['na','No trades'];
+      var off=ts.filter(function(t){ return t.pdArray && t.pdArray!==arr; });
+      return off.length ? ['miss', off.length+' off-array'] : ['met','All on '+arr];
+    } },
+
+  { id:'macro', title:'Entered inside a macro window',
+    why:'Price reacts at a specific time. An entry outside a named window is an entry without the clock.',
+    test:function(ts){
+      if(!ts.length) return ['na','No trades'];
+      var none=ts.filter(function(t){ return !t.timePeriod; });
+      return none.length ? ['miss', none.length+' with no macro'] : ['met','All inside a window'];
+    } },
+
+  { id:'size-flat', title:'Size stayed constant',
+    why:'A size change mid-day is the clearest tell that the process gave way to feeling.',
+    test:function(ts){
+      if(ts.length<2) return ['na','Fewer than 2 trades'];
+      var sizes={}; ts.forEach(function(t){ sizes[t.size||1]=1; });
+      var n=Object.keys(sizes).length;
+      return n>1 ? ['miss', n+' different sizes'] : ['met','Flat at '+Object.keys(sizes)[0]];
+    } },
+
+  { id:'no-revenge', title:'No revenge trade',
+    why:'Re-entering bigger straight after a loss is the single most expensive habit in the log.',
+    test:function(ts){
+      var ord=ts.slice().sort(function(a,b){ return String(a.openTime||'').localeCompare(String(b.openTime||'')); });
+      for(var i=1;i<ord.length;i++){
+        var prev=ord[i-1], cur=ord[i];
+        if ((Number(prev.pnl)||0) >= 0) continue;
+        var gap = (minutes(cur.openTime)!=null && minutes(prev.closeTime)!=null)
+          ? minutes(cur.openTime)-minutes(prev.closeTime) : null;
+        if ((Number(cur.size)||1) > (Number(prev.size)||1) && (gap==null || gap<=15))
+          return ['miss','Size up '+(gap!=null?gap+'m ':'')+'after a loss'];
+      }
+      return ts.length<2 ? ['na','Fewer than 2 trades'] : ['met','No size-up after a loss'];
+    } },
+
+  { id:'emotion-logged', title:'Emotion logged on every trade',
+    why:'An unlogged emotion is the one you did not want to write down.',
+    test:function(ts){
+      if(!ts.length) return ['na','No trades'];
+      var blank=ts.filter(function(t){ return !(t.emotions||[]).length; });
+      return blank.length ? ['miss', blank.length+' unlogged'] : ['met','All '+ts.length+' logged'];
+    } },
+
+  { id:'plan-held', title:'Plan followed',
+    why:'Graded from the chain\u2019s own end-of-day review, not from the P&L.',
+    test:function(ts, rec, d){
+      if(!d || !d.plan) return ['na','No chain review'];
+      return d.plan==='Followed' ? ['met','Chain says followed'] : ['miss','Chain says unfollowed'];
+    } },
+
+  { id:'rr', title:'R:R of 2 or better',
+    why:'A sub-2R winner still loses money over a normal losing streak.',
+    test:function(ts){
+      var withR=ts.filter(function(t){ return t.rr!=null && t.risk; });
+      if(!withR.length) return ['na','No R values'];
+      var thin=withR.filter(function(t){ return Number(t.rr)<2 && Number(t.pnl)>0; });
+      return thin.length ? ['miss', thin.length+' under 2R'] : ['met','All 2R or better'];
+    } },
+
+  { id:'journaled', title:'Journaled before the close',
+    why:'Same-day narrative or it never gets written honestly.',
+    test:function(ts, rec, d, iso){
+      var j=(S.journal||[]).filter(function(e){ return e.date===iso; }).length;
+      var notes=(S.notes||[]).filter(function(e){ return e.date===iso; }).length;
+      var review=d && (d.reviewNotes||d.review_notes);
+      return (j||notes||review) ? ['met', j?j+' entry'+(j>1?'ies':''):'Chain review written']
+                                : ['miss','Nothing written'];
+    } }
+];
+
+function grade(iso){
+  var ts=tradesFor(iso), d=dailyFor(iso), rec=S.psychology[iso]||{};
+  var marks=RULES.map(function(r){
+    var out=r.test(ts, rec, d, iso);
+    return { id:r.id, title:r.title, why:r.why, mark:out[0], evidence:out[1] };
+  });
+  var scored=marks.filter(function(m){ return m.mark!=='na'; });
+  var met=scored.filter(function(m){ return m.mark==='met'; });
+  var score = scored.length ? Math.round((met.length/scored.length)*100) : null;
+  var pnl=ts.reduce(function(s,t){ return s+(Number(t.pnl)||0); },0);
+  return { marks:marks, scored:scored, met:met, score:score, trades:ts, pnl:pnl, daily:d };
+}
+
+function band(score){
+  if (score==null)  return ['No data','var(--p-dim)'];
+  if (score>=90)    return ['Disciplined','var(--p-green)'];
+  if (score>=75)    return ['Solid','var(--p-blue)'];
+  if (score>=60)    return ['Slipping','var(--p-gold)'];
+  return ['Breached','var(--p-rose)'];
+}
+
+// ── RENDER ────────────────────────────────────────────────────
+function renderScore(g){
+  var b=band(g.score), pct=g.score==null?0:g.score;
+  var C=2*Math.PI*52;
+  var dc=dayCount(day);
+  var verdict = g.score==null
+    ? 'No trades logged for ' + fmtDate(day) + '. The score is earned from trades \u2014 there is nothing to grade yet.'
+    : g.met.length + ' of ' + g.scored.length + ' applicable rules held. '
+      + (g.score>=90 ? 'This is what the process looks like when it is working \u2014 repeat it rather than improve it.'
+        : g.score>=75 ? 'Sound day with a gap or two. The misses below are the whole list; fix the cheapest one first.'
+        : g.score>=60 ? 'The process bent. Read the misses as a set \u2014 they usually share one cause.'
+        : 'The process broke. The P&L is not the problem here; the rules are.');
+  document.getElementById('pScore').innerHTML =
+    '<div class="p-ring"><svg width="120" height="120" viewBox="0 0 120 120">'
+      + '<circle cx="60" cy="60" r="52" fill="none" stroke="var(--p-line)" stroke-width="9"></circle>'
+      + '<circle cx="60" cy="60" r="52" fill="none" stroke="'+b[1]+'" stroke-width="9" stroke-linecap="round"'
+      + ' stroke-dasharray="'+C+'" stroke-dashoffset="'+(C*(1-pct/100))+'"></circle></svg>'
+      + '<div class="p-ringv"><span class="p-rn" style="color:'+b[1]+'">'+(g.score==null?'—':g.score)+'</span>'
+      + '<span class="p-rl">Score</span></div></div>'
+    + '<div class="p-sright">'
+      + '<span class="p-band" style="background:'+b[1]+'22;color:'+b[1]+'">'+b[0]+'</span>'
+      + '<p class="p-verdict" style="margin:0">'+esc(verdict)+'</p>'
+      + '<div class="p-evid">'
+        + '<span class="p-ev"><span class="p-evv">'+fmtDate(day).split(',')[0]+'</span><span class="p-evk">'+(dc!=null?'Day D'+dc:'Session')+'</span></span>'
+        + '<span class="p-ev"><span class="p-evv">'+g.trades.length+'</span><span class="p-evk">Trades</span></span>'
+        + '<span class="p-ev"><span class="p-evv" style="color:'+(g.pnl>=0?'var(--p-green)':'var(--p-rose)')+'">'+money(g.pnl)+'</span><span class="p-evk">Day P&L</span></span>'
+        + '<span class="p-ev"><span class="p-evv">'+g.marks.filter(function(m){return m.mark==='miss';}).length+'</span><span class="p-evk">Breaches</span></span>'
+      + '</div>'
+    + '</div>';
+}
+
+function renderRules(g){
+  document.getElementById('pRules').innerHTML = g.marks.map(function(m){
+    var cls = m.mark==='met' ? 'is-met' : m.mark==='miss' ? 'is-miss' : 'is-na';
+    var sym = m.mark==='met' ? '\u2713' : m.mark==='miss' ? '\u2715' : '\u2013';
+    return '<div class="p-rule">'
+      + '<span class="p-mark '+cls+'">'+sym+'</span>'
+      + '<span class="p-rtext"><span class="p-rt">'+esc(m.title)+'</span>'
+        + '<span class="p-rw">'+esc(m.why)+'</span></span>'
+      + '<span class="p-rs">'+esc(m.evidence)+'</span>'
+    + '</div>';
+  }).join('');
+}
+
+function renderStreak(){
+  var days=Object.keys(S.psychology).concat(
+    (S.trades||[]).map(function(t){ return t.date; })
+  ).filter(function(v,i,a){ return v && a.indexOf(v)===i; }).sort().slice(-20);
+  document.getElementById('pStreak').innerHTML = days.length
+    ? days.map(function(iso){
+        var g=grade(iso), b=band(g.score);
+        return '<span class="p-day" data-goto="'+iso+'" title="'+iso+' \u00b7 '+(g.score==null?'—':g.score)+'"'
+          + ' style="cursor:pointer;background:'+b[1]+'22;color:'+b[1]+';border-color:'+b[1]+'44">'
+          + (g.score==null?'—':g.score)+'</span>';
+      }).join('')
+    : '<span class="p-sub">No graded sessions yet.</span>';
+}
+
+function renderAi(){
+  var rec=S.psychology[day]||{};
+  document.getElementById('pAiBody').innerHTML = rec.ai_summary
+    ? esc(rec.ai_summary)
+    : '<span class="p-sub">No review yet. The checkmarks above are already computed from your trades \u2014 run the review and the AI will explain them.</span>';
+  document.getElementById('pAiMeta').textContent = rec.ai_at
+    ? 'Reviewed ' + new Date(rec.ai_at).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})
+    : '';
+  document.getElementById('pNote').value = rec.note || '';
+}
+
+function render(){
+  document.getElementById('pDate').value = day;
+  var g = grade(day);
+  renderScore(g); renderRules(g); renderStreak(); renderAi();
+  // Persist the derived grade so the dashboard and reports can read it
+  // without recomputing.
+  var rec = S.psychology[day] || {};
+  rec.date = day;
+  rec.day_count = dayCount(day);
+  rec.score = g.score;
+  rec.rules_met  = g.marks.filter(function(m){return m.mark==='met';}).map(function(m){return m.title;});
+  rec.rules_miss = g.marks.filter(function(m){return m.mark==='miss';}).map(function(m){return m.title;});
+  rec.emotions = g.trades.reduce(function(a,t){ return a.concat(t.emotions||[]); }, [])
+                   .filter(function(v,i,arr){ return arr.indexOf(v)===i; });
+  S.psychology[day] = rec;
+  PSY_PERSIST.write(rec);
+}
+
+// ── AI REVIEW ─────────────────────────────────────────────────
+// The marks are already decided. The model's job is to explain them and
+// name the one change worth making — never to re-score the day.
+function buildPrompt(g){
+  var lines=[];
+  lines.push('You are reviewing one trading day for an ICT/LMR futures trader.');
+  lines.push('The discipline score is ALREADY COMPUTED from the trade data. Do not change it, re-grade it, or invent rules.');
+  lines.push('');
+  lines.push('Date: '+day+(dayCount(day)!=null?' (Day D'+dayCount(day)+')':''));
+  lines.push('Score: '+(g.score==null?'n/a':g.score+'/100')+' \u2014 '+band(g.score)[0]);
+  lines.push('Trades: '+g.trades.length+' \u00b7 Day P&L: '+money(g.pnl));
+  if (g.daily && (g.daily.pdArray||g.daily.pd_array)) lines.push('Committed P/D array: '+(g.daily.pdArray||g.daily.pd_array));
+  if (g.daily && g.daily.bias) lines.push('Daily bias: '+g.daily.bias);
+  lines.push('');
+  lines.push('RULES HELD:');
+  g.marks.filter(function(m){return m.mark==='met';}).forEach(function(m){ lines.push('  \u2713 '+m.title+' ('+m.evidence+')'); });
+  lines.push('RULES BROKEN:');
+  var miss=g.marks.filter(function(m){return m.mark==='miss';});
+  if(!miss.length) lines.push('  none');
+  miss.forEach(function(m){ lines.push('  \u2715 '+m.title+' ('+m.evidence+')'); });
+  lines.push('');
+  lines.push('TRADES:');
+  g.trades.forEach(function(t,i){
+    lines.push('  '+(i+1)+'. '+(t.market||'?')+' '+(t.position||'')
+      +' \u00b7 '+(t.openTime||'?')+'\u2013'+(t.closeTime||'?')
+      +' \u00b7 '+(t.session||'?')+' / '+(t.timePeriod||'no macro')
+      +' \u00b7 '+((t.models||[]).join('+')||'no model')
+      +' \u00b7 '+money(Number(t.pnl)||0)
+      +' \u00b7 R '+(t.rr==null?'\u2014':t.rr)
+      +' \u00b7 size '+(t.size||1)
+      +' \u00b7 '+((t.emotions||[]).join('/')||'no emotion logged'));
+  });
+  lines.push('');
+  lines.push('Write 3 short paragraphs, plain prose, no headings, no bullet lists, no markdown:');
+  lines.push('1. What the execution actually shows \u2014 cite specific trades and times.');
+  lines.push('2. Why the broken rules broke, treating them as one pattern if they share a cause.');
+  lines.push('3. The single change for the next session, stated as a rule that can be checked.');
+  lines.push('Be direct. Do not praise a losing process or scold a sound one because the P&L disagreed.');
+  return lines.join('\n');
+}
+
+function localReview(g){
+  var miss=g.marks.filter(function(m){return m.mark==='miss';});
+  var out=[];
+  out.push(g.trades.length
+    ? 'The day ran '+g.trades.length+' trade'+(g.trades.length>1?'s':'')+' for '+money(g.pnl)
+      +', and '+g.met.length+' of '+g.scored.length+' applicable rules held.'
+    : 'No trades were logged, so there is no execution to read.');
+  if (miss.length) {
+    out.push('Broken: '+miss.map(function(m){ return m.title.toLowerCase()+' ('+m.evidence+')'; }).join('; ')
+      +'. Read these together rather than one at a time \u2014 in this log they usually trace back to a single decision early in the session.');
+    out.push('Next session, the one change worth making is to hold '+miss[0].title.toLowerCase()
+      +'. Make it checkable before the open, not after the close.');
+  } else if (g.trades.length) {
+    out.push('Nothing was broken. That is the version of the process worth repeating verbatim, independent of where the P&L landed.');
+  }
+  return out.join('\n\n');
+}
+
+function review(){
+  var g=grade(day);
+  if(!g.trades.length){
+    if (typeof flash==='function') flash('No trades on this day to review.');
+    return;
+  }
+  var btn=document.getElementById('pReview');
+  btn.disabled=true; btn.textContent='Reviewing\u2026';
+  var finish=function(text){
+    var rec=S.psychology[day]||{date:day};
+    rec.ai_summary=text; rec.ai_at=new Date().toISOString();
+    S.psychology[day]=rec; PSY_PERSIST.write(rec);
+    renderAi();
+    btn.disabled=false; btn.textContent='AI review this day';
+  };
+  if (window.claude && typeof window.claude.complete === 'function') {
+    window.claude.complete(buildPrompt(g))
+      .then(function(t){ finish((t||'').trim() || localReview(g)); })
+      .catch(function(){ finish(localReview(g)); });
+  } else {
+    // No model available in this context — the deterministic read still
+    // explains the marks rather than leaving the panel empty.
+    setTimeout(function(){ finish(localReview(g)); }, 260);
+  }
+}
+
+// ── EVENTS ────────────────────────────────────────────────────
+function shift(n){
+  var d=new Date(day+'T00:00:00');
+  d.setDate(d.getDate()+n);
+  day=d.toISOString().slice(0,10);
+  render();
+}
+
+document.addEventListener('click', function(e){
+  var el=e.target.closest('#pPrev,#pNext,#pToday,#pReview,[data-goto]');
+  if(!el) return;
+  if (el.id==='pPrev'){ shift(-1); return; }
+  if (el.id==='pNext'){ shift(1); return; }
+  if (el.id==='pToday'){ day=new Date().toISOString().slice(0,10); render(); return; }
+  if (el.id==='pReview'){ review(); return; }
+  if (el.dataset.goto){ day=el.dataset.goto; render(); }
+});
+
+document.addEventListener('change', function(e){
+  if (e.target.id==='pDate'){ day=e.target.value || day; render(); }
+});
+
+document.addEventListener('input', function(e){
+  if (e.target.id!=='pNote') return;
+  var rec=S.psychology[day]||{date:day};
+  rec.note=e.target.value;
+  S.psychology[day]=rec;
+  clearTimeout(window._psyT);
+  window._psyT=setTimeout(function(){ PSY_PERSIST.write(rec); }, 600);
+});
+
+window.renderPsychologySection = render;
+window.loadPsychologyCloud = async function(){
+  try{
+    if (typeof _sb !== 'undefined' && _sb && typeof _sbUserId !== 'undefined' && _sbUserId){
+      var row = await _sb.from('lmr_psychology').select('data').eq('user_id',_sbUserId).single();
+      var d = row && row.data && row.data.data;
+      if (d && d.psychology){ state.psychology = d.psychology; S = state; }
+    }
+  }catch(e){}
+  try{ render(); }catch(e){}
+};   // call from the panel switcher
+render();
+})();
+</script>
+
+<script id="lmr-obs-js">
+(function(){
+'use strict';
+
+// Observation kinds. Colour is the card's left border and its tag.
+var KINDS = [
+  ['Setup',      'var(--o-gold)'],
+  ['Invalidated','var(--o-rose)'],
+  ['Playbook',   'var(--o-blue)'],
+  ['Review',     'var(--o-green)']
+];
+
+// LMR concept vocabulary — the tags a post can carry.
+var TAGS = ['Accumulation','Manipulation','Distribution','Judas Swing','OTE','FVG','BISI','SIBI',
+            'Order Block','Breaker','NWOG','NDOG','Liquidity Void','Equal Highs','Equal Lows',
+            'Turtle Soup','SMT','Silver Bullet','Macro','PD Array','Draw on Liquidity'];
+
+// ── PERSISTENCE ────────────────────────────────────────────────
+var OBS_PERSIST = {
+  read: function(){
+    if (typeof state === 'object' && state) return state;
+    try { return JSON.parse(localStorage.getItem('lmr_obs') || '{}'); }
+    catch(e){ return {}; }
+  },
+  write: function(rec){
+    if (typeof save === 'function') save();
+    else { try { localStorage.setItem('lmr_obs', JSON.stringify({observations:S.observations})); } catch(e){} }
+    try {
+      if (typeof _sb !== 'undefined' && _sb && typeof _sbUserId !== 'undefined' && _sbUserId) {
+        _sb.from('lmr_observations').upsert({ user_id:_sbUserId, data:{ observations:S.observations } }, { onConflict:'user_id' });
+      }
+    } catch(e){}
+  },
+  del: function(id){ if (typeof sbDeleteRecord==='function'){ try{ sbDeleteRecord('observations', id); }catch(e){} } },
+  // NEVER localStorage for images — base64 there throws QuotaExceededError.
+  saveImg: function(k,b){ return (typeof saveImg==='function') ? saveImg(k,b) : Promise.resolve(_mem[k]=b); },
+  getImg:  function(k){   return (typeof getImg ==='function') ? getImg(k)    : Promise.resolve(_mem[k]); }
+};
+var _mem = {};
+var HOOK_LS = 'lmr_discord_hook';
+
+var S = OBS_PERSIST.read();
+S.observations = S.observations || [];
+
+var draft = { kind:'Setup', img:null, tags:[] };
+var oFilter = 'All';
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function today(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(iso){
+  if(!iso) return '';
+  var d=new Date(iso+'T00:00:00');
+  return isNaN(d) ? iso : d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+function colourFor(k){
+  for(var i=0;i<KINDS.length;i++) if(KINDS[i][0]===k) return KINDS[i][1];
+  return 'var(--o-line)';
+}
+function dayCount(iso){
+  if (typeof dayCountFor === 'function'){ try { return dayCountFor(iso); } catch(e){} }
+  return null;
+}
+
+// ── CHIPS ─────────────────────────────────────────────────────
+function renderKinds(){
+  document.getElementById('oKinds').innerHTML = KINDS.map(function(k){
+    var on = draft.kind===k[0];
+    return '<button class="o-chip" data-kind="'+k[0]+'" aria-pressed="'+on+'"'
+         + (on ? ' style="background:'+k[1]+'"' : '') + '>'+k[0]+'</button>';
+  }).join('');
+}
+function renderTags(){
+  document.getElementById('oTags').innerHTML = TAGS.map(function(t){
+    var on = draft.tags.indexOf(t)>-1;
+    return '<button class="o-tagchip" data-tag="'+esc(t)+'" aria-pressed="'+on+'">'+esc(t)+'</button>';
+  }).join('');
+}
+function renderFilters(){
+  var opts = ['All'].concat(KINDS.map(function(k){return k[0];}));
+  document.getElementById('oFilters').innerHTML = opts.map(function(o){
+    return '<button class="o-tagchip" data-filter="'+o+'" aria-pressed="'+(oFilter===o)+'">'+o+'</button>';
+  }).join('');
+}
+
+// ── DROP ZONE ─────────────────────────────────────────────────
+function paintDrop(){
+  var box=document.getElementById('oDrop');
+  box.innerHTML = draft.img
+    ? '<img src="'+draft.img+'" alt=""><button class="o-x" data-clearimg="1" title="Remove image">\u00d7</button>'
+    : '<span class="o-dph">Click, drop or paste the chart<br>It posts with the observation and shows inside the card</span>';
+}
+function pickFile(){
+  var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+  inp.onchange=function(){
+    var f=inp.files[0]; if(!f) return;
+    var r=new FileReader(); r.onload=function(){ draft.img=r.result; paintDrop(); };
+    r.readAsDataURL(f);
+  };
+  inp.click();
+}
+function screenshot(){
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){
+    alert('Screen capture is not available in this browser \u2014 paste or drop the chart instead.');
+    return;
+  }
+  navigator.mediaDevices.getDisplayMedia({video:true}).then(function(stream){
+    var track=stream.getVideoTracks()[0], video=document.createElement('video');
+    video.srcObject=stream; video.muted=true;
+    video.onloadedmetadata=function(){
+      video.play();
+      setTimeout(function(){
+        var c=document.createElement('canvas');
+        c.width=video.videoWidth; c.height=video.videoHeight;
+        c.getContext('2d').drawImage(video,0,0);
+        draft.img=c.toDataURL('image/png'); track.stop(); paintDrop();
+      },260);
+    };
+  }).catch(function(){});
+}
+
+// ── POST ──────────────────────────────────────────────────────
+function refreshPostState(){
+  var t=document.getElementById('oText').value;
+  document.getElementById('oChars').textContent = t.length;
+  document.getElementById('oPost').disabled = !t.trim();
+}
+
+function clearComposer(){
+  document.getElementById('oText').value='';
+  document.getElementById('oTitle').value='';
+  document.getElementById('oMarket').value='';
+  draft.img=null; draft.tags=[];
+  paintDrop(); renderTags(); refreshPostState();
+}
+
+function post(){
+  var text=document.getElementById('oText').value.trim();
+  if(!text) return;
+  var id=Date.now();
+  var rec={
+    id:id, kind:draft.kind,
+    title:document.getElementById('oTitle').value.trim(),
+    market:document.getElementById('oMarket').value.trim(),
+    date:document.getElementById('oDate').value || today(),
+    text:text, tags:draft.tags.slice(),
+    // The key lives ON the post, so the chart renders inside its card.
+    imgKey: draft.img ? ('obs-'+id) : null,
+    sentTo:[], createdAt:new Date().toISOString()
+  };
+  var done=function(){
+    S.observations.unshift(rec);          // newest first
+    OBS_PERSIST.write(rec);
+    clearComposer(); render();
+    if (typeof flash==='function') flash('\u2713 Observation posted');
+  };
+  if (rec.imgKey) OBS_PERSIST.saveImg(rec.imgKey, draft.img).then(done);
+  else done();
+}
+
+// ── SHARE ─────────────────────────────────────────────────────
+function postText(r){
+  var lines=[];
+  lines.push('**'+(r.title || r.kind)+'**'+(r.market ? ' \u00b7 '+r.market : ''));
+  lines.push(r.text);
+  if (r.tags && r.tags.length) lines.push(r.tags.map(function(t){return '#'+t.replace(/\s+/g,'');}).join(' '));
+  lines.push('\u2014 LMR Capitals \u00b7 '+fmtDate(r.date));
+  return lines.join('\n\n');
+}
+
+function sendDiscord(r){
+  var url=(localStorage.getItem(HOOK_LS)||'').trim();
+  if(!url){ alert('Add your Discord webhook URL first.'); return; }
+  fetch(url, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({username:'LMR Capitals', content:postText(r)})
+  }).then(function(res){
+    if(!res.ok) throw new Error(res.status);
+    if (r.sentTo.indexOf('Discord')<0) r.sentTo.push('Discord');
+    OBS_PERSIST.write(r); render();
+    if (typeof flash==='function') flash('\u2713 Sent to Discord');
+  }).catch(function(){ alert('Discord rejected the post \u2014 check the webhook URL.'); });
+}
+
+function sendTwitter(r){
+  var t = postText(r).replace(/\*\*/g,'');
+  window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(t.slice(0,270)), '_blank', 'noopener');
+  if (r.sentTo.indexOf('X')<0) r.sentTo.push('X');
+  OBS_PERSIST.write(r); render();
+}
+
+function copyPost(r){
+  var t = postText(r).replace(/\*\*/g,'');
+  if (navigator.clipboard) navigator.clipboard.writeText(t);
+  if (typeof flash==='function') flash('\u2713 Copied');
+}
+
+// ── WEBHOOK BAR ───────────────────────────────────────────────
+function paintHook(){
+  var url=(localStorage.getItem(HOOK_LS)||'');
+  document.getElementById('oHook').value=url;
+  document.getElementById('oHookDot').style.background = url ? 'var(--o-discord)' : 'var(--o-line)';
+}
+
+// ── FEED ──────────────────────────────────────────────────────
+function cardHTML(r){
+  var accent=colourFor(r.kind), dc=dayCount(r.date);
+  return '<article class="o-card" style="border-left-color:'+accent+'">'
+    + '<div class="o-khead">'
+      + '<span class="o-tag" style="background:'+accent+'26;color:'+accent+'">'+esc(r.kind)+'</span>'
+      + '<span class="o-ktitle">'+esc(r.title || r.kind)+(r.market ? ' \u00b7 '+esc(r.market) : '')+'</span>'
+      + '<span class="o-kdate">'+esc(fmtDate(r.date))+(dc!=null?' \u00b7 D'+dc:'')+'</span>'
+      + '<button class="o-kdel" data-del="'+r.id+'" title="Delete">\u00d7</button>'
+    + '</div>'
+    + '<p class="o-ktext">'+esc(r.text)+'</p>'
+    + (r.imgKey ? '<div class="o-kimg" data-slot="'+esc(r.imgKey)+'"></div>' : '')
+    + ((r.tags&&r.tags.length) ? '<div class="o-ktags">'+r.tags.map(function(t){
+        return '<span class="o-ktag">'+esc(t)+'</span>'; }).join('')+'</div>' : '')
+    + '<div class="o-kfoot">'
+      + '<button class="o-share" data-discord="'+r.id+'">Discord</button>'
+      + '<button class="o-share" data-x="'+r.id+'">Post to X</button>'
+      + '<button class="o-share" data-copy="'+r.id+'">Copy</button>'
+      + ((r.sentTo&&r.sentTo.length) ? '<span class="o-sent">\u2713 '+esc(r.sentTo.join(' \u00b7 '))+'</span>' : '')
+    + '</div>'
+  + '</article>';
+}
+
+function paintCardImages(root){
+  Array.prototype.forEach.call(root.querySelectorAll('[data-slot]'), function(box){
+    OBS_PERSIST.getImg(box.dataset.slot).then(function(src){
+      if (src) box.innerHTML='<img src="'+src+'" alt="">';
+      else box.remove();
+    });
+  });
+}
+
+function render(){
+  var rows = oFilter==='All' ? S.observations : S.observations.filter(function(r){return r.kind===oFilter;});
+  var feed=document.getElementById('oFeed');
+  document.getElementById('oCount').textContent =
+    rows.length + (rows.length===1?' post':' posts') + (oFilter==='All'?'':' \u00b7 '+oFilter);
+  feed.innerHTML = rows.length
+    ? rows.map(cardHTML).join('')
+    : '<div class="o-none">No observations yet \u2014 write the first read above.</div>';
+  paintCardImages(feed);
+  renderFilters();
+}
+
+function byId(id){
+  return S.observations.filter(function(r){return String(r.id)===String(id);})[0];
+}
+
+// ── EVENTS ────────────────────────────────────────────────────
+document.addEventListener('click', function(e){
+  var el=e.target.closest('[data-kind],[data-tag],[data-filter],[data-clearimg],[data-del],[data-discord],[data-x],[data-copy],#oDrop,#oPost,#oShot,#oClear,#oHookSave,#oHookTest');
+  if(!el) return;
+  var d=el.dataset;
+
+  if (d.kind){ draft.kind=d.kind; renderKinds(); return; }
+  if (d.tag){
+    var i=draft.tags.indexOf(d.tag);
+    if(i>-1) draft.tags.splice(i,1); else draft.tags.push(d.tag);
+    renderTags(); return;
+  }
+  if (d.filter){ oFilter=d.filter; render(); return; }
+  if (d.clearimg){ e.stopPropagation(); draft.img=null; paintDrop(); return; }
+  if (el.id==='oDrop'){ pickFile(); return; }
+  if (el.id==='oShot'){ screenshot(); return; }
+  if (el.id==='oClear'){ clearComposer(); return; }
+  if (el.id==='oPost'){ post(); return; }
+  if (el.id==='oHookSave'){
+    localStorage.setItem(HOOK_LS, document.getElementById('oHook').value.trim());
+    paintHook();
+    if (typeof flash==='function') flash('\u2713 Webhook saved');
+    return;
+  }
+  if (el.id==='oHookTest'){
+    var url=(document.getElementById('oHook').value||'').trim();
+    if(!url){ alert('Paste the webhook URL first.'); return; }
+    fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:'LMR Capitals',content:'LMR Capitals webhook connected.'})})
+      .then(function(res){ alert(res.ok ? 'Webhook works.' : 'Discord returned '+res.status+'.'); })
+      .catch(function(){ alert('Could not reach Discord.'); });
+    return;
+  }
+  if (d.discord){ sendDiscord(byId(d.discord)); return; }
+  if (d.x){ sendTwitter(byId(d.x)); return; }
+  if (d.copy){ copyPost(byId(d.copy)); return; }
+
+  if (d.del){
+    if(!window.confirm('Delete this observation?')) return;
+    var rec=byId(d.del);
+    if (rec && rec.imgKey) OBS_PERSIST.saveImg(rec.imgKey, null);
+    S.observations = S.observations.filter(function(r){return String(r.id)!==String(d.del);});
+    OBS_PERSIST.write(null); OBS_PERSIST.del(d.del); render();
+  }
+});
+
+document.addEventListener('input', function(e){
+  if (e.target.id==='oText') refreshPostState();
+});
+
+// Paste inside the panel lands in the drop zone.
+document.addEventListener('paste', function(e){
+  var p=document.getElementById('p-observation');
+  if(!p || !(p.contains(e.target) || p.contains(document.activeElement))) return;
+  var items=(e.clipboardData||{}).items||[];
+  for(var i=0;i<items.length;i++){
+    if(items[i].type.indexOf('image')!==0) continue;
+    e.preventDefault();
+    var r=new FileReader();
+    r.onload=function(){ draft.img=r.result; paintDrop(); };
+    r.readAsDataURL(items[i].getAsFile());
+    return;
+  }
+});
+
+(function(){
+  var box=document.getElementById('oDrop');
+  box.addEventListener('dragover',function(e){ e.preventDefault(); box.classList.add('is-over'); });
+  box.addEventListener('dragleave',function(){ box.classList.remove('is-over'); });
+  box.addEventListener('drop',function(e){
+    e.preventDefault(); box.classList.remove('is-over');
+    var f=(e.dataTransfer.files||[])[0];
+    if(!f || f.type.indexOf('image')!==0) return;
+    var r=new FileReader();
+    r.onload=function(){ draft.img=r.result; paintDrop(); };
+    r.readAsDataURL(f);
+  });
+})();
+
+// ── MOUNT ─────────────────────────────────────────────────────
+function mount(){
+  document.getElementById('oDate').value = today();
+  var dc=dayCount(today());
+  if (dc!=null) document.getElementById('oDayHint').textContent='Day D'+dc;
+  renderKinds(); renderTags(); paintDrop(); paintHook(); refreshPostState(); render();
+}
+window.renderObservationSection = render;
+window.loadObservationsCloud = async function(){
+  try{
+    if (typeof _sb !== 'undefined' && _sb && typeof _sbUserId !== 'undefined' && _sbUserId){
+      var row = await _sb.from('lmr_observations').select('data').eq('user_id',_sbUserId).single();
+      var d = row && row.data && row.data.data;
+      if (d && d.observations){ state.observations = d.observations; S = state; }
+    }
+  }catch(e){}
+  try{ render(); }catch(e){}
+};   // call from the panel switcher
+mount();
+})();
+</script>
+
+<script id="lmr-jn-js">
+(function(){
+'use strict';
+
+// Journal entry types. The colour is the card's left border and its tag.
+var TYPES = [
+  ['Lesson', 'var(--jn-gold)'],
+  ['Win',    'var(--jn-green)'],
+  ['Loss',   'var(--jn-rose)'],
+  ['Note',   'var(--jn-blue)']
+];
+
+// ── PERSISTENCE ────────────────────────────────────────────────
+// Three hooks. Point them at the host app; the fallbacks let this
+// file run standalone in a browser.
+var JN_PERSIST = {
+  read: function(){
+    if (typeof state === 'object' && state) return state;
+    try { return JSON.parse(localStorage.getItem('lmr_jn') || '{}'); }
+    catch(e){ return {}; }
+  },
+  write: function(kind, rec){
+    if (typeof save === 'function') save();
+    else { try { localStorage.setItem('lmr_jn', JSON.stringify({journal:S.journal, notes:S.notes})); } catch(e){} }
+    // Cloud: the host app's own column names for each table.
+    if (rec && typeof sbSyncRecord === 'function' && typeof _sbUserId !== 'undefined' && _sbUserId) {
+      try {
+        if (kind === 'journal')
+          sbSyncRecord('journal', {id:String(rec.id), user_id:_sbUserId, date:rec.date||null,
+            title:rec.type||null, content:rec.text||'', created_at:rec.createdAt});
+        else
+          sbSyncRecord('notes', {id:String(rec.id), user_id:_sbUserId, title:rec.title||null,
+            text:rec.text||'', date:rec.date||null, created_at:rec.createdAt});
+      } catch(e){}
+    }
+  },
+  del: function(kind, id){
+    if (typeof sbDeleteRecord === 'function') { try { sbDeleteRecord(kind, id); } catch(e){} }
+  },
+  // NEVER localStorage — base64 there throws QuotaExceededError at 5MB.
+  saveImg: function(k,b){ return (typeof saveImg==='function') ? saveImg(k,b) : Promise.resolve(_mem[k]=b); },
+  getImg:  function(k){   return (typeof getImg ==='function') ? getImg(k)    : Promise.resolve(_mem[k]); }
+};
+var _mem = {};
+
+var S = JN_PERSIST.read();
+S.journal = S.journal || [];
+S.notes   = S.notes   || [];
+
+// Composer drafts. Each holds its own pending image as a data URL until
+// the entry is saved — only then does it get an imgKey and go to IndexedDB.
+var draft = { journal:{type:'Lesson', img:null}, notes:{img:null} };
+var jFilter = 'All';
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function today(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(iso){
+  if(!iso) return '';
+  var d=new Date(iso+'T00:00:00');
+  if(isNaN(d)) return iso;
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+function colourFor(type){
+  for(var i=0;i<TYPES.length;i++) if(TYPES[i][0]===type) return TYPES[i][1];
+  return 'var(--jn-line)';
+}
+// Day count, if the host app tracks one.
+function dayCount(iso){
+  if (typeof dayCountFor === 'function') { try { return dayCountFor(iso); } catch(e){} }
+  return null;
+}
+
+// ── COMPOSER: type chips + filters ─────────────────────────────
+function renderTypes(){
+  document.getElementById('jTypes').innerHTML = TYPES.map(function(t){
+    var on = draft.journal.type===t[0];
+    return '<button class="jn-type" data-type="'+t[0]+'" aria-pressed="'+on+'"'
+         + (on ? ' style="background:'+t[1]+'"' : '') + '>'+t[0]+'</button>';
+  }).join('');
+}
+function renderFilters(){
+  var opts = ['All'].concat(TYPES.map(function(t){return t[0];}));
+  document.getElementById('jFilters').innerHTML = opts.map(function(o){
+    return '<button class="jn-filter" data-filter="'+o+'" aria-pressed="'+(jFilter===o)+'">'+o+'</button>';
+  }).join('');
+}
+
+// ── DROP ZONES ────────────────────────────────────────────────
+function paintDrop(which){
+  var box = document.getElementById(which==='journal' ? 'jDrop' : 'nDrop');
+  var img = draft[which].img;
+  if (img){
+    box.innerHTML = '<img src="'+img+'" alt=""><button class="jn-x" data-clear="'+which+'" title="Remove image">\u00d7</button>';
+  } else {
+    box.innerHTML = which==='journal'
+      ? '<span class="jn-dph">Click, drop or paste the chart this entry is about<br>It saves with the entry and shows inside the card</span>'
+      : '<span class="jn-dph">Click, drop or paste a chart<br>Optional \u2014 the note saves either way</span>';
+  }
+}
+function pickFile(which){
+  var inp=document.createElement('input');
+  inp.type='file'; inp.accept='image/*';
+  inp.onchange=function(){
+    var f=inp.files[0]; if(!f) return;
+    var r=new FileReader();
+    r.onload=function(){ draft[which].img=r.result; paintDrop(which); };
+    r.readAsDataURL(f);
+  };
+  inp.click();
+}
+// Screen capture, where the browser allows it.
+function screenshot(which){
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){
+    alert('Screen capture is not available in this browser \u2014 paste or drop the chart instead.');
+    return;
+  }
+  navigator.mediaDevices.getDisplayMedia({video:true}).then(function(stream){
+    var track=stream.getVideoTracks()[0];
+    var video=document.createElement('video');
+    video.srcObject=stream; video.muted=true;
+    video.onloadedmetadata=function(){
+      video.play();
+      setTimeout(function(){
+        var c=document.createElement('canvas');
+        c.width=video.videoWidth; c.height=video.videoHeight;
+        c.getContext('2d').drawImage(video,0,0);
+        draft[which].img=c.toDataURL('image/png');
+        track.stop(); paintDrop(which);
+      },260);
+    };
+  }).catch(function(){});
+}
+
+// ── SAVE ──────────────────────────────────────────────────────
+function refreshSaveState(){
+  document.getElementById('jSave').disabled = !document.getElementById('jText').value.trim();
+  document.getElementById('nSave').disabled = !document.getElementById('nText').value.trim();
+}
+
+function saveJournal(){
+  var text=document.getElementById('jText').value.trim();
+  if(!text) return;
+  var id = Date.now();
+  var rec = {
+    id: id,
+    type: draft.journal.type,
+    title: document.getElementById('jTitle').value.trim(),
+    date: document.getElementById('jDate').value || today(),
+    text: text,
+    // The draft's image key is stored ON the entry, which is what makes
+    // the chart render inside the card instead of being orphaned.
+    imgKey: draft.journal.img ? ('journal-'+id) : null,
+    createdAt: new Date().toISOString()
+  };
+  var done = function(){
+    S.journal.unshift(rec);
+    JN_PERSIST.write('journal', rec);
+    document.getElementById('jText').value='';
+    document.getElementById('jTitle').value='';
+    draft.journal.img=null; paintDrop('journal');
+    refreshSaveState(); renderJournal();
+    if (typeof flash==='function') flash('\u2713 Entry saved');
+  };
+  if (rec.imgKey) JN_PERSIST.saveImg(rec.imgKey, draft.journal.img).then(done);
+  else done();
+}
+
+function saveNote(){
+  var text=document.getElementById('nText').value.trim();
+  if(!text) return;
+  var id = Date.now();
+  var rec = {
+    id: id,
+    title: document.getElementById('nTitle').value.trim(),
+    date: document.getElementById('nDate').value || today(),
+    text: text,
+    imgKey: draft.notes.img ? ('note-'+id) : null,
+    createdAt: new Date().toISOString()
+  };
+  var done = function(){
+    S.notes.unshift(rec);
+    JN_PERSIST.write('notes', rec);
+    document.getElementById('nText').value='';
+    document.getElementById('nTitle').value='';
+    draft.notes.img=null; paintDrop('notes');
+    refreshSaveState(); renderNotes();
+    if (typeof flash==='function') flash('\u2713 Note saved');
+  };
+  if (rec.imgKey) JN_PERSIST.saveImg(rec.imgKey, draft.notes.img).then(done);
+  else done();
+}
+
+// ── FEEDS ─────────────────────────────────────────────────────
+function cardHTML(kind, r){
+  var accent = kind==='journal' ? colourFor(r.type) : 'var(--jn-blue)';
+  var dc = dayCount(r.date);
+  var head = '<div class="jn-khead" style="border-bottom-color:var(--jn-line)">';
+  if (kind==='journal')
+    head += '<span class="jn-tag" style="background:'+accent+'26;color:'+accent+'">'+esc(r.type)+'</span>';
+  head += '<span class="jn-ktitle">'+esc(r.title || (kind==='journal' ? r.type : 'Note'))+'</span>'
+       +  '<span class="jn-kdate">'+esc(fmtDate(r.date))+(dc!=null?' \u00b7 D'+dc:'')+'</span>'
+       +  '<button class="jn-kdel" data-del="'+kind+':'+r.id+'" title="Delete">\u00d7</button>'
+       +  '</div>';
+  return '<article class="jn-card" style="border-left-color:'+accent+'">'
+       + head
+       + '<p class="jn-ktext">'+esc(r.text)+'</p>'
+       + (r.imgKey ? '<div class="jn-kimg" data-slot="'+esc(r.imgKey)+'"></div>' : '')
+       + '</article>';
+}
+
+// Images are fetched after the markup lands, then painted in place.
+function paintCardImages(root){
+  Array.prototype.forEach.call(root.querySelectorAll('[data-slot]'), function(box){
+    JN_PERSIST.getImg(box.dataset.slot).then(function(src){
+      if (src) box.innerHTML = '<img src="'+src+'" alt="">';
+      else box.remove();
+    });
+  });
+}
+
+function renderJournal(){
+  var rows = jFilter==='All' ? S.journal : S.journal.filter(function(r){return r.type===jFilter;});
+  var feed = document.getElementById('jFeed');
+  document.getElementById('jCount').textContent =
+    rows.length + (rows.length===1?' entry':' entries') + (jFilter==='All'?'':' \u00b7 '+jFilter);
+  feed.innerHTML = rows.length
+    ? rows.map(function(r){ return cardHTML('journal', r); }).join('')
+    : '<div class="jn-none">No entries yet \u2014 write the first one above.</div>';
+  paintCardImages(feed);
+  renderFilters();
+}
+
+function renderNotes(){
+  var feed = document.getElementById('nFeed');
+  document.getElementById('nCount').textContent =
+    S.notes.length + (S.notes.length===1?' note':' notes');
+  feed.innerHTML = S.notes.length
+    ? S.notes.map(function(r){ return cardHTML('notes', r); }).join('')
+    : '<div class="jn-none">No notes yet.</div>';
+  paintCardImages(feed);
+}
+
+// ── EVENTS ────────────────────────────────────────────────────
+document.addEventListener('click', function(e){
+  var el = e.target.closest('[data-type],[data-filter],[data-clear],[data-del],#jDrop,#nDrop,#jSave,#nSave,#jShot,#nShot');
+  if(!el) return;
+  var d = el.dataset;
+
+  if (d.type){ draft.journal.type=d.type; renderTypes(); return; }
+  if (d.filter){ jFilter=d.filter; renderJournal(); return; }
+  if (d.clear){ e.stopPropagation(); draft[d.clear].img=null; paintDrop(d.clear); return; }
+  if (el.id==='jSave'){ saveJournal(); return; }
+  if (el.id==='nSave'){ saveNote(); return; }
+  if (el.id==='jShot'){ screenshot('journal'); return; }
+  if (el.id==='nShot'){ screenshot('notes'); return; }
+  if (el.id==='jDrop'){ pickFile('journal'); return; }
+  if (el.id==='nDrop'){ pickFile('notes'); return; }
+
+  if (d.del){
+    var parts=d.del.split(':'), kind=parts[0], id=parts[1];
+    if(!window.confirm('Delete this '+(kind==='journal'?'entry':'note')+'?')) return;
+    var list = kind==='journal' ? S.journal : S.notes;
+    var rec  = list.filter(function(r){return String(r.id)===id;})[0];
+    if (rec && rec.imgKey) JN_PERSIST.saveImg(rec.imgKey, null);
+    if (kind==='journal') S.journal = S.journal.filter(function(r){return String(r.id)!==id;});
+    else                  S.notes   = S.notes.filter(function(r){return String(r.id)!==id;});
+    JN_PERSIST.write(kind, null);
+    JN_PERSIST.del(kind, id);
+    if (kind==='journal') renderJournal(); else renderNotes();
+  }
+});
+
+document.addEventListener('input', function(e){
+  if (e.target.id==='jText' || e.target.id==='nText') refreshSaveState();
+});
+
+// Scoped paste: a paste inside a panel lands in THAT panel's drop zone.
+document.addEventListener('paste', function(e){
+  var jp=document.getElementById('p-journal'), np=document.getElementById('p-notes');
+  var which = null;
+  if (jp && (jp.contains(e.target) || jp.contains(document.activeElement))) which='journal';
+  else if (np && (np.contains(e.target) || np.contains(document.activeElement))) which='notes';
+  if(!which) return;
+  var items=(e.clipboardData||{}).items||[], i;
+  for(i=0;i<items.length;i++){
+    if(items[i].type.indexOf('image')!==0) continue;
+    e.preventDefault();
+    var r=new FileReader();
+    r.onload=function(){ draft[which].img=r.result; paintDrop(which); };
+    r.readAsDataURL(items[i].getAsFile());
+    return;
+  }
+});
+
+['jDrop','nDrop'].forEach(function(id){
+  var box=document.getElementById(id);
+  var which = id==='jDrop' ? 'journal' : 'notes';
+  box.addEventListener('dragover', function(e){ e.preventDefault(); box.classList.add('is-over'); });
+  box.addEventListener('dragleave', function(){ box.classList.remove('is-over'); });
+  box.addEventListener('drop', function(e){
+    e.preventDefault(); box.classList.remove('is-over');
+    var f=(e.dataTransfer.files||[])[0];
+    if(!f || f.type.indexOf('image')!==0) return;
+    var r=new FileReader();
+    r.onload=function(){ draft[which].img=r.result; paintDrop(which); };
+    r.readAsDataURL(f);
+  });
+});
+
+// ── MOUNT ─────────────────────────────────────────────────────
+function mount(){
+  document.getElementById('jDate').value = today();
+  document.getElementById('nDate').value = today();
+  var dc = dayCount(today());
+  if (dc!=null){
+    document.getElementById('jDayHint').textContent = 'Day D'+dc;
+    document.getElementById('nDayHint').textContent = 'Day D'+dc;
+  }
+  renderTypes(); paintDrop('journal'); paintDrop('notes');
+  refreshSaveState(); renderJournal(); renderNotes();
+}
+// Call these from the host app's panel switcher.
+window.renderJournalSection = renderJournal;
+window.renderNotesSection   = renderNotes;
+mount();
 })();
 </script>
 
