@@ -95,6 +95,6 @@ applicable → commit → send preview screenshot. No DB writes beyond existing 
 | kb/ images 12MB in repo | Med | Upload to Storage, reference by path (chart_images), not repo |
 | Can't data-verify without login | Med | Layout via headless preview; user verifies data on Netlify signed in |
 
-## Open Questions
-- AI Coach "upgrades": confirm exact new behaviors from the design (layout is clear; any new model/actions?).
-- Knowledge: are the 66 terms' bodies shipped as app constants (like PD arrays) or user-editable in lmr_terminology? (Plan assumes shipped constants + user edits in lmr_terminology.)
+## Open Questions (resolved)
+- AI Coach "upgrades": RESOLVED — build the new AI Coach layout from the design; keep the existing chats (ai_chats) intact. No new model/actions required beyond the design's review flow.
+- Knowledge: RESOLVED — start empty. Build the full design structure/capabilities (8-group / block canvas, PD detail); user-authored content lives in lmr_terminology. Transcribe the complete structure from the design ("go deeper"), not shipped term bodies.

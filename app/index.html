@@ -2384,23 +2384,34 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
           </div>
         </div>
 
-        <div class="prop-block p-htf" style="padding:8px 16px">
-          <div class="prop-left">
-            <div class="prop-label">Premarket →</div>
-            <div class="prop-type">Text · Pre-market HTF levels</div>
-          </div>
-          <div class="prop-right">
-            <input id="ch-poi" placeholder="$______" style="font-size:13px;font-family:'JetBrains Mono',monospace" oninput="autoSaveDaily()">
-          </div>
-        </div>
-
-        <div class="prop-block p-draws" style="padding:8px 16px">
-          <div class="prop-left">
-            <div class="prop-label">Week Draws →</div>
-            <div class="prop-type">Text · Price targets</div>
-          </div>
-          <div class="prop-right">
-            <input id="ch-draws" placeholder="$______" style="font-size:13px;font-family:'JetBrains Mono',monospace" oninput="autoSaveDaily()">
+        <!-- HIGHER-TIMEFRAME CONTEXT — 4-field grid (Premarket · Weekly draw · Daily run · Daily draw) -->
+        <div style="padding:6px 16px 10px">
+          <div class="m-card">
+            <div class="m-sec-row"><span class="m-sec">Higher-Timeframe Context</span></div>
+            <div class="m-card-pad">
+              <div class="m-grid m-grid-4">
+                <div class="m-field">
+                  <span class="m-flabel">Premarket</span>
+                  <span class="m-fhint">Pre-market HTF levels</span>
+                  <input id="ch-poi" placeholder="$______" style="font-family:'JetBrains Mono',monospace" oninput="autoSaveDaily()">
+                </div>
+                <div class="m-field">
+                  <span class="m-flabel">Weekly draw on liquidity</span>
+                  <span class="m-fhint">PWH · PWL · NWOG</span>
+                  <input id="ch-draws" placeholder="$______" style="font-family:'JetBrains Mono',monospace" oninput="autoSaveDaily()">
+                </div>
+                <div class="m-field">
+                  <span class="m-flabel">Daily run for liquidity</span>
+                  <span class="m-fhint">Run target this session</span>
+                  <input id="ch-dailyrol" placeholder="$______" style="font-family:'JetBrains Mono',monospace" oninput="autoSaveDaily()">
+                </div>
+                <div class="m-field">
+                  <span class="m-flabel">Daily draw on liquidity</span>
+                  <span class="m-fhint">Draw target this session</span>
+                  <input id="ch-dailydol" placeholder="$______" style="font-family:'JetBrains Mono',monospace" oninput="autoSaveDaily()">
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -5513,6 +5524,8 @@ function _mapDaily(date,d,uid){
     price:Array.isArray(d.price)?d.price:[],
     pd_array:d.pdArray||d.pd_array||null,
     premarket:d.htfpoi||null,
+    daily_rol:d.dailyRol||d.daily_rol||null,
+    daily_dol:d.dailyDol||d.daily_dol||null,
     london_killzone:d.london||null,
     saved_at:d.savedAt||new Date().toISOString()};
 }
@@ -6823,6 +6836,8 @@ function loadDaily(){
   const d=state.daily[ds]||{};
   document.getElementById('ch-poi').value=d.htfpoi||'';
   document.getElementById('ch-draws').value=d.weekdraws||'';
+  { const _rol=document.getElementById('ch-dailyrol'); if(_rol)_rol.value=d.dailyRol||d.daily_rol||''; }
+  { const _dol=document.getElementById('ch-dailydol'); if(_dol)_dol.value=d.dailyDol||d.daily_dol||''; }
   setChipsValues('dbias',d.bias||'');
   setChipsValues('london',d.london||'');
   setChipsValues('ny',_normNY(d.ny));
@@ -6879,6 +6894,8 @@ function saveDaily(){
     daystatus:getChipsValues('daystatus',false),
     htfpoi:document.getElementById('ch-poi').value,
     weekdraws:document.getElementById('ch-draws').value,
+    dailyRol:document.getElementById('ch-dailyrol')?document.getElementById('ch-dailyrol').value:'',
+    dailyDol:document.getElementById('ch-dailydol')?document.getElementById('ch-dailydol').value:'',
     rth:document.getElementById('ch-rth').value,
     weekly_key:weeklyKey,
     dayCount,
@@ -12809,6 +12826,8 @@ async function _sbDoPull() {
       dayCount:   d.day_count   || d.dayCount  || null,  // snake→camel
       htfpoi:     d.htf_poi     || d.htfpoi    || '',
       weekdraws:  d.week_draws  || d.weekdraws || '',
+      dailyRol:   d.daily_rol   || d.dailyRol  || '',
+      dailyDol:   d.daily_dol   || d.dailyDol  || '',
       monthlyBias:d.monthly_bias|| d.monthlyBias||'',
       asianRange: d.asian_range || d.asianRange || [],
       daystatus:  d.day_status  || d.daystatus || '',
