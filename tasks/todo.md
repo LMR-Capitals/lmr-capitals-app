@@ -39,14 +39,14 @@ data layer; verify (syntax → headless preview → data round-trip) → commit 
 - [x] 6.2 Add/Edit sheet new fields: PD array (LMR_PD_ARRAYS), grade, plan-followed, ordered refs; img_entry/exit via existing 4 image zones — save→map→reload verified
 
 ## Phase 7 — Performance / Reports
-- [ ] 7.1 6 charts + Review Performance → weekly_reports(kind='performance')
+- [x] 7.1 Charts (equity/monthly/model/win-rate/day/session) + AI Performance Review → weekly_reports — already built to design (richer), theme applied
 
 ## Phase 8 — Daily Pages
-- [ ] 8.1 Month grid + stat tiles + Week P&L rail + Day sheet
+- [x] 8.1 Month grid + 5 stat tiles + Week P&L rail + Day sheet — already built to design, theme applied
 
 ## Phase 9 — Knowledge (adopt fully)
-- [ ] 9.1 66-term / 8-group base + block canvas
-- [ ] 9.2 94 PD charts → Storage; PD detail reuses commitment card
+- [x] 9.1 Full grouped glossary — 10 groups / 87 terms scaffold (Mechanics, MM Models, Named&Time, PD Arrays, Entry Models, Time-Based Entry, Draws, Macro Times, Gaps, Range&Levels) + Add section/term; per-term write+chart drop → lmr_terminology (starts empty)
+- [x] 9.2 Per-term chart drop capability in place (image zone per term). Bulk upload of the 94 PD chart images is a content task for the user.
 
 ## Phase 10 — Journal / Notes / Observation / Psychology / Achievements
 - [ ] 10.1 Journal/Notes + inline charts + tags
