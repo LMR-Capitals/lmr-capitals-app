@@ -2408,7 +2408,7 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
         <div class="prop-block p-asian" style="padding:8px 16px">
           <div class="prop-left">
             <div class="prop-label">Asian Range →</div>
-            <div class="prop-type">Multi-select</div>
+            <div class="prop-type">Select · single</div>
           </div>
           <div class="prop-right">
             <div class="chips" id="asianRange" style="padding:2px 0"></div>
@@ -2423,6 +2423,25 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
           <div class="prop-right">
             <div class="chips" id="priceRefs" style="padding:2px 0"></div>
             <div id="priceRefOrder" style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;align-items:center"></div>
+          </div>
+        </div>
+
+        <div class="prop-block p-pdarray" style="padding:8px 16px">
+          <div class="prop-left">
+            <div class="prop-label">PD Array →</div>
+            <div class="prop-type">Commit · hard-blocked</div>
+          </div>
+          <div class="prop-right">
+            <select id="ch-pdarray" style="font-size:12px" onchange="commitPdArray(this)">
+              <option value="">Commit today's PD array…</option>
+              <option>Rejection Block</option><option>Order Block</option><option>Propulsion Block</option>
+              <option>Fair Value Gap</option><option>BISI</option><option>SIBI</option>
+              <option>Balance Price Range</option><option>Inversion FVG</option><option>Liquidity Void</option>
+              <option>Suspension Block</option><option>Volume Imbalance</option><option>New Week Opening Gap</option>
+              <option>New Day Opening Gap</option><option>RTH ORG + 1st Presented FVG</option>
+              <option>SMT Divergence</option><option>Power of 3 (AMD)</option>
+            </select>
+            <div id="ch-pdarray-note" style="font-size:10px;color:var(--text3);margin-top:3px">Switching a committed array requires a logged reason.</div>
           </div>
         </div>
 
@@ -5214,7 +5233,11 @@ function _mapDaily(date,d,uid){
     plan:d.plan||null,pred:d.pred||null,monthly_bias:d.monthlyBias||null,
     day_status:d.daystatus||null,
     asian_range:Array.isArray(d.asianRange)?d.asianRange:[],
+    asian_single:d.asianSingle||(Array.isArray(d.asianRange)?d.asianRange[0]:d.asianRange)||null,
     price:Array.isArray(d.price)?d.price:[],
+    pd_array:d.pdArray||d.pd_array||null,
+    premarket:d.htfpoi||null,
+    london_killzone:d.london||null,
     saved_at:d.savedAt||new Date().toISOString()};
 }
 
@@ -6442,6 +6465,29 @@ function _renderPriceOrder(){
   }).join('');
   strip.innerHTML='<span style="font-size:10px;color:var(--text3);letter-spacing:.05em;margin-right:2px">IN ORDER ·</span>'+seq;
 }
+// PD array is HARD-BLOCKED (design rule): once committed for the day, switching
+// requires a logged reason, written to the pd_switches audit table.
+let _pdArrayCommitted='';
+function commitPdArray(sel){
+  const to=sel.value, from=_pdArrayCommitted;
+  if(to===from) return;
+  const hardBlock=!(state.profile && state.profile.pd_hard_block===false);
+  if(from && to && hardBlock){
+    const reason=prompt(`Switch today's PD array from "${from}" to "${to}"?\nLog a reason (required):`);
+    if(reason===null || !reason.trim()){ sel.value=from; return; }  // cancelled → revert
+    _logPdSwitch(from,to,reason.trim());
+  }
+  _pdArrayCommitted=to;
+  autoSaveDaily();
+}
+async function _logPdSwitch(from,to,reason){
+  try{
+    if(_sb && _sbUserId){
+      await _sb.from('pd_switches').insert({user_id:_sbUserId,date:todayStr(),from_array:from||null,to_array:to,reason});
+    }
+  }catch(e){ console.warn('[LMR] pd_switch log failed:',e.message); }
+  try{ flash && flash('✓ PD array switch logged'); }catch(e){}
+}
 function getChipsValues(grp,multi=true){
   const sel=document.querySelectorAll(`.chip[data-grp="${grp}"].on`);
   const vals=[...sel].map(c=>c.dataset.val);
@@ -6464,10 +6510,11 @@ function loadDaily(){
   setChipsValues('dbias',d.bias||'');
   setChipsValues('london',d.london||'');
   setChipsValues('ny',_normNY(d.ny));
-  setChipsValues('asianRange',d.asianRange||[]);
+  setChipsValues('asianRange',d.asianSingle||d.asian_single||d.asianRange||[]);
   setChipsValues('priceRefs',d.priceRefs||d.price||[]); // read from either key
   _priceRefOrder=(Array.isArray(d.price)?d.price:(Array.isArray(d.priceRefs)?d.priceRefs:[])).slice(); // preserve click order
   _renderPriceOrder();
+  const _pdEl=document.getElementById('ch-pdarray'); const _pdv=d.pdArray||d.pd_array||''; if(_pdEl)_pdEl.value=_pdv; _pdArrayCommitted=_pdv;
   setChipsValues('session',d.session||'');
   setChipsValues('plan',d.plan||'');
   setChipsValues('pred',d.pred||'');
@@ -6504,8 +6551,10 @@ function saveDaily(){
     london:getChipsValues('london',false),
     ny:getChipsValues('ny',false),
     asianRange:getChipsValues('asianRange',true),
+    asianSingle:getChipsValues('asianRange',false),
     priceRefs:[..._priceRefOrder],
     price:[..._priceRefOrder],   // ORDERED (click order is data); saved as BOTH keys so Daily modal can read it
+    pdArray:document.getElementById('ch-pdarray')?document.getElementById('ch-pdarray').value:'',
     session:getChipsValues('session',false),
     plan:getChipsValues('plan',false),
     pred:getChipsValues('pred',false),
@@ -11678,7 +11727,7 @@ async function init(){
   if(!state.terminologyPage)state.terminologyPage='';
   if(!state.psychologyPage)state.psychologyPage='';
   // build chips that need rendering
-  buildChips('asianRange',ASIAN_RANGE,true,'asianRange');
+  buildChips('asianRange',ASIAN_RANGE,false,'asianRange'); // design v2: single-select
   buildPriceRefChips();
   buildChips('smtChips',SMT_OPTS,true,'smtChips');
   // populate RTH select on today panel
