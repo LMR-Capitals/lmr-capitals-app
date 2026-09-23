@@ -702,6 +702,8 @@ button{font-family:'Inter',sans-serif}
 .img-zone{min-height:90px;position:relative;transition:border-color var(--t),background var(--t)}
 .img-zone-hint{font-size:10px;color:var(--text3);margin-top:3px}
 .img-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.img-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+@media(max-width:760px){.img-grid-3{grid-template-columns:1fr}}
 .img-grid-full{margin-top:8px}
 .img-grid-single{margin-top:8px}
 /* Ensure images are NOT compressed display-wise */
@@ -2571,18 +2573,20 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
     <div class="card-head"><span class="card-tag t-g">Today's Charts</span><div class="card-title">Screenshots — hover &amp; paste, or click to upload</div></div>
     <div class="card-body">
 
-      <div class="img-grid-2">
+      <!-- Design v2 slot order: Daily/Weekly full-width lead, then a 3-up row
+           (4H/1H · 15min · Inter-market), then the end-of-day Summary full-width. -->
+      <div class="img-grid-full">
         <div class="img-zone-wrap">
           <div class="img-zone-label">Daily / Weekly Chart <span>paste or click</span></div>
-          <div class="img-zone" data-imgkey="dm-daily" data-today="" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or + upload</div></div>
+          <div class="img-zone" data-imgkey="dm-daily" data-today="" onclick="pickImage(this)" style="min-height:150px"><div class="img-zone-text">📋 Paste or + upload</div></div>
         </div>
+      </div>
+
+      <div class="img-grid-3" style="margin-top:10px">
         <div class="img-zone-wrap">
           <div class="img-zone-label">4H / 1H Chart <span>paste or click</span></div>
           <div class="img-zone" data-imgkey="dm-4h1h" data-today="" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or + upload</div></div>
         </div>
-      </div>
-
-      <div class="img-grid-2" style="margin-top:10px">
         <div class="img-zone-wrap">
           <div class="img-zone-label">15min Chart <span>paste or click</span></div>
           <div class="img-zone" data-imgkey="dm-15m" data-today="" onclick="pickImage(this)"><div class="img-zone-text">📋 Paste or + upload</div></div>

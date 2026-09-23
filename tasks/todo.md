@@ -19,7 +19,7 @@ data layer; verify (syntax → headless preview → data round-trip) → commit 
 - [x] 2.4 Monthly/Weekly context cards (metric grid + KEY LEVEL)
 - [x] 2.5 HIGHER-TIMEFRAME CONTEXT 4-col grid
 - [x] 2.6 PRE-MARKET CHAIN dropdown-grid card
-- [ ] 2.7 Chart-slot row order + trades moved to bottom
+- [x] 2.7 Chart-slot row order (Daily/Weekly full → 3-up row → Summary full); no Today trades block exists to move
 
 ## Phase 3 — Dashboard
 - [ ] 3.1 KEY STATS card row
@@ -61,7 +61,7 @@ data layer; verify (syntax → headless preview → data round-trip) → commit 
 - [ ] 12.2 Settings sheet (export/import/clear, density)
 
 ## Checkpoints
-- [ ] After Phase 2 — Today matches design; data round-trips
+- [x] After Phase 2 — Today matches design; data round-trips (verified: PRE-MARKET CHAIN save→reload)
 - [ ] After Phase 4 — Accounts reconcile with _accMetrics; Dashboard==Accounts P&L
 - [ ] After Phase 9 — Knowledge fully adopted
 - [ ] After Phase 12 — whole app matches; login + data round-trip; RLS intact
