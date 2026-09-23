@@ -24,7 +24,7 @@ data layer; verify (syntax → headless preview → data round-trip) → commit 
 ## Phase 3 — Dashboard
 - [x] 3.1 KEY STATS card row (Net P&L·Leader · Combined · Win rate · Avg R:R on wins · Paid out)
 - [x] 3.2 Today's Chain summary grid · Today's News · Equity curve · Trailing DD · Recent 5 trades
-- [ ] 3.3 Daily Heatmap (leader/all toggle) + Copier Distribution card (design extras)
+- [x] 3.3 Daily Heatmap (leader/all toggle, 9-week Mon–Fri) + Copier Distribution card (leader + derived followers)
 
 ## Phase 4 — Accounts
 - [ ] 4.1 Filter tabs + 4-tile strip + ring cards + BREACHED derived

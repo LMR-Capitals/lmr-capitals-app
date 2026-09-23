@@ -115,6 +115,20 @@ h1,h2,h3,h4,.card-title,.tb-title,#tbTitle,.panel-title{font-family:'Space Grote
 .m-badge-flag{font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:99px;background:var(--bear-bg);border:1px solid var(--bear);color:var(--bear)}
 .m-badge-flag.ok{background:var(--bull-bg);border-color:var(--bull);color:var(--bull)}
 @media(max-width:900px){.ks-row{grid-template-columns:repeat(2,1fr)}.ks-tile{border-bottom:1px solid var(--border)}.dash-cols{grid-template-columns:1fr}}
+/* Dashboard daily heatmap + copier distribution */
+.hm-tog{font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;border:1px solid var(--border2);color:var(--text3);background:var(--bg3)}
+.hm-tog.on{color:var(--gold);border-color:var(--gold-border);background:var(--gold-bg)}
+.hm-grid{display:grid;grid-template-columns:auto repeat(5,1fr);gap:5px;align-items:center}
+.hm-wk{font-size:9px;color:var(--text3);font-family:'JetBrains Mono',monospace;padding-right:6px;white-space:nowrap}
+.hm-col{font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--text3);text-align:center;text-transform:uppercase}
+.hm-cell{height:30px;border-radius:6px;background:var(--bg4);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text3)}
+.hm-cell.pos{background:rgba(63,185,80,.16);border-color:rgba(63,185,80,.35);color:var(--bull)}
+.hm-cell.pos2{background:rgba(63,185,80,.34);border-color:var(--bull);color:#d6ffe4}
+.hm-cell.neg{background:rgba(255,64,96,.14);border-color:rgba(255,64,96,.32);color:var(--bear)}
+.hm-cell.neg2{background:rgba(255,64,96,.30);border-color:var(--bear);color:#ffd9df}
+.cd-leader{border:1px solid var(--gold-border);background:var(--gold-bg);border-radius:var(--r);padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cd-tag{font-size:9px;font-weight:800;letter-spacing:.08em;color:var(--gold);background:var(--bg);border:1px solid var(--gold-border);border-radius:99px;padding:2px 8px}
+.cd-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 2px;border-top:1px solid var(--border);font-size:12px}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 input,textarea,select{font-family:inherit;font-size:13px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:var(--r);width:100%;outline:none}
 input:focus,textarea:focus,select:focus{border-color:var(--gold)}
@@ -2288,6 +2302,27 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
       <div class="m-card-pad">
         <div style="height:250px"><canvas id="dash-trailing-dd"></canvas></div>
       </div>
+    </div>
+  </div>
+
+  <!-- DAILY HEATMAP + COPIER DISTRIBUTION -->
+  <div class="dash-cols" style="margin-bottom:14px">
+    <div class="m-card">
+      <div class="m-sec-row">
+        <span class="m-sec">Daily Heatmap</span>
+        <div style="margin-left:auto;display:flex;gap:4px">
+          <button class="hm-tog on" id="hm-tog-leader" onclick="setHeatmapScope('leader')">Leader only</button>
+          <button class="hm-tog" id="hm-tog-all" onclick="setHeatmapScope('all')">All accounts</button>
+        </div>
+      </div>
+      <div class="m-card-pad">
+        <div class="ks-sub" id="dash-heatmap-note" style="margin-bottom:8px">Leader trades only — no copier weighting</div>
+        <div id="dash-heatmap"></div>
+      </div>
+    </div>
+    <div class="m-card">
+      <div class="m-sec-row"><span class="m-sec">Copier Distribution</span></div>
+      <div class="m-card-pad" id="dash-copier-dist"></div>
     </div>
   </div>
 
@@ -8967,6 +9002,8 @@ function renderDashboard(){
   }
 
   renderTodayNewsForDash();
+  renderDashHeatmap();
+  renderCopierDist();
   setTimeout(renderDashCharts,50);
 }
 
@@ -8995,6 +9032,66 @@ function renderDashCharts(){
   if(!window.Chart)return;
   drawLine('dash-equity',sorted.map((_,i)=>i+1),cum);
   drawLine('dash-trailing-dd',sorted.map((_,i)=>i+1),dd);
+}
+
+// ── Dashboard daily heatmap (last 9 weeks, Mon–Fri) ──────────────
+let _heatmapScope='leader';
+function setHeatmapScope(s){
+  _heatmapScope=s;
+  const l=document.getElementById('hm-tog-leader'), a=document.getElementById('hm-tog-all');
+  if(l)l.classList.toggle('on',s==='leader'); if(a)a.classList.toggle('on',s==='all');
+  const note=document.getElementById('dash-heatmap-note');
+  if(note)note.textContent=s==='leader'?'Leader trades only — no copier weighting':'All accounts — every trade counted';
+  renderDashHeatmap();
+}
+function renderDashHeatmap(){
+  const box=document.getElementById('dash-heatmap'); if(!box) return;
+  const _mids=_mirrorTradeIds().ids;
+  const src=_heatmapScope==='leader'?state.trades.filter(t=>!_mids.has(t.id)):state.trades;
+  // sum P&L per ISO date
+  const byDate={}; src.forEach(t=>{ const d=(t.date||'').slice(0,10); if(d) byDate[d]=(byDate[d]||0)+(parseFloat(t.pnl)||0); });
+  // build 9 weeks ending this week; week starts Monday
+  const mondayOf=(dt)=>{ const x=new Date(dt); const day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x; };
+  const fmtIso=(x)=>{ const y=x.getFullYear(),m=String(x.getMonth()+1).padStart(2,'0'),d=String(x.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; };
+  const fmtWk=(x)=>x.toLocaleDateString('en-US',{day:'numeric',month:'short'}).toUpperCase();
+  const thisMon=mondayOf(new Date());
+  const weeks=[]; for(let i=8;i>=0;i--){ const wk=new Date(thisMon); wk.setDate(wk.getDate()-i*7); weeks.push(wk); }
+  const vals=Object.values(byDate).map(Math.abs).filter(v=>v>0);
+  const hi=vals.length?Math.max(...vals):1;
+  const cls=(v)=>{ if(!v) return ''; const r=Math.abs(v)/hi; if(v>0) return r>0.5?'pos2':'pos'; return r>0.5?'neg2':'neg'; };
+  let html='<div class="hm-grid"><div></div>'+['Mon','Tue','Wed','Thu','Fri'].map(d=>`<div class="hm-col">${d}</div>`).join('');
+  weeks.forEach(wk=>{
+    html+=`<div class="hm-wk">${fmtWk(wk)}</div>`;
+    for(let d=0;d<5;d++){ const day=new Date(wk); day.setDate(day.getDate()+d); const v=byDate[fmtIso(day)]||0;
+      const cell=v?((v>=0?'+':'-')+'$'+(Math.abs(v)>=1000?(Math.abs(v)/1000).toFixed(1)+'k':Math.abs(v).toFixed(0))):'·';
+      html+=`<div class="hm-cell ${cls(v)}" title="${fmtIso(day)}: ${v>=0?'+':'-'}$${Math.abs(v).toFixed(2)}">${cell}</div>`;
+    }
+  });
+  html+='</div>';
+  box.innerHTML=html;
+}
+function renderCopierDist(){
+  const box=document.getElementById('dash-copier-dist'); if(!box) return;
+  const c=state.copier||{};
+  const leader=state.accounts.find(a=>String(a.id)===String(c.leaderId));
+  const followers=Object.keys(c.followers||{}).filter(id=>c.followers[id]&&c.followers[id].enabled&&String(id)!==String(c.leaderId));
+  const _mids=_mirrorTradeIds().ids;
+  if(!leader){
+    box.innerHTML='<div class="ks-sub">No leader account set. Assign one in the Copier Cockpit to derive follower distribution.</div>';
+    return;
+  }
+  const lm=(typeof _accMetrics==='function')?_accMetrics(leader):{balance:leader.deposit||0};
+  const nReal=state.trades.filter(t=>!_mids.has(t.id)&&String(t.accountId)===String(leader.id)).length;
+  let html=`<div class="cd-leader"><div><span class="cd-tag">LEADER</span> <b style="margin-left:6px">${leader.name}</b>`
+    +`<div class="ks-sub" style="margin-top:3px">${nReal} real trades · balance $${(lm.balance||0).toFixed(0)} · the only account that stores rows</div></div>`
+    +`<span class="ks-val" style="font-size:16px">${(lm.profit>=0?'+':'-')+'$'+Math.abs(lm.profit||0).toFixed(0)}</span></div>`;
+  followers.forEach(id=>{
+    const f=state.accounts.find(a=>String(a.id)===String(id)); if(!f) return;
+    const fm=(typeof _accMetrics==='function')?_accMetrics(f):{balance:f.deposit||0,profit:0};
+    html+=`<div class="cd-row"><span>${f.name} <span class="ks-sub">follower</span></span><span class="mono ${fm.profit>=0?'txt-pos':'txt-neg'}">${(fm.profit>=0?'+':'-')+'$'+Math.abs(fm.profit||0).toFixed(0)}</span></div>`;
+  });
+  html+=`<div class="ks-sub" style="margin-top:10px">Followers store nothing — every follower row is derived live from the leader on render.</div>`;
+  box.innerHTML=html;
 }
 // ============= PERFORMANCE CHARTS =============
 let perfCharts={};
