@@ -2426,22 +2426,15 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
           </div>
         </div>
 
-        <div class="prop-block p-pdarray" style="padding:8px 16px">
-          <div class="prop-left">
-            <div class="prop-label">PD Array →</div>
-            <div class="prop-type">Commit · hard-blocked</div>
-          </div>
-          <div class="prop-right">
-            <select id="ch-pdarray" style="font-size:12px" onchange="commitPdArray(this)">
-              <option value="">Commit today's PD array…</option>
-              <option>Rejection Block</option><option>Order Block</option><option>Propulsion Block</option>
-              <option>Fair Value Gap</option><option>BISI</option><option>SIBI</option>
-              <option>Balance Price Range</option><option>Inversion FVG</option><option>Liquidity Void</option>
-              <option>Suspension Block</option><option>Volume Imbalance</option><option>New Week Opening Gap</option>
-              <option>New Day Opening Gap</option><option>RTH ORG + 1st Presented FVG</option>
-              <option>SMT Divergence</option><option>Power of 3 (AMD)</option>
-            </select>
-            <div id="ch-pdarray-note" style="font-size:10px;color:var(--text3);margin-top:3px">Switching a committed array requires a logged reason.</div>
+        <div class="prop-block p-pdarray" style="padding:0;display:block">
+          <div style="margin:8px 16px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);overflow:hidden">
+            <div style="padding:10px 14px;border-bottom:1px solid var(--border);font-size:10px;letter-spacing:.12em;color:var(--text3);font-weight:800">P/D ARRAY COMMITMENT</div>
+            <div style="padding:14px">
+              <div style="font-size:13px;font-weight:700;color:var(--text)">Today's P/D array</div>
+              <div style="font-size:11px;color:var(--text3);margin:2px 0 10px">Committed — trades are validated against it</div>
+              <select id="ch-pdarray" style="font-size:12px;width:100%;max-width:440px" onchange="commitPdArray(this)"><option value="">Commit today's P/D array…</option></select>
+              <div id="ch-pdarray-detail" style="margin-top:12px"></div>
+            </div>
           </div>
         </div>
 
@@ -4413,6 +4406,258 @@ const RTH_PROFILES = ["Premium Bullish Above RTH","Discout Bullish RTH-HQ","Disc
 const ASIAN_RANGE = ["Reversal","Retracement","Accumulation","Distribution","Expansion"];
 // Color classes per Notion spec: Reversal=red, Retracement=green, Accumulation=blue, Distribution=green, Expansion=red
 const ASIAN_RANGE_COLORS = {"Reversal":"bear","Retracement":"bull","Accumulation":"blue-chip","Distribution":"bull","Expansion":"bear"};
+
+// PD array catalog (from design v2 — full details for the commitment card)
+const LMR_PD_ARRAYS = [
+      { id:'rb',
+        charts:['kb/n00.png','kb/n01.png','kb/n02.png'], name:'Rejection Block', group:'Rejection', short:'RB',
+        thesis:'Price violently rejects a level after displacement — aggressive institutional rejection, then continuation in the opposite direction.',
+        invalid:'No untouched or engineered liquidity is resting above/below after the block forms.',
+        formation:['Violent rejection of a level immediately after displacement.',
+                   'Valid only when price respected the 50% to 75% quadrant levels.',
+                   'The rejection wick, not the body, defines the block.'],
+        entry:['Untouched liquidity, or engineered liquidity, resting above/below once the RB is formed.',
+               'Enter on the return into the block, in the direction opposite the rejection.'],
+        confirm:['Resting liquidity still unpurged on the side you are delivering toward.',
+                 'Quadrant respect between 50% and 75% — outside that range the block is not valid.'],
+        why:'A violent rejection after displacement is the algorithm refusing price at a level it has already priced in. The rejection itself is the footprint; the untouched liquidity beyond it is the reason price must come back. Without that resting liquidity there is nothing drawing price, and the block is only a wick.',
+        sessions:['London 1','London 2','NY AM','NY PM'], timeframes:['15m','1H','4H'],
+        models:['Turtle Soup','OB','IOFED','Breaker Block'] },
+
+      { id:'ob',
+        charts:['kb/n03.png','kb/n04.png','kb/n05.png','kb/n06.png','kb/n07.png','kb/n08.png','kb/n09.png','kb/n10.png','kb/n11.png','kb/n12.png'], name:'Order Block', group:'Order flow', short:'OB',
+        thesis:'The last opposing candle before displacement, taken only once liquidity has been purged in the determined bias.',
+        invalid:'HTF key levels absent, bias unclear, or the recent short-term high/low did not close after the OB formed.',
+        formation:['The last opposing candle before displacement — the last down candle before an up move, the last up candle before a down move.',
+                   'Not necessarily a single candle: a series of closed candles in one direction for the opposite run.',
+                   'Formed as the last closed candles inside a P/D area.',
+                   'HTF key levels must already be present before the displacement.'],
+        entry:['OB must sit below/above swings, after stop hunts.',
+               'Recent short-term high/low has to close after the OB forms.',
+               'Market structure shift present — the setup is mostly ideal only with it.',
+               'Liquidity-purged candles are the ideal ones; unpurged candles are not.'],
+        confirm:['Daily bias / 4H bias follows the narrative.',
+                 'Clean direction and draws — these enhance the OB.',
+                 'Draws and bias both clear and valid.'],
+        why:'An order block marks where institutions had to leave unfilled orders before moving price away. That is only true when liquidity was purged first — the purge is what funded the move. If the structure never shifted and the short-term high or low never closed beyond it, the candle you are looking at was not the last opposing candle; price simply has not finished delivering yet.',
+        sessions:['London 1','London 2','NY AM','NY PM'], timeframes:['15m','1H','4H','Daily'],
+        models:['OB','Breaker Block','IOFED','CSID'] },
+
+      { id:'pb',
+        charts:['kb/n13.png','kb/n14.png','kb/n15.png'], name:'Propulsion Block', group:'Order flow', short:'PB',
+        thesis:'Price returns to a prior candle body after displacement and continues in the same direction.',
+        invalid:'Conditions are not trending — a propulsion block is a continuation tool only.',
+        formation:['Displacement away from a candle body.','Price returns into that same body.','Delivery continues in the original direction.'],
+        entry:['Continuation entry on the return into the prior body, during trending conditions.'],
+        confirm:['An established trend — this is not a reversal array.'],
+        why:'The body being revisited already holds positions in the direction of travel. Returning to it lets the algorithm add without giving up the level, which is why continuation from a propulsion block is cleaner in a trend and meaningless in a range.',
+        sessions:['London 2','NY AM','NY PM'], timeframes:['5m','15m','1H'],
+        models:['OB','IOFED','CSID'] },
+
+      { id:'fvg',
+        charts:['kb/n16.png','kb/n17.png','kb/n18.png','kb/n19.png','kb/n20.png','kb/n21.png','kb/n22.png'], name:'Fair Value Gap', group:'Imbalance', short:'FVG',
+        thesis:'A three-candle imbalance left by displacement — inefficient delivery that price returns to rebalance before continuing.',
+        invalid:'No stop hunt after the displacement, price not at a deep P/D array, or the gap sits at EQ.',
+        formation:['Three-candle imbalance created during displacement.',
+                   'Liquidity purged in HTF delivery, then a displacing gap.',
+                   'Equal resting liquidity after displacement is the highest-probability version.'],
+        entry:['Trade only an FVG created with a stop hunt after displacing.',
+               'Discount FVG below EQ; premium FVG above EQ — never the inverse.',
+               'Best scenarios come after a continuation FVG, or inside an OB.'],
+        confirm:['HTF key levels present.','Price at a deep P/D array.',
+                 'Draws aligned with HTF key levels.','Daily / 4H bias following the narrative.'],
+        why:'A gap is where price moved too fast for both sides to trade. The algorithm returns to rebalance it — but only when the gap was created by a move that took liquidity first. At EQ there is no premium or discount edge, and an FVG approaching an HTF key level has no room left to deliver, which is why both are avoided regardless of how clean the gap looks.',
+        sessions:['London 1','London 2','NY AM','NY PM'], timeframes:['5m','15m','1H','4H'],
+        models:['IFVG','OB','Breaker Block','IOFED','CSID','OTE'] },
+
+      { id:'bisi',
+        charts:['kb/n24.png'], name:'BISI', group:'Imbalance', short:'BISI',
+        thesis:'Buy-side imbalance, sell-side inefficiency — a bullish gap where discount dominated and price delivered upward too quickly.',
+        invalid:'Price is in premium rather than discount, or the upward move took no liquidity.',
+        formation:['Price moves upward aggressively.','Sell-side trading did not occur efficiently.','Discount market dominated.'],
+        entry:['Retracement into the gap to rebalance, then continuation higher.'],
+        confirm:['Institutional buying pressure visible.','Algorithm seeking buy-side liquidity above.'],
+        why:'The inefficiency is one-directional: buyers were filled, sellers were not. Price returns to offer those sellers a fill, which is what makes the retracement predictable — and why it only works from discount, where there is somewhere above to deliver to.',
+        sessions:['London 1','NY AM'], timeframes:['5m','15m','1H'],
+        models:['IFVG','OB','OTE','IOFED','CSID'] },
+
+      { id:'sibi',
+        charts:['kb/n23.png'], name:'SIBI', group:'Imbalance', short:'SIBI',
+        thesis:'Sell-side imbalance, buy-side inefficiency — a bearish gap where premium dominated and price delivered downward too quickly.',
+        invalid:'Price is in discount rather than premium, or the downward move took no liquidity.',
+        formation:['Price delivers aggressively to the downside.','Buy-side trading did not occur efficiently.','Premium market dominated.'],
+        entry:['Retracement into the SIBI, then continuation lower.'],
+        confirm:['Strong bearish institutional order flow.','Algorithm delivering price to sell-side targets below.'],
+        why:'The mirror of BISI. Sellers were filled on the way down and buyers were not, so price retraces into the gap to fill them before continuing. From premium there is sell-side liquidity below worth delivering to; from discount there is not.',
+        sessions:['London 1','NY AM'], timeframes:['5m','15m','1H'],
+        models:['IFVG','OB','OTE','IOFED','CSID'] },
+
+      { id:'bpr',
+        charts:['kb/n25.png','kb/n26.png'], name:'Balance Price Range', group:'Imbalance', short:'BPR',
+        thesis:'Buyers and sellers have both left inefficiencies in the same area — an overlapping two-sided imbalance.',
+        invalid:'Only one side has delivered an inefficiency; that is a plain FVG, not a BPR.',
+        formation:['A bullish and a bearish imbalance overlap in the same price area.','Both sides delivered inefficiently.'],
+        entry:['Treat the overlap as support or resistance.','Trade the reaction from the zone, or the expansion away from it.'],
+        confirm:['Consolidation and order accumulation inside the range.','Signs of re-accumulation before the next displacement.'],
+        why:'Two opposing inefficiencies in one place means neither side was satisfied. That makes the zone a natural place for orders to accumulate — it holds as support or resistance while the algorithm builds, then releases into the next displacement.',
+        sessions:['London 2','NY AM','NY PM'], timeframes:['15m','1H','4H'],
+        models:['IFVG','OB','Breaker Block','CSID'] },
+
+      { id:'ifvg',
+        charts:['kb/n27.png','kb/n28.png','kb/n29.png'], name:'Inversion FVG', group:'Imbalance', short:'IFVG',
+        thesis:'A prior FVG has been violated and flipped — the market now uses it as opposite-side liquidity.',
+        invalid:'The original gap was never actually violated; it is still an FVG in its first direction.',
+        formation:['A previously respected FVG gets violated.','The imbalance is invalidated and flips direction.'],
+        entry:['Trade the flipped gap as the opposite side, in the new direction of order flow.'],
+        confirm:['A shift in order flow.','Market structure shift.','Reversal context rather than continuation.'],
+        why:'When price trades fully through a gap that should have held, the thesis behind that gap is dead. The level does not disappear — it changes sides, and becomes the reference the algorithm uses to deliver the other way. The violation itself is the signal.',
+        sessions:['London 2','NY AM','NY PM'], timeframes:['5m','15m','1H'],
+        models:['IFVG','Breaker Block','CSID','IOFED'] },
+
+      { id:'lvoid',
+        charts:['kb/n30.png','kb/n31.png'], name:'Liquidity Void', group:'Imbalance', short:'Void',
+        thesis:'Large displacement candles move rapidly with almost no retracement — trading levels were skipped entirely.',
+        invalid:'The move retraced as it went; there is no genuine void.',
+        formation:['Large displacement candles in sequence.','Almost no retracement within the move.'],
+        entry:['Expect the void to be rebalanced; trade the return through it toward the draw.'],
+        confirm:['The algorithm clearly delivered price aggressively through the range.'],
+        why:'A void is the most extreme form of inefficiency — whole levels with no two-sided trade. Price eventually revisits because those levels were never auctioned, but the aggression that created it means it can stay unfilled far longer than an ordinary gap.',
+        sessions:['London 1','NY AM'], timeframes:['15m','1H','4H'],
+        models:['IOFED','CSID','OB'] },
+
+      { id:'susp',
+        charts:['kb/n32.png','kb/n33.png','kb/n34.png','kb/n35.png','kb/n36.png','kb/n37.png','kb/n38.png','kb/n39.png','kb/n40.png'], name:'Suspension Block', group:'Suspension', short:'SB',
+        thesis:'A three-candle structure where the middle body leaves voids on both sides while the wicks overlap — price is suspended between acceptance levels.',
+        invalid:'You are attempting to trade inside the block. Trade only its break or mitigation.',
+        formation:['Candle 2\u2019s body gaps relative to both Candle 1 and Candle 3 bodies.',
+                   'The wicks still overlap — price traded through, but body acceptance was absent.',
+                   'Price becomes suspended between acceptance levels and repeatedly returns to the imbalance boundaries.'],
+        entry:['Do NOT trade inside the suspension block. Trade the break, or the mitigation, of it.',
+               'Label the levels in quadrants — 25%, 50% and 75% liquidity is always crucial for stop hunts.',
+               'Wait until liquidity is observed in the opposite direction on HTF, then it continues in its direction.'],
+        confirm:['Accumulation inside the void, choppy consolidation, spider-web price action.',
+                 'Liquidity building around the block.',
+                 'It will not trade to HTF key levels — it plays around the suspension levels and inside arrays.'],
+        why:'Body acceptance never happened, so the market has no agreed value there. That is why it chops: stops pile above and below while the algorithm builds, and the range itself becomes the liquidity pool. Trading inside it means trading the accumulation; the edge is in the expansion away from it.',
+        sessions:['London 1','NY Lunch','NY PM'], timeframes:['5m','15m','1H'],
+        models:['Breaker Block','Turtle Soup','CSID','IOFED'] },
+
+      { id:'vi',
+        charts:['kb/n41.png','kb/n42.png','kb/n43.png','kb/n44.png'], name:'Volume Imbalance', group:'Imbalance', short:'VI',
+        thesis:'Two consecutive candles whose bodies do not overlap — price visits to rebalance delivery toward the draw.',
+        invalid:'HTF key-level volatility absent, or price is not clearly one-sided.',
+        formation:['The body of one candle does not overlap the body of the next.','Exists as both HTF and LTF imbalances.'],
+        entry:['HTF key-level volatility must be present.',
+               'Price must be extremely one-sided or bias-based.',
+               'Best setups form at EQ levels on LTF.',
+               'Price must respect the 75%\u2013100% level; if crossed, wait for displacement above 50%.',
+               'Participate in the same direction as the volume imbalance.'],
+        confirm:['Price reacts at a specific time — not all P/D arrays will be respected.',
+                 'Liquidity around quadrant levels are the draws in macro times.',
+                 'Price leaves on a validated time and on validated days.'],
+        why:'A body gap is a smaller inefficiency than an FVG, so it rarely justifies a trade alone — most of the time it is a seek-and-destroy profile. Its value is as a draw: it tells you where price is headed to rebalance, and the quadrant levels tell you when.',
+        sessions:['London 1','London 2','NY AM'], timeframes:['1m','5m','15m'],
+        models:['OTE','CSID','IOFED'] },
+
+      { id:'nwog',
+        charts:['kb/n45.png','kb/n46.png','kb/n47.png','kb/n48.png','kb/n49.png','kb/n50.png','kb/n51.png'], name:'New Week Opening Gap', group:'Opening gaps', short:'NWOG',
+        thesis:'The gap between the previous week\u2019s close and the new week\u2019s open — a zone, not a single price, that the algorithm rebalances frequently.',
+        invalid:'Traded on its own. NWOG is a confirmation, not a setup.',
+        formation:['Previous week\u2019s close to the new week\u2019s open.','Always a gap zone, never one price.',
+                   'Acts as a support and resistance zone in algorithmic price action; on LTF it is the best draw on liquidity.'],
+        entry:['Always label NWOG in quadrant levels, or deep quadrant levels.',
+               'CME of the NWOG is the most focal point — it has gravity, and price usually gravitates toward it.',
+               'The 25% and 75% levels usually have swings right below or above — the best draws to find.'],
+        confirm:['HTF draws or bias, and HTF P/D arrays, decide whether the level is used for a draw or a setup.',
+                 'Do not trade with NWOG levels alone — it confirms when blended with time and price and P/D arrays.'],
+        why:'A week\u2019s worth of orders sits unmatched across that gap, which is why the algorithm keeps returning to it and why the CME level inside it behaves like a magnet. But the gap has no timing information of its own — blended with a macro time and an array it is powerful; alone it is just a line.',
+        sessions:['London 1','NY AM'], timeframes:['15m','1H','4H','Daily'],
+        models:['OTE','OB','IOFED','CSID'] },
+
+      { id:'ndog',
+        charts:['kb/n52.png','kb/n53.png','kb/n54.png','kb/n55.png','kb/n56.png','kb/n57.png'], name:'New Day Opening Gap', group:'Opening gaps', short:'NDOG',
+        thesis:'The gap between the previous day\u2019s close and the new day\u2019s open — a magnet for price to find support and resistance.',
+        invalid:'Treated like an NWOG. It is a completely different gap with a different use.',
+        formation:['Previous day\u2019s close to the new day\u2019s open, formed at the daily market transition.'],
+        entry:['HTF key-level volatility must be present.',
+               'Price extremely one-sided or bias-based, to follow continuations.',
+               'Best setups form at EQ levels on LTF, blending with SMT specifically.',
+               'Use the NDOG where HTF liquidity is resting — that gives the clear direction.'],
+        confirm:['Most useful for intraday draws and runs on liquidity aligned with P/D arrays.',
+                 'For draws in a directional trade it is useful for partials.'],
+        why:'One session of unmatched orders rather than a week\u2019s, so it carries less weight but more immediacy — it is an intraday magnet. Its real use is directional: read it against where HTF liquidity is resting and it tells you which way the day wants to deliver.',
+        sessions:['NY AM','NY PM'], timeframes:['5m','15m','1H'],
+        models:['OTE','CSID','IOFED','OB'] },
+
+      { id:'rth',
+        charts:['kb/n58.png','kb/n59.png','kb/n60.png'],
+        chartSets:[
+          ['1st Presented FVG', ['kb/n58.png','kb/n59.png','kb/n60.png']],
+          ['Bullish 1 \u00b7 Respects the gap, no retrace into RTH ORG', ['kb/n61.png']],
+          ['Bullish 2 \u00b7 Discount delivery disrespects the gap to seek premium', ['kb/n62.png','kb/n63.png']],
+          ['Bullish 3 \u00b7 Sell-side purged below the 1st FVG, used as discount array', ['kb/n64.png','kb/n65.png']],
+          ['Bullish 4 \u00b7 Premium gap retracement above the 75% quadrant', ['kb/n66.png','kb/n67.png']],
+          ['Bullish 5 \u00b7 Lower-quadrant discount retracement', ['kb/n68.png']],
+          ['Bearish 1 \u00b7 Respects the gap, no retrace into RTH ORG', ['kb/n69.png']],
+          ['Bearish 2 \u00b7 Discount disrespects the gap to seek discount draws', ['kb/n70.png','kb/n71.png']],
+          ['Bearish 3 \u00b7 Buy-side purged above the 1st FVG, used as premium array', ['kb/n72.png','kb/n73.png','kb/n74.png','kb/n75.png','kb/n76.png','kb/n77.png']],
+          ['Bearish 4 \u00b7 Higher-quadrant premium retracement above the 1st FVG', ['kb/n78.png']],
+          ['Bearish 5 \u00b7 Premium gap CME and lower quadrant levels', ['kb/n79.png','kb/n80.png','kb/n81.png','kb/n82.png','kb/n83.png','kb/n84.png']]
+        ], name:'RTH ORG + 1st Presented FVG', group:'Opening gaps', short:'RTH ORG',
+        thesis:'The Regular Trading Hours opening gap, and the first imbalance created after the 9:30 NY displacement — the start of true daily delivery.',
+        invalid:'Traded on the basis of the RTH open alone, without blending time, price and arrays.',
+        formation:['Gaps between RTH, 9:30am to 16:14pm, on the equity exchange.',
+                   'At 9:30 institutional volume enters, pre-market liquidity gets targeted, and true intraday direction begins.',
+                   'The First Presented FVG is the first imbalance immediately after the 9:30 open displacement.',
+                   'It can be an FVG, BPR, IFVG, measuring gap, breakaway gap or suspension gap — use as conditions require.'],
+        entry:['HTF bias and draws must be present.',
+               '9:30 open is a run for liquidity or a stop hunt — NY Judas, distribution or re-distribution.',
+               'Always seek premium or discount price and arrays.',
+               '15-minute closure or sweep is the main characteristic inside the RTH gap.',
+               'Most trades occur on a 15m candle sweeping liquidity, or continuing without a sweep.'],
+        confirm:['The 9:30 open can be distribution, re-distribution, retracement, reversal or consolidation — read the HTF narrative.',
+                 'Use 15m candles as the reference for direction and draws.',
+                 'The 1st FVG can serve as a continuation FVG, or as an IFVG while purging opposite liquidity.',
+                 'Draws found at the 25%, 50% and 75% levels with time, price and P/D arrays.'],
+        why:'9:30 is when the day\u2019s real auction starts, so the first imbalance after it is the algorithm\u2019s opening statement about direction. The gap gives you the level and the 15-minute candle gives you the timing — which is why neither works alone, and why the open is so often a Judas move before the true delivery.',
+        sessions:['NY AM','NY AM1','NY AM2'], timeframes:['5m','15m','1H'],
+        models:['ICT 2022 Modle','IFVG','OB','CSID','OTE','Sliver Bullet'] },
+
+      { id:'smt',
+        charts:['kb/n85.png','kb/n86.png','kb/n87.png'], name:'SMT Divergence', group:'Correlation', short:'SMT',
+        thesis:'Comparative analysis of correlated markets to reveal relative strength, weakness and capital rotation. SMT tells you WHERE to trade, not when.',
+        invalid:'Used as an entry signal. SMT exposes intent, not entry — it is context, not a trade.',
+        formation:['Correlated markets: indices NQ/ES/YM, FX pairs EUR/USD vs GBP/USD, bonds vs equities.',
+                   'A common liquidity reference: prior high/low, equal high/low, or weekly/monthly PD arrays.',
+                   'Asymmetry in delivery: one market reaches liquidity, another fails, delays or rejects.',
+                   'All three must be present.'],
+        entry:['Use SMT to select the instrument, then take the entry from a P/D array on that instrument.',
+               'Strong asset: reaches the liquidity objective first and holds structure.',
+               'Weak asset: fails to reach the objective, or rejects from premium/discount early.',
+               'Lagging asset: follows with delay, poor structure and less displacement.'],
+        confirm:['Informational SMT — during accumulation or balance, for bias building, no immediate trade.',
+                 'Displacement SMT — during manipulation or expansion, confirms directional delivery.',
+                 'Distribution SMT — near HTF premium/discount, signals offloading, often precedes reversals.',
+                 'Also watch DXY against yields: one making a higher high while the other fails can front-run equity futures.'],
+        why:'When correlated markets fail to reach the same liquidity objective at the same time, smart money is reallocating risk rather than exiting it. That asymmetry is the clearest read available on where capital is rotating before price delivers — which is exactly why it answers instrument selection and never timing.',
+        sessions:['London 1','London 2','NY AM','NY PM'], timeframes:['15m','1H','4H'],
+        models:['Breaker Block','OB','OTE','CSID','IOFED','Sliver Bullet','Turtle Soup','IFVG','ICT 2022 Modle'] },
+
+      { id:'po3',
+        charts:['kb/npo3.png','kb/n88.png','kb/n89.png','kb/n90.png','kb/n91.png','kb/n92.png'], name:'Power of 3 (AMD)', group:'Delivery cycle', short:'PO3',
+        thesis:'The algorithmic delivery cycle — Accumulation, Manipulation, Distribution — engineering liquidity before expanding toward HTF objectives.',
+        invalid:'Expecting distribution without a manipulation leg having taken liquidity first.',
+        formation:['Accumulation — tight consolidation while institutions build; buy stops above the highs, sell stops below the lows form resting liquidity pools. Small candles, equal highs/lows, low volatility, repeated range tests.',
+                   'Manipulation — a fake breakout outside the range to capture that liquidity and trap participants. The stop hunt, liquidity grab, or Judas swing.',
+                   'Distribution — the real directional move toward a liquidity target.'],
+        entry:['Enter after the manipulation leg, in the direction of distribution.',
+               'Targets: previous session highs/lows, equal highs/lows, daily or weekly liquidity levels.'],
+        confirm:['PO3 is fractal — weekly to daily, 4H to 1H, 15m, 5m, even 1m.',
+                 'Time is fractal: LTF leads to HTF designated price runs with the time cycle.'],
+        why:'Institutions cannot fill size without liquidity, so it has to be engineered before it can be used. Accumulation builds the pool, manipulation harvests it, distribution spends it. That order never changes — which is why a move that expands without first taking liquidity is usually the manipulation you are about to be trapped by.',
+        sessions:['London 1','London 2','NY AM','NY PM'], timeframes:['1m','5m','15m','1H','4H','Daily','Weekly'],
+        models:['Turtle Soup','OB','IFVG','Breaker Block','CSID','OTE','ICT 2022 Modle'] }
+    ];
 
 const PRICE_REFS = ["Premium","Above Swing HIgh","Above Weekly Open","Above Monthly Open","PMH","PWH","PDH","Daily -OB","Daily SIBI","Higher Qudrant","HTF EQ","HTF DRT","HTF OTE","NWOG","Daily Wick","Daily IFVG","Suspension Block","Daily Imbalance","NDOG","Lower Qudrant","Daily BISI","Daily +OB","PDL","PWL","PML","Below Swing Low","Below Weekly Open","Below Monthly Open","Discount","All time High"];
 // Color groups per Notion spec
@@ -6478,6 +6723,7 @@ function commitPdArray(sel){
     _logPdSwitch(from,to,reason.trim());
   }
   _pdArrayCommitted=to;
+  renderPdArrayDetail(to);
   autoSaveDaily();
 }
 async function _logPdSwitch(from,to,reason){
@@ -6487,6 +6733,45 @@ async function _logPdSwitch(from,to,reason){
     }
   }catch(e){ console.warn('[LMR] pd_switch log failed:',e.message); }
   try{ flash && flash('✓ PD array switch logged'); }catch(e){}
+}
+// Rich PD-array commitment card (design v2): populated from LMR_PD_ARRAYS.
+function _pdEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+let _pdOpen={};
+function buildPdArrayOptions(){
+  const sel=document.getElementById('ch-pdarray'); if(!sel||typeof LMR_PD_ARRAYS==='undefined')return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Commit today’s P/D array…</option>'+LMR_PD_ARRAYS.map(a=>`<option value="${_pdEsc(a.name)}">${_pdEsc(a.short)} · ${_pdEsc(a.name)}</option>`).join('');
+  if(cur)sel.value=cur;
+}
+function _pdToggle(k){ _pdOpen[k]=!_pdOpen[k]; const s=document.getElementById('ch-pdarray'); renderPdArrayDetail(s?s.value:''); }
+function renderPdArrayDetail(name){
+  const el=document.getElementById('ch-pdarray-detail'); if(!el)return;
+  const a=(typeof LMR_PD_ARRAYS!=='undefined')?LMR_PD_ARRAYS.find(x=>x.name===name):null;
+  if(!a){ el.innerHTML=''; return; }
+  const sec=(key,label,hint)=>{
+    const v=a[key]; if(!v||(Array.isArray(v)&&!v.length))return '';
+    const open=_pdOpen[a.id+key];
+    const body=open?`<div style="padding:6px 14px 12px;font-size:12px;color:var(--text2);line-height:1.6">${Array.isArray(v)?'<ul style="margin:0;padding-left:16px">'+v.map(x=>`<li>${_pdEsc(x)}</li>`).join('')+'</ul>':_pdEsc(v)}</div>`:'';
+    return `<div style="border-top:1px solid var(--border)"><button type="button" onclick="_pdToggle('${a.id}${key}')" style="width:100%;text-align:left;background:none;border:none;color:var(--text);padding:9px 14px;cursor:pointer;font-size:12px"><span style="color:var(--gold);margin-right:8px;font-weight:700">${open?'−':'+'}</span><b>${label}</b> <span style="color:var(--text3);font-weight:400">${hint||''}</span></button>${body}</div>`;
+  };
+  el.innerHTML=`<div style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);overflow:hidden">
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 14px">
+      <div style="width:30px;height:30px;border-radius:50%;background:var(--gold-bg);border:1px solid var(--gold-border);color:var(--gold);font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${_pdEsc(a.short)}</div>
+      <div style="font-size:15px;font-weight:800;color:var(--text)">${_pdEsc(a.name)}</div>
+      <div style="font-size:9px;letter-spacing:.1em;color:var(--text3);font-weight:700;text-transform:uppercase">${_pdEsc(a.group||'')}</div>
+    </div>
+    <div style="padding:0 14px 12px;font-size:12px;color:var(--text2);line-height:1.6">${_pdEsc(a.thesis||'')}</div>
+    ${a.invalid?`<div style="margin:0 14px 12px;background:var(--bear-bg);border:1px solid var(--bear);border-radius:var(--r);padding:8px 12px;font-size:12px;color:var(--text2)"><b style="color:var(--bear)">INVALID</b> &nbsp;${_pdEsc(a.invalid)}</div>`:''}
+    <div style="display:flex;border-top:1px solid var(--border)">
+      <div style="flex:1;padding:8px 14px;border-right:1px solid var(--border)"><div style="font-size:9px;letter-spacing:.1em;color:var(--text3);font-weight:700">SESSIONS</div><div style="font-size:12px;color:var(--text);margin-top:3px">${(a.sessions||[]).map(_pdEsc).join(' · ')||'—'}</div></div>
+      <div style="flex:1;padding:8px 14px"><div style="font-size:9px;letter-spacing:.1em;color:var(--text3);font-weight:700">TIMEFRAMES</div><div style="font-size:12px;color:var(--text);margin-top:3px">${(a.timeframes||[]).map(_pdEsc).join(' · ')||'—'}</div></div>
+    </div>
+    ${sec('formation','Formation','What must have happened for this array to exist')}
+    ${sec('entry','Entry','The precise conditions for taking it')}
+    ${sec('confirm','Confirmation','What must align — session, timeframe, confluence')}
+    ${sec('why','Why it works','The reasoning, in full')}
+    <div style="border-top:1px solid var(--border);padding:9px 14px;font-size:12px;color:var(--text3)"><span style="color:var(--gold);margin-right:8px;font-weight:700">+</span><b style="color:var(--text2)">Charts</b> ${(a.charts||[]).length} from the LMR reference</div>
+  </div>`;
 }
 function getChipsValues(grp,multi=true){
   const sel=document.querySelectorAll(`.chip[data-grp="${grp}"].on`);
@@ -6514,7 +6799,9 @@ function loadDaily(){
   setChipsValues('priceRefs',d.priceRefs||d.price||[]); // read from either key
   _priceRefOrder=(Array.isArray(d.price)?d.price:(Array.isArray(d.priceRefs)?d.priceRefs:[])).slice(); // preserve click order
   _renderPriceOrder();
+  if(typeof buildPdArrayOptions==='function')buildPdArrayOptions();
   const _pdEl=document.getElementById('ch-pdarray'); const _pdv=d.pdArray||d.pd_array||''; if(_pdEl)_pdEl.value=_pdv; _pdArrayCommitted=_pdv;
+  if(typeof renderPdArrayDetail==='function')renderPdArrayDetail(_pdv);
   setChipsValues('session',d.session||'');
   setChipsValues('plan',d.plan||'');
   setChipsValues('pred',d.pred||'');
