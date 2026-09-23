@@ -2948,8 +2948,15 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
           <div id="priceRefOrder" style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;align-items:center"></div>
         </div>
 
-        <!-- P/D ARRAY COMMITMENT — drop-in section from the design (design/handoff/pd-arrays-section.html) -->
+        <!-- P/D ARRAY COMMITMENT — grouped dropdown (design format) + committed detail card -->
         <div class="prop-block p-pdarray" style="padding:8px 16px;display:block">
+          <div class="m-field" style="margin-bottom:10px">
+            <label for="pdArraySelect">Today’s P/D array</label>
+            <span class="m-fhint">Commit one — trades are then validated against it</span>
+            <select id="pdArraySelect" class="m-focus" onchange="if(window.PD&&PD.setFromSelect)PD.setFromSelect(this.value)">
+              <option value="">Select a P/D array…</option>
+            </select>
+          </div>
           <div id="lmr-pd"></div>
         </div>
 
@@ -15862,9 +15869,35 @@ function resetAccount(id){
       '</button><div class="pd-body">' + inner + '</div></div>';
   }
 
+  /* Grouped native <select> (design format) — drives the same commit/switch engine. */
+  PD.fillSelect = function () {
+    var sel = document.getElementById('pdArraySelect'); if (!sel) return;
+    var groups = [], gi = {};
+    ARRAYS.forEach(function (a) {
+      if (gi[a.group] == null) { gi[a.group] = groups.length; groups.push({ name: a.group, items: [] }); }
+      groups[gi[a.group]].items.push(a);
+    });
+    var h = '<option value="">Select a P/D array…</option>';
+    groups.forEach(function (g) {
+      h += '<optgroup label="' + esc(g.name) + '">';
+      g.items.forEach(function (a) { h += '<option value="' + esc(a.id) + '">' + esc(a.short) + ' · ' + esc(a.name) + '</option>'; });
+      h += '</optgroup>';
+    });
+    sel.innerHTML = h; PD.syncSelect();
+  };
+  PD.syncSelect = function () { var sel = document.getElementById('pdArraySelect'); if (sel) sel.value = chain().pdArray || ''; };
+  PD.setFromSelect = function (id) {
+    if (!id) { PD.release(); return; }
+    var cur = chain().pdArray;
+    if (!cur) PD.commit(id);
+    else if (cur !== id) PD.doSwitch(id);   // switching mid-day is logged
+    PD.syncSelect();
+  };
+
   PD.render = function () {
-    var host = document.getElementById('lmr-pd'); if (!host) return;
-    var c = chain(), cur = byId(c.pdArray), picking = !cur || PD.picking;
+    var sel = document.getElementById('pdArraySelect'); if (sel && sel.options.length <= 1) PD.fillSelect();
+    var host = document.getElementById('lmr-pd'); if (!host) { PD.syncSelect(); return; }
+    var c = chain(), cur = byId(c.pdArray), picking = PD.picking;
     var h = '<div class="pd-head"><span class="pd-eyebrow">Today\u2019s P/D array</span>' +
       '<span class="pd-hint">' + (cur ? 'Committed \u2014 trades are validated against it'
         : 'Commit one array; the rest are then hidden') + '</span></div>';
@@ -15928,6 +15961,7 @@ function resetAccount(id){
       });
     }
     host.innerHTML = h;
+    PD.syncSelect();
   };
 
   /* PERSISTENCE \u2014 the only place that touches your storage. */
@@ -15938,8 +15972,9 @@ function resetAccount(id){
     }
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', PD.render);
-  else PD.render();
+  function PD_INIT(){ PD.fillSelect(); PD.render(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', PD_INIT);
+  else PD_INIT();
 })();
 </script>
 
