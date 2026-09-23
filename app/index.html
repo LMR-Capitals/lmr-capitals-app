@@ -6987,16 +6987,21 @@ function updateMonthlyDisplay(){
   const m=state.monthly[state.currentMonth]||{};
   const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const [yy,mm]=(state.currentMonth||todayStr().slice(0,7)).split('-').map(Number);
-  const head=`<div class="htfx-head"><span class="htfx-tag mo">Monthly</span><span class="htfx-title">${MONTHS[(mm||1)-1]} ${yy||''}</span><span class="htfx-open">Edit →</span></div>`;
-  const rows=[
-    _htfxKv('Q-Shift',m['m-qshift']),
-    _htfxKv('Profile',m['m-profile']),
-    _htfxKv('Seasonal',m['m-seasonal']),
-    _htfxKv('Prediction',m['m-pred']),
-    _htfxKv('Rate',m['m-rate']),
-    _htfxKv('Key Level',(m['m-keylevels']||'').split('\n')[0],' htfx-lvl')
-  ].filter(Boolean).join('');
-  el.innerHTML=head+(rows?`<div class="htfx-rows">${rows}</div>`:`<div class="htfx-empty">Monthly not filled yet — <b>open Monthly →</b></div>`);
+  const cell=(k,v)=>`<div><div style="font-size:9px;letter-spacing:.1em;color:var(--text3);font-weight:700">${k}</div><div style="font-size:13px;color:var(--text);margin-top:3px${_htfxDirCls(v)?';color:var(--'+(_htfxDirCls(v).trim()==='bull'?'bull':'bear')+')':''}">${_htfxEsc(v)||'—'}</div></div>`;
+  const kl=(m['m-keylevels']||'').trim();
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <span style="font-size:9px;font-weight:800;letter-spacing:.08em;color:var(--pur);background:var(--pur-bg);border:1px solid var(--pur);border-radius:99px;padding:3px 10px">MONTHLY</span>
+      <span style="font-size:14px;font-weight:800;color:var(--text)">${MONTHS[(mm||1)-1]} ${yy||''}</span>
+      <span style="margin-left:auto;font-size:11px;color:var(--gold)">Edit →</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+      ${cell('Q-SHIFT',m['m-qshift'])}${cell('PROFILE',m['m-profile'])}${cell('SEASONAL',m['m-seasonal'])}${cell('RATE',m['m-rate'])}
+    </div>
+    <div style="margin-top:12px;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:var(--r);padding:8px 12px">
+      <div style="font-size:9px;letter-spacing:.1em;color:var(--text3);font-weight:700">KEY LEVEL</div>
+      <div style="font-size:12px;margin-top:2px;color:${kl?'var(--gold)':'var(--text3)'};font-weight:${kl?'700':'400'}">${kl?_htfxEsc(kl.split('\n')[0]):'No key levels saved'}</div>
+    </div>`;
 }
 
 function updateWeeklyDisplay(){
@@ -7004,18 +7009,21 @@ function updateWeeklyDisplay(){
   if(!el) return;
   const wk = `${state.currentMonth}-W${state.currentWeek}`;
   const w = state.weekly[wk] || {};
-  const head=`<div class="htfx-head"><span class="htfx-tag wk">Weekly</span><span class="htfx-title">Week ${state.currentWeek||1}</span><span class="htfx-open">Edit →</span></div>`;
-  const im=[w['w-nq']?'NQ '+w['w-nq']:'',w['w-es']?'ES '+w['w-es']:'',w['w-ym']?'YM '+w['w-ym']:''].filter(Boolean).join(' · ');
-  const rows=[
-    _htfxKv('Model',w['w-model']),
-    _htfxKv('Week Profile',w['w-profile']),
-    _htfxKv('Phase',w['w-phase']),
-    _htfxKv('Range',w['w-range']),
-    _htfxKv('P/D Arrays',w['w-pd']),
-    _htfxKv('Inter-market',im),
-    _htfxKv('Key Level',(w['w-keylevels']||'').split('\n')[0],' htfx-lvl')
-  ].filter(Boolean).join('');
-  el.innerHTML=head+(rows?`<div class="htfx-rows">${rows}</div>`:`<div class="htfx-empty">Weekly not filled yet — <b>open Weekly →</b></div>`);
+  const cell=(k,v)=>`<div><div style="font-size:9px;letter-spacing:.1em;color:var(--text3);font-weight:700">${k}</div><div style="font-size:13px;margin-top:3px;color:${_htfxDirCls(v)?'var(--'+(_htfxDirCls(v).trim()==='bull'?'bull':'bear')+')':'var(--text)'}">${_htfxEsc(v)||'—'}</div></div>`;
+  const kl=(w['w-keylevels']||'').trim();
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <span style="font-size:9px;font-weight:800;letter-spacing:.08em;color:var(--blue);background:var(--blue-bg);border:1px solid var(--blue);border-radius:99px;padding:3px 10px">WEEKLY</span>
+      <span style="font-size:14px;font-weight:800;color:var(--text)">Week ${state.currentWeek||1}</span>
+      <span style="margin-left:auto;font-size:11px;color:var(--gold)">Edit →</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+      ${cell('MODEL',w['w-model'])}${cell('WEEK PROFILE',w['w-profile'])}${cell('PHASE',w['w-phase'])}${cell('RANGE',w['w-range'])}
+    </div>
+    <div style="margin-top:12px;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:var(--r);padding:8px 12px">
+      <div style="font-size:9px;letter-spacing:.1em;color:var(--text3);font-weight:700">KEY LEVEL</div>
+      <div style="font-size:12px;margin-top:2px;color:${kl?'var(--gold)':'var(--text3)'};font-weight:${kl?'700':'400'}">${kl?_htfxEsc(kl.split('\n')[0]):'No key levels saved'}</div>
+    </div>`;
 }
 
 function updateTodayJournalPreview(ds){
