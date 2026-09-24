@@ -1,0 +1,232 @@
+//@version=6
+indicator("LMR Session Quarters + AMD Detector", overlay=true, max_boxes_count=500, max_lines_count=500, max_labels_count=500)
+
+// =====================================================================
+// LMR SESSION QUARTERS + LIVE AMD DETECTOR
+// -----------------------------------------------------------------------
+// Sessions (New York time), matching your reference framework:
+//   Asia    : 18:00 - 02:30   (single block for now - sub-times TBD)
+//   Off     : 16:00 - 18:00   (unlabeled gap, hidden by default)
+//   London  : 02:30-04:00 (LO1/A) | 04:00-05:30 (LO2/M) | 05:30-07:00 (LO3/D)
+//   NY AM   : 07:00-08:30 (AM1/A) | 08:30-10:00 (AM2/M) | 10:00-11:30 (AM3/D)
+//   NY PM   : 11:30-13:00 (PM1/A) | 13:00-14:30 (PM2/M) | 14:30-16:00 (PM3/D)
+//
+// Each session's 3 blocks are structurally A -> M -> D. The script then
+// checks PRICE BEHAVIOR against that structural expectation:
+//   A block  -> is the range actually tight vs ATR?
+//   M block  -> did price sweep the prior (A) block's high/low and
+//               reverse back inside it (confirmed Judas Swing)?
+//               The OPEN of the M block is locked in as the True Open.
+//   D block  -> did price displace away from the True Open by a
+//               meaningful amount (confirmed directional distribution)?
+//
+// Best used on sub-30min charts (1m-15m) so each 90-min block has
+// enough bars to resolve cleanly.
+// =====================================================================
+
+// ---------------------------------------------------------------------
+// INPUTS
+// ---------------------------------------------------------------------
+grpSessions = "Sessions"
+showAsia    = input.bool(true,  "Show Asia",                     group = grpSessions)
+showLondon  = input.bool(true,  "Show London",                   group = grpSessions)
+showNYAM    = input.bool(true,  "Show NY AM",                    group = grpSessions)
+showNYPM    = input.bool(true,  "Show NY PM",                    group = grpSessions)
+showOff     = input.bool(false, "Show Dead Zone (16:00-18:00)",  group = grpSessions)
+
+grpAMD    = "AMD Detection"
+atrLen    = input.int(14,    "ATR Length",                                   group = grpAMD)
+accumMult = input.float(0.5, "Accumulation range threshold (x ATR)",  step = 0.1, group = grpAMD)
+distMult  = input.float(0.8, "Distribution displacement threshold (x ATR)", step = 0.1, group = grpAMD)
+
+grpVisual    = "Visuals"
+showBoxes    = input.bool(true, "Show Session Boxes",              group = grpVisual)
+showLabels   = input.bool(true, "Show Phase Labels",               group = grpVisual)
+showBg       = input.bool(true, "Color Chart Background by Phase", group = grpVisual)
+showTable    = input.bool(true, "Show Dashboard Table",            group = grpVisual)
+showTrueOpen = input.bool(true, "Show True Open Lines",            group = grpVisual)
+
+// ---------------------------------------------------------------------
+// TIME / SESSION MAPPING (all times converted to New York local time)
+// ---------------------------------------------------------------------
+nyH   = hour(time,   "America/New_York")
+nyM   = minute(time, "America/New_York")
+nyMin = nyH * 60 + nyM   // minutes since midnight, NY time
+
+string blockID     = na
+string sessionName = na
+string role        = na  // "A" Accumulation | "M" Manipulation | "D" Distribution | "N" not classified
+
+if nyMin >= 1080 or nyMin < 150
+    blockID     := "ASIA"
+    sessionName := "Asia"
+    role        := "N"
+else if nyMin >= 960 and nyMin < 1080
+    blockID     := "OFF"
+    sessionName := "Off"
+    role        := "N"
+else if nyMin >= 150 and nyMin < 240
+    blockID     := "LO1"
+    sessionName := "London"
+    role        := "A"
+else if nyMin >= 240 and nyMin < 330
+    blockID     := "LO2"
+    sessionName := "London"
+    role        := "M"
+else if nyMin >= 330 and nyMin < 420
+    blockID     := "LO3"
+    sessionName := "London"
+    role        := "D"
+else if nyMin >= 420 and nyMin < 510
+    blockID     := "AM1"
+    sessionName := "NY AM"
+    role        := "A"
+else if nyMin >= 510 and nyMin < 600
+    blockID     := "AM2"
+    sessionName := "NY AM"
+    role        := "M"
+else if nyMin >= 600 and nyMin < 690
+    blockID     := "AM3"
+    sessionName := "NY AM"
+    role        := "D"
+else if nyMin >= 690 and nyMin < 780
+    blockID     := "PM1"
+    sessionName := "NY PM"
+    role        := "A"
+else if nyMin >= 780 and nyMin < 870
+    blockID     := "PM2"
+    sessionName := "NY PM"
+    role        := "M"
+else
+    blockID     := "PM3"
+    sessionName := "NY PM"
+    role        := "D"
+
+sessionVisible = sessionName == "Asia" ? showAsia : sessionName == "Off" ? showOff : sessionName == "London" ? showLondon : sessionName == "NY AM" ? showNYAM : showNYPM
+
+isNewBlock = blockID != blockID[1]
+
+// ---------------------------------------------------------------------
+// STATE TRACKED PER BLOCK
+// ---------------------------------------------------------------------
+var float blockOpen      = na
+var float blockHigh      = na
+var float blockLow       = na
+var int   blockStartBar  = na
+
+var float prevBlockHigh  = na
+var float prevBlockLow   = na
+
+var float sessionTrueOpen = na
+var string trueOpenSession = na
+
+var box   currentBox   = na
+var label currentLabel = na
+var line  trueOpenLine = na
+
+var bool judasAlerted = false
+var bool distAlerted  = false
+
+if isNewBlock
+    prevBlockHigh := blockHigh
+    prevBlockLow  := blockLow
+
+    blockOpen     := open
+    blockHigh     := high
+    blockLow      := low
+    blockStartBar := bar_index
+    judasAlerted  := false
+    distAlerted   := false
+
+    if role == "M"
+        sessionTrueOpen := open
+        trueOpenSession := sessionName
+        if showTrueOpen and sessionVisible
+            trueOpenLine := line.new(bar_index, open, bar_index, open, color = color.yellow, style = line.style_dashed, width = 1)
+
+    if showBoxes and sessionVisible
+        boxColor = role == "A" ? color.new(color.blue, 90) : role == "M" ? color.new(color.orange, 88) : role == "D" ? color.new(color.gray, 90) : color.new(color.purple, 92)
+        currentBox := box.new(bar_index, high, bar_index, low, border_color = color.new(color.gray, 60), bgcolor = boxColor, extend = extend.none)
+
+    if showLabels and sessionVisible
+        currentLabel := label.new(bar_index, high, text = blockID, style = label.style_label_down, color = color.new(color.black, 100), textcolor = color.gray, size = size.small)
+else
+    blockHigh := math.max(blockHigh, high)
+    blockLow  := math.min(blockLow, low)
+
+// ---------------------------------------------------------------------
+// AMD DETECTION (recomputed every bar from current block state)
+// ---------------------------------------------------------------------
+atrVal = ta.atr(atrLen)
+
+blockRange   = blockHigh - blockLow
+isTightRange = blockRange < atrVal * accumMult
+
+sweptHigh    = not na(prevBlockHigh) and blockHigh > prevBlockHigh
+sweptLow     = not na(prevBlockLow)  and blockLow  < prevBlockLow
+reversedBack = (sweptHigh and close < prevBlockHigh) or (sweptLow and close > prevBlockLow)
+judasConfirmed = role == "M" and (sweptHigh or sweptLow) and reversedBack
+
+displacement = na(sessionTrueOpen) ? 0.0 : close - sessionTrueOpen
+isBullDist   = role == "D" and displacement > atrVal * distMult
+isBearDist   = role == "D" and displacement < -atrVal * distMult
+
+// ---------------------------------------------------------------------
+// UPDATE VISUALS EVERY BAR
+// ---------------------------------------------------------------------
+if showBoxes and sessionVisible and not na(currentBox)
+    box.set_right(currentBox, bar_index)
+    box.set_top(currentBox, blockHigh)
+    box.set_bottom(currentBox, blockLow)
+    if role == "D"
+        box.set_bgcolor(currentBox, isBullDist ? color.new(color.green, 82) : isBearDist ? color.new(color.red, 82) : color.new(color.gray, 90))
+    if role == "M" and judasConfirmed
+        box.set_bgcolor(currentBox, color.new(color.orange, 70))
+
+if showLabels and sessionVisible and not na(currentLabel)
+    labelText = role == "A" ? (isTightRange ? blockID + "\nAccum OK" : blockID + "\nAccum wide") : role == "M" ? (judasConfirmed ? blockID + "\nJudas OK" : blockID + "\nManip...") : role == "D" ? (isBullDist ? blockID + "\nDist UP" : isBearDist ? blockID + "\nDist DOWN" : blockID + "\nDist weak") : blockID
+    label.set_text(currentLabel, labelText)
+    label.set_y(currentLabel, blockHigh)
+
+if showTrueOpen and not na(trueOpenLine) and (role == "M" or role == "D") and sessionName == trueOpenSession
+    line.set_x2(trueOpenLine, bar_index)
+
+// ---------------------------------------------------------------------
+// BACKGROUND COLOR BY LIVE PHASE
+// ---------------------------------------------------------------------
+bgColor = not showBg or not sessionVisible ? na : role == "A" ? color.new(color.blue, 93) : role == "M" ? color.new(color.orange, 90) : role == "D" ? (isBullDist ? color.new(color.green, 90) : isBearDist ? color.new(color.red, 90) : color.new(color.gray, 94)) : na
+
+bgcolor(bgColor)
+
+// ---------------------------------------------------------------------
+// DASHBOARD TABLE
+// ---------------------------------------------------------------------
+if showTable and barstate.islast
+    dash = table.new(position.top_right, 2, 5, bgcolor = color.new(color.black, 20), border_color = color.gray, border_width = 1)
+    table.cell(dash, 0, 0, "Session",  text_color = color.white, bgcolor = color.new(color.gray, 40))
+    table.cell(dash, 1, 0, sessionName, text_color = color.white, bgcolor = color.new(color.gray, 40))
+    table.cell(dash, 0, 1, "Block", text_color = color.white)
+    table.cell(dash, 1, 1, blockID, text_color = color.white)
+    phaseText = role == "A" ? "Accumulation" : role == "M" ? "Manipulation" : role == "D" ? "Distribution" : "-"
+    table.cell(dash, 0, 2, "Phase", text_color = color.white)
+    table.cell(dash, 1, 2, phaseText, text_color = color.white)
+    statusText = role == "M" ? (judasConfirmed ? "Judas OK" : "watching...") : role == "D" ? (isBullDist ? "Bull Dist OK" : isBearDist ? "Bear Dist OK" : "watching...") : "-"
+    table.cell(dash, 0, 3, "Status", text_color = color.white)
+    table.cell(dash, 1, 3, statusText, text_color = color.yellow)
+    table.cell(dash, 0, 4, "True Open", text_color = color.white)
+    table.cell(dash, 1, 4, na(sessionTrueOpen) ? "-" : str.tostring(sessionTrueOpen, format.mintick), text_color = color.white)
+
+// ---------------------------------------------------------------------
+// ALERTS
+// ---------------------------------------------------------------------
+if judasConfirmed and not judasAlerted
+    judasAlerted := true
+    alert("LMR: Judas Swing confirmed in " + blockID, alert.freq_once_per_bar)
+
+if (isBullDist or isBearDist) and not distAlerted
+    distAlerted := true
+    alert("LMR: Distribution confirmed in " + blockID + " (" + (isBullDist ? "Bullish" : "Bearish") + ")", alert.freq_once_per_bar)
+
+alertcondition(judasConfirmed, title = "Judas Swing Confirmed",       message = "LMR: Judas Swing confirmed")
+alertcondition(isBullDist,     title = "Bullish Distribution Confirmed", message = "LMR: Bullish Distribution confirmed")
+alertcondition(isBearDist,     title = "Bearish Distribution Confirmed", message = "LMR: Bearish Distribution confirmed")

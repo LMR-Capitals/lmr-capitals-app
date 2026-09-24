@@ -1,0 +1,242 @@
+//@version=6
+indicator("LMR SMT - Intraday (15m/5m/1m)", overlay=true, max_lines_count=100, max_labels_count=100)
+
+// =====================================================================
+// LMR SMT - INTRADAY (v4 - true wick-to-wick alternating zigzag)
+// -----------------------------------------------------------------------
+// Two fixes from the last version:
+//   1. The zigzag now chains ANY new swing (high or low) to whichever
+//      swing came immediately before it - a real alternating high/low
+//      zigzag, not two separate high-only and low-only line families.
+//   2. The line is now fetched at the ACTUAL timeframe being flagged
+//      (15m/5m/1m) via its own security call, not the chart's native
+//      resolution - so a "TF 15m SMT" line lands exactly on the real
+//      15-minute wick, even if you're viewing a 5m or 1m chart.
+// =====================================================================
+
+grpSym = "Symbols"
+nqSymbol = input.symbol("NQ1!", "NQ", inline = "sym", group = grpSym)
+esSymbol = input.symbol("ES1!", "ES", inline = "sym", group = grpSym)
+ymSymbol = input.symbol("YM1!", "YM", inline = "sym", group = grpSym)
+
+grpIntra = "Timeframes"
+tf1 = input.string("15", "TF 1 (minutes)", inline = "tfa", group = grpIntra)
+tf2 = input.string("5",  "TF 2 (minutes)", inline = "tfa", group = grpIntra)
+tf3 = input.string("1",  "TF 3 (minutes)", inline = "tfa", group = grpIntra)
+pivotLen = input.int(2, "Pivot Lookback (bars each side, on that TF)", minval = 1, group = grpIntra)
+
+grpAMD = "AMD Confirmation Gate"
+atrLen            = input.int(14,   "ATR Length", inline = "amd", group = grpAMD)
+distMult          = input.float(0.8, "Displacement threshold (x ATR)", inline = "amd", group = grpAMD)
+requireAMDConfirm = input.bool(true, "Only mark CONFIRMED when chart symbol shows AMD Distribution", group = grpAMD)
+
+grpVis = "Display"
+showTable = input.bool(true, "Show SMT Table", group = grpVis)
+bullColor = input.color(color.lime, "Aligned Color",   inline = "vc", group = grpVis)
+bearColor = input.color(color.red,  "Divergent Color", inline = "vc", group = grpVis)
+
+grpLines = "Chart Zigzag Lines"
+drawLines = input.bool(true, "Draw SMT Zigzag Lines on Chart", group = grpLines)
+lineWidth = input.int(2, "Line Width", minval = 1, maxval = 5, group = grpLines)
+
+// ---------------------------------------------------------------------
+// LEAN AMD GATE (direct call - 0 security calls)
+// ---------------------------------------------------------------------
+f_amdGate(distMultParam) =>
+    nyH = hour(time, "America/New_York")
+    nyM = minute(time, "America/New_York")
+    nyMin = nyH * 60 + nyM
+    string bID = na
+    string rl = na
+    if nyMin >= 1080 or nyMin < 150
+        bID := "ASIA"
+        rl := "N"
+    else if nyMin >= 960 and nyMin < 1080
+        bID := "OFF"
+        rl := "N"
+    else if nyMin >= 150 and nyMin < 240
+        bID := "LO1"
+        rl := "A"
+    else if nyMin >= 240 and nyMin < 330
+        bID := "LO2"
+        rl := "M"
+    else if nyMin >= 330 and nyMin < 420
+        bID := "LO3"
+        rl := "D"
+    else if nyMin >= 420 and nyMin < 510
+        bID := "AM1"
+        rl := "A"
+    else if nyMin >= 510 and nyMin < 600
+        bID := "AM2"
+        rl := "M"
+    else if nyMin >= 600 and nyMin < 690
+        bID := "AM3"
+        rl := "D"
+    else if nyMin >= 690 and nyMin < 780
+        bID := "PM1"
+        rl := "A"
+    else if nyMin >= 780 and nyMin < 870
+        bID := "PM2"
+        rl := "M"
+    else
+        bID := "PM3"
+        rl := "D"
+
+    isNewB = bID != bID[1]
+    var float trueOpen = na
+    if isNewB and rl == "M"
+        trueOpen := open
+
+    atrValSym = ta.atr(atrLen)
+    isBullD = rl == "D" and not na(trueOpen) and (close - trueOpen) > atrValSym * distMultParam
+    isBearD = rl == "D" and not na(trueOpen) and (close - trueOpen) < -atrValSym * distMultParam
+    [isBullD, isBearD]
+
+[chIsBullD, chIsBearD] = f_amdGate(distMult)
+amdConfirmed = chIsBullD or chIsBearD
+amdDirection = chIsBullD ? "Bullish" : chIsBearD ? "Bearish" : "-"
+gatePass     = not requireAMDConfirm or amdConfirmed
+
+// ---------------------------------------------------------------------
+// SWING PIVOT TRACKING FOR NQ/ES/YM COMPARISON (unchanged)
+// ---------------------------------------------------------------------
+f_pivotTrack(pivotLenParam) =>
+    ph = ta.pivothigh(high, pivotLenParam, pivotLenParam)
+    pl = ta.pivotlow(low, pivotLenParam, pivotLenParam)
+    var float h1 = na
+    var float h2 = na
+    var float l1 = na
+    var float l2 = na
+    if not na(ph)
+        h2 := h1
+        h1 := ph
+    if not na(pl)
+        l2 := l1
+        l1 := pl
+    madeHH = not na(ph) and not na(h2) and h1 > h2
+    madeLL = not na(pl) and not na(l2) and l1 < l2
+    [madeHH, madeLL, not na(ph), not na(pl), h1, l1]
+
+// ---------------------------------------------------------------------
+// TRUE ALTERNATING SWING CHAIN - chains ANY new confirmed swing (high
+// OR low) to whichever swing point came immediately before it, so the
+// line is a genuine wick-to-wick zigzag, not a high-only/low-only pair.
+// ---------------------------------------------------------------------
+f_swingChain(pivotLenParam) =>
+    ph = ta.pivothigh(high, pivotLenParam, pivotLenParam)
+    pl = ta.pivotlow(low, pivotLenParam, pivotLenParam)
+
+    var float lastPrice = na
+    var int   lastBar   = na
+    var float prevPrice = na
+    var int   prevBar   = na
+
+    justHigh = not na(ph)
+    justLow  = not na(pl)
+
+    if justHigh
+        prevPrice := lastPrice
+        prevBar   := lastBar
+        lastPrice := ph
+        lastBar   := bar_index - pivotLenParam
+
+    if justLow
+        prevPrice := lastPrice
+        prevBar   := lastBar
+        lastPrice := pl
+        lastBar   := bar_index - pivotLenParam
+
+    [lastPrice, lastBar, prevPrice, prevBar, justHigh, justLow]
+
+// ---------------------------------------------------------------------
+// PER TIMEFRAME COMPARISON - each TF costs 3 security calls (NQ/ES/YM)
+// ---------------------------------------------------------------------
+[nq1HH, nq1LL, nq1JPH, nq1JPL, nq1PivH, nq1PivL] = request.security(nqSymbol, tf1, f_pivotTrack(pivotLen))
+[es1HH, es1LL, es1JPH, es1JPL, es1PivH, es1PivL] = request.security(esSymbol, tf1, f_pivotTrack(pivotLen))
+[ym1HH, ym1LL, ym1JPH, ym1JPL, ym1PivH, ym1PivL] = request.security(ymSymbol, tf1, f_pivotTrack(pivotLen))
+
+[nq2HH, nq2LL, nq2JPH, nq2JPL, nq2PivH, nq2PivL] = request.security(nqSymbol, tf2, f_pivotTrack(pivotLen))
+[es2HH, es2LL, es2JPH, es2JPL, es2PivH, es2PivL] = request.security(esSymbol, tf2, f_pivotTrack(pivotLen))
+[ym2HH, ym2LL, ym2JPH, ym2JPL, ym2PivH, ym2PivL] = request.security(ymSymbol, tf2, f_pivotTrack(pivotLen))
+
+[nq3HH, nq3LL, nq3JPH, nq3JPL, nq3PivH, nq3PivL] = request.security(nqSymbol, tf3, f_pivotTrack(pivotLen))
+[es3HH, es3LL, es3JPH, es3JPL, es3PivH, es3PivL] = request.security(esSymbol, tf3, f_pivotTrack(pivotLen))
+[ym3HH, ym3LL, ym3JPH, ym3JPL, ym3PivH, ym3PivL] = request.security(ymSymbol, tf3, f_pivotTrack(pivotLen))
+
+// ---------------------------------------------------------------------
+// CHART'S OWN SWING CHAIN AT EACH ACTUAL TIMEFRAME - 3 more security
+// calls (on this chart's own symbol, resampled to tf1/tf2/tf3)
+// ---------------------------------------------------------------------
+[ch1Last, ch1LastBar, ch1Prev, ch1PrevBar, ch1JustHigh, ch1JustLow] = request.security(syminfo.tickerid, tf1, f_swingChain(pivotLen))
+[ch2Last, ch2LastBar, ch2Prev, ch2PrevBar, ch2JustHigh, ch2JustLow] = request.security(syminfo.tickerid, tf2, f_swingChain(pivotLen))
+[ch3Last, ch3LastBar, ch3Prev, ch3PrevBar, ch3JustHigh, ch3JustLow] = request.security(syminfo.tickerid, tf3, f_swingChain(pivotLen))
+
+f_eval3(a, b, c) =>
+    not (a == b and b == c)
+
+f_flagText(nqFlag, esFlag, ymFlag) =>
+    (nqFlag ? "NQ✓ " : "NQ✗ ") + (esFlag ? "ES✓ " : "ES✗ ") + (ymFlag ? "YM✓" : "YM✗")
+
+tf1PivotEvent = nq1JPH or es1JPH or ym1JPH or nq1JPL or es1JPL or ym1JPL
+tf2PivotEvent = nq2JPH or es2JPH or ym2JPH or nq2JPL or es2JPL or ym2JPL
+tf3PivotEvent = nq3JPH or es3JPH or ym3JPH or nq3JPL or es3JPL or ym3JPL
+
+tf1HighSMT = tf1PivotEvent and f_eval3(nq1HH, es1HH, ym1HH)
+tf1LowSMT  = tf1PivotEvent and f_eval3(nq1LL, es1LL, ym1LL)
+tf2HighSMT = tf2PivotEvent and f_eval3(nq2HH, es2HH, ym2HH)
+tf2LowSMT  = tf2PivotEvent and f_eval3(nq2LL, es2LL, ym2LL)
+tf3HighSMT = tf3PivotEvent and f_eval3(nq3HH, es3HH, ym3HH)
+tf3LowSMT  = tf3PivotEvent and f_eval3(nq3LL, es3LL, ym3LL)
+
+// ---------------------------------------------------------------------
+// OVERALL / ALERTS
+// ---------------------------------------------------------------------
+anyRawSMT = tf1HighSMT or tf1LowSMT or tf2HighSMT or tf2LowSMT or tf3HighSMT or tf3LowSMT
+anyConfirmedSMT = anyRawSMT and gatePass
+
+alertcondition(anyConfirmedSMT, title = "LMR SMT Intraday Confirmed", message = "LMR SMT Intraday: divergence confirmed against AMD Distribution")
+alertcondition(anyRawSMT, title = "LMR SMT Intraday Raw (any)", message = "LMR SMT Intraday: raw structural divergence detected")
+
+// ---------------------------------------------------------------------
+// TRUE ZIGZAG SMT LINES - wick to wick, on the real timeframe, only
+// drawn on the exact swing where NQ/ES/YM disagreed
+// ---------------------------------------------------------------------
+f_drawZigzag(justHigh, justLow, prevPrice, prevBar, lastPrice, lastBar, triggerHighSMT, triggerLowSMT, lbl) =>
+    if drawLines and justHigh and gatePass and triggerHighSMT and not na(prevPrice)
+        line.new(prevBar, prevPrice, lastBar, lastPrice, color = bearColor, width = lineWidth)
+        label.new(lastBar, lastPrice, lbl + " SMT", style = label.style_label_down, color = color.new(color.black, 100), textcolor = bearColor, size = size.small)
+    if drawLines and justLow and gatePass and triggerLowSMT and not na(prevPrice)
+        line.new(prevBar, prevPrice, lastBar, lastPrice, color = bullColor, width = lineWidth)
+        label.new(lastBar, lastPrice, lbl + " SMT", style = label.style_label_up, color = color.new(color.black, 100), textcolor = bullColor, size = size.small)
+    true
+
+f_drawZigzag(ch1JustHigh, ch1JustLow, ch1Prev, ch1PrevBar, ch1Last, ch1LastBar, tf1HighSMT, tf1LowSMT, "TF " + tf1 + "m")
+f_drawZigzag(ch2JustHigh, ch2JustLow, ch2Prev, ch2PrevBar, ch2Last, ch2LastBar, tf2HighSMT, tf2LowSMT, "TF " + tf2 + "m")
+f_drawZigzag(ch3JustHigh, ch3JustLow, ch3Prev, ch3PrevBar, ch3Last, ch3LastBar, tf3HighSMT, tf3LowSMT, "TF " + tf3 + "m")
+
+// ---------------------------------------------------------------------
+// TABLE
+// ---------------------------------------------------------------------
+f_row(t, r, lbl, flagTxt) =>
+    table.cell(t, 0, r, lbl, text_color = color.white, text_size = size.small)
+    table.cell(t, 1, r, flagTxt, text_color = bearColor, text_size = size.small)
+
+if showTable and barstate.islast
+    tbl = table.new(position.top_right, 2, 9, bgcolor = color.new(color.black, 15), border_color = color.gray, border_width = 1)
+
+    table.cell(tbl, 0, 0, "LMR SMT Intraday", text_color = color.white, bgcolor = color.new(color.gray, 30), text_size = size.small)
+    table.cell(tbl, 1, 0, "NQ/ES/YM", text_color = color.white, bgcolor = color.new(color.gray, 30), text_size = size.small)
+
+    table.cell(tbl, 0, 1, "AMD Gate (" + amdDirection + ")", text_color = color.white, text_size = size.small)
+    table.cell(tbl, 1, 1, amdConfirmed ? "ACTIVE" : "waiting", text_color = amdConfirmed ? bullColor : color.gray, text_size = size.small)
+
+    f_row(tbl, 2, "TF " + tf1 + "m High", f_flagText(nq1HH, es1HH, ym1HH))
+    f_row(tbl, 3, "TF " + tf1 + "m Low",  f_flagText(nq1LL, es1LL, ym1LL))
+    f_row(tbl, 4, "TF " + tf2 + "m High", f_flagText(nq2HH, es2HH, ym2HH))
+    f_row(tbl, 5, "TF " + tf2 + "m Low",  f_flagText(nq2LL, es2LL, ym2LL))
+    f_row(tbl, 6, "TF " + tf3 + "m High", f_flagText(nq3HH, es3HH, ym3HH))
+    f_row(tbl, 7, "TF " + tf3 + "m Low",  f_flagText(nq3LL, es3LL, ym3LL))
+
+    readyBg = anyConfirmedSMT ? color.new(color.green, 55) : color.new(color.gray, 60)
+    table.cell(tbl, 0, 8, "SMT CONFIRMED", text_color = anyConfirmedSMT ? bullColor : color.orange, bgcolor = readyBg, text_size = size.small)
+    table.cell(tbl, 1, 8, anyConfirmedSMT ? "YES" : "no", text_color = anyConfirmedSMT ? bullColor : color.orange, bgcolor = readyBg, text_size = size.small)

@@ -1,0 +1,296 @@
+//@version=6
+indicator("LMR SMT - Core (90-Min / Session / Re-Dist / FVG)", overlay=true, max_lines_count=100, max_labels_count=100)
+
+// =====================================================================
+// LMR SMT - CORE
+// -----------------------------------------------------------------------
+// Split 1 of 3 (memory fix). This one only needs 3 request.security
+// calls total (one per symbol), because 90-Min Block, Session,
+// Re-Distribution and FVG all come from the same shared engine.
+// Pair this with "LMR SMT - HTF" and "LMR SMT - Intraday" as separate
+// indicators running side by side.
+// =====================================================================
+
+grpSym = "Symbols"
+nqSymbol = input.symbol("NQ1!", "NQ", inline = "sym", group = grpSym)
+esSymbol = input.symbol("ES1!", "ES", inline = "sym", group = grpSym)
+ymSymbol = input.symbol("YM1!", "YM", inline = "sym", group = grpSym)
+
+grpFocal = "Levels"
+use90Block = input.bool(true, "90-Min Block", inline = "f1", group = grpFocal)
+useSession = input.bool(true, "Session",      inline = "f1", group = grpFocal)
+
+grpRedis = "Re-Distribution (Retracement)"
+useRedis  = input.bool(true,  "Enable Re-Distribution SMT", group = grpRedis)
+redisLow  = input.float(0.5,  "Zone Start (0.5 = 50%)", inline = "rz", step = 0.05, group = grpRedis)
+redisHigh = input.float(0.75, "Zone End (0.75 = 75%)",  inline = "rz", step = 0.05, group = grpRedis)
+
+grpFVG = "FVG SMT"
+useFVGSMT = input.bool(true, "Enable FVG SMT (fill status of first FVG in the leg)", group = grpFVG)
+
+grpAMD = "AMD Confirmation Gate"
+atrLen            = input.int(14,   "ATR Length", inline = "amd", group = grpAMD)
+distMult          = input.float(0.8, "Displacement threshold (x ATR)", inline = "amd", group = grpAMD)
+requireAMDConfirm = input.bool(true, "Only mark CONFIRMED when chart symbol shows AMD Distribution", group = grpAMD)
+
+grpVis = "Display"
+showTable = input.bool(true, "Show SMT Table", group = grpVis)
+bullColor = input.color(color.lime, "Aligned Color",   inline = "vc", group = grpVis)
+bearColor = input.color(color.red,  "Divergent Color", inline = "vc", group = grpVis)
+
+grpLines = "Chart Lines"
+drawLines  = input.bool(true, "Draw SMT Lines on Chart", group = grpLines)
+lineLength = input.int(50, "Line Length (bars)", minval = 5, group = grpLines)
+lineWidth  = input.int(2,  "Line Width", minval = 1, maxval = 5, group = grpLines)
+
+// ---------------------------------------------------------------------
+// SHARED ENGINE
+// ---------------------------------------------------------------------
+f_sessionBlockState(distMultParam) =>
+    nyH = hour(time, "America/New_York")
+    nyM = minute(time, "America/New_York")
+    nyMin = nyH * 60 + nyM
+
+    string bID = na
+    string sName = na
+    string rl = na
+    if nyMin >= 1080 or nyMin < 150
+        bID := "ASIA"
+        sName := "Asia"
+        rl := "N"
+    else if nyMin >= 960 and nyMin < 1080
+        bID := "OFF"
+        sName := "Off"
+        rl := "N"
+    else if nyMin >= 150 and nyMin < 240
+        bID := "LO1"
+        sName := "London"
+        rl := "A"
+    else if nyMin >= 240 and nyMin < 330
+        bID := "LO2"
+        sName := "London"
+        rl := "M"
+    else if nyMin >= 330 and nyMin < 420
+        bID := "LO3"
+        sName := "London"
+        rl := "D"
+    else if nyMin >= 420 and nyMin < 510
+        bID := "AM1"
+        sName := "NY AM"
+        rl := "A"
+    else if nyMin >= 510 and nyMin < 600
+        bID := "AM2"
+        sName := "NY AM"
+        rl := "M"
+    else if nyMin >= 600 and nyMin < 690
+        bID := "AM3"
+        sName := "NY AM"
+        rl := "D"
+    else if nyMin >= 690 and nyMin < 780
+        bID := "PM1"
+        sName := "NY PM"
+        rl := "A"
+    else if nyMin >= 780 and nyMin < 870
+        bID := "PM2"
+        sName := "NY PM"
+        rl := "M"
+    else
+        bID := "PM3"
+        sName := "NY PM"
+        rl := "D"
+
+    isNewB = bID != bID[1]
+    isNewS = sName != sName[1]
+
+    var float bHigh       = na
+    var float bLow        = na
+    var float pbHigh      = na
+    var float pbLow       = na
+    var float sHigh       = na
+    var float sLow        = na
+    var float psHigh      = na
+    var float psLow       = na
+    var float trueOpen    = na
+    var float distExtHigh = na
+    var float distExtLow  = na
+    var float fvgLevel    = na
+    var bool  fvgFilled   = false
+
+    if isNewS
+        psHigh := sHigh
+        psLow  := sLow
+        sHigh  := high
+        sLow   := low
+    else
+        sHigh := math.max(sHigh, high)
+        sLow  := math.min(sLow, low)
+
+    if isNewB
+        pbHigh := bHigh
+        pbLow  := bLow
+        bHigh  := high
+        bLow   := low
+        if rl == "M"
+            trueOpen    := open
+            distExtHigh := na
+            distExtLow  := na
+            fvgLevel    := na
+            fvgFilled   := false
+    else
+        bHigh := math.max(bHigh, high)
+        bLow  := math.min(bLow, low)
+
+    atrValSym = ta.atr(atrLen)
+    isBullD = rl == "D" and not na(trueOpen) and (close - trueOpen) > atrValSym * distMultParam
+    isBearD = rl == "D" and not na(trueOpen) and (close - trueOpen) < -atrValSym * distMultParam
+
+    if rl == "D"
+        distExtHigh := na(distExtHigh) ? high : math.max(distExtHigh, high)
+        distExtLow  := na(distExtLow)  ? low  : math.min(distExtLow, low)
+
+    bullFVGNow = low > high[2]
+    bearFVGNow = high < low[2]
+
+    if rl == "D" and isBullD and bullFVGNow and na(fvgLevel)
+        fvgLevel  := low
+        fvgFilled := false
+
+    if rl == "D" and isBearD and bearFVGNow and na(fvgLevel)
+        fvgLevel  := high
+        fvgFilled := false
+
+    if not na(fvgLevel) and not fvgFilled
+        touchedZone = (isBullD and low <= fvgLevel) or (isBearD and high >= fvgLevel)
+        if touchedZone
+            fvgFilled := true
+
+    [bHigh, bLow, pbHigh, pbLow, sHigh, sLow, psHigh, psLow, trueOpen, rl, isBullD, isBearD, distExtHigh, distExtLow, fvgLevel, fvgFilled, close]
+
+f_eval3(a, b, c) =>
+    not (a == b and b == c)
+
+f_flagText(nqFlag, esFlag, ymFlag) =>
+    (nqFlag ? "NQ✓ " : "NQ✗ ") + (esFlag ? "ES✓ " : "ES✗ ") + (ymFlag ? "YM✓" : "YM✗")
+
+// Chart symbol - direct call (0 security calls) - AMD gate + line placement
+[chBH, chBL, chPBH, chPBL, chSH, chSL, chPSH, chPSL, chTO, chRole, chIsBullD, chIsBearD, chDistExtHigh, chDistExtLow, chFvgLevel, chFvgFilled, chClose] = f_sessionBlockState(distMult)
+
+amdConfirmed = chIsBullD or chIsBearD
+amdDirection = chIsBullD ? "Bullish" : chIsBearD ? "Bearish" : "-"
+gatePass     = not requireAMDConfirm or amdConfirmed
+
+// NQ / ES / YM - only 3 request.security calls in this whole script
+[nqBH, nqBL, nqPBH, nqPBL, nqSH, nqSL, nqPSH, nqPSL, nqTO, nqRole, nqIsBullD, nqIsBearD, nqDistExtHigh, nqDistExtLow, nqFvgLevel, nqFvgFilled, nqClose] = request.security(nqSymbol, timeframe.period, f_sessionBlockState(distMult))
+[esBH, esBL, esPBH, esPBL, esSH, esSL, esPSH, esPSL, esTO, esRole, esIsBullD, esIsBearD, esDistExtHigh, esDistExtLow, esFvgLevel, esFvgFilled, esClose] = request.security(esSymbol, timeframe.period, f_sessionBlockState(distMult))
+[ymBH, ymBL, ymPBH, ymPBL, ymSH, ymSL, ymPSH, ymPSL, ymTO, ymRole, ymIsBullD, ymIsBearD, ymDistExtHigh, ymDistExtLow, ymFvgLevel, ymFvgFilled, ymClose] = request.security(ymSymbol, timeframe.period, f_sessionBlockState(distMult))
+
+// ---------------------------------------------------------------------
+// 90-MIN BLOCK
+// ---------------------------------------------------------------------
+nqBlockSweptHigh = not na(nqPBH) and nqBH > nqPBH
+nqBlockSweptLow  = not na(nqPBL) and nqBL < nqPBL
+esBlockSweptHigh = not na(esPBH) and esBH > esPBH
+esBlockSweptLow  = not na(esPBL) and esBL < esPBL
+ymBlockSweptHigh = not na(ymPBH) and ymBH > ymPBH
+ymBlockSweptLow  = not na(ymPBL) and ymBL < ymPBL
+
+blkHighSMT = use90Block and f_eval3(nqBlockSweptHigh, esBlockSweptHigh, ymBlockSweptHigh)
+blkLowSMT  = use90Block and f_eval3(nqBlockSweptLow,  esBlockSweptLow,  ymBlockSweptLow)
+
+// ---------------------------------------------------------------------
+// SESSION
+// ---------------------------------------------------------------------
+nqSessSweptHigh = not na(nqPSH) and nqSH > nqPSH
+nqSessSweptLow  = not na(nqPSL) and nqSL < nqPSL
+esSessSweptHigh = not na(esPSH) and esSH > esPSH
+esSessSweptLow  = not na(esPSL) and esSL < esPSL
+ymSessSweptHigh = not na(ymPSH) and ymSH > ymPSH
+ymSessSweptLow  = not na(ymPSL) and ymSL < ymPSL
+
+sesHighSMT = useSession and f_eval3(nqSessSweptHigh, esSessSweptHigh, ymSessSweptHigh)
+sesLowSMT  = useSession and f_eval3(nqSessSweptLow,  esSessSweptLow,  ymSessSweptLow)
+
+// ---------------------------------------------------------------------
+// RE-DISTRIBUTION (RETRACEMENT ZONE)
+// ---------------------------------------------------------------------
+f_retraceRatio(trueOpenSym, distExtHighSym, distExtLowSym, isBullDSym, isBearDSym, closeSym) =>
+    isBullDSym and not na(distExtHighSym) ? (distExtHighSym - closeSym) / (distExtHighSym - trueOpenSym) : isBearDSym and not na(distExtLowSym) ? (closeSym - distExtLowSym) / (trueOpenSym - distExtLowSym) : na
+
+nqRetrace = f_retraceRatio(nqTO, nqDistExtHigh, nqDistExtLow, nqIsBullD, nqIsBearD, nqClose)
+esRetrace = f_retraceRatio(esTO, esDistExtHigh, esDistExtLow, esIsBullD, esIsBearD, esClose)
+ymRetrace = f_retraceRatio(ymTO, ymDistExtHigh, ymDistExtLow, ymIsBullD, ymIsBearD, ymClose)
+
+nqInZone = not na(nqRetrace) and nqRetrace >= redisLow and nqRetrace <= redisHigh
+esInZone = not na(esRetrace) and esRetrace >= redisLow and esRetrace <= redisHigh
+ymInZone = not na(ymRetrace) and ymRetrace >= redisLow and ymRetrace <= redisHigh
+
+redisSMT = useRedis and f_eval3(nqInZone, esInZone, ymInZone)
+
+// ---------------------------------------------------------------------
+// FVG SMT
+// ---------------------------------------------------------------------
+nqHasFVG = not na(nqFvgLevel)
+esHasFVG = not na(esFvgLevel)
+ymHasFVG = not na(ymFvgLevel)
+allHaveFVG = nqHasFVG and esHasFVG and ymHasFVG
+
+fvgSMT = useFVGSMT and allHaveFVG and f_eval3(nqFvgFilled, esFvgFilled, ymFvgFilled)
+
+// ---------------------------------------------------------------------
+// OVERALL / ALERTS
+// ---------------------------------------------------------------------
+anyRawSMT = blkHighSMT or blkLowSMT or sesHighSMT or sesLowSMT or redisSMT or fvgSMT
+anyConfirmedSMT = anyRawSMT and gatePass
+
+alertcondition(anyConfirmedSMT, title = "LMR SMT Core Confirmed", message = "LMR SMT Core: divergence confirmed against AMD Distribution")
+alertcondition(anyRawSMT, title = "LMR SMT Core Raw (any)", message = "LMR SMT Core: raw structural divergence detected")
+
+// ---------------------------------------------------------------------
+// CHART LINES
+// ---------------------------------------------------------------------
+blkHighTrig = (blkHighSMT and gatePass) and not (blkHighSMT[1] and gatePass[1])
+blkLowTrig  = (blkLowSMT and gatePass) and not (blkLowSMT[1] and gatePass[1])
+sesHighTrig = (sesHighSMT and gatePass) and not (sesHighSMT[1] and gatePass[1])
+sesLowTrig  = (sesLowSMT and gatePass) and not (sesLowSMT[1] and gatePass[1])
+
+f_drawSMTLine(triggerHigh, triggerLow, levelHigh, levelLow, lbl) =>
+    if drawLines and triggerHigh and not na(levelHigh)
+        line.new(bar_index, levelHigh, bar_index + lineLength, levelHigh, color = bearColor, width = lineWidth)
+        label.new(bar_index + lineLength, levelHigh, lbl + " SMT", style = label.style_label_left, color = color.new(color.black, 100), textcolor = bearColor, size = size.small)
+    if drawLines and triggerLow and not na(levelLow)
+        line.new(bar_index, levelLow, bar_index + lineLength, levelLow, color = bullColor, width = lineWidth)
+        label.new(bar_index + lineLength, levelLow, lbl + " SMT", style = label.style_label_left, color = color.new(color.black, 100), textcolor = bullColor, size = size.small)
+    true
+
+f_drawSMTLine(blkHighTrig, blkLowTrig, chPBH, chPBL, "90-Min")
+f_drawSMTLine(sesHighTrig, sesLowTrig, chPSH, chPSL, "Session")
+
+// ---------------------------------------------------------------------
+// TABLE
+// ---------------------------------------------------------------------
+f_row(t, r, lbl, active, flagTxt) =>
+    stateColor = not active ? color.gray : bearColor
+    table.cell(t, 0, r, lbl, text_color = color.white, text_size = size.small)
+    table.cell(t, 1, r, active ? flagTxt : "-", text_color = stateColor, text_size = size.small)
+
+if showTable and barstate.islast
+    tbl = table.new(position.bottom_right, 2, 10, bgcolor = color.new(color.black, 15), border_color = color.gray, border_width = 1)
+
+    table.cell(tbl, 0, 0, "LMR SMT Core", text_color = color.white, bgcolor = color.new(color.gray, 30), text_size = size.small)
+    table.cell(tbl, 1, 0, "NQ/ES/YM", text_color = color.white, bgcolor = color.new(color.gray, 30), text_size = size.small)
+
+    table.cell(tbl, 0, 1, "AMD Gate (" + amdDirection + ")", text_color = color.white, text_size = size.small)
+    table.cell(tbl, 1, 1, amdConfirmed ? "ACTIVE" : "waiting", text_color = amdConfirmed ? bullColor : color.gray, text_size = size.small)
+
+    f_row(tbl, 2, "90-Min Block Hi", use90Block, f_flagText(nqBlockSweptHigh, esBlockSweptHigh, ymBlockSweptHigh))
+    f_row(tbl, 3, "90-Min Block Lo", use90Block, f_flagText(nqBlockSweptLow,  esBlockSweptLow,  ymBlockSweptLow))
+    f_row(tbl, 4, "Session High",    useSession, f_flagText(nqSessSweptHigh, esSessSweptHigh, ymSessSweptHigh))
+    f_row(tbl, 5, "Session Low",     useSession, f_flagText(nqSessSweptLow,  esSessSweptLow,  ymSessSweptLow))
+    f_row(tbl, 6, "Re-Distribution", useRedis,   f_flagText(nqInZone, esInZone, ymInZone))
+    f_row(tbl, 7, "FVG Filled",      useFVGSMT and allHaveFVG, f_flagText(nqFvgFilled, esFvgFilled, ymFvgFilled))
+
+    readyBg = anyConfirmedSMT ? color.new(color.green, 55) : color.new(color.gray, 60)
+    table.cell(tbl, 0, 8, "SMT CONFIRMED", text_color = color.white, bgcolor = readyBg, text_size = size.small)
+    table.cell(tbl, 1, 8, anyConfirmedSMT ? "YES" : "no", text_color = anyConfirmedSMT ? bullColor : color.orange, bgcolor = readyBg, text_size = size.small)
+    table.cell(tbl, 0, 9, "Raw SMT (any)", text_color = color.white, text_size = size.small)
+    table.cell(tbl, 1, 9, anyRawSMT ? "YES" : "no", text_color = anyRawSMT ? bearColor : color.gray, text_size = size.small)

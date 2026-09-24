@@ -1,0 +1,367 @@
+//@version=6
+indicator("LMR A+ Setup Score", overlay=true, max_lines_count=30, max_labels_count=30, max_boxes_count=10)
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// GLOBAL SETTINGS
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+i_timezone   = input.string("America/New_York", "Timezone", options=["America/New_York", "America/Chicago", "America/Los_Angeles", "Europe/London", "Asia/Tokyo", "Asia/Hong_Kong", "Asia/Singapore", "Australia/Sydney"], group="GLOBAL SETTINGS")
+i_day_start  = input.string("18:00 NY Open", "Day Start", options=["00:00 Midnight", "18:00 NY Open"], group="GLOBAL SETTINGS", tooltip="Match this to the same setting in LMR ICT Everything")
+i_hide_above = input.string("60", "Hide Above TF", options=["5", "15", "30", "60", "240", "1440"], group="GLOBAL SETTINGS")
+
+bool use_midnight = i_day_start == "00:00 Midnight"
+int  hide_tf      = math.round(str.tonumber(i_hide_above))
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// A+ SETUP SCORE
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+i_daily_bias      = input.string("Neutral", "Today's Daily Bias", options=["Bullish", "Bearish", "Neutral"], group="A+ SETUP SCORE", tooltip="Set this each morning to match your LMR journal's Daily Bias field")
+i_score_threshold = input.int(6, "Alert Threshold (out of 10)", minval=1, maxval=10, group="A+ SETUP SCORE")
+i_score_pos       = input.string("Top Right", "Panel Position", options=["Top Left", "Top Center", "Top Right", "Middle Left", "Middle Right", "Bottom Left", "Bottom Center", "Bottom Right"], group="A+ SETUP SCORE")
+i_score_size      = input.string("Normal", "Panel Size", options=["Tiny", "Small", "Normal", "Large"], group="A+ SETUP SCORE")
+i_macro_times     = input.string("01:30-02:00,02:50-03:10,04:30-05:00,08:50-09:10,09:50-10:10,10:50-11:10,11:50-12:10,13:50-14:10,15:15-15:45,15:50-16:00", "Macro Windows (NY time)", group="A+ SETUP SCORE", tooltip="Comma-separated HH:MM-HH:MM windows — matches the macros in LMR ICT Everything")
+
+// ── Manual checklist — same 7 items as LMR ICT Everything's Checklist Panel ──
+i_cl1 = input.bool(false, "HTF P/D Array", group="CHECKLIST (manual — tick as you confirm each)")
+i_cl2 = input.bool(false, "Liquidity Sweep", group="CHECKLIST (manual — tick as you confirm each)")
+i_cl3 = input.bool(false, "Momentum", group="CHECKLIST (manual — tick as you confirm each)")
+i_cl4 = input.bool(false, "CISD", group="CHECKLIST (manual — tick as you confirm each)")
+i_cl5 = input.bool(false, "FVG", group="CHECKLIST (manual — tick as you confirm each)")
+i_cl6 = input.bool(false, "Clear Draws", group="CHECKLIST (manual — tick as you confirm each)")
+i_cl7 = input.bool(false, "SMT ES/YM", group="CHECKLIST (manual — tick as you confirm each)")
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// HTF POI LEVELS — Previous Week / Month High-Low
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+i_poi_dist     = input.float(20, "POI Proximity (points)", minval=0, group="HTF POI LEVELS (PWH/PWL/PMH/PML)", tooltip="How close price must be to PDH/PDL/PWH/PWL/PMH/PML/wOpen/mOpen to count as 'AT POI' for the score")
+i_poi_lbl_en   = input.bool(true, "Labels", group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+i_poi_lbl_size = input.string("Small", "Label Size", options=["Tiny", "Small", "Normal", "Large"], group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+
+i_pwh_en    = input.bool(true, "", inline="pwh", group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+i_pwh_txt   = input.string("PWH", "", inline="pwh", group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+i_pwh_color = input.color(color.new(#FF6D00, 0), "", inline="pwh", group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+i_pwh_style = input.string("Dashed", "", options=["Solid", "Dashed", "Dotted"], inline="pwh", group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+i_pwh_width = input.string("2px", "", options=["1px", "2px", "3px", "4px"], inline="pwh", group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+i_pwh_swept = input.color(color.new(#FF6D00, 75), "Swept", inline="pwh", group="HTF POI LEVELS (PWH/PWL/PMH/PML)", tooltip="Previous Week High")
+
+i_pwl_en    = input.bool(true, "", inline="pwl", group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+i_pwl_txt   = input.string("PWL", "", inline="pwl", group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+i_pwl_color = input.color(color.new(#00B8D4, 0), "", inline="pwl", group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+i_pwl_style = input.string("Dashed", "", options=["Solid", "Dashed", "Dotted"], inline="pwl", group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+i_pwl_width = input.string("2px", "", options=["1px", "2px", "3px", "4px"], inline="pwl", group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+i_pwl_swept = input.color(color.new(#00B8D4, 75), "Swept", inline="pwl", group="HTF POI LEVELS (PWH/PWL/PMH/PML)", tooltip="Previous Week Low")
+
+i_pmh_en    = input.bool(true, "", inline="pmh", group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+i_pmh_txt   = input.string("PMH", "", inline="pmh", group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+i_pmh_color = input.color(color.new(#D500F9, 0), "", inline="pmh", group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+i_pmh_style = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="pmh", group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+i_pmh_width = input.string("2px", "", options=["1px", "2px", "3px", "4px"], inline="pmh", group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+i_pmh_swept = input.color(color.new(#D500F9, 75), "Swept", inline="pmh", group="HTF POI LEVELS (PWH/PWL/PMH/PML)", tooltip="Previous Month High")
+
+i_pml_en    = input.bool(true, "", inline="pml", group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+i_pml_txt   = input.string("PML", "", inline="pml", group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+i_pml_color = input.color(color.new(#76FF03, 0), "", inline="pml", group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+i_pml_style = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="pml", group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+i_pml_width = input.string("2px", "", options=["1px", "2px", "3px", "4px"], inline="pml", group="HTF POI LEVELS (PWH/PWL/PMH/PML)")
+i_pml_swept = input.color(color.new(#76FF03, 75), "Swept", inline="pml", group="HTF POI LEVELS (PWH/PWL/PMH/PML)", tooltip="Previous Month Low")
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// EQUILIBRIUM / PREMIUM / DISCOUNT
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+i_eq_en           = input.bool(true, "Show Equilibrium / Premium / Discount", group="EQUILIBRIUM")
+i_eq_range        = input.string("Weekly", "Range", options=["Daily", "Weekly", "Monthly"], group="EQUILIBRIUM", tooltip="Which range's 50% level is used for Premium/Discount and the score's P/D check")
+i_eq_color        = input.color(color.gray, "EQ Line", group="EQUILIBRIUM")
+i_premium_color   = input.color(color.new(color.red, 92), "Premium Zone", group="EQUILIBRIUM")
+i_discount_color  = input.color(color.new(color.green, 92), "Discount Zone", group="EQUILIBRIUM")
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// HELPER FUNCTIONS
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+getStyle(string s) => s == "Dashed" ? line.style_dashed : s == "Dotted" ? line.style_dotted : line.style_solid
+getWidth(string w) => w == "2px" ? 2 : w == "3px" ? 3 : w == "4px" ? 4 : 1
+getSize(string s) => s == "Tiny" ? size.tiny : s == "Small" ? size.small : s == "Large" ? size.large : size.normal
+getPosition(string p) => p == "Top Left" ? position.top_left : p == "Top Center" ? position.top_center : p == "Top Right" ? position.top_right : p == "Middle Left" ? position.middle_left : p == "Middle Right" ? position.middle_right : p == "Bottom Left" ? position.bottom_left : p == "Bottom Center" ? position.bottom_center : position.bottom_right
+
+// "HH:MM-HH:MM" -> [startMinuteOfDay, endMinuteOfDay]
+parseWindow(string w) =>
+    string c  = str.replace_all(w, " ", "")
+    int    d  = str.pos(c, "-")
+    string st = str.substring(c, 0, d)
+    string en = str.substring(c, d + 1)
+    int c1 = str.pos(st, ":")
+    int c2 = str.pos(en, ":")
+    int sMin = math.round(str.tonumber(str.substring(st, 0, c1))) * 60 + math.round(str.tonumber(str.substring(st, c1 + 1)))
+    int eMin = math.round(str.tonumber(str.substring(en, 0, c2))) * 60 + math.round(str.tonumber(str.substring(en, c2 + 1)))
+    [sMin, eMin]
+
+isInAnyMacro(int curMin) =>
+    array<string> windows = str.split(i_macro_times, ",")
+    bool found = false
+    for w in windows
+        [s, e] = parseWindow(w)
+        if curMin >= s and curMin < e
+            found := true
+    found
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// TIME VARIABLES
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+hide_ind = timeframe.in_seconds() / 60 > hide_tf
+cur_hour = hour(time, i_timezone)
+cur_min  = minute(time, i_timezone)
+cur_dow  = dayofweek(time, i_timezone)
+cur_total_min = cur_hour * 60 + cur_min
+
+is_0000 = cur_hour == 0 and cur_min == 0
+is_1800 = cur_hour == 18 and cur_min == 0
+is_day_start  = use_midnight ? is_0000 : is_1800
+is_sunday     = cur_dow == dayofweek.sunday
+is_week_start = is_sunday and is_day_start
+is_new_month  = month(time, i_timezone) != month(time[1], i_timezone)
+in_macro      = isInAnyMacro(cur_total_min)
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// VARIABLES
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+var float daily_high = na, var float daily_low = na, var bool daily_active = false
+var float completed_daily_high = na, var float completed_daily_low = na
+
+var float weekly_high = na, var float weekly_low = na, var bool weekly_active = false
+var float completed_weekly_high = na, var float completed_weekly_low = na
+
+var float monthly_high = na, var float monthly_low = na, var bool monthly_active = false
+var float completed_monthly_high = na, var float completed_monthly_low = na
+
+var float wopen_price = na, var float mopen_price = na
+
+var line  pwh_line = na, var label pwh_lbl = na, var float pwh_price = na, var bool pwh_touched = false
+var line  pwl_line = na, var label pwl_lbl = na, var float pwl_price = na, var bool pwl_touched = false
+var line  pmh_line = na, var label pmh_lbl = na, var float pmh_price = na, var bool pmh_touched = false
+var line  pml_line = na, var label pml_lbl = na, var float pml_price = na, var bool pml_touched = false
+
+var int day_start_bar = na, var int week_start_bar = na, var int month_start_bar = na
+var line eq_line = na, var box premium_box = na, var box discount_box = na
+
+var table score_table = na
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// MAIN LOGIC — tracking + drawing
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+if not hide_ind
+
+    // ── DAY START: roll daily high/low (silent — feeds PDH/PDL into the POI list) ──
+    if is_day_start
+        if daily_active
+            completed_daily_high := daily_high
+            completed_daily_low  := daily_low
+        daily_active := true
+        daily_high := high
+        daily_low  := low
+        day_start_bar := bar_index
+
+    if daily_active
+        daily_high := math.max(daily_high, high)
+        daily_low  := math.min(daily_low, low)
+
+    // ── WEEK START: finalize PWH/PWL, draw lines ──
+    if is_week_start
+        if weekly_active
+            completed_weekly_high := weekly_high
+            completed_weekly_low  := weekly_low
+
+            if i_pwh_en and not na(completed_weekly_high)
+                if not na(pwh_line)
+                    line.delete(pwh_line)
+                if not na(pwh_lbl)
+                    label.delete(pwh_lbl)
+                pwh_price   := completed_weekly_high
+                pwh_touched := false
+                pwh_line := line.new(bar_index, pwh_price, bar_index, pwh_price, color=i_pwh_color, style=getStyle(i_pwh_style), width=getWidth(i_pwh_width))
+                if i_poi_lbl_en
+                    pwh_lbl := label.new(bar_index, pwh_price, i_pwh_txt, color=color.new(color.white, 100), textcolor=i_pwh_color, style=label.style_label_left, size=getSize(i_poi_lbl_size))
+
+            if i_pwl_en and not na(completed_weekly_low)
+                if not na(pwl_line)
+                    line.delete(pwl_line)
+                if not na(pwl_lbl)
+                    label.delete(pwl_lbl)
+                pwl_price   := completed_weekly_low
+                pwl_touched := false
+                pwl_line := line.new(bar_index, pwl_price, bar_index, pwl_price, color=i_pwl_color, style=getStyle(i_pwl_style), width=getWidth(i_pwl_width))
+                if i_poi_lbl_en
+                    pwl_lbl := label.new(bar_index, pwl_price, i_pwl_txt, color=color.new(color.white, 100), textcolor=i_pwl_color, style=label.style_label_left, size=getSize(i_poi_lbl_size))
+
+        weekly_active := true
+        weekly_high := high
+        weekly_low  := low
+        wopen_price := open
+        week_start_bar := bar_index
+
+    if weekly_active
+        weekly_high := math.max(weekly_high, high)
+        weekly_low  := math.min(weekly_low, low)
+
+    // ── MONTH START: finalize PMH/PML, draw lines ──
+    if is_new_month
+        if monthly_active
+            completed_monthly_high := monthly_high
+            completed_monthly_low  := monthly_low
+
+            if i_pmh_en and not na(completed_monthly_high)
+                if not na(pmh_line)
+                    line.delete(pmh_line)
+                if not na(pmh_lbl)
+                    label.delete(pmh_lbl)
+                pmh_price   := completed_monthly_high
+                pmh_touched := false
+                pmh_line := line.new(bar_index, pmh_price, bar_index, pmh_price, color=i_pmh_color, style=getStyle(i_pmh_style), width=getWidth(i_pmh_width))
+                if i_poi_lbl_en
+                    pmh_lbl := label.new(bar_index, pmh_price, i_pmh_txt, color=color.new(color.white, 100), textcolor=i_pmh_color, style=label.style_label_left, size=getSize(i_poi_lbl_size))
+
+            if i_pml_en and not na(completed_monthly_low)
+                if not na(pml_line)
+                    line.delete(pml_line)
+                if not na(pml_lbl)
+                    label.delete(pml_lbl)
+                pml_price   := completed_monthly_low
+                pml_touched := false
+                pml_line := line.new(bar_index, pml_price, bar_index, pml_price, color=i_pml_color, style=getStyle(i_pml_style), width=getWidth(i_pml_width))
+                if i_poi_lbl_en
+                    pml_lbl := label.new(bar_index, pml_price, i_pml_txt, color=color.new(color.white, 100), textcolor=i_pml_color, style=label.style_label_left, size=getSize(i_poi_lbl_size))
+
+        monthly_active := true
+        monthly_high := high
+        monthly_low  := low
+        mopen_price  := open
+        month_start_bar := bar_index
+
+    if monthly_active
+        monthly_high := math.max(monthly_high, high)
+        monthly_low  := math.min(monthly_low, low)
+
+    // ── EXTEND + SWEEP CHECK for PWH/PWL/PMH/PML ──
+    if not na(pwh_line)
+        line.set_x2(pwh_line, bar_index)
+        if not na(pwh_lbl)
+            label.set_x(pwh_lbl, bar_index)
+        if not pwh_touched and high >= pwh_price
+            pwh_touched := true
+            line.set_color(pwh_line, i_pwh_swept)
+            if not na(pwh_lbl)
+                label.set_textcolor(pwh_lbl, i_pwh_swept)
+
+    if not na(pwl_line)
+        line.set_x2(pwl_line, bar_index)
+        if not na(pwl_lbl)
+            label.set_x(pwl_lbl, bar_index)
+        if not pwl_touched and low <= pwl_price
+            pwl_touched := true
+            line.set_color(pwl_line, i_pwl_swept)
+            if not na(pwl_lbl)
+                label.set_textcolor(pwl_lbl, i_pwl_swept)
+
+    if not na(pmh_line)
+        line.set_x2(pmh_line, bar_index)
+        if not na(pmh_lbl)
+            label.set_x(pmh_lbl, bar_index)
+        if not pmh_touched and high >= pmh_price
+            pmh_touched := true
+            line.set_color(pmh_line, i_pmh_swept)
+            if not na(pmh_lbl)
+                label.set_textcolor(pmh_lbl, i_pmh_swept)
+
+    if not na(pml_line)
+        line.set_x2(pml_line, bar_index)
+        if not na(pml_lbl)
+            label.set_x(pml_lbl, bar_index)
+        if not pml_touched and low <= pml_price
+            pml_touched := true
+            line.set_color(pml_line, i_pml_swept)
+            if not na(pml_lbl)
+                label.set_textcolor(pml_lbl, i_pml_swept)
+
+    // ── EQUILIBRIUM / PREMIUM / DISCOUNT ──
+    float eq_hi = i_eq_range == "Daily" ? daily_high : i_eq_range == "Weekly" ? weekly_high : monthly_high
+    float eq_lo = i_eq_range == "Daily" ? daily_low  : i_eq_range == "Weekly" ? weekly_low  : monthly_low
+    int   eq_start_bar = i_eq_range == "Daily" ? day_start_bar : i_eq_range == "Weekly" ? week_start_bar : month_start_bar
+
+    if i_eq_en and not na(eq_hi) and not na(eq_lo) and not na(eq_start_bar)
+        float eq_mid_now = (eq_hi + eq_lo) / 2
+        bool new_period = (i_eq_range == "Daily" and is_day_start) or (i_eq_range == "Weekly" and is_week_start) or (i_eq_range == "Monthly" and is_new_month)
+        if na(eq_line) or new_period
+            if not na(eq_line)
+                line.delete(eq_line)
+                box.delete(premium_box)
+                box.delete(discount_box)
+            eq_line      := line.new(eq_start_bar, eq_mid_now, bar_index, eq_mid_now, color=i_eq_color, style=line.style_dashed, width=1)
+            premium_box  := box.new(eq_start_bar, eq_hi, bar_index, eq_mid_now, bgcolor=i_premium_color, border_color=color.new(color.white, 100))
+            discount_box := box.new(eq_start_bar, eq_mid_now, bar_index, eq_lo, bgcolor=i_discount_color, border_color=color.new(color.white, 100))
+        else
+            line.set_xy1(eq_line, eq_start_bar, eq_mid_now)
+            line.set_xy2(eq_line, bar_index, eq_mid_now)
+            box.set_lefttop(premium_box, eq_start_bar, eq_hi)
+            box.set_rightbottom(premium_box, bar_index, eq_mid_now)
+            box.set_lefttop(discount_box, eq_start_bar, eq_mid_now)
+            box.set_rightbottom(discount_box, bar_index, eq_lo)
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// A+ SETUP SCORE — computed every bar (out of 10)
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+float eq_hi2  = i_eq_range == "Daily" ? daily_high : i_eq_range == "Weekly" ? weekly_high : monthly_high
+float eq_lo2  = i_eq_range == "Daily" ? daily_low  : i_eq_range == "Weekly" ? weekly_low  : monthly_low
+float eq_mid  = (not na(eq_hi2) and not na(eq_lo2)) ? (eq_hi2 + eq_lo2) / 2 : na
+
+// 1) HTF POI tap — close within i_poi_dist of PDH, PDL, PWH, PWL, PMH, PML, wOpen, mOpen
+array<float> poi_levels = array.from(completed_daily_high, completed_daily_low, pwh_price, pwl_price, pmh_price, pml_price, wopen_price, mopen_price)
+bool at_poi = false
+for lvl in poi_levels
+    if not na(lvl) and math.abs(close - lvl) <= i_poi_dist
+        at_poi := true
+
+// 2) In an active macro window
+bool macro_active = in_macro
+
+// 3) Premium/Discount aligned with today's Daily Bias
+bool in_discount = not na(eq_mid) and close < eq_mid
+bool in_premium  = not na(eq_mid) and close > eq_mid
+bool pd_aligned  = i_daily_bias == "Neutral" ? true : (i_daily_bias == "Bullish" and in_discount) or (i_daily_bias == "Bearish" and in_premium)
+
+// 4) Manual checklist (7 items)
+int checklist_sum = (i_cl1 ? 1 : 0) + (i_cl2 ? 1 : 0) + (i_cl3 ? 1 : 0) + (i_cl4 ? 1 : 0) + (i_cl5 ? 1 : 0) + (i_cl6 ? 1 : 0) + (i_cl7 ? 1 : 0)
+
+int score = (at_poi ? 1 : 0) + (macro_active ? 1 : 0) + (pd_aligned ? 1 : 0) + checklist_sum  // out of 10
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// SCORE PANEL
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+if barstate.islast and not hide_ind
+    if not na(score_table)
+        table.delete(score_table)
+    score_table := table.new(getPosition(i_score_pos), 2, 7, bgcolor=color.new(color.black, 15), border_width=1, border_color=color.gray)
+
+    table.cell(score_table, 0, 0, "A+ SETUP SCORE", text_color=color.white, text_size=getSize(i_score_size), bgcolor=color.new(color.black, 0), text_halign=text.align_center)
+    table.merge_cells(score_table, 0, 0, 1, 0)
+
+    color score_color = score >= i_score_threshold ? color.new(color.green, 0) : score >= i_score_threshold - 2 ? color.new(color.orange, 0) : color.gray
+    table.cell(score_table, 0, 1, str.tostring(score) + " / 10", text_color=score_color, text_size=getSize(i_score_size), text_halign=text.align_center)
+    table.merge_cells(score_table, 0, 1, 1, 1)
+
+    string status_txt = score >= i_score_threshold ? "✅ A+ SETUP" : "⏳ WAIT"
+    table.cell(score_table, 0, 2, status_txt, text_color=score_color, text_size=getSize(i_score_size), text_halign=text.align_center)
+    table.merge_cells(score_table, 0, 2, 1, 2)
+
+    table.cell(score_table, 0, 3, "HTF POI", text_color=color.gray, text_size=getSize(i_score_size), text_halign=text.align_left)
+    table.cell(score_table, 1, 3, at_poi ? "✔" : "○", text_color=at_poi ? color.green : color.gray, text_size=getSize(i_score_size), text_halign=text.align_center)
+
+    table.cell(score_table, 0, 4, "In Macro", text_color=color.gray, text_size=getSize(i_score_size), text_halign=text.align_left)
+    table.cell(score_table, 1, 4, macro_active ? "✔" : "○", text_color=macro_active ? color.green : color.gray, text_size=getSize(i_score_size), text_halign=text.align_center)
+
+    table.cell(score_table, 0, 5, "P/D Aligned", text_color=color.gray, text_size=getSize(i_score_size), text_halign=text.align_left)
+    table.cell(score_table, 1, 5, pd_aligned ? "✔" : "○", text_color=pd_aligned ? color.green : color.gray, text_size=getSize(i_score_size), text_halign=text.align_center)
+
+    table.cell(score_table, 0, 6, "Checklist", text_color=color.gray, text_size=getSize(i_score_size), text_halign=text.align_left)
+    table.cell(score_table, 1, 6, str.tostring(checklist_sum) + "/7", text_color=checklist_sum >= 5 ? color.green : color.gray, text_size=getSize(i_score_size), text_halign=text.align_center)
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// ALERT
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+alertcondition(score >= i_score_threshold and score[1] < i_score_threshold, title="LMR A+ Setup Reached", message="LMR A+ Setup: confluence score crossed your threshold")

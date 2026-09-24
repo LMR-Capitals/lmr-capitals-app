@@ -1,0 +1,207 @@
+//@version=6
+indicator("LMR SMT - HTF (Monthly/Weekly/Daily)", overlay=true, max_lines_count=100, max_labels_count=100)
+
+// =====================================================================
+// LMR SMT - HTF
+// -----------------------------------------------------------------------
+// Split 2 of 3 (memory fix). Monthly/Weekly/Daily focal points only.
+// 12 request.security calls total. Pair with "LMR SMT - Core" and
+// "LMR SMT - Intraday" as separate indicators running side by side.
+// =====================================================================
+
+grpSym = "Symbols"
+nqSymbol = input.symbol("NQ1!", "NQ", inline = "sym", group = grpSym)
+esSymbol = input.symbol("ES1!", "ES", inline = "sym", group = grpSym)
+ymSymbol = input.symbol("YM1!", "YM", inline = "sym", group = grpSym)
+
+grpFocal = "Levels"
+useMonthly = input.bool(true, "Monthly", inline = "f1", group = grpFocal)
+useWeekly  = input.bool(true, "Weekly",  inline = "f1", group = grpFocal)
+useDaily   = input.bool(true, "Daily",   inline = "f1", group = grpFocal)
+
+grpAMD = "AMD Confirmation Gate"
+atrLen            = input.int(14,   "ATR Length", inline = "amd", group = grpAMD)
+distMult          = input.float(0.8, "Displacement threshold (x ATR)", inline = "amd", group = grpAMD)
+requireAMDConfirm = input.bool(true, "Only mark CONFIRMED when chart symbol shows AMD Distribution", group = grpAMD)
+
+grpVis = "Display"
+showTable = input.bool(true, "Show SMT Table", group = grpVis)
+bullColor = input.color(color.lime, "Aligned Color",   inline = "vc", group = grpVis)
+bearColor = input.color(color.red,  "Divergent Color", inline = "vc", group = grpVis)
+
+grpLines = "Chart Lines"
+drawLines  = input.bool(true, "Draw SMT Lines on Chart", group = grpLines)
+lineLength = input.int(50, "Line Length (bars)", minval = 5, group = grpLines)
+lineWidth  = input.int(2,  "Line Width", minval = 1, maxval = 5, group = grpLines)
+
+// ---------------------------------------------------------------------
+// LEAN AMD GATE (direct call - 0 security calls, just block state + True Open)
+// ---------------------------------------------------------------------
+f_amdGate(distMultParam) =>
+    nyH = hour(time, "America/New_York")
+    nyM = minute(time, "America/New_York")
+    nyMin = nyH * 60 + nyM
+    string bID = na
+    string rl = na
+    if nyMin >= 1080 or nyMin < 150
+        bID := "ASIA"
+        rl := "N"
+    else if nyMin >= 960 and nyMin < 1080
+        bID := "OFF"
+        rl := "N"
+    else if nyMin >= 150 and nyMin < 240
+        bID := "LO1"
+        rl := "A"
+    else if nyMin >= 240 and nyMin < 330
+        bID := "LO2"
+        rl := "M"
+    else if nyMin >= 330 and nyMin < 420
+        bID := "LO3"
+        rl := "D"
+    else if nyMin >= 420 and nyMin < 510
+        bID := "AM1"
+        rl := "A"
+    else if nyMin >= 510 and nyMin < 600
+        bID := "AM2"
+        rl := "M"
+    else if nyMin >= 600 and nyMin < 690
+        bID := "AM3"
+        rl := "D"
+    else if nyMin >= 690 and nyMin < 780
+        bID := "PM1"
+        rl := "A"
+    else if nyMin >= 780 and nyMin < 870
+        bID := "PM2"
+        rl := "M"
+    else
+        bID := "PM3"
+        rl := "D"
+
+    isNewB = bID != bID[1]
+    var float trueOpen = na
+    if isNewB and rl == "M"
+        trueOpen := open
+
+    atrValSym = ta.atr(atrLen)
+    isBullD = rl == "D" and not na(trueOpen) and (close - trueOpen) > atrValSym * distMultParam
+    isBearD = rl == "D" and not na(trueOpen) and (close - trueOpen) < -atrValSym * distMultParam
+    [isBullD, isBearD]
+
+[chIsBullD, chIsBearD] = f_amdGate(distMult)
+amdConfirmed = chIsBullD or chIsBearD
+amdDirection = chIsBullD ? "Bullish" : chIsBearD ? "Bearish" : "-"
+gatePass     = not requireAMDConfirm or amdConfirmed
+
+f_eval3(a, b, c) =>
+    not (a == b and b == c)
+
+f_flagText(nqFlag, esFlag, ymFlag) =>
+    (nqFlag ? "NQ✓ " : "NQ✗ ") + (esFlag ? "ES✓ " : "ES✗ ") + (ymFlag ? "YM✓" : "YM✗")
+
+// ---------------------------------------------------------------------
+// MONTHLY / WEEKLY / DAILY - 9 calls (NQ/ES/YM) + 3 calls (chart) = 12
+// ---------------------------------------------------------------------
+[nqMoH, nqMoL, nqMoHP, nqMoLP] = request.security(nqSymbol, "M", [high, low, high[1], low[1]])
+[esMoH, esMoL, esMoHP, esMoLP] = request.security(esSymbol, "M", [high, low, high[1], low[1]])
+[ymMoH, ymMoL, ymMoHP, ymMoLP] = request.security(ymSymbol, "M", [high, low, high[1], low[1]])
+
+[nqWkH, nqWkL, nqWkHP, nqWkLP] = request.security(nqSymbol, "W", [high, low, high[1], low[1]])
+[esWkH, esWkL, esWkHP, esWkLP] = request.security(esSymbol, "W", [high, low, high[1], low[1]])
+[ymWkH, ymWkL, ymWkHP, ymWkLP] = request.security(ymSymbol, "W", [high, low, high[1], low[1]])
+
+[nqDyH, nqDyL, nqDyHP, nqDyLP] = request.security(nqSymbol, "D", [high, low, high[1], low[1]])
+[esDyH, esDyL, esDyHP, esDyLP] = request.security(esSymbol, "D", [high, low, high[1], low[1]])
+[ymDyH, ymDyL, ymDyHP, ymDyLP] = request.security(ymSymbol, "D", [high, low, high[1], low[1]])
+
+[chMoH, chMoL, chMoHP, chMoLP] = request.security(syminfo.tickerid, "M", [high, low, high[1], low[1]])
+[chWkH, chWkL, chWkHP, chWkLP] = request.security(syminfo.tickerid, "W", [high, low, high[1], low[1]])
+[chDyH, chDyL, chDyHP, chDyLP] = request.security(syminfo.tickerid, "D", [high, low, high[1], low[1]])
+
+nqMoSweptHigh = nqMoH > nqMoHP
+nqMoSweptLow  = nqMoL < nqMoLP
+esMoSweptHigh = esMoH > esMoHP
+esMoSweptLow  = esMoL < esMoLP
+ymMoSweptHigh = ymMoH > ymMoHP
+ymMoSweptLow  = ymMoL < ymMoLP
+moHighSMT = useMonthly and f_eval3(nqMoSweptHigh, esMoSweptHigh, ymMoSweptHigh)
+moLowSMT  = useMonthly and f_eval3(nqMoSweptLow,  esMoSweptLow,  ymMoSweptLow)
+
+nqWkSweptHigh = nqWkH > nqWkHP
+nqWkSweptLow  = nqWkL < nqWkLP
+esWkSweptHigh = esWkH > esWkHP
+esWkSweptLow  = esWkL < esWkLP
+ymWkSweptHigh = ymWkH > ymWkHP
+ymWkSweptLow  = ymWkL < ymWkLP
+wkHighSMT = useWeekly and f_eval3(nqWkSweptHigh, esWkSweptHigh, ymWkSweptHigh)
+wkLowSMT  = useWeekly and f_eval3(nqWkSweptLow,  esWkSweptLow,  ymWkSweptLow)
+
+nqDySweptHigh = nqDyH > nqDyHP
+nqDySweptLow  = nqDyL < nqDyLP
+esDySweptHigh = esDyH > esDyHP
+esDySweptLow  = esDyL < esDyLP
+ymDySweptHigh = ymDyH > ymDyHP
+ymDySweptLow  = ymDyL < ymDyLP
+dyHighSMT = useDaily and f_eval3(nqDySweptHigh, esDySweptHigh, ymDySweptHigh)
+dyLowSMT  = useDaily and f_eval3(nqDySweptLow,  esDySweptLow,  ymDySweptLow)
+
+// ---------------------------------------------------------------------
+// OVERALL / ALERTS
+// ---------------------------------------------------------------------
+anyRawSMT = moHighSMT or moLowSMT or wkHighSMT or wkLowSMT or dyHighSMT or dyLowSMT
+anyConfirmedSMT = anyRawSMT and gatePass
+
+alertcondition(anyConfirmedSMT, title = "LMR SMT HTF Confirmed", message = "LMR SMT HTF: divergence confirmed against AMD Distribution")
+alertcondition(anyRawSMT, title = "LMR SMT HTF Raw (any)", message = "LMR SMT HTF: raw structural divergence detected")
+
+// ---------------------------------------------------------------------
+// CHART LINES
+// ---------------------------------------------------------------------
+moHighTrig = (moHighSMT and gatePass) and not (moHighSMT[1] and gatePass[1])
+moLowTrig  = (moLowSMT and gatePass) and not (moLowSMT[1] and gatePass[1])
+wkHighTrig = (wkHighSMT and gatePass) and not (wkHighSMT[1] and gatePass[1])
+wkLowTrig  = (wkLowSMT and gatePass) and not (wkLowSMT[1] and gatePass[1])
+dyHighTrig = (dyHighSMT and gatePass) and not (dyHighSMT[1] and gatePass[1])
+dyLowTrig  = (dyLowSMT and gatePass) and not (dyLowSMT[1] and gatePass[1])
+
+f_drawSMTLine(triggerHigh, triggerLow, levelHigh, levelLow, lbl) =>
+    if drawLines and triggerHigh and not na(levelHigh)
+        line.new(bar_index, levelHigh, bar_index + lineLength, levelHigh, color = bearColor, width = lineWidth)
+        label.new(bar_index + lineLength, levelHigh, lbl + " SMT", style = label.style_label_left, color = color.new(color.black, 100), textcolor = bearColor, size = size.small)
+    if drawLines and triggerLow and not na(levelLow)
+        line.new(bar_index, levelLow, bar_index + lineLength, levelLow, color = bullColor, width = lineWidth)
+        label.new(bar_index + lineLength, levelLow, lbl + " SMT", style = label.style_label_left, color = color.new(color.black, 100), textcolor = bullColor, size = size.small)
+    true
+
+f_drawSMTLine(moHighTrig, moLowTrig, chMoHP, chMoLP, "Monthly")
+f_drawSMTLine(wkHighTrig, wkLowTrig, chWkHP, chWkLP, "Weekly")
+f_drawSMTLine(dyHighTrig, dyLowTrig, chDyHP, chDyLP, "Daily")
+
+// ---------------------------------------------------------------------
+// TABLE
+// ---------------------------------------------------------------------
+f_row(t, r, lbl, active, flagTxt) =>
+    stateColor = not active ? color.gray : bearColor
+    table.cell(t, 0, r, lbl, text_color = color.white, text_size = size.small)
+    table.cell(t, 1, r, active ? flagTxt : "-", text_color = stateColor, text_size = size.small)
+
+if showTable and barstate.islast
+    tbl = table.new(position.bottom_left, 2, 10, bgcolor = color.new(color.black, 15), border_color = color.gray, border_width = 1)
+
+    table.cell(tbl, 0, 0, "LMR SMT HTF", text_color = color.white, bgcolor = color.new(color.gray, 30), text_size = size.small)
+    table.cell(tbl, 1, 0, "NQ/ES/YM", text_color = color.white, bgcolor = color.new(color.gray, 30), text_size = size.small)
+
+    table.cell(tbl, 0, 1, "AMD Gate (" + amdDirection + ")", text_color = color.white, text_size = size.small)
+    table.cell(tbl, 1, 1, amdConfirmed ? "ACTIVE" : "waiting", text_color = amdConfirmed ? bullColor : color.gray, text_size = size.small)
+
+    f_row(tbl, 2, "Monthly High", useMonthly, f_flagText(nqMoSweptHigh, esMoSweptHigh, ymMoSweptHigh))
+    f_row(tbl, 3, "Monthly Low",  useMonthly, f_flagText(nqMoSweptLow,  esMoSweptLow,  ymMoSweptLow))
+    f_row(tbl, 4, "Weekly High",  useWeekly,  f_flagText(nqWkSweptHigh, esWkSweptHigh, ymWkSweptHigh))
+    f_row(tbl, 5, "Weekly Low",   useWeekly,  f_flagText(nqWkSweptLow,  esWkSweptLow,  ymWkSweptLow))
+    f_row(tbl, 6, "Daily High",   useDaily,   f_flagText(nqDySweptHigh, esDySweptHigh, ymDySweptHigh))
+    f_row(tbl, 7, "Daily Low",    useDaily,   f_flagText(nqDySweptLow,  esDySweptLow,  ymDySweptLow))
+
+    readyBg = anyConfirmedSMT ? color.new(color.green, 55) : color.new(color.gray, 60)
+    table.cell(tbl, 0, 8, "SMT CONFIRMED", text_color = color.white, bgcolor = readyBg, text_size = size.small)
+    table.cell(tbl, 1, 8, anyConfirmedSMT ? "YES" : "no", text_color = anyConfirmedSMT ? bullColor : color.orange, bgcolor = readyBg, text_size = size.small)
+    table.cell(tbl, 0, 9, "Raw SMT (any)", text_color = color.white, text_size = size.small)
+    table.cell(tbl, 1, 9, anyRawSMT ? "YES" : "no", text_color = anyRawSMT ? bearColor : color.gray, text_size = size.small)

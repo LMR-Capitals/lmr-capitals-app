@@ -1,0 +1,161 @@
+//@version=6
+indicator("LMR SMT Detector", overlay=true, max_labels_count=200, max_lines_count=200)
+
+// =====================================================================
+// LMR SMT DETECTOR
+// -----------------------------------------------------------------------
+// Compares this chart's swing highs/lows against 1-2 correlated symbols
+// (defaults to ES1! and YM1! for NQ/ES/YM triangulation). When THIS
+// chart prints a higher high (or lower low) that the compare symbol
+// FAILS to confirm, that's a classic ICT SMT (Smart Money Technique)
+// divergence - a sign the move may be liquidity engineering rather
+// than genuine, and a common precursor to a reversal.
+//
+//   Bearish SMT: this chart makes a Higher High, compare symbol makes
+//                a Lower High (or equal) instead -> expect reversal down
+//   Bullish SMT: this chart makes a Lower Low,  compare symbol makes
+//                a Higher Low (or equal) instead -> expect reversal up
+//
+// NOTE ON REPAINTING: like any swing/pivot tool, a pivot only confirms
+// once price has moved "Pivot Lookback" bars past it - so the label
+// appears a few bars after the actual swing point, not on it live.
+// This is standard/unavoidable for structure-based detection, not a bug.
+// =====================================================================
+
+// ---------------------------------------------------------------------
+// INPUTS
+// ---------------------------------------------------------------------
+grpSymbols = "Compare Symbols"
+compareSymbol1 = input.symbol("ES1!", "Compare Symbol 1", group = grpSymbols)
+useCompare2    = input.bool(true, "Enable Compare Symbol 2", inline = "c2", group = grpSymbols)
+compareSymbol2 = input.symbol("YM1!", "Compare Symbol 2",    inline = "c2", group = grpSymbols)
+
+grpPivot = "Swing Detection"
+pivotLen = input.int(5, "Pivot Lookback (bars each side)", minval = 1, group = grpPivot)
+
+grpVis = "Visuals"
+showLabels  = input.bool(true, "Show SMT Labels",   group = grpVis)
+showMarkers = input.bool(true, "Show Swing Markers on Chart", group = grpVis)
+bullColor   = input.color(color.lime, "Bullish SMT Color", inline = "vc", group = grpVis)
+bearColor   = input.color(color.red,  "Bearish SMT Color", inline = "vc", group = grpVis)
+showTable   = input.bool(true, "Show Status Table", group = grpVis)
+
+// ---------------------------------------------------------------------
+// PIVOTS - main chart symbol
+// ---------------------------------------------------------------------
+ph = ta.pivothigh(high, pivotLen, pivotLen)
+pl = ta.pivotlow(low, pivotLen, pivotLen)
+
+// ---------------------------------------------------------------------
+// PIVOTS - compare symbols (computed on their own OHLC, synced to chart)
+// ---------------------------------------------------------------------
+[ph1, pl1] = request.security(compareSymbol1, timeframe.period, [ta.pivothigh(high, pivotLen, pivotLen), ta.pivotlow(low, pivotLen, pivotLen)], lookahead = barmerge.lookahead_off)
+[ph2raw, pl2raw] = request.security(compareSymbol2, timeframe.period, [ta.pivothigh(high, pivotLen, pivotLen), ta.pivotlow(low, pivotLen, pivotLen)], lookahead = barmerge.lookahead_off)
+ph2 = useCompare2 ? ph2raw : na
+pl2 = useCompare2 ? pl2raw : na
+
+// ---------------------------------------------------------------------
+// TRACK LAST TWO CONFIRMED PIVOTS PER SYMBOL
+// ---------------------------------------------------------------------
+var float mHigh1 = na
+var float mHigh2 = na
+var float mLow1  = na
+var float mLow2  = na
+if not na(ph)
+    mHigh2 := mHigh1
+    mHigh1 := ph
+if not na(pl)
+    mLow2 := mLow1
+    mLow1 := pl
+
+var float c1High1 = na
+var float c1High2 = na
+var float c1Low1  = na
+var float c1Low2  = na
+if not na(ph1)
+    c1High2 := c1High1
+    c1High1 := ph1
+if not na(pl1)
+    c1Low2 := c1Low1
+    c1Low1 := pl1
+
+var float c2High1 = na
+var float c2High2 = na
+var float c2Low1  = na
+var float c2Low2  = na
+if useCompare2 and not na(ph2)
+    c2High2 := c2High1
+    c2High1 := ph2
+if useCompare2 and not na(pl2)
+    c2Low2 := c2Low1
+    c2Low1 := pl2
+
+// ---------------------------------------------------------------------
+// DIVERGENCE LOGIC
+// ---------------------------------------------------------------------
+mainMadeHH = not na(ph) and not na(mHigh2) and mHigh1 > mHigh2
+mainMadeLL = not na(pl) and not na(mLow2)  and mLow1  < mLow2
+
+c1FailedHigh = not na(c1High2) and c1High1 <= c1High2   // compare1 did NOT make a higher high
+c1FailedLow  = not na(c1Low2)  and c1Low1  >= c1Low2    // compare1 did NOT make a lower low
+
+c2FailedHigh = useCompare2 and not na(c2High2) and c2High1 <= c2High2
+c2FailedLow  = useCompare2 and not na(c2Low2)  and c2Low1  >= c2Low2
+
+bearSMT_c1 = mainMadeHH and not na(c1High2) and c1FailedHigh
+bullSMT_c1 = mainMadeLL and not na(c1Low2)  and c1FailedLow
+
+bearSMT_c2 = useCompare2 and mainMadeHH and not na(c2High2) and c2FailedHigh
+bullSMT_c2 = useCompare2 and mainMadeLL and not na(c2Low2)  and c2FailedLow
+
+anyBearSMT = bearSMT_c1 or bearSMT_c2
+anyBullSMT = bullSMT_c1 or bullSMT_c2
+
+// ---------------------------------------------------------------------
+// SWING MARKERS (optional, cheap visual reference for every pivot)
+// ---------------------------------------------------------------------
+plotshape(showMarkers and not na(ph), title = "Swing High", style = shape.triangledown, location = location.abovebar, color = color.new(color.gray, 60), size = size.tiny, offset = -pivotLen)
+plotshape(showMarkers and not na(pl), title = "Swing Low",  style = shape.triangleup,   location = location.belowbar, color = color.new(color.gray, 60), size = size.tiny, offset = -pivotLen)
+
+// ---------------------------------------------------------------------
+// SMT LABELS
+// ---------------------------------------------------------------------
+if showLabels and bearSMT_c1
+    label.new(bar_index - pivotLen, high, text = "SMT ▼\nvs " + compareSymbol1, style = label.style_label_down, color = color.new(bearColor, 20), textcolor = color.white, size = size.small)
+
+if showLabels and bearSMT_c2
+    label.new(bar_index - pivotLen + 1, high, text = "SMT ▼\nvs " + compareSymbol2, style = label.style_label_down, color = color.new(bearColor, 20), textcolor = color.white, size = size.small)
+
+if showLabels and bullSMT_c1
+    label.new(bar_index - pivotLen, low, text = "SMT ▲\nvs " + compareSymbol1, style = label.style_label_up, color = color.new(bullColor, 20), textcolor = color.white, size = size.small)
+
+if showLabels and bullSMT_c2
+    label.new(bar_index - pivotLen + 1, low, text = "SMT ▲\nvs " + compareSymbol2, style = label.style_label_up, color = color.new(bullColor, 20), textcolor = color.white, size = size.small)
+
+// ---------------------------------------------------------------------
+// STATUS TABLE
+// ---------------------------------------------------------------------
+if showTable and barstate.islast
+    rows = useCompare2 ? 4 : 3
+    tbl = table.new(position.bottom_right, 2, rows, bgcolor = color.new(color.black, 15), border_color = color.gray, border_width = 1)
+    table.cell(tbl, 0, 0, "LMR SMT", text_color = color.white, bgcolor = color.new(color.gray, 30))
+    table.cell(tbl, 1, 0, "Status",  text_color = color.white, bgcolor = color.new(color.gray, 30))
+
+    mainStatus = not na(mHigh2) ? (mainMadeHH ? "HH" : "not HH") : "waiting..."
+    table.cell(tbl, 0, 1, "This Chart", text_color = color.white)
+    table.cell(tbl, 1, 1, mainStatus, text_color = color.white)
+
+    c1Status = not na(c1High2) ? (c1FailedHigh ? "Lower High (diverging)" : "Higher High (confirming)") : "waiting..."
+    table.cell(tbl, 0, 2, compareSymbol1, text_color = color.white)
+    table.cell(tbl, 1, 2, c1Status, text_color = (not na(c1High2) and c1FailedHigh) ? bearColor : color.white)
+
+    if useCompare2
+        c2Status = not na(c2High2) ? (c2FailedHigh ? "Lower High (diverging)" : "Higher High (confirming)") : "waiting..."
+        table.cell(tbl, 0, 3, compareSymbol2, text_color = color.white)
+        table.cell(tbl, 1, 3, c2Status, text_color = (not na(c2High2) and c2FailedHigh) ? bearColor : color.white)
+
+// ---------------------------------------------------------------------
+// ALERTS
+// ---------------------------------------------------------------------
+alertcondition(anyBearSMT, title = "Bearish SMT Divergence", message = "LMR SMT: Bearish divergence detected")
+alertcondition(anyBullSMT, title = "Bullish SMT Divergence", message = "LMR SMT: Bullish divergence detected")

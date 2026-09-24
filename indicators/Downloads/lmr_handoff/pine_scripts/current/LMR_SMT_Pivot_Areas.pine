@@ -1,0 +1,410 @@
+//@version=6
+indicator("LMR SMT Detector - Pivot Areas (TF + Sessions)", overlay=true, max_lines_count=100, max_labels_count=100)
+
+// =====================================================================
+// LMR SMT DETECTOR - PIVOT AREAS
+// -----------------------------------------------------------------------
+// CORE FIX FROM LAST VERSION: SMT is no longer based on generic swing
+// pivots (ta.pivothigh/pivotlow every couple of bars - too frequent,
+// not meaningful, caused the chart to flood with lines). SMT now fires
+// only at genuine ICT "pivot areas":
+//
+//   TIMEFRAME PERIOD HIGHS/LOWS (adaptive - current chart TF + one
+//   step higher on the ladder, so memory stays light):
+//     1m -> 5m -> 15m -> 30m -> 1hr -> 90m -> 4hr -> Daily -> Weekly -> Monthly
+//
+//   SESSION RANGE HIGHS/LOWS (always active, NY time):
+//     Asian   20:00 - 00:00
+//     London  00:00 - 05:00
+//     NY AM   07:00 - 11:00
+//     NY PM   12:00 - 16:00
+//
+// For every one of these pivot areas: did NQ take out the PRIOR
+// occurrence's high/low, did ES, did YM? Where one disagrees with the
+// other two, that's SMT - a diagonal line from the prior occurrence's
+// extreme to the current one, gold line, direction shown only by the
+// "Bullish SMT" / "Bearish SMT" text label (Bearish sits above,
+// Bullish sits below), same as before.
+//
+// Only 11 request.security calls total (2 TF levels x 4, sessions x 3)
+// regardless of which chart timeframe you're on - memory-safe.
+// =====================================================================
+
+grpSym = "Symbols"
+nqSymbol = input.symbol("NQ1!", "NQ", inline = "sym", group = grpSym)
+esSymbol = input.symbol("ES1!", "ES", inline = "sym", group = grpSym)
+ymSymbol = input.symbol("YM1!", "YM", inline = "sym", group = grpSym)
+
+grpLevels = "Pivot Areas"
+useTFLevels   = input.bool(true, "Timeframe Period Highs/Lows (adaptive)", group = grpLevels)
+useSessions   = input.bool(true, "Session Range Highs/Lows (Asia/London/NY AM/NY PM)", group = grpLevels)
+
+grpAMD = "AMD Confirmation Gate"
+atrLen            = input.int(14,   "ATR Length", inline = "amd", group = grpAMD)
+distMult          = input.float(0.8, "Displacement threshold (x ATR)", inline = "amd", group = grpAMD)
+requireAMDConfirm = input.bool(true, "Only mark CONFIRMED when chart symbol shows AMD Distribution", group = grpAMD)
+
+grpVis = "SMT Line Style"
+smtLineColor   = input.color(color.new(#FFA500, 0), "SMT Line Color (both directions)", group = grpVis)
+lineWidth      = input.int(2, "Line Width", minval = 1, maxval = 5, group = grpVis)
+labelTextColor = input.color(color.black, "Label Text Color", inline = "lbl", group = grpVis)
+labelBgColor   = input.color(color.new(color.gray, 70), "Label Background Color", inline = "lbl", group = grpVis)
+labelSize      = input.string(size.small, "Label Font Size", options = [size.tiny, size.small, size.normal, size.large], group = grpVis)
+
+grpTable = "Display"
+showTable = input.bool(true, "Show SMT Table", group = grpTable)
+
+// ---------------------------------------------------------------------
+// LEAN AMD GATE (direct call - 0 security calls)
+// ---------------------------------------------------------------------
+f_amdGate(distMultParam) =>
+    nyH = hour(time, "America/New_York")
+    nyM = minute(time, "America/New_York")
+    nyMin = nyH * 60 + nyM
+    string bID = na
+    string rl = na
+    if nyMin >= 1080 or nyMin < 150
+        bID := "ASIA"
+        rl := "N"
+    else if nyMin >= 960 and nyMin < 1080
+        bID := "OFF"
+        rl := "N"
+    else if nyMin >= 150 and nyMin < 240
+        bID := "LO1"
+        rl := "A"
+    else if nyMin >= 240 and nyMin < 330
+        bID := "LO2"
+        rl := "M"
+    else if nyMin >= 330 and nyMin < 420
+        bID := "LO3"
+        rl := "D"
+    else if nyMin >= 420 and nyMin < 510
+        bID := "AM1"
+        rl := "A"
+    else if nyMin >= 510 and nyMin < 600
+        bID := "AM2"
+        rl := "M"
+    else if nyMin >= 600 and nyMin < 690
+        bID := "AM3"
+        rl := "D"
+    else if nyMin >= 690 and nyMin < 780
+        bID := "PM1"
+        rl := "A"
+    else if nyMin >= 780 and nyMin < 870
+        bID := "PM2"
+        rl := "M"
+    else
+        bID := "PM3"
+        rl := "D"
+
+    isNewB = bID != bID[1]
+    var float trueOpen = na
+    if isNewB and rl == "M"
+        trueOpen := open
+
+    atrValSym = ta.atr(atrLen)
+    isBullD = rl == "D" and not na(trueOpen) and (close - trueOpen) > atrValSym * distMultParam
+    isBearD = rl == "D" and not na(trueOpen) and (close - trueOpen) < -atrValSym * distMultParam
+    [isBullD, isBearD]
+
+[chIsBullD, chIsBearD] = f_amdGate(distMult)
+amdConfirmed = chIsBullD or chIsBearD
+amdDirection = chIsBullD ? "Bullish" : chIsBearD ? "Bearish" : "-"
+gatePass     = not requireAMDConfirm or amdConfirmed
+
+f_eval3(a, b, c) =>
+    not (a == b and b == c)
+
+f_flagText(nqFlag, esFlag, ymFlag) =>
+    (nqFlag ? "NQ✓ " : "NQ✗ ") + (esFlag ? "ES✓ " : "ES✗ ") + (ymFlag ? "YM✓" : "YM✗")
+
+f_drawSMT(enabled, highTrig, lowTrig, curH, curHP, curL, curLP, curT, curTP, lbl) =>
+    if enabled and highTrig and gatePass and not na(curHP)
+        line.new(curTP, curHP, curT, curH, xloc = xloc.bar_time, color = smtLineColor, width = lineWidth)
+        label.new(curT, curH, lbl + " Bearish SMT", xloc = xloc.bar_time, style = label.style_label_down, color = labelBgColor, textcolor = labelTextColor, size = labelSize)
+    if enabled and lowTrig and gatePass and not na(curLP)
+        line.new(curTP, curLP, curT, curL, xloc = xloc.bar_time, color = smtLineColor, width = lineWidth)
+        label.new(curT, curL, lbl + " Bullish SMT", xloc = xloc.bar_time, style = label.style_label_up, color = labelBgColor, textcolor = labelTextColor, size = labelSize)
+    true
+
+// =====================================================================
+// PART 1: ADAPTIVE TIMEFRAME PERIOD HIGH/LOW (current chart TF + 1 up)
+// =====================================================================
+currentTFMinutes = timeframe.isintraday ? timeframe.multiplier : timeframe.isdaily ? timeframe.multiplier * 1440 : timeframe.isweekly ? timeframe.multiplier * 10080 : timeframe.ismonthly ? timeframe.multiplier * 43200 : 1
+
+f_ladderIndex(mins) =>
+    mins <= 1 ? 0 : mins <= 5 ? 1 : mins <= 15 ? 2 : mins <= 30 ? 3 : mins <= 60 ? 4 : mins <= 90 ? 5 : mins <= 240 ? 6 : mins <= 1440 ? 7 : mins <= 10080 ? 8 : 9
+
+currentIdx = f_ladderIndex(currentTFMinutes)
+nextIdx    = math.min(currentIdx + 1, 9)
+showNext   = useTFLevels and nextIdx != currentIdx
+
+f_ladderTF(idx) =>
+    idx == 0 ? "1" : idx == 1 ? "5" : idx == 2 ? "15" : idx == 3 ? "30" : idx == 4 ? "60" : idx == 5 ? "90" : idx == 6 ? "240" : idx == 7 ? "D" : idx == 8 ? "W" : "M"
+
+f_ladderLabel(idx) =>
+    idx == 0 ? "1m" : idx == 1 ? "5m" : idx == 2 ? "15m" : idx == 3 ? "30m" : idx == 4 ? "1hr" : idx == 5 ? "90m" : idx == 6 ? "4hr" : idx == 7 ? "Daily" : idx == 8 ? "Weekly" : "Monthly"
+
+currentTF    = f_ladderTF(currentIdx)
+nextTF       = f_ladderTF(nextIdx)
+currentLabel = f_ladderLabel(currentIdx)
+nextLabel    = f_ladderLabel(nextIdx)
+
+// --- CURRENT LEVEL - 4 security calls ---
+[nqCurH, nqCurL, nqCurHP, nqCurLP] = request.security(nqSymbol, currentTF, [high, low, high[1], low[1]])
+[esCurH, esCurL, esCurHP, esCurLP] = request.security(esSymbol, currentTF, [high, low, high[1], low[1]])
+[ymCurH, ymCurL, ymCurHP, ymCurLP] = request.security(ymSymbol, currentTF, [high, low, high[1], low[1]])
+[chCurH, chCurL, chCurHP, chCurLP, chCurT, chCurTP] = request.security(syminfo.tickerid, currentTF, [high, low, high[1], low[1], time, time[1]])
+
+nqCurSweptHigh = not na(nqCurHP) and nqCurH > nqCurHP
+nqCurSweptLow  = not na(nqCurLP) and nqCurL < nqCurLP
+esCurSweptHigh = not na(esCurHP) and esCurH > esCurHP
+esCurSweptLow  = not na(esCurLP) and esCurL < esCurLP
+ymCurSweptHigh = not na(ymCurHP) and ymCurH > ymCurHP
+ymCurSweptLow  = not na(ymCurLP) and ymCurL < ymCurLP
+
+curHighSMT = useTFLevels and f_eval3(nqCurSweptHigh, esCurSweptHigh, ymCurSweptHigh)
+curLowSMT  = useTFLevels and f_eval3(nqCurSweptLow,  esCurSweptLow,  ymCurSweptLow)
+curHighTrig = curHighSMT and not curHighSMT[1]
+curLowTrig  = curLowSMT and not curLowSMT[1]
+
+f_drawSMT(useTFLevels, curHighTrig, curLowTrig, chCurH, chCurHP, chCurL, chCurLP, chCurT, chCurTP, currentLabel)
+
+// --- NEXT LEVEL UP - 4 more security calls (8 total for Part 1) ---
+[nqNxtH, nqNxtL, nqNxtHP, nqNxtLP] = request.security(nqSymbol, nextTF, [high, low, high[1], low[1]])
+[esNxtH, esNxtL, esNxtHP, esNxtLP] = request.security(esSymbol, nextTF, [high, low, high[1], low[1]])
+[ymNxtH, ymNxtL, ymNxtHP, ymNxtLP] = request.security(ymSymbol, nextTF, [high, low, high[1], low[1]])
+[chNxtH, chNxtL, chNxtHP, chNxtLP, chNxtT, chNxtTP] = request.security(syminfo.tickerid, nextTF, [high, low, high[1], low[1], time, time[1]])
+
+nqNxtSweptHigh = not na(nqNxtHP) and nqNxtH > nqNxtHP
+nqNxtSweptLow  = not na(nqNxtLP) and nqNxtL < nqNxtLP
+esNxtSweptHigh = not na(esNxtHP) and esNxtH > esNxtHP
+esNxtSweptLow  = not na(esNxtLP) and esNxtL < esNxtLP
+ymNxtSweptHigh = not na(ymNxtHP) and ymNxtH > ymNxtHP
+ymNxtSweptLow  = not na(ymNxtLP) and ymNxtL < ymNxtLP
+
+nxtHighSMT = showNext and f_eval3(nqNxtSweptHigh, esNxtSweptHigh, ymNxtSweptHigh)
+nxtLowSMT  = showNext and f_eval3(nqNxtSweptLow,  esNxtSweptLow,  ymNxtSweptLow)
+nxtHighTrig = nxtHighSMT and not nxtHighSMT[1]
+nxtLowTrig  = nxtLowSMT and not nxtLowSMT[1]
+
+f_drawSMT(showNext, nxtHighTrig, nxtLowTrig, chNxtH, chNxtHP, chNxtL, chNxtLP, chNxtT, chNxtTP, nextLabel)
+
+// =====================================================================
+// PART 2: SESSION RANGE HIGH/LOW (Asian / London / NY AM / NY PM)
+// =====================================================================
+f_sessionState() =>
+    nyH = hour(time, "America/New_York")
+    nyM = minute(time, "America/New_York")
+    nyMin = nyH * 60 + nyM
+
+    string sess = na
+    if nyMin >= 1200
+        sess := "ASIA"
+    else if nyMin < 300
+        sess := "LONDON"
+    else if nyMin >= 420 and nyMin < 660
+        sess := "NYAM"
+    else if nyMin >= 720 and nyMin < 960
+        sess := "NYPM"
+    else
+        sess := "OFF"
+
+    isNewSess = sess != sess[1]
+
+    var float aH  = na
+    var float aL  = na
+    var float aHP = na
+    var float aLP = na
+    var int   aT  = na
+    var int   aTP = na
+
+    var float lH  = na
+    var float lL  = na
+    var float lHP = na
+    var float lLP = na
+    var int   lT  = na
+    var int   lTP = na
+
+    var float amH  = na
+    var float amL  = na
+    var float amHP = na
+    var float amLP = na
+    var int   amT  = na
+    var int   amTP = na
+
+    var float pmH  = na
+    var float pmL  = na
+    var float pmHP = na
+    var float pmLP = na
+    var int   pmT  = na
+    var int   pmTP = na
+
+    if isNewSess and sess == "ASIA"
+        aHP := aH
+        aLP := aL
+        aTP := aT
+        aH  := high
+        aL  := low
+        aT  := time
+    else if sess == "ASIA"
+        aH := math.max(aH, high)
+        aL := math.min(aL, low)
+
+    if isNewSess and sess == "LONDON"
+        lHP := lH
+        lLP := lL
+        lTP := lT
+        lH  := high
+        lL  := low
+        lT  := time
+    else if sess == "LONDON"
+        lH := math.max(lH, high)
+        lL := math.min(lL, low)
+
+    if isNewSess and sess == "NYAM"
+        amHP := amH
+        amLP := amL
+        amTP := amT
+        amH  := high
+        amL  := low
+        amT  := time
+    else if sess == "NYAM"
+        amH := math.max(amH, high)
+        amL := math.min(amL, low)
+
+    if isNewSess and sess == "NYPM"
+        pmHP := pmH
+        pmLP := pmL
+        pmTP := pmT
+        pmH  := high
+        pmL  := low
+        pmT  := time
+    else if sess == "NYPM"
+        pmH := math.max(pmH, high)
+        pmL := math.min(pmL, low)
+
+    [aH, aL, aHP, aLP, aT, aTP, lH, lL, lHP, lLP, lT, lTP, amH, amL, amHP, amLP, amT, amTP, pmH, pmL, pmHP, pmLP, pmT, pmTP]
+
+// --- NQ / ES / YM - 3 security calls ---
+[nqAH, nqAL, nqAHP, nqALP, nqAT, nqATP, nqLH, nqLL, nqLHP, nqLLP, nqLT, nqLTP, nqAmH, nqAmL, nqAmHP, nqAmLP, nqAmT, nqAmTP, nqPmH, nqPmL, nqPmHP, nqPmLP, nqPmT, nqPmTP] = request.security(nqSymbol, timeframe.period, f_sessionState())
+[esAH, esAL, esAHP, esALP, esAT, esATP, esLH, esLL, esLHP, esLLP, esLT, esLTP, esAmH, esAmL, esAmHP, esAmLP, esAmT, esAmTP, esPmH, esPmL, esPmHP, esPmLP, esPmT, esPmTP] = request.security(esSymbol, timeframe.period, f_sessionState())
+[ymAH, ymAL, ymAHP, ymALP, ymAT, ymATP, ymLH, ymLL, ymLHP, ymLLP, ymLT, ymLTP, ymAmH, ymAmL, ymAmHP, ymAmLP, ymAmT, ymAmTP, ymPmH, ymPmL, ymPmHP, ymPmLP, ymPmT, ymPmTP] = request.security(ymSymbol, timeframe.period, f_sessionState())
+
+// --- Chart's own session state - direct call, 0 security calls ---
+[chAH, chAL, chAHP, chALP, chAT, chATP, chLH, chLL, chLHP, chLLP, chLT, chLTP, chAmH, chAmL, chAmHP, chAmLP, chAmT, chAmTP, chPmH, chPmL, chPmHP, chPmLP, chPmT, chPmTP] = f_sessionState()
+
+// --- ASIAN ---
+nqAsiaSweptHigh = not na(nqAHP) and nqAH > nqAHP
+nqAsiaSweptLow  = not na(nqALP) and nqAL < nqALP
+esAsiaSweptHigh = not na(esAHP) and esAH > esAHP
+esAsiaSweptLow  = not na(esALP) and esAL < esALP
+ymAsiaSweptHigh = not na(ymAHP) and ymAH > ymAHP
+ymAsiaSweptLow  = not na(ymALP) and ymAL < ymALP
+asiaHighSMT = useSessions and f_eval3(nqAsiaSweptHigh, esAsiaSweptHigh, ymAsiaSweptHigh)
+asiaLowSMT  = useSessions and f_eval3(nqAsiaSweptLow,  esAsiaSweptLow,  ymAsiaSweptLow)
+asiaHighTrig = asiaHighSMT and not asiaHighSMT[1]
+asiaLowTrig  = asiaLowSMT and not asiaLowSMT[1]
+f_drawSMT(useSessions, asiaHighTrig, asiaLowTrig, chAH, chAHP, chAL, chALP, chAT, chATP, "Asia")
+
+// --- LONDON ---
+nqLdnSweptHigh = not na(nqLHP) and nqLH > nqLHP
+nqLdnSweptLow  = not na(nqLLP) and nqLL < nqLLP
+esLdnSweptHigh = not na(esLHP) and esLH > esLHP
+esLdnSweptLow  = not na(esLLP) and esLL < esLLP
+ymLdnSweptHigh = not na(ymLHP) and ymLH > ymLHP
+ymLdnSweptLow  = not na(ymLLP) and ymLL < ymLLP
+ldnHighSMT = useSessions and f_eval3(nqLdnSweptHigh, esLdnSweptHigh, ymLdnSweptHigh)
+ldnLowSMT  = useSessions and f_eval3(nqLdnSweptLow,  esLdnSweptLow,  ymLdnSweptLow)
+ldnHighTrig = ldnHighSMT and not ldnHighSMT[1]
+ldnLowTrig  = ldnLowSMT and not ldnLowSMT[1]
+f_drawSMT(useSessions, ldnHighTrig, ldnLowTrig, chLH, chLHP, chLL, chLLP, chLT, chLTP, "London")
+
+// --- NY AM ---
+nqAmSweptHigh = not na(nqAmHP) and nqAmH > nqAmHP
+nqAmSweptLow  = not na(nqAmLP) and nqAmL < nqAmLP
+esAmSweptHigh = not na(esAmHP) and esAmH > esAmHP
+esAmSweptLow  = not na(esAmLP) and esAmL < esAmLP
+ymAmSweptHigh = not na(ymAmHP) and ymAmH > ymAmHP
+ymAmSweptLow  = not na(ymAmLP) and ymAmL < ymAmLP
+amHighSMT = useSessions and f_eval3(nqAmSweptHigh, esAmSweptHigh, ymAmSweptHigh)
+amLowSMT  = useSessions and f_eval3(nqAmSweptLow,  esAmSweptLow,  ymAmSweptLow)
+amHighTrig = amHighSMT and not amHighSMT[1]
+amLowTrig  = amLowSMT and not amLowSMT[1]
+f_drawSMT(useSessions, amHighTrig, amLowTrig, chAmH, chAmHP, chAmL, chAmLP, chAmT, chAmTP, "NY AM")
+
+// --- NY PM ---
+nqPmSweptHigh = not na(nqPmHP) and nqPmH > nqPmHP
+nqPmSweptLow  = not na(nqPmLP) and nqPmL < nqPmLP
+esPmSweptHigh = not na(esPmHP) and esPmH > esPmHP
+esPmSweptLow  = not na(esPmLP) and esPmL < esPmLP
+ymPmSweptHigh = not na(ymPmHP) and ymPmH > ymPmHP
+ymPmSweptLow  = not na(ymPmLP) and ymPmL < ymPmLP
+pmHighSMT = useSessions and f_eval3(nqPmSweptHigh, esPmSweptHigh, ymPmSweptHigh)
+pmLowSMT  = useSessions and f_eval3(nqPmSweptLow,  esPmSweptLow,  ymPmSweptLow)
+pmHighTrig = pmHighSMT and not pmHighSMT[1]
+pmLowTrig  = pmLowSMT and not pmLowSMT[1]
+f_drawSMT(useSessions, pmHighTrig, pmLowTrig, chPmH, chPmHP, chPmL, chPmLP, chPmT, chPmTP, "NY PM")
+
+// ---------------------------------------------------------------------
+// OVERALL / ALERTS
+// ---------------------------------------------------------------------
+anyRawSMT = curHighSMT or curLowSMT or nxtHighSMT or nxtLowSMT or asiaHighSMT or asiaLowSMT or ldnHighSMT or ldnLowSMT or amHighSMT or amLowSMT or pmHighSMT or pmLowSMT
+anyConfirmedSMT = anyRawSMT and gatePass
+
+alertcondition(anyConfirmedSMT, title = "LMR SMT Confirmed", message = "LMR SMT: divergence confirmed against AMD Distribution")
+alertcondition(anyRawSMT, title = "LMR SMT Raw (any)", message = "LMR SMT: raw structural divergence detected")
+
+// ---------------------------------------------------------------------
+// TABLE
+// ---------------------------------------------------------------------
+f_row(t, r, lbl, active, flagTxt) =>
+    stateColor = not active ? color.gray : color.new(#FFA500, 0)
+    table.cell(t, 0, r, lbl, text_color = color.white, text_size = size.small)
+    table.cell(t, 1, r, active ? flagTxt : "-", text_color = stateColor, text_size = size.small)
+
+if showTable and barstate.islast
+    rows = 2 + (useTFLevels ? 2 : 0) + (showNext ? 2 : 0) + (useSessions ? 8 : 0) + 1
+    tbl = table.new(position.bottom_right, 2, rows, bgcolor = color.new(color.black, 15), border_color = color.gray, border_width = 1)
+
+    table.cell(tbl, 0, 0, "LMR SMT Pivot Areas", text_color = color.white, bgcolor = color.new(color.gray, 30), text_size = size.small)
+    table.cell(tbl, 1, 0, "NQ/ES/YM", text_color = color.white, bgcolor = color.new(color.gray, 30), text_size = size.small)
+
+    table.cell(tbl, 0, 1, "AMD Gate (" + amdDirection + ")", text_color = color.white, text_size = size.small)
+    table.cell(tbl, 1, 1, amdConfirmed ? "ACTIVE" : "waiting", text_color = amdConfirmed ? color.lime : color.gray, text_size = size.small)
+
+    int r = 1
+
+    if useTFLevels
+        r := r + 1
+        f_row(tbl, r, currentLabel + " High", true, f_flagText(nqCurSweptHigh, esCurSweptHigh, ymCurSweptHigh))
+        r := r + 1
+        f_row(tbl, r, currentLabel + " Low", true, f_flagText(nqCurSweptLow, esCurSweptLow, ymCurSweptLow))
+        if showNext
+            r := r + 1
+            f_row(tbl, r, nextLabel + " High", true, f_flagText(nqNxtSweptHigh, esNxtSweptHigh, ymNxtSweptHigh))
+            r := r + 1
+            f_row(tbl, r, nextLabel + " Low", true, f_flagText(nqNxtSweptLow, esNxtSweptLow, ymNxtSweptLow))
+
+    if useSessions
+        r := r + 1
+        f_row(tbl, r, "Asia High", true, f_flagText(nqAsiaSweptHigh, esAsiaSweptHigh, ymAsiaSweptHigh))
+        r := r + 1
+        f_row(tbl, r, "Asia Low", true, f_flagText(nqAsiaSweptLow, esAsiaSweptLow, ymAsiaSweptLow))
+        r := r + 1
+        f_row(tbl, r, "London High", true, f_flagText(nqLdnSweptHigh, esLdnSweptHigh, ymLdnSweptHigh))
+        r := r + 1
+        f_row(tbl, r, "London Low", true, f_flagText(nqLdnSweptLow, esLdnSweptLow, ymLdnSweptLow))
+        r := r + 1
+        f_row(tbl, r, "NY AM High", true, f_flagText(nqAmSweptHigh, esAmSweptHigh, ymAmSweptHigh))
+        r := r + 1
+        f_row(tbl, r, "NY AM Low", true, f_flagText(nqAmSweptLow, esAmSweptLow, ymAmSweptLow))
+        r := r + 1
+        f_row(tbl, r, "NY PM High", true, f_flagText(nqPmSweptHigh, esPmSweptHigh, ymPmSweptHigh))
+        r := r + 1
+        f_row(tbl, r, "NY PM Low", true, f_flagText(nqPmSweptLow, esPmSweptLow, ymPmSweptLow))
+
+    footerRow = r + 1
+    readyBg = anyConfirmedSMT ? color.new(color.green, 55) : color.new(color.gray, 60)
+    table.cell(tbl, 0, footerRow, "SMT CONFIRMED", text_color = anyConfirmedSMT ? color.lime : color.orange, bgcolor = readyBg, text_size = size.small)
+    table.cell(tbl, 1, footerRow, anyConfirmedSMT ? "YES" : "no", text_color = anyConfirmedSMT ? color.lime : color.orange, bgcolor = readyBg, text_size = size.small)

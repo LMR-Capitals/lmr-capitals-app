@@ -1,0 +1,278 @@
+//@version=6
+indicator("LMR Checklist Automation", overlay=true, max_lines_count=50, max_labels_count=50)
+
+// =====================================================================
+// LMR CHECKLIST AUTOMATION
+// -----------------------------------------------------------------------
+// A live, self-checking version of your LMR confirmation checklist for
+// one chosen session. Each row uses live/streaming bar data to detect
+// whether that piece of the LMR sequence has actually happened, and
+// LATCHES true for the rest of that session once confirmed (it won't
+// un-check itself mid-session). One alert fires the moment every item
+// you've marked "Required" is checked.
+//
+// Checklist items (LMR / ICT terminology):
+//   1. Liquidity Swept   - the session's Manipulation block took out the
+//                           prior Accumulation block's high or low
+//   2. True Open Set     - the Manipulation block's open is locked in
+//   3. Judas Confirmed   - swept liquidity AND closed back inside range
+//   4. Displacement      - price moved away from True Open by your
+//                           ATR threshold (direction shown Bull/Bear)
+//   5. FVG Present       - a 3-candle Fair Value Gap formed in the
+//                           displacement leg, same direction as #4
+//   6. Price of Interest - YOUR manually-entered level (from your own
+//                           PD array / HTF analysis) has been tapped
+//   7. Bias Aligned      - displacement direction matches the bias you
+//                           expected coming in (optional filter)
+//
+// NOTE: I don't have the exact wording of your app's 13-confirmation
+// checklist stored anywhere - this uses the LMR terminology we've been
+// using throughout (True Open, Judas Swing, Displacement, etc). Send me
+// your exact field list if you want the row names to match 1:1.
+// =====================================================================
+
+// ---------------------------------------------------------------------
+// INPUTS
+// ---------------------------------------------------------------------
+grpSess = "Session To Track"
+targetSessionInput = input.string("NY AM", "Session", options = ["London", "NY AM", "NY PM"], group = grpSess)
+
+grpPOI = "Price of Interest"
+usePOI   = input.bool(true, "Track Price of Interest", inline = "poi1", group = grpPOI)
+poiPrice = input.float(0.0, "Level (0 = not set)",      inline = "poi1", group = grpPOI)
+
+grpBias = "Bias Filter"
+expectedBias = input.string("Either", "Expected Direction", options = ["Either", "Bullish", "Bearish"], group = grpBias)
+
+grpAMD   = "Detection Sensitivity"
+atrLen   = input.int(14,    "ATR Length", inline = "amd1", group = grpAMD)
+distMult = input.float(0.8, "Displacement threshold (x ATR)", inline = "amd1", group = grpAMD)
+
+grpReq = "Required For Setup Alert"
+reqSweep    = input.bool(true,  "Liquidity Swept",           inline = "r1", group = grpReq)
+reqTrueOpen = input.bool(true,  "True Open Set",              inline = "r1", group = grpReq)
+reqJudas    = input.bool(true,  "Judas Confirmed",            inline = "r2", group = grpReq)
+reqDisp     = input.bool(true,  "Displacement Confirmed",     inline = "r2", group = grpReq)
+reqFVG      = input.bool(false, "FVG Present",                inline = "r3", group = grpReq)
+reqPOI      = input.bool(true,  "Price of Interest Reached",  inline = "r3", group = grpReq)
+reqBias     = input.bool(true,  "Bias Aligned",                group = grpReq)
+
+grpVis = "Display"
+showTable        = input.bool(true, "Show Checklist Table", group = grpVis)
+tablePos         = input.string(position.top_right, "Table Position", options = [position.top_right, position.top_left, position.bottom_right, position.bottom_left], group = grpVis)
+showTrueOpenLine = input.bool(true, "Show True Open Line", group = grpVis)
+
+// ---------------------------------------------------------------------
+// TIME / SESSION CLASSIFICATION (New York time, same LMR mapping)
+// ---------------------------------------------------------------------
+nyH   = hour(time,   "America/New_York")
+nyM   = minute(time, "America/New_York")
+nyMin = nyH * 60 + nyM
+
+string blockID     = na
+string sessionName = na
+string role        = na  // "A" Accumulation | "M" Manipulation | "D" Distribution | "N" not classified
+
+if nyMin >= 1080 or nyMin < 150
+    blockID     := "ASIA"
+    sessionName := "Asia"
+    role        := "N"
+else if nyMin >= 960 and nyMin < 1080
+    blockID     := "OFF"
+    sessionName := "Off"
+    role        := "N"
+else if nyMin >= 150 and nyMin < 240
+    blockID     := "LO1"
+    sessionName := "London"
+    role        := "A"
+else if nyMin >= 240 and nyMin < 330
+    blockID     := "LO2"
+    sessionName := "London"
+    role        := "M"
+else if nyMin >= 330 and nyMin < 420
+    blockID     := "LO3"
+    sessionName := "London"
+    role        := "D"
+else if nyMin >= 420 and nyMin < 510
+    blockID     := "AM1"
+    sessionName := "NY AM"
+    role        := "A"
+else if nyMin >= 510 and nyMin < 600
+    blockID     := "AM2"
+    sessionName := "NY AM"
+    role        := "M"
+else if nyMin >= 600 and nyMin < 690
+    blockID     := "AM3"
+    sessionName := "NY AM"
+    role        := "D"
+else if nyMin >= 690 and nyMin < 780
+    blockID     := "PM1"
+    sessionName := "NY PM"
+    role        := "A"
+else if nyMin >= 780 and nyMin < 870
+    blockID     := "PM2"
+    sessionName := "NY PM"
+    role        := "M"
+else
+    blockID     := "PM3"
+    sessionName := "NY PM"
+    role        := "D"
+
+inTargetSession   = sessionName == targetSessionInput
+isNewSession      = sessionName != sessionName[1]
+isNewBlock        = blockID != blockID[1]
+isNewTargetCycle  = isNewSession and inTargetSession
+
+// ---------------------------------------------------------------------
+// STATE TRACKING
+// ---------------------------------------------------------------------
+var float blockHigh       = na
+var float blockLow        = na
+var float prevBlockHigh   = na
+var float prevBlockLow    = na
+var float sessionTrueOpen = na
+var float sessionHigh     = na
+var float sessionLow      = na
+
+var bool sweepLatched    = false
+var bool trueOpenLatched = false
+var bool judasLatched    = false
+var bool dispLatchedBull = false
+var bool dispLatchedBear = false
+var bool fvgLatched      = false
+var bool poiLatched      = false
+var bool alertFired      = false
+
+if isNewTargetCycle
+    sweepLatched    := false
+    trueOpenLatched := false
+    judasLatched    := false
+    dispLatchedBull := false
+    dispLatchedBear := false
+    fvgLatched      := false
+    poiLatched       := false
+    alertFired      := false
+    sessionTrueOpen := na
+    sessionHigh     := high
+    sessionLow      := low
+else if inTargetSession
+    sessionHigh := math.max(sessionHigh, high)
+    sessionLow  := math.min(sessionLow, low)
+
+if isNewBlock
+    prevBlockHigh := blockHigh
+    prevBlockLow  := blockLow
+    blockHigh     := high
+    blockLow      := low
+    if role == "M" and inTargetSession
+        sessionTrueOpen := open
+else
+    blockHigh := math.max(blockHigh, high)
+    blockLow  := math.min(blockLow, low)
+
+// ---------------------------------------------------------------------
+// LIVE DETECTION (same math as the AMD Detector, gated to target session)
+// ---------------------------------------------------------------------
+atrVal = ta.atr(atrLen)
+
+sweptHigh      = not na(prevBlockHigh) and blockHigh > prevBlockHigh
+sweptLow       = not na(prevBlockLow)  and blockLow  < prevBlockLow
+reversedBack   = (sweptHigh and close < prevBlockHigh) or (sweptLow and close > prevBlockLow)
+judasConfirmedNow = inTargetSession and role == "M" and (sweptHigh or sweptLow) and reversedBack
+
+displacement  = na(sessionTrueOpen) ? 0.0 : close - sessionTrueOpen
+isBullDistNow = inTargetSession and role == "D" and displacement > atrVal * distMult
+isBearDistNow = inTargetSession and role == "D" and displacement < -atrVal * distMult
+
+bullFVGNow = low > high[2]
+bearFVGNow = high < low[2]
+fvgNow     = inTargetSession and role == "D" and ((isBullDistNow and bullFVGNow) or (isBearDistNow and bearFVGNow))
+
+poiActive = usePOI and poiPrice != 0.0
+
+// ---------------------------------------------------------------------
+// LATCH THE CHECKLIST (sticky for the rest of the session cycle)
+// ---------------------------------------------------------------------
+if inTargetSession and role == "M" and (sweptHigh or sweptLow)
+    sweepLatched := true
+
+if inTargetSession and not na(sessionTrueOpen)
+    trueOpenLatched := true
+
+if judasConfirmedNow
+    judasLatched := true
+
+if isBullDistNow
+    dispLatchedBull := true
+if isBearDistNow
+    dispLatchedBear := true
+
+if fvgNow
+    fvgLatched := true
+
+if poiActive and inTargetSession and low <= poiPrice and high >= poiPrice
+    poiLatched := true
+
+dispLatched   = dispLatchedBull or dispLatchedBear
+dispDirection = dispLatchedBull ? "Bullish" : dispLatchedBear ? "Bearish" : "-"
+
+biasCheckPassed = expectedBias == "Either" ? true : expectedBias == "Bullish" ? dispLatchedBull : dispLatchedBear
+
+// ---------------------------------------------------------------------
+// REQUIRED-ITEM PASS/FAIL AND MASTER ALERT
+// ---------------------------------------------------------------------
+reqSweepPass    = not reqSweep    or sweepLatched
+reqTrueOpenPass = not reqTrueOpen or trueOpenLatched
+reqJudasPass    = not reqJudas    or judasLatched
+reqDispPass     = not reqDisp     or dispLatched
+reqFVGPass      = not reqFVG      or fvgLatched
+reqPOIPass      = not reqPOI      or not poiActive or poiLatched
+reqBiasPass     = not reqBias     or biasCheckPassed
+
+allRequiredPass = inTargetSession and reqSweepPass and reqTrueOpenPass and reqJudasPass and reqDispPass and reqFVGPass and reqPOIPass and reqBiasPass
+
+confirmedCount = (sweepLatched ? 1 : 0) + (trueOpenLatched ? 1 : 0) + (judasLatched ? 1 : 0) + (dispLatched ? 1 : 0) + (fvgLatched ? 1 : 0) + ((poiActive ? poiLatched : true) ? 1 : 0) + (biasCheckPassed ? 1 : 0)
+
+if allRequiredPass and not alertFired
+    alertFired := true
+    alert("LMR Checklist: setup ready in " + targetSessionInput + " (" + blockID + ", " + dispDirection + ")", alert.freq_once_per_bar)
+
+alertcondition(allRequiredPass, title = "LMR Setup Ready", message = "LMR Checklist: all required items confirmed")
+
+// ---------------------------------------------------------------------
+// TRUE OPEN LINE (optional visual reference)
+// ---------------------------------------------------------------------
+var line trueOpenLine = na
+if isNewBlock and role == "M" and inTargetSession and showTrueOpenLine
+    trueOpenLine := line.new(bar_index, open, bar_index, open, color = color.yellow, style = line.style_dashed, width = 1)
+if showTrueOpenLine and not na(trueOpenLine) and inTargetSession and (role == "M" or role == "D")
+    line.set_x2(trueOpenLine, bar_index)
+
+// ---------------------------------------------------------------------
+// CHECKLIST TABLE
+// ---------------------------------------------------------------------
+f_rowState(t, r, lbl, stateText, stateColor) =>
+    table.cell(t, 0, r, lbl, text_color = color.white)
+    table.cell(t, 1, r, stateText, text_color = stateColor)
+
+if showTable and barstate.islast
+    tbl = table.new(tablePos, 2, 9, bgcolor = color.new(color.black, 15), border_color = color.gray, border_width = 1)
+
+    table.cell(tbl, 0, 0, "LMR CHECKLIST", text_color = color.white, bgcolor = color.new(color.gray, 30))
+    table.cell(tbl, 1, 0, targetSessionInput + (inTargetSession ? " (active)" : ""), text_color = color.white, bgcolor = color.new(color.gray, 30))
+
+    f_rowState(tbl, 1, "Liquidity Swept",   sweepLatched ? "OK" : "-",    sweepLatched ? color.lime : color.gray)
+    f_rowState(tbl, 2, "True Open Set",     trueOpenLatched ? "OK" : "-", trueOpenLatched ? color.lime : color.gray)
+    f_rowState(tbl, 3, "Judas Confirmed",   judasLatched ? "OK" : "-",    judasLatched ? color.lime : color.gray)
+    f_rowState(tbl, 4, "Displacement",      dispLatched ? dispDirection : "-", dispLatched ? (dispLatchedBull ? color.lime : color.red) : color.gray)
+    f_rowState(tbl, 5, "FVG Present",       fvgLatched ? "OK" : "-",      fvgLatched ? color.lime : color.gray)
+
+    poiStateText  = not poiActive ? "N/A" : poiLatched ? "OK" : "-"
+    poiStateColor = not poiActive ? color.gray : poiLatched ? color.lime : color.gray
+    f_rowState(tbl, 6, "Price of Interest", poiStateText, poiStateColor)
+
+    f_rowState(tbl, 7, "Bias (" + expectedBias + ")", biasCheckPassed ? "OK" : "-", biasCheckPassed ? color.lime : color.gray)
+
+    readyBg = allRequiredPass ? color.new(color.green, 55) : color.new(color.gray, 60)
+    table.cell(tbl, 0, 8, "SETUP READY", text_color = color.white, bgcolor = readyBg)
+    table.cell(tbl, 1, 8, allRequiredPass ? "YES" : str.tostring(confirmedCount) + "/7", text_color = allRequiredPass ? color.lime : color.orange, bgcolor = readyBg)

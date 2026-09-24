@@ -1,0 +1,1593 @@
+//@version=6
+indicator("LMR ICT Everything ", overlay=true, max_lines_count=500, max_labels_count=500, max_boxes_count=500)
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// GLOBAL SETTINGS
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+i_timezone  = input.string("America/New_York", "Timezone", options=["America/New_York", "America/Chicago", "America/Los_Angeles", "Europe/London", "Asia/Tokyo", "Asia/Hong_Kong", "Asia/Singapore", "Australia/Sydney"], group="GLOBAL SETTINGS", tooltip="Select your timezone")
+i_day_start = input.string("18:00 NY Open", "Day Start", options=["00:00 Midnight", "18:00 NY Open"], group="GLOBAL SETTINGS", tooltip="00:00 = Midnight to Midnight\n18:00 = 6PM to 6PM (futures style)")
+i_hide_above = input.string("60", "Hide Above TF", options=["5", "15", "30", "60", "240", "1440"], group="GLOBAL SETTINGS", tooltip="Hide indicator on timeframes above this (minutes)")
+
+bool use_midnight = i_day_start == "00:00 Midnight"
+int hide_tf = math.round(str.tonumber(i_hide_above))
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// DISPLAY FILTERS
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+i_show_today  = input.bool(false, "Today Only", inline="flt", group="DISPLAY FILTERS")
+i_show_week   = input.bool(false, "This Week", inline="flt", group="DISPLAY FILTERS")
+i_show_4weeks = input.bool(false, "Last 4 Weeks", inline="flt", group="DISPLAY FILTERS", tooltip="Filter what data to display on chart")
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// DAY SEPARATOR
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+i_day_sep_en    = input.bool(true, "", inline="ds", group="DAY SEPARATOR")
+i_day_sep_txt   = input.string("DAY LINE", "", inline="ds", group="DAY SEPARATOR")
+i_day_sep_color = input.color(#2e2e2e, "", inline="ds", group="DAY SEPARATOR")
+i_day_sep_style = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="ds", group="DAY SEPARATOR")
+i_day_sep_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="ds", group="DAY SEPARATOR", tooltip="Vertical line at day start")
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// DAY OF WEEK LABELS
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+i_dow_en       = input.bool(true, "", inline="dow", group="DAY OF WEEK LABELS")
+i_dow_txt      = input.string("DAY LABELS", "", inline="dow", group="DAY OF WEEK LABELS")
+i_dow_color    = input.color(color.gray, "", inline="dow", group="DAY OF WEEK LABELS")
+i_dow_position = input.string("Bottom", "", options=["Top", "Bottom"], inline="dow", group="DAY OF WEEK LABELS")
+i_dow_auto     = input.bool(true, "Auto Center", inline="dow", group="DAY OF WEEK LABELS", tooltip="M O N, T U E, etc at center of each day\nAuto Center: 18:00 start → 06:00, 00:00 start → 12:00")
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// SUNDAY OPEN
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+i_sun_en    = input.bool(true, "", inline="sun", group="SUNDAY OPEN")
+i_sun_txt   = input.string("SUNDAY", "", inline="sun", group="SUNDAY OPEN")
+i_sun_color = input.color(color.red, "", inline="sun", group="SUNDAY OPEN")
+i_sun_style = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="sun", group="SUNDAY OPEN")
+i_sun_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="sun", group="SUNDAY OPEN")
+i_sun_lbl   = input.bool(true, "Label", inline="sun", group="SUNDAY OPEN", tooltip="Vertical line at Sunday 18:00 open")
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// WEEKLY OPEN
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+i_wk_h_en    = input.bool(true, "", inline="wkh", group="WEEKLY OPEN")
+i_wk_h_txt   = input.string("HORIZONTAL", "", inline="wkh", group="WEEKLY OPEN")
+i_wk_h_color = input.color(color.purple, "", inline="wkh", group="WEEKLY OPEN")
+i_wk_h_style = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="wkh", group="WEEKLY OPEN")
+i_wk_h_width = input.string("2px", "", options=["1px", "2px", "3px", "4px"], inline="wkh", group="WEEKLY OPEN")
+i_wk_h_lbl   = input.bool(true, "Lbl", inline="wkh", group="WEEKLY OPEN")
+i_wk_h_ltxt  = input.string("wOpen", "", inline="wkh", group="WEEKLY OPEN", tooltip="Horizontal price line at weekly open")
+
+i_wk_v_en    = input.bool(true, "", inline="wkv", group="WEEKLY OPEN")
+i_wk_v_txt   = input.string("VERTICAL", "", inline="wkv", group="WEEKLY OPEN")
+i_wk_v_color = input.color(color.new(color.purple, 50), "", inline="wkv", group="WEEKLY OPEN")
+i_wk_v_style = input.string("Dotted", "", options=["Solid", "Dashed", "Dotted"], inline="wkv", group="WEEKLY OPEN")
+i_wk_v_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="wkv", group="WEEKLY OPEN")
+i_wk_v_lbl   = input.bool(true, "Lbl", inline="wkv", group="WEEKLY OPEN")
+i_wk_v_pos   = input.string("Top", "", options=["Top", "Bottom"], inline="wkv", group="WEEKLY OPEN", tooltip="Vertical line at weekly open")
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// MONTHLY OPEN
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+i_mo_h_en    = input.bool(true, "", inline="moh", group="MONTHLY OPEN")
+i_mo_h_txt   = input.string("HORIZONTAL", "", inline="moh", group="MONTHLY OPEN")
+i_mo_h_color = input.color(color.blue, "", inline="moh", group="MONTHLY OPEN")
+i_mo_h_style = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="moh", group="MONTHLY OPEN")
+i_mo_h_width = input.string("2px", "", options=["1px", "2px", "3px", "4px"], inline="moh", group="MONTHLY OPEN")
+i_mo_h_lbl   = input.bool(true, "Lbl", inline="moh", group="MONTHLY OPEN")
+i_mo_h_ltxt  = input.string("mOpen", "", inline="moh", group="MONTHLY OPEN", tooltip="Horizontal price line at monthly open")
+
+i_mo_v_en    = input.bool(true, "", inline="mov", group="MONTHLY OPEN")
+i_mo_v_txt   = input.string("VERTICAL", "", inline="mov", group="MONTHLY OPEN")
+i_mo_v_color = input.color(color.new(color.blue, 50), "", inline="mov", group="MONTHLY OPEN")
+i_mo_v_style = input.string("Dotted", "", options=["Solid", "Dashed", "Dotted"], inline="mov", group="MONTHLY OPEN")
+i_mo_v_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="mov", group="MONTHLY OPEN")
+i_mo_v_lbl   = input.bool(true, "Lbl", inline="mov", group="MONTHLY OPEN")
+i_mo_v_pos   = input.string("Top", "", options=["Top", "Bottom"], inline="mov", group="MONTHLY OPEN", tooltip="Vertical line at monthly open")
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// PREVIOUS WEEK / MONTH HIGH-LOW
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+i_pwhl_lbl_en   = input.bool(true, "Labels", inline="pw0", group="PREVIOUS WEEK / MONTH HIGH-LOW")
+i_pwhl_lbl_size = input.string("Small", "", options=["Tiny", "Small", "Normal", "Large"], inline="pw0", group="PREVIOUS WEEK / MONTH HIGH-LOW", tooltip="Label settings for PWH/PWL/PMH/PML")
+
+i_pwh_en    = input.bool(true, "", inline="pwh", group="PREVIOUS WEEK / MONTH HIGH-LOW")
+i_pwh_txt   = input.string("PWH", "", inline="pwh", group="PREVIOUS WEEK / MONTH HIGH-LOW")
+i_pwh_color = input.color(color.new(#FF6D00, 0), "", inline="pwh", group="PREVIOUS WEEK / MONTH HIGH-LOW")
+i_pwh_style = input.string("Dashed", "", options=["Solid", "Dashed", "Dotted"], inline="pwh", group="PREVIOUS WEEK / MONTH HIGH-LOW")
+i_pwh_width = input.string("2px", "", options=["1px", "2px", "3px", "4px"], inline="pwh", group="PREVIOUS WEEK / MONTH HIGH-LOW")
+i_pwh_swept = input.color(color.new(#FF6D00, 75), "Swept", inline="pwh", group="PREVIOUS WEEK / MONTH HIGH-LOW", tooltip="Previous Week High - Freeze on touch, change to swept color")
+
+i_pwl_en    = input.bool(true, "", inline="pwl", group="PREVIOUS WEEK / MONTH HIGH-LOW")
+i_pwl_txt   = input.string("PWL", "", inline="pwl", group="PREVIOUS WEEK / MONTH HIGH-LOW")
+i_pwl_color = input.color(color.new(#00B8D4, 0), "", inline="pwl", group="PREVIOUS WEEK / MONTH HIGH-LOW")
+i_pwl_style = input.string("Dashed", "", options=["Solid", "Dashed", "Dotted"], inline="pwl", group="PREVIOUS WEEK / MONTH HIGH-LOW")
+i_pwl_width = input.string("2px", "", options=["1px", "2px", "3px", "4px"], inline="pwl", group="PREVIOUS WEEK / MONTH HIGH-LOW")
+i_pwl_swept = input.color(color.new(#00B8D4, 75), "Swept", inline="pwl", group="PREVIOUS WEEK / MONTH HIGH-LOW", tooltip="Previous Week Low - Freeze on touch, change to swept color")
+
+i_pmh_en    = input.bool(true, "", inline="pmh", group="PREVIOUS WEEK / MONTH HIGH-LOW")
+i_pmh_txt   = input.string("PMH", "", inline="pmh", group="PREVIOUS WEEK / MONTH HIGH-LOW")
+i_pmh_color = input.color(color.new(#D500F9, 0), "", inline="pmh", group="PREVIOUS WEEK / MONTH HIGH-LOW")
+i_pmh_style = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="pmh", group="PREVIOUS WEEK / MONTH HIGH-LOW")
+i_pmh_width = input.string("2px", "", options=["1px", "2px", "3px", "4px"], inline="pmh", group="PREVIOUS WEEK / MONTH HIGH-LOW")
+i_pmh_swept = input.color(color.new(#D500F9, 75), "Swept", inline="pmh", group="PREVIOUS WEEK / MONTH HIGH-LOW", tooltip="Previous Month High - Freeze on touch, change to swept color")
+
+i_pml_en    = input.bool(true, "", inline="pml", group="PREVIOUS WEEK / MONTH HIGH-LOW")
+i_pml_txt   = input.string("PML", "", inline="pml", group="PREVIOUS WEEK / MONTH HIGH-LOW")
+i_pml_color = input.color(color.new(#76FF03, 0), "", inline="pml", group="PREVIOUS WEEK / MONTH HIGH-LOW")
+i_pml_style = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="pml", group="PREVIOUS WEEK / MONTH HIGH-LOW")
+i_pml_width = input.string("2px", "", options=["1px", "2px", "3px", "4px"], inline="pml", group="PREVIOUS WEEK / MONTH HIGH-LOW")
+i_pml_swept = input.color(color.new(#76FF03, 75), "Swept", inline="pml", group="PREVIOUS WEEK / MONTH HIGH-LOW", tooltip="Previous Month Low - Freeze on touch, change to swept color")
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// EQUILIBRIUM / PREMIUM / DISCOUNT
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+i_eq_en          = input.bool(true, "", inline="eq0", group="EQUILIBRIUM / PREMIUM / DISCOUNT")
+i_eq_range       = input.string("Weekly", "Range", options=["Daily", "Weekly", "Monthly"], inline="eq0", group="EQUILIBRIUM / PREMIUM / DISCOUNT", tooltip="Range used for the 50% Equilibrium level and Premium/Discount zones")
+i_eq_color       = input.color(color.gray, "EQ Line", inline="eq1", group="EQUILIBRIUM / PREMIUM / DISCOUNT")
+i_premium_color  = input.color(color.new(color.red, 92), "Premium", inline="eq1", group="EQUILIBRIUM / PREMIUM / DISCOUNT")
+i_discount_color = input.color(color.new(color.green, 92), "Discount", inline="eq1", group="EQUILIBRIUM / PREMIUM / DISCOUNT")
+
+// ════════════════════════════════════════════════════════════════════════════
+// SESSION BOXES
+// ════════════════════════════════════════════════════════════════════════════
+
+// --- MASTER TOGGLE ---
+show_sb_all = input.bool(true, "Show Session Boxes", group="Session Boxes", tooltip="ⓘ Master toggle for all Session Boxes\n\n• ASIAN: 20:00 - 00:00\n• LONDON: 01:30 - 05:00\n• NY AM: 08:30 - 12:00\n• NY PM: 13:30 - 16:00")
+show_sb_lbl = input.bool(true, "Show Labels", inline="sblbl", group="Session Boxes")
+sb_lbl_size = input.string("Small", "", options=["Tiny", "Small", "Normal", "Large"], inline="sblbl", group="Session Boxes")
+
+// --- ASIAN ---
+sb1_en = input.bool(true, "", inline="sb1", group="Session Boxes", tooltip="ⓘ ASIAN Session\n20:00 - 00:00 ET")
+sb1_n = input.string("ASIAN", "", inline="sb1", group="Session Boxes")
+sb1_sess = input.session("2000-0000", "", inline="sb1", group="Session Boxes")
+sb1_bg = input.color(color.new(#9C27B0, 85), "", inline="sb1", group="Session Boxes")
+sb1_br = input.color(color.new(#9C27B0, 50), "", inline="sb1", group="Session Boxes")
+
+// --- LONDON ---
+sb2_en = input.bool(true, "", inline="sb2", group="Session Boxes", tooltip="ⓘ LONDON Session\n01:30 - 05:00 ET")
+sb2_n = input.string("LONDON", "", inline="sb2", group="Session Boxes")
+sb2_sess = input.session("0130-0500", "", inline="sb2", group="Session Boxes")
+sb2_bg = input.color(color.new(#2196F3, 85), "", inline="sb2", group="Session Boxes")
+sb2_br = input.color(color.new(#2196F3, 50), "", inline="sb2", group="Session Boxes")
+
+// --- NY AM ---
+sb3_en = input.bool(true, "", inline="sb3", group="Session Boxes", tooltip="ⓘ NY AM Session\n08:30 - 12:00 ET")
+sb3_n = input.string("NY AM", "", inline="sb3", group="Session Boxes")
+sb3_sess = input.session("0830-1200", "", inline="sb3", group="Session Boxes")
+sb3_bg = input.color(color.new(#4CAF50, 85), "", inline="sb3", group="Session Boxes")
+sb3_br = input.color(color.new(#4CAF50, 50), "", inline="sb3", group="Session Boxes")
+
+// --- NY PM ---
+sb4_en = input.bool(true, "", inline="sb4", group="Session Boxes", tooltip="ⓘ NY PM Session\n13:30 - 16:00 ET")
+sb4_n = input.string("NY PM", "", inline="sb4", group="Session Boxes")
+sb4_sess = input.session("1330-1600", "", inline="sb4", group="Session Boxes")
+sb4_bg = input.color(color.new(#FF9800, 85), "", inline="sb4", group="Session Boxes")
+sb4_br = input.color(color.new(#FF9800, 50), "", inline="sb4", group="Session Boxes")
+
+// --- VARIABLES ---
+var float sb1_h = na, var float sb1_l = na, var int sb1_st = na, var box sb1_box = na, var bool sb1_on = false
+var float sb2_h = na, var float sb2_l = na, var int sb2_st = na, var box sb2_box = na, var bool sb2_on = false
+var float sb3_h = na, var float sb3_l = na, var int sb3_st = na, var box sb3_box = na, var bool sb3_on = false
+var float sb4_h = na, var float sb4_l = na, var int sb4_st = na, var box sb4_box = na, var bool sb4_on = false
+
+// --- HELPER FUNCTIONS ---
+getSBSize(string s) => 
+    switch s
+        "Tiny" => size.tiny
+        "Small" => size.small
+        "Normal" => size.normal
+        "Large" => size.large
+        => size.small
+
+getSessionStart(string sess) =>
+    int sh = math.floor(str.tonumber(str.substring(sess, 0, 2)))
+    int sm = math.floor(str.tonumber(str.substring(sess, 2, 4)))
+    [sh, sm]
+
+getSessionEnd(string sess) =>
+    int eh = math.floor(str.tonumber(str.substring(sess, 5, 7)))
+    int em = math.floor(str.tonumber(str.substring(sess, 7, 9)))
+    [eh, em]
+
+isInSB(int sh, int sm, int eh, int em, int h, int m) =>
+    int st = sh * 60 + sm
+    int en = eh * 60 + em
+    int cu = h * 60 + m
+    en < st ? (cu >= st or cu < en) : (cu >= st and cu < en)
+
+isSBStart(int sh, int sm, int h, int m) => h == sh and m == sm
+isSBEnd(int eh, int em, int h, int m) => h == eh and m == em
+
+drawSBLabel(int st_idx, float hi, string name, color col) =>
+    if show_sb_lbl
+        label.new(st_idx + math.round((bar_index - st_idx) / 2), hi, name, 
+             color=color.new(color.white, 100), textcolor=col, 
+             style=label.style_label_down, size=getSBSize(sb_lbl_size))
+
+// --- PARSE SESSION TIMES ---
+[sb1_sh, sb1_sm] = getSessionStart(sb1_sess)
+[sb1_eh, sb1_em] = getSessionEnd(sb1_sess)
+[sb2_sh, sb2_sm] = getSessionStart(sb2_sess)
+[sb2_eh, sb2_em] = getSessionEnd(sb2_sess)
+[sb3_sh, sb3_sm] = getSessionStart(sb3_sess)
+[sb3_eh, sb3_em] = getSessionEnd(sb3_sess)
+[sb4_sh, sb4_sm] = getSessionStart(sb4_sess)
+[sb4_eh, sb4_em] = getSessionEnd(sb4_sess)
+
+// --- LOGIC ---
+if show_sb_all
+    int sb_h = hour(time, "America/New_York")
+    int sb_m = minute(time, "America/New_York")
+
+    // ASIAN
+    if sb1_en
+        if isSBStart(sb1_sh, sb1_sm, sb_h, sb_m) and not sb1_on
+            sb1_on := true
+            sb1_h := high
+            sb1_l := low
+            sb1_st := bar_index
+            sb1_box := box.new(bar_index, high, bar_index, low, bgcolor=sb1_bg, border_color=sb1_br)
+        if sb1_on and isInSB(sb1_sh, sb1_sm, sb1_eh, sb1_em, sb_h, sb_m)
+            sb1_h := math.max(sb1_h, high)
+            sb1_l := math.min(sb1_l, low)
+            if not na(sb1_box)
+                box.set_top(sb1_box, sb1_h)
+                box.set_bottom(sb1_box, sb1_l)
+                box.set_right(sb1_box, bar_index)
+        if isSBEnd(sb1_eh, sb1_em, sb_h, sb_m) and sb1_on
+            sb1_on := false
+            drawSBLabel(sb1_st, sb1_h, sb1_n, sb1_br)
+
+    // LONDON
+    if sb2_en
+        if isSBStart(sb2_sh, sb2_sm, sb_h, sb_m) and not sb2_on
+            sb2_on := true
+            sb2_h := high
+            sb2_l := low
+            sb2_st := bar_index
+            sb2_box := box.new(bar_index, high, bar_index, low, bgcolor=sb2_bg, border_color=sb2_br)
+        if sb2_on and isInSB(sb2_sh, sb2_sm, sb2_eh, sb2_em, sb_h, sb_m)
+            sb2_h := math.max(sb2_h, high)
+            sb2_l := math.min(sb2_l, low)
+            if not na(sb2_box)
+                box.set_top(sb2_box, sb2_h)
+                box.set_bottom(sb2_box, sb2_l)
+                box.set_right(sb2_box, bar_index)
+        if isSBEnd(sb2_eh, sb2_em, sb_h, sb_m) and sb2_on
+            sb2_on := false
+            drawSBLabel(sb2_st, sb2_h, sb2_n, sb2_br)
+
+    // NY AM
+    if sb3_en
+        if isSBStart(sb3_sh, sb3_sm, sb_h, sb_m) and not sb3_on
+            sb3_on := true
+            sb3_h := high
+            sb3_l := low
+            sb3_st := bar_index
+            sb3_box := box.new(bar_index, high, bar_index, low, bgcolor=sb3_bg, border_color=sb3_br)
+        if sb3_on and isInSB(sb3_sh, sb3_sm, sb3_eh, sb3_em, sb_h, sb_m)
+            sb3_h := math.max(sb3_h, high)
+            sb3_l := math.min(sb3_l, low)
+            if not na(sb3_box)
+                box.set_top(sb3_box, sb3_h)
+                box.set_bottom(sb3_box, sb3_l)
+                box.set_right(sb3_box, bar_index)
+        if isSBEnd(sb3_eh, sb3_em, sb_h, sb_m) and sb3_on
+            sb3_on := false
+            drawSBLabel(sb3_st, sb3_h, sb3_n, sb3_br)
+
+    // NY PM
+    if sb4_en
+        if isSBStart(sb4_sh, sb4_sm, sb_h, sb_m) and not sb4_on
+            sb4_on := true
+            sb4_h := high
+            sb4_l := low
+            sb4_st := bar_index
+            sb4_box := box.new(bar_index, high, bar_index, low, bgcolor=sb4_bg, border_color=sb4_br)
+        if sb4_on and isInSB(sb4_sh, sb4_sm, sb4_eh, sb4_em, sb_h, sb_m)
+            sb4_h := math.max(sb4_h, high)
+            sb4_l := math.min(sb4_l, low)
+            if not na(sb4_box)
+                box.set_top(sb4_box, sb4_h)
+                box.set_bottom(sb4_box, sb4_l)
+                box.set_right(sb4_box, bar_index)
+        if isSBEnd(sb4_eh, sb4_em, sb_h, sb_m) and sb4_on
+            sb4_on := false
+            drawSBLabel(sb4_st, sb4_h, sb4_n, sb4_br)
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// OPENING PRICE LINES
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+i_op_lbl_en   = input.bool(true, "Labels", inline="op0", group="OPENING PRICE LINES")
+i_op_lbl_size = input.string("Small", "", options=["Tiny", "Small", "Normal", "Large"], inline="op0", group="OPENING PRICE LINES", tooltip="Show labels on opening price lines")
+
+i_op1_en    = input.bool(true, "", inline="op1", group="OPENING PRICE LINES")
+i_op1_txt   = input.string("18:00", "", inline="op1", group="OPENING PRICE LINES")
+i_op1_color = input.color(color.orange, "", inline="op1", group="OPENING PRICE LINES")
+i_op1_style = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="op1", group="OPENING PRICE LINES")
+i_op1_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="op1", group="OPENING PRICE LINES", tooltip="NY Session Open")
+
+i_op2_en    = input.bool(true, "", inline="op2", group="OPENING PRICE LINES")
+i_op2_txt   = input.string("00:00", "", inline="op2", group="OPENING PRICE LINES")
+i_op2_color = input.color(color.red, "", inline="op2", group="OPENING PRICE LINES")
+i_op2_style = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="op2", group="OPENING PRICE LINES")
+i_op2_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="op2", group="OPENING PRICE LINES", tooltip="Midnight Open")
+
+i_op3_en    = input.bool(true, "", inline="op3", group="OPENING PRICE LINES")
+i_op3_txt   = input.string("01:30", "", inline="op3", group="OPENING PRICE LINES")
+i_op3_color = input.color(color.aqua, "", inline="op3", group="OPENING PRICE LINES")
+i_op3_style = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="op3", group="OPENING PRICE LINES")
+i_op3_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="op3", group="OPENING PRICE LINES", tooltip="London Open")
+
+i_op4_en    = input.bool(true, "", inline="op4", group="OPENING PRICE LINES")
+i_op4_txt   = input.string("08:30", "", inline="op4", group="OPENING PRICE LINES")
+i_op4_color = input.color(color.white, "", inline="op4", group="OPENING PRICE LINES")
+i_op4_style = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="op4", group="OPENING PRICE LINES")
+i_op4_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="op4", group="OPENING PRICE LINES", tooltip="Pre-Market Open")
+
+i_op5_en    = input.bool(true, "", inline="op5", group="OPENING PRICE LINES")
+i_op5_txt   = input.string("09:30", "", inline="op5", group="OPENING PRICE LINES")
+i_op5_color = input.color(color.green, "", inline="op5", group="OPENING PRICE LINES")
+i_op5_style = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="op5", group="OPENING PRICE LINES")
+i_op5_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="op5", group="OPENING PRICE LINES", tooltip="NYSE Open")
+
+i_op6_en    = input.bool(true, "", inline="op6", group="OPENING PRICE LINES")
+i_op6_txt   = input.string("10:00", "", inline="op6", group="OPENING PRICE LINES")
+i_op6_color = input.color(color.yellow, "", inline="op6", group="OPENING PRICE LINES")
+i_op6_style = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="op6", group="OPENING PRICE LINES")
+i_op6_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="op6", group="OPENING PRICE LINES", tooltip="10:00 AM")
+
+i_op7_en    = input.bool(true, "", inline="op7", group="OPENING PRICE LINES")
+i_op7_txt   = input.string("10:30", "", inline="op7", group="OPENING PRICE LINES")
+i_op7_color = input.color(color.orange, "", inline="op7", group="OPENING PRICE LINES")
+i_op7_style = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="op7", group="OPENING PRICE LINES")
+i_op7_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="op7", group="OPENING PRICE LINES", tooltip="10:30 AM")
+
+i_op8_en    = input.bool(true, "", inline="op8", group="OPENING PRICE LINES")
+i_op8_txt   = input.string("11:00", "", inline="op8", group="OPENING PRICE LINES")
+i_op8_color = input.color(color.teal, "", inline="op8", group="OPENING PRICE LINES")
+i_op8_style = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="op8", group="OPENING PRICE LINES")
+i_op8_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="op8", group="OPENING PRICE LINES", tooltip="11:00 AM")
+
+i_op9_en    = input.bool(true, "", inline="op9", group="OPENING PRICE LINES")
+i_op9_txt   = input.string("13:30", "", inline="op9", group="OPENING PRICE LINES")
+i_op9_color = input.color(color.blue, "", inline="op9", group="OPENING PRICE LINES")
+i_op9_style = input.string("Solid", "", options=["Solid", "Dashed", "Dotted"], inline="op9", group="OPENING PRICE LINES")
+i_op9_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="op9", group="OPENING PRICE LINES", tooltip="PM Session")
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// VERTICAL SESSION LINES
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+i_vl_lbl_en   = input.bool(true, "Labels", inline="vl0", group="VERTICAL SESSION LINES")
+i_vl_lbl_size = input.string("Small", "", options=["Tiny", "Small", "Normal", "Large"], inline="vl0", group="VERTICAL SESSION LINES")
+i_vl_lbl_pos  = input.string("Top", "", options=["Top", "Bottom"], inline="vl0", group="VERTICAL SESSION LINES", tooltip="Label settings for vertical lines")
+
+i_vl1_en    = input.bool(true, "", inline="vl1", group="VERTICAL SESSION LINES")
+i_vl1_txt   = input.string("18:00", "", inline="vl1", group="VERTICAL SESSION LINES")
+i_vl1_color = input.color(color.orange, "", inline="vl1", group="VERTICAL SESSION LINES")
+i_vl1_style = input.string("Dotted", "", options=["Solid", "Dashed", "Dotted"], inline="vl1", group="VERTICAL SESSION LINES")
+i_vl1_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="vl1", group="VERTICAL SESSION LINES", tooltip="NY Session Open")
+
+i_vl2_en    = input.bool(true, "", inline="vl2", group="VERTICAL SESSION LINES")
+i_vl2_txt   = input.string("00:00", "", inline="vl2", group="VERTICAL SESSION LINES")
+i_vl2_color = input.color(color.red, "", inline="vl2", group="VERTICAL SESSION LINES")
+i_vl2_style = input.string("Dotted", "", options=["Solid", "Dashed", "Dotted"], inline="vl2", group="VERTICAL SESSION LINES")
+i_vl2_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="vl2", group="VERTICAL SESSION LINES", tooltip="Midnight")
+
+i_vl3_en    = input.bool(true, "", inline="vl3", group="VERTICAL SESSION LINES")
+i_vl3_txt   = input.string("01:30", "", inline="vl3", group="VERTICAL SESSION LINES")
+i_vl3_color = input.color(color.aqua, "", inline="vl3", group="VERTICAL SESSION LINES")
+i_vl3_style = input.string("Dotted", "", options=["Solid", "Dashed", "Dotted"], inline="vl3", group="VERTICAL SESSION LINES")
+i_vl3_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="vl3", group="VERTICAL SESSION LINES", tooltip="London Open")
+
+i_vl4_en    = input.bool(true, "", inline="vl4", group="VERTICAL SESSION LINES")
+i_vl4_txt   = input.string("08:30", "", inline="vl4", group="VERTICAL SESSION LINES")
+i_vl4_color = input.color(color.white, "", inline="vl4", group="VERTICAL SESSION LINES")
+i_vl4_style = input.string("Dotted", "", options=["Solid", "Dashed", "Dotted"], inline="vl4", group="VERTICAL SESSION LINES")
+i_vl4_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="vl4", group="VERTICAL SESSION LINES", tooltip="Pre-Market")
+
+i_vl5_en    = input.bool(true, "", inline="vl5", group="VERTICAL SESSION LINES")
+i_vl5_txt   = input.string("09:30", "", inline="vl5", group="VERTICAL SESSION LINES")
+i_vl5_color = input.color(color.green, "", inline="vl5", group="VERTICAL SESSION LINES")
+i_vl5_style = input.string("Dotted", "", options=["Solid", "Dashed", "Dotted"], inline="vl5", group="VERTICAL SESSION LINES")
+i_vl5_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="vl5", group="VERTICAL SESSION LINES", tooltip="NYSE Open")
+
+i_vl6_en    = input.bool(true, "", inline="vl6", group="VERTICAL SESSION LINES")
+i_vl6_txt   = input.string("10:00", "", inline="vl6", group="VERTICAL SESSION LINES")
+i_vl6_color = input.color(color.yellow, "", inline="vl6", group="VERTICAL SESSION LINES")
+i_vl6_style = input.string("Dotted", "", options=["Solid", "Dashed", "Dotted"], inline="vl6", group="VERTICAL SESSION LINES")
+i_vl6_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="vl6", group="VERTICAL SESSION LINES", tooltip="10:00 AM")
+
+i_vl7_en    = input.bool(true, "", inline="vl7", group="VERTICAL SESSION LINES")
+i_vl7_txt   = input.string("10:30", "", inline="vl7", group="VERTICAL SESSION LINES")
+i_vl7_color = input.color(color.orange, "", inline="vl7", group="VERTICAL SESSION LINES")
+i_vl7_style = input.string("Dotted", "", options=["Solid", "Dashed", "Dotted"], inline="vl7", group="VERTICAL SESSION LINES")
+i_vl7_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="vl7", group="VERTICAL SESSION LINES", tooltip="10:30 AM")
+
+i_vl8_en    = input.bool(true, "", inline="vl8", group="VERTICAL SESSION LINES")
+i_vl8_txt   = input.string("11:00", "", inline="vl8", group="VERTICAL SESSION LINES")
+i_vl8_color = input.color(color.teal, "", inline="vl8", group="VERTICAL SESSION LINES")
+i_vl8_style = input.string("Dotted", "", options=["Solid", "Dashed", "Dotted"], inline="vl8", group="VERTICAL SESSION LINES")
+i_vl8_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="vl8", group="VERTICAL SESSION LINES", tooltip="11:00 AM")
+
+i_vl9_en    = input.bool(true, "", inline="vl9", group="VERTICAL SESSION LINES")
+i_vl9_txt   = input.string("13:30", "", inline="vl9", group="VERTICAL SESSION LINES")
+i_vl9_color = input.color(color.blue, "", inline="vl9", group="VERTICAL SESSION LINES")
+i_vl9_style = input.string("Dotted", "", options=["Solid", "Dashed", "Dotted"], inline="vl9", group="VERTICAL SESSION LINES")
+i_vl9_width = input.string("1px", "", options=["1px", "2px", "3px", "4px"], inline="vl9", group="VERTICAL SESSION LINES", tooltip="PM Session")
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// PREVIOUS DAY HIGH / LOW
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+i_pdhl_lbl_en   = input.bool(true, "Labels", inline="pd0", group="PREVIOUS DAY HIGH / LOW")
+i_pdhl_lbl_size = input.string("Small", "", options=["Tiny", "Small", "Normal", "Large"], inline="pd0", group="PREVIOUS DAY HIGH / LOW")
+i_pdhl_history  = input.int(5, "History", minval=1, maxval=10, inline="pd0", group="PREVIOUS DAY HIGH / LOW", tooltip="Number of historical days to show")
+
+i_pdh_en    = input.bool(true, "", inline="pdh", group="PREVIOUS DAY HIGH / LOW")
+i_pdh_txt   = input.string("PDH", "", inline="pdh", group="PREVIOUS DAY HIGH / LOW")
+i_pdh_color = input.color(color.red, "", inline="pdh", group="PREVIOUS DAY HIGH / LOW")
+i_pdh_style = input.string("Dashed", "", options=["Solid", "Dashed", "Dotted"], inline="pdh", group="PREVIOUS DAY HIGH / LOW")
+i_pdh_width = input.string("2px", "", options=["1px", "2px", "3px", "4px"], inline="pdh", group="PREVIOUS DAY HIGH / LOW")
+i_pdh_lbl   = input.string("PDH", "", inline="pdh", group="PREVIOUS DAY HIGH / LOW")
+i_pdh_swept = input.color(color.new(color.red, 70), "Swept", inline="pdh", group="PREVIOUS DAY HIGH / LOW", tooltip="PDH - Freeze on touch, change to swept color")
+
+i_pdl_en    = input.bool(true, "", inline="pdl", group="PREVIOUS DAY HIGH / LOW")
+i_pdl_txt   = input.string("PDL", "", inline="pdl", group="PREVIOUS DAY HIGH / LOW")
+i_pdl_color = input.color(color.green, "", inline="pdl", group="PREVIOUS DAY HIGH / LOW")
+i_pdl_style = input.string("Dashed", "", options=["Solid", "Dashed", "Dotted"], inline="pdl", group="PREVIOUS DAY HIGH / LOW")
+i_pdl_width = input.string("2px", "", options=["1px", "2px", "3px", "4px"], inline="pdl", group="PREVIOUS DAY HIGH / LOW")
+i_pdl_lbl   = input.string("PDL", "", inline="pdl", group="PREVIOUS DAY HIGH / LOW")
+i_pdl_swept = input.color(color.new(color.green, 70), "Swept", inline="pdl", group="PREVIOUS DAY HIGH / LOW", tooltip="PDL - Freeze on touch, change to swept color")
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// RTH HIGH / LOW
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+i_rth_lbl_en    = input.bool(true, "Labels", inline="rth0", group="RTH HIGH / LOW")
+i_rth_lbl_size  = input.string("Small", "", options=["Tiny", "Small", "Normal", "Large"], inline="rth0", group="RTH HIGH / LOW")
+i_rth_merge     = input.float(0.5, "Merge", inline="rth0", group="RTH HIGH / LOW")
+i_rth_merge_col = input.color(color.white, "", inline="rth0", group="RTH HIGH / LOW", tooltip="Merge threshold: combine PDH+RTH H labels when within this distance")
+
+i_rth_h_en    = input.bool(true, "", inline="rthh", group="RTH HIGH / LOW")
+i_rth_h_txt   = input.string("RTH HIGH", "", inline="rthh", group="RTH HIGH / LOW")
+i_rth_h_color = input.color(color.fuchsia, "", inline="rthh", group="RTH HIGH / LOW")
+i_rth_h_style = input.string("Dashed", "", options=["Solid", "Dashed", "Dotted"], inline="rthh", group="RTH HIGH / LOW")
+i_rth_h_width = input.string("2px", "", options=["1px", "2px", "3px", "4px"], inline="rthh", group="RTH HIGH / LOW")
+i_rth_h_lbl   = input.string("pRTH H", "", inline="rthh", group="RTH HIGH / LOW", tooltip="Only shows if NOT touched during RTH (09:30-16:14)")
+
+i_rth_l_en    = input.bool(true, "", inline="rthl", group="RTH HIGH / LOW")
+i_rth_l_txt   = input.string("RTH LOW", "", inline="rthl", group="RTH HIGH / LOW")
+i_rth_l_color = input.color(color.lime, "", inline="rthl", group="RTH HIGH / LOW")
+i_rth_l_style = input.string("Dashed", "", options=["Solid", "Dashed", "Dotted"], inline="rthl", group="RTH HIGH / LOW")
+i_rth_l_width = input.string("2px", "", options=["1px", "2px", "3px", "4px"], inline="rthl", group="RTH HIGH / LOW")
+i_rth_l_lbl   = input.string("pRTH L", "", inline="rthl", group="RTH HIGH / LOW", tooltip="Only shows if NOT touched during RTH (09:30-16:14)")
+
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// TIME WINDOWS (MACROS)
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+i_mac_lbl_en   = input.bool(true, "Labels", inline="mac0", group="TIME WINDOWS (MACROS)")
+i_mac_lbl_size = input.string("Small", "", options=["Tiny", "Small", "Normal", "Large"], inline="mac0", group="TIME WINDOWS (MACROS)")
+i_mac_lbl_pos  = input.string("Top", "", options=["Top", "Bottom"], inline="mac0", group="TIME WINDOWS (MACROS)", tooltip="Macro label settings")
+
+i_mac_bg     = input.color(color.new(color.blue, 85), "BG", inline="mac1", group="TIME WINDOWS (MACROS)")
+i_mac_border = input.color(color.new(color.blue, 50), "Border", inline="mac1", group="TIME WINDOWS (MACROS)")
+i_mac_lbl_col = input.color(color.white, "Text", inline="mac1", group="TIME WINDOWS (MACROS)", tooltip="Macro box colors")
+
+i_m1_en   = input.bool(true, "", inline="m1", group="TIME WINDOWS (MACROS)")
+i_m1_name = input.string("LONDON 1", "", inline="m1", group="TIME WINDOWS (MACROS)")
+i_m1_time = input.string("1:30 - 2:00", "", inline="m1", group="TIME WINDOWS (MACROS)", tooltip="London Macro 1")
+
+i_m2_en   = input.bool(true, "", inline="m2", group="TIME WINDOWS (MACROS)")
+i_m2_name = input.string("LONDON 2", "", inline="m2", group="TIME WINDOWS (MACROS)")
+i_m2_time = input.string("2:50 - 3:10", "", inline="m2", group="TIME WINDOWS (MACROS)", tooltip="London Macro 2")
+
+i_m3_en   = input.bool(true, "", inline="m3", group="TIME WINDOWS (MACROS)")
+i_m3_name = input.string("LONDON 3", "", inline="m3", group="TIME WINDOWS (MACROS)")
+i_m3_time = input.string("4:30 - 5:00", "", inline="m3", group="TIME WINDOWS (MACROS)", tooltip="London Macro 3")
+
+i_m4_en   = input.bool(true, "", inline="m4", group="TIME WINDOWS (MACROS)")
+i_m4_name = input.string("NY AM", "", inline="m4", group="TIME WINDOWS (MACROS)")
+i_m4_time = input.string("8:50 - 9:10", "", inline="m4", group="TIME WINDOWS (MACROS)", tooltip="NY AM Macro")
+
+i_m5_en   = input.bool(true, "", inline="m5", group="TIME WINDOWS (MACROS)")
+i_m5_name = input.string("NY AM1", "", inline="m5", group="TIME WINDOWS (MACROS)")
+i_m5_time = input.string("9:50 - 10:10", "", inline="m5", group="TIME WINDOWS (MACROS)", tooltip="NY AM1 Macro")
+
+i_m6_en   = input.bool(true, "", inline="m6", group="TIME WINDOWS (MACROS)")
+i_m6_name = input.string("NY AM2", "", inline="m6", group="TIME WINDOWS (MACROS)")
+i_m6_time = input.string("10:50 - 11:10", "", inline="m6", group="TIME WINDOWS (MACROS)", tooltip="NY AM2 Macro")
+
+i_m7_en   = input.bool(true, "", inline="m7", group="TIME WINDOWS (MACROS)")
+i_m7_name = input.string("LUNCH", "", inline="m7", group="TIME WINDOWS (MACROS)")
+i_m7_time = input.string("11:50 - 12:10", "", inline="m7", group="TIME WINDOWS (MACROS)", tooltip="Lunch Macro")
+
+i_m8_en   = input.bool(true, "", inline="m8", group="TIME WINDOWS (MACROS)")
+i_m8_name = input.string("PM", "", inline="m8", group="TIME WINDOWS (MACROS)")
+i_m8_time = input.string("13:50 - 14:10", "", inline="m8", group="TIME WINDOWS (MACROS)", tooltip="PM Macro")
+
+i_m9_en   = input.bool(true, "", inline="m9", group="TIME WINDOWS (MACROS)")
+i_m9_name = input.string("CLOSE", "", inline="m9", group="TIME WINDOWS (MACROS)")
+i_m9_time = input.string("15:15 - 15:45", "", inline="m9", group="TIME WINDOWS (MACROS)", tooltip="Close Macro")
+
+i_m10_en   = input.bool(true, "", inline="m10", group="TIME WINDOWS (MACROS)")
+i_m10_name = input.string("FINAL", "", inline="m10", group="TIME WINDOWS (MACROS)")
+i_m10_time = input.string("15:50 - 16:00", "", inline="m10", group="TIME WINDOWS (MACROS)", tooltip="Final Macro")
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// BIAS PANEL
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+i_bias_en     = input.bool(true, "", inline="bias0", group="BIAS PANEL")
+i_bias_pos    = input.string("Top Right", "Position", options=["Top Left", "Top Center", "Top Right", "Middle Left", "Middle Right", "Bottom Left", "Bottom Center", "Bottom Right"], inline="bias0", group="BIAS PANEL")
+i_bias_size   = input.string("Normal", "", options=["Tiny", "Small", "Normal", "Large"], inline="bias0", group="BIAS PANEL")
+i_bias_bg     = input.color(color.new(color.black, 85), "BG", inline="bias0", group="BIAS PANEL")
+i_bias_border = input.color(color.new(color.gray, 50), "Border", inline="bias0", group="BIAS PANEL", tooltip="Bias panel settings")
+
+i_b1_en   = input.bool(true, "", inline="b1", group="BIAS PANEL")
+i_b1_name = input.string("DXY", "", inline="b1", group="BIAS PANEL")
+i_b1_bias = input.string("Bullish", "", options=["Bullish", "Bearish", "Neutral"], inline="b1", group="BIAS PANEL", tooltip="DXY Bias")
+
+i_b2_en   = input.bool(true, "", inline="b2", group="BIAS PANEL")
+i_b2_name = input.string("10 YR", "", inline="b2", group="BIAS PANEL")
+i_b2_bias = input.string("Bearish", "", options=["Bullish", "Bearish", "Neutral"], inline="b2", group="BIAS PANEL", tooltip="10 Year Yield Bias")
+
+i_b3_en   = input.bool(true, "", inline="b3", group="BIAS PANEL")
+i_b3_name = input.string("US BOND", "", inline="b3", group="BIAS PANEL")
+i_b3_bias = input.string("Bullish", "", options=["Bullish", "Bearish", "Neutral"], inline="b3", group="BIAS PANEL", tooltip="US Bond Bias")
+
+i_b4_en   = input.bool(true, "", inline="b4", group="BIAS PANEL")
+i_b4_name = input.string("NQ", "", inline="b4", group="BIAS PANEL")
+i_b4_bias = input.string("Bearish", "", options=["Bullish", "Bearish", "Neutral"], inline="b4", group="BIAS PANEL", tooltip="NQ Bias")
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// CHECKLIST PANEL
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+i_cl_en   = input.bool(true, "", inline="cl0", group="CHECKLIST PANEL")
+i_cl_pos  = input.string("Bottom Right", "Position", options=["Top Left", "Top Center", "Top Right", "Middle Left", "Middle Right", "Bottom Left", "Bottom Center", "Bottom Right"], inline="cl0", group="CHECKLIST PANEL")
+i_cl_size = input.string("Normal", "", options=["Tiny", "Small", "Normal", "Large"], inline="cl0", group="CHECKLIST PANEL", tooltip="Checklist panel settings")
+
+i_cl1 = input.bool(false, "HTF P/D Array", group="CHECKLIST PANEL")
+i_cl2 = input.bool(false, "Liquidity Sweep", group="CHECKLIST PANEL")
+i_cl3 = input.bool(false, "Momentum", group="CHECKLIST PANEL")
+i_cl4 = input.bool(false, "CISD", group="CHECKLIST PANEL")
+i_cl5 = input.bool(false, "FVG", group="CHECKLIST PANEL")
+i_cl6 = input.bool(false, "Clear Draws", group="CHECKLIST PANEL")
+i_cl7 = input.bool(false, "SMT ES/YM", group="CHECKLIST PANEL")
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// A+ SETUP SCORE
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+i_score_en        = input.bool(true, "", inline="sc0", group="A+ SETUP SCORE")
+i_score_pos       = input.string("Bottom Left", "Position", options=["Top Left", "Top Center", "Top Right", "Middle Left", "Middle Right", "Bottom Left", "Bottom Center", "Bottom Right"], inline="sc0", group="A+ SETUP SCORE")
+i_score_size      = input.string("Normal", "", options=["Tiny", "Small", "Normal", "Large"], inline="sc0", group="A+ SETUP SCORE")
+i_score_threshold = input.int(6, "Alert Threshold (out of 10)", minval=1, maxval=10, group="A+ SETUP SCORE")
+i_daily_bias      = input.string("Neutral", "Today's Daily Bias", options=["Bullish", "Bearish", "Neutral"], group="A+ SETUP SCORE", tooltip="Set this each morning to match your journal's Daily Bias field")
+i_poi_dist        = input.float(20, "POI Proximity (points)", minval=0, group="A+ SETUP SCORE", tooltip="How close price must be to PDH/PDL/PWH/PWL/PMH/PML/wOpen/mOpen to count as 'AT POI'")
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// HELPER FUNCTIONS
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+getStyle(string s) => s == "Dashed" ? line.style_dashed : s == "Dotted" ? line.style_dotted : line.style_solid
+getWidth(string w) => w == "2px" ? 2 : w == "3px" ? 3 : w == "4px" ? 4 : 1
+getSize(string s) => s == "Tiny" ? size.tiny : s == "Small" ? size.small : s == "Large" ? size.large : size.normal
+getPosition(string p) => p == "Top Left" ? position.top_left : p == "Top Center" ? position.top_center : p == "Top Right" ? position.top_right : p == "Middle Left" ? position.middle_left : p == "Middle Right" ? position.middle_right : p == "Bottom Left" ? position.bottom_left : p == "Bottom Center" ? position.bottom_center : position.bottom_right
+getBiasColor(string b) => b == "Bullish" ? color.rgb(71, 224, 44) : b == "Bearish" ? color.new(color.black, 0) : color.gray
+getNameColor(string b) => b == "Bullish" ? color.green : b == "Bearish" ? color.red : color.gray
+getVertLblStyle(string p) => p == "Top" ? label.style_label_down : label.style_label_up
+getVertLblYloc(string p) => p == "Top" ? yloc.abovebar : yloc.belowbar
+
+parseTime(string t) =>
+    int sH = 0, int sM = 0, int eH = 0, int eM = 0
+    string c = str.replace_all(t, " ", "")
+    int d = str.pos(c, "-")
+    if d > 0
+        string st = str.substring(c, 0, d)
+        string en = str.substring(c, d + 1)
+        int c1 = str.pos(st, ":")
+        if c1 > 0
+            sH := math.round(str.tonumber(str.substring(st, 0, c1)))
+            sM := math.round(str.tonumber(str.substring(st, c1 + 1)))
+        int c2 = str.pos(en, ":")
+        if c2 > 0
+            eH := math.round(str.tonumber(str.substring(en, 0, c2)))
+            eM := math.round(str.tonumber(str.substring(en, c2 + 1)))
+    [sH, sM, eH, eM]
+
+isInMacro(int sH, int sM, int eH, int eM, int cH, int cM) => (cH * 60 + cM) >= (sH * 60 + sM) and (cH * 60 + cM) < (eH * 60 + eM)
+
+passesTimeFilter() =>
+    if i_show_today
+        dayofmonth(time, i_timezone) == dayofmonth(timenow, i_timezone) and month(time, i_timezone) == month(timenow, i_timezone) and year(time, i_timezone) == year(timenow, i_timezone)
+    else if i_show_week
+        weekofyear(time, i_timezone) == weekofyear(timenow, i_timezone) and year(time, i_timezone) == year(timenow, i_timezone)
+    else if i_show_4weeks
+        time >= timenow - 28 * 24 * 60 * 60 * 1000
+    else
+        true
+
+// Parse Macro Times
+[m1_sH, m1_sM, m1_eH, m1_eM] = parseTime(i_m1_time)
+[m2_sH, m2_sM, m2_eH, m2_eM] = parseTime(i_m2_time)
+[m3_sH, m3_sM, m3_eH, m3_eM] = parseTime(i_m3_time)
+[m4_sH, m4_sM, m4_eH, m4_eM] = parseTime(i_m4_time)
+[m5_sH, m5_sM, m5_eH, m5_eM] = parseTime(i_m5_time)
+[m6_sH, m6_sM, m6_eH, m6_eM] = parseTime(i_m6_time)
+[m7_sH, m7_sM, m7_eH, m7_eM] = parseTime(i_m7_time)
+[m8_sH, m8_sM, m8_eH, m8_eM] = parseTime(i_m8_time)
+[m9_sH, m9_sM, m9_eH, m9_eM] = parseTime(i_m9_time)
+[m10_sH, m10_sM, m10_eH, m10_eM] = parseTime(i_m10_time)
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// TIME & FILTER VARIABLES
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+hide_ind = timeframe.in_seconds() / 60 > hide_tf
+cur_hour = hour(time, i_timezone)
+cur_min = minute(time, i_timezone)
+cur_dow = dayofweek(time, i_timezone)
+passes_filter = passesTimeFilter()
+
+is_0000 = cur_hour == 0 and cur_min == 0
+is_0130 = cur_hour == 1 and cur_min == 30
+is_0830 = cur_hour == 8 and cur_min == 30
+is_0930 = cur_hour == 9 and cur_min == 30
+is_1000 = cur_hour == 10 and cur_min == 0
+is_1030 = cur_hour == 10 and cur_min == 30
+is_1100 = cur_hour == 11 and cur_min == 0
+is_1330 = cur_hour == 13 and cur_min == 30
+is_1614 = cur_hour == 16 and cur_min == 14
+is_1800 = cur_hour == 18 and cur_min == 0
+is_sunday = cur_dow == dayofweek.sunday
+is_day_start = use_midnight ? is_0000 : is_1800
+is_new_month = month(time, i_timezone) != month(time[1], i_timezone)
+is_week_start = is_sunday and is_day_start
+
+dow_center_hour = i_dow_auto ? (use_midnight ? 12 : 6) : 12
+dow_loc = i_dow_position == "Bottom" ? location.bottom : location.top
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// VARIABLES
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+var line op_1800 = na, var label op_1800_lbl = na
+var line op_0000 = na, var label op_0000_lbl = na
+var line op_0130 = na, var label op_0130_lbl = na
+var line op_0830 = na, var label op_0830_lbl = na
+var line op_0930 = na, var label op_0930_lbl = na
+var line op_1000 = na, var label op_1000_lbl = na
+var line op_1030 = na, var label op_1030_lbl = na
+var line op_1100 = na, var label op_1100_lbl = na
+var line op_1330 = na, var label op_1330_lbl = na
+
+var line weekly_h_line = na, var label weekly_h_lbl = na, var float weekly_price = na
+var line weekly_v_line = na, var label weekly_v_lbl = na
+var line monthly_h_line = na, var label monthly_h_lbl = na, var float monthly_price = na
+var line monthly_v_line = na, var label monthly_v_lbl = na
+
+var float daily_high = na, var float daily_low = na
+var int daily_high_bar = na, var int daily_low_bar = na
+var bool daily_active = false
+var float completed_daily_high = na, var float completed_daily_low = na
+var int completed_daily_high_bar = na, var int completed_daily_low_bar = na
+
+var float rth_high = na, var float rth_low = na
+var int rth_high_bar = na, var int rth_low_bar = na
+var bool rth_active = false
+var bool rth_high_touched = false, var bool rth_low_touched = false
+var float completed_rth_high = na, var float completed_rth_low = na
+var int completed_rth_high_bar = na, var int completed_rth_low_bar = na
+var line rth_h_line = na, var label rth_h_lbl = na
+var line rth_l_line = na, var label rth_l_lbl = na
+
+var array<line> pdh_lines = array.new<line>()
+var array<label> pdh_labels = array.new<label>()
+var array<float> pdh_prices = array.new<float>()
+var array<bool> pdh_touched = array.new<bool>()
+var array<line> pdl_lines = array.new<line>()
+var array<label> pdl_labels = array.new<label>()
+var array<float> pdl_prices = array.new<float>()
+var array<bool> pdl_touched = array.new<bool>()
+var bool high_merged = false, var bool low_merged = false
+
+var box m1_box = na, var float m1_h = na, var float m1_l = na, var bool m1_on = false, var int m1_bar = na, var label m1_lbl = na
+var box m2_box = na, var float m2_h = na, var float m2_l = na, var bool m2_on = false, var int m2_bar = na, var label m2_lbl = na
+var box m3_box = na, var float m3_h = na, var float m3_l = na, var bool m3_on = false, var int m3_bar = na, var label m3_lbl = na
+var box m4_box = na, var float m4_h = na, var float m4_l = na, var bool m4_on = false, var int m4_bar = na, var label m4_lbl = na
+var box m5_box = na, var float m5_h = na, var float m5_l = na, var bool m5_on = false, var int m5_bar = na, var label m5_lbl = na
+var box m6_box = na, var float m6_h = na, var float m6_l = na, var bool m6_on = false, var int m6_bar = na, var label m6_lbl = na
+var box m7_box = na, var float m7_h = na, var float m7_l = na, var bool m7_on = false, var int m7_bar = na, var label m7_lbl = na
+var box m8_box = na, var float m8_h = na, var float m8_l = na, var bool m8_on = false, var int m8_bar = na, var label m8_lbl = na
+var box m9_box = na, var float m9_h = na, var float m9_l = na, var bool m9_on = false, var int m9_bar = na, var label m9_lbl = na
+var box m10_box = na, var float m10_h = na, var float m10_l = na, var bool m10_on = false, var int m10_bar = na, var label m10_lbl = na
+
+var table bias_table = na, var table checklist_table = na
+
+var float weekly_high = na, var float weekly_low = na
+var int weekly_high_bar = na, var int weekly_low_bar = na
+var bool weekly_active = false
+var float completed_weekly_high = na, var float completed_weekly_low = na
+var int completed_weekly_high_bar = na, var int completed_weekly_low_bar = na
+
+var float monthly_period_high = na, var float monthly_period_low = na
+var int monthly_period_high_bar = na, var int monthly_period_low_bar = na
+var bool monthly_active = false
+var float completed_monthly_high = na, var float completed_monthly_low = na
+var int completed_monthly_high_bar = na, var int completed_monthly_low_bar = na
+
+var int day_start_bar = na, var int week_start_bar = na, var int month_start_bar = na
+
+var line pwh_line = na, var label pwh_lbl = na, var float pwh_price = na, var bool pwh_touched = false
+var line pwl_line = na, var label pwl_lbl = na, var float pwl_price = na, var bool pwl_touched = false
+var line pmh_line = na, var label pmh_lbl = na, var float pmh_price = na, var bool pmh_touched = false
+var line pml_line = na, var label pml_lbl = na, var float pml_price = na, var bool pml_touched = false
+
+var line eq_line = na, var box premium_box = na, var box discount_box = na
+var table score_table = na
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// MAIN LOGIC
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+if passes_filter and not hide_ind
+
+    // DAY START
+    if is_day_start
+        if i_day_sep_en
+            line.new(bar_index, high, bar_index, low, color=i_day_sep_color, style=getStyle(i_day_sep_style), width=getWidth(i_day_sep_width), extend=extend.both)
+        
+        if daily_active
+            completed_daily_high := daily_high
+            completed_daily_low := daily_low
+            completed_daily_high_bar := daily_high_bar
+            completed_daily_low_bar := daily_low_bar
+        
+        high_merged := false
+        low_merged := false
+        if not na(completed_daily_high) and not na(completed_rth_high)
+            high_merged := math.abs(completed_daily_high - completed_rth_high) <= i_rth_merge
+        if not na(completed_daily_low) and not na(completed_rth_low)
+            low_merged := math.abs(completed_daily_low - completed_rth_low) <= i_rth_merge
+        
+        if i_pdh_en and not na(completed_daily_high) and not na(completed_daily_low)
+            array.push(pdh_lines, line.new(completed_daily_high_bar, completed_daily_high, bar_index, completed_daily_high, color=i_pdh_color, style=getStyle(i_pdh_style), width=getWidth(i_pdh_width)))
+            array.push(pdh_prices, completed_daily_high)
+            array.push(pdh_touched, false)
+            if i_pdhl_lbl_en
+                string pdh_text = high_merged ? i_pdh_lbl + " + " + i_rth_h_lbl : i_pdh_lbl
+                color pdh_lbl_col = high_merged ? i_rth_merge_col : i_pdh_color
+                array.push(pdh_labels, label.new(bar_index, completed_daily_high, pdh_text, color=color.new(color.white, 100), textcolor=pdh_lbl_col, style=label.style_label_left, size=getSize(i_pdhl_lbl_size)))
+        
+        if i_pdl_en and not na(completed_daily_high) and not na(completed_daily_low)
+            array.push(pdl_lines, line.new(completed_daily_low_bar, completed_daily_low, bar_index, completed_daily_low, color=i_pdl_color, style=getStyle(i_pdl_style), width=getWidth(i_pdl_width)))
+            array.push(pdl_prices, completed_daily_low)
+            array.push(pdl_touched, false)
+            if i_pdhl_lbl_en
+                string pdl_text = low_merged ? i_pdl_lbl + " + " + i_rth_l_lbl : i_pdl_lbl
+                color pdl_lbl_col = low_merged ? i_rth_merge_col : i_pdl_color
+                array.push(pdl_labels, label.new(bar_index, completed_daily_low, pdl_text, color=color.new(color.white, 100), textcolor=pdl_lbl_col, style=label.style_label_left, size=getSize(i_pdhl_lbl_size)))
+            
+            while array.size(pdh_lines) > i_pdhl_history
+                line.delete(array.shift(pdh_lines))
+                array.shift(pdh_prices)
+                array.shift(pdh_touched)
+                if array.size(pdh_labels) > 0
+                    label.delete(array.shift(pdh_labels))
+            while array.size(pdl_lines) > i_pdhl_history
+                line.delete(array.shift(pdl_lines))
+                array.shift(pdl_prices)
+                array.shift(pdl_touched)
+                if array.size(pdl_labels) > 0
+                    label.delete(array.shift(pdl_labels))
+        
+        if i_rth_h_en and not na(completed_rth_high)
+            if not na(rth_h_line)
+                line.delete(rth_h_line)
+            if not na(rth_h_lbl)
+                label.delete(rth_h_lbl)
+            if not high_merged
+                rth_h_line := line.new(completed_rth_high_bar, completed_rth_high, bar_index, completed_rth_high, color=i_rth_h_color, style=getStyle(i_rth_h_style), width=getWidth(i_rth_h_width))
+                if i_rth_lbl_en
+                    rth_h_lbl := label.new(bar_index, completed_rth_high, i_rth_h_lbl, color=color.new(color.white, 100), textcolor=i_rth_h_color, style=label.style_label_left, size=getSize(i_rth_lbl_size))
+        
+        if i_rth_l_en and not na(completed_rth_low)
+            if not na(rth_l_line)
+                line.delete(rth_l_line)
+            if not na(rth_l_lbl)
+                label.delete(rth_l_lbl)
+            if not low_merged
+                rth_l_line := line.new(completed_rth_low_bar, completed_rth_low, bar_index, completed_rth_low, color=i_rth_l_color, style=getStyle(i_rth_l_style), width=getWidth(i_rth_l_width))
+                if i_rth_lbl_en
+                    rth_l_lbl := label.new(bar_index, completed_rth_low, i_rth_l_lbl, color=color.new(color.white, 100), textcolor=i_rth_l_color, style=label.style_label_left, size=getSize(i_rth_lbl_size))
+        
+        op_1800 := na
+        op_0000 := na
+        op_0130 := na
+        op_0830 := na
+        op_0930 := na
+        op_1000 := na
+        op_1030 := na
+        op_1100 := na
+        op_1330 := na
+        
+        daily_active := true
+        daily_high := high
+        daily_low := low
+        daily_high_bar := bar_index
+        daily_low_bar := bar_index
+        day_start_bar := bar_index
+        
+        m1_on := false
+        m2_on := false
+        m3_on := false
+        m4_on := false
+        m5_on := false
+        m6_on := false
+        m7_on := false
+        m8_on := false
+        m9_on := false
+        m10_on := false
+
+    // WEEK START — finalize PWH/PWL
+    if is_week_start
+        if weekly_active
+            completed_weekly_high := weekly_high
+            completed_weekly_low := weekly_low
+            completed_weekly_high_bar := weekly_high_bar
+            completed_weekly_low_bar := weekly_low_bar
+
+            if i_pwh_en and not na(completed_weekly_high)
+                if not na(pwh_line)
+                    line.delete(pwh_line)
+                if not na(pwh_lbl)
+                    label.delete(pwh_lbl)
+                pwh_price   := completed_weekly_high
+                pwh_touched := false
+                pwh_line := line.new(completed_weekly_high_bar, pwh_price, bar_index, pwh_price, color=i_pwh_color, style=getStyle(i_pwh_style), width=getWidth(i_pwh_width))
+                if i_pwhl_lbl_en
+                    pwh_lbl := label.new(bar_index, pwh_price, i_pwh_txt, color=color.new(color.white, 100), textcolor=i_pwh_color, style=label.style_label_left, size=getSize(i_pwhl_lbl_size))
+
+            if i_pwl_en and not na(completed_weekly_low)
+                if not na(pwl_line)
+                    line.delete(pwl_line)
+                if not na(pwl_lbl)
+                    label.delete(pwl_lbl)
+                pwl_price   := completed_weekly_low
+                pwl_touched := false
+                pwl_line := line.new(completed_weekly_low_bar, pwl_price, bar_index, pwl_price, color=i_pwl_color, style=getStyle(i_pwl_style), width=getWidth(i_pwl_width))
+                if i_pwhl_lbl_en
+                    pwl_lbl := label.new(bar_index, pwl_price, i_pwl_txt, color=color.new(color.white, 100), textcolor=i_pwl_color, style=label.style_label_left, size=getSize(i_pwhl_lbl_size))
+
+        weekly_active := true
+        weekly_high := high
+        weekly_low := low
+        weekly_high_bar := bar_index
+        weekly_low_bar := bar_index
+        week_start_bar := bar_index
+
+    // TRACK WEEKLY H/L
+    if weekly_active
+        if high > weekly_high
+            weekly_high := high
+            weekly_high_bar := bar_index
+        if low < weekly_low
+            weekly_low := low
+            weekly_low_bar := bar_index
+
+    // MONTH START — finalize PMH/PML
+    if is_new_month
+        if monthly_active
+            completed_monthly_high := monthly_period_high
+            completed_monthly_low := monthly_period_low
+            completed_monthly_high_bar := monthly_period_high_bar
+            completed_monthly_low_bar := monthly_period_low_bar
+
+            if i_pmh_en and not na(completed_monthly_high)
+                if not na(pmh_line)
+                    line.delete(pmh_line)
+                if not na(pmh_lbl)
+                    label.delete(pmh_lbl)
+                pmh_price   := completed_monthly_high
+                pmh_touched := false
+                pmh_line := line.new(completed_monthly_high_bar, pmh_price, bar_index, pmh_price, color=i_pmh_color, style=getStyle(i_pmh_style), width=getWidth(i_pmh_width))
+                if i_pwhl_lbl_en
+                    pmh_lbl := label.new(bar_index, pmh_price, i_pmh_txt, color=color.new(color.white, 100), textcolor=i_pmh_color, style=label.style_label_left, size=getSize(i_pwhl_lbl_size))
+
+            if i_pml_en and not na(completed_monthly_low)
+                if not na(pml_line)
+                    line.delete(pml_line)
+                if not na(pml_lbl)
+                    label.delete(pml_lbl)
+                pml_price   := completed_monthly_low
+                pml_touched := false
+                pml_line := line.new(completed_monthly_low_bar, pml_price, bar_index, pml_price, color=i_pml_color, style=getStyle(i_pml_style), width=getWidth(i_pml_width))
+                if i_pwhl_lbl_en
+                    pml_lbl := label.new(bar_index, pml_price, i_pml_txt, color=color.new(color.white, 100), textcolor=i_pml_color, style=label.style_label_left, size=getSize(i_pwhl_lbl_size))
+
+        monthly_active := true
+        monthly_period_high := high
+        monthly_period_low := low
+        monthly_period_high_bar := bar_index
+        monthly_period_low_bar := bar_index
+        month_start_bar := bar_index
+
+    // TRACK MONTHLY H/L
+    if monthly_active
+        if high > monthly_period_high
+            monthly_period_high := high
+            monthly_period_high_bar := bar_index
+        if low < monthly_period_low
+            monthly_period_low := low
+            monthly_period_low_bar := bar_index
+
+    // TRACK DAILY H/L
+    if daily_active
+        if high > daily_high
+            daily_high := high
+            daily_high_bar := bar_index
+        if low < daily_low
+            daily_low := low
+            daily_low_bar := bar_index
+
+    // RTH SESSION
+    if is_0930
+        rth_active := true
+        rth_high := high
+        rth_low := low
+        rth_high_bar := bar_index
+        rth_low_bar := bar_index
+        rth_high_touched := false
+        rth_low_touched := false
+    
+    if rth_active
+        if high > rth_high
+            rth_high := high
+            rth_high_bar := bar_index
+        else if high >= rth_high and bar_index > rth_high_bar
+            rth_high_touched := true
+        if low < rth_low
+            rth_low := low
+            rth_low_bar := bar_index
+        else if low <= rth_low and bar_index > rth_low_bar
+            rth_low_touched := true
+    
+    if is_1614 and rth_active
+        rth_active := false
+        if not rth_high_touched
+            completed_rth_high := rth_high
+            completed_rth_high_bar := rth_high_bar
+        else
+            completed_rth_high := na
+        if not rth_low_touched
+            completed_rth_low := rth_low
+            completed_rth_low_bar := rth_low_bar
+        else
+            completed_rth_low := na
+
+    // PDH/PDL EXTENSION & FREEZE
+    if i_pdh_en and array.size(pdh_lines) > 0
+        for i = 0 to array.size(pdh_lines) - 1
+            if not array.get(pdh_touched, i)
+                if high >= array.get(pdh_prices, i)
+                    array.set(pdh_touched, i, true)
+                    line.set_color(array.get(pdh_lines, i), i_pdh_swept)
+                    if i < array.size(pdh_labels)
+                        label.set_textcolor(array.get(pdh_labels, i), i_pdh_swept)
+                line.set_x2(array.get(pdh_lines, i), bar_index)
+                if i < array.size(pdh_labels)
+                    label.set_x(array.get(pdh_labels, i), bar_index)
+    
+    if i_pdl_en and array.size(pdl_lines) > 0
+        for i = 0 to array.size(pdl_lines) - 1
+            if not array.get(pdl_touched, i)
+                if low <= array.get(pdl_prices, i)
+                    array.set(pdl_touched, i, true)
+                    line.set_color(array.get(pdl_lines, i), i_pdl_swept)
+                    if i < array.size(pdl_labels)
+                        label.set_textcolor(array.get(pdl_labels, i), i_pdl_swept)
+                line.set_x2(array.get(pdl_lines, i), bar_index)
+                if i < array.size(pdl_labels)
+                    label.set_x(array.get(pdl_labels, i), bar_index)
+
+    // PWH/PWL/PMH/PML EXTENSION & FREEZE
+    if not na(pwh_line)
+        line.set_x2(pwh_line, bar_index)
+        if not na(pwh_lbl)
+            label.set_x(pwh_lbl, bar_index)
+        if not pwh_touched and high >= pwh_price
+            pwh_touched := true
+            line.set_color(pwh_line, i_pwh_swept)
+            if not na(pwh_lbl)
+                label.set_textcolor(pwh_lbl, i_pwh_swept)
+
+    if not na(pwl_line)
+        line.set_x2(pwl_line, bar_index)
+        if not na(pwl_lbl)
+            label.set_x(pwl_lbl, bar_index)
+        if not pwl_touched and low <= pwl_price
+            pwl_touched := true
+            line.set_color(pwl_line, i_pwl_swept)
+            if not na(pwl_lbl)
+                label.set_textcolor(pwl_lbl, i_pwl_swept)
+
+    if not na(pmh_line)
+        line.set_x2(pmh_line, bar_index)
+        if not na(pmh_lbl)
+            label.set_x(pmh_lbl, bar_index)
+        if not pmh_touched and high >= pmh_price
+            pmh_touched := true
+            line.set_color(pmh_line, i_pmh_swept)
+            if not na(pmh_lbl)
+                label.set_textcolor(pmh_lbl, i_pmh_swept)
+
+    if not na(pml_line)
+        line.set_x2(pml_line, bar_index)
+        if not na(pml_lbl)
+            label.set_x(pml_lbl, bar_index)
+        if not pml_touched and low <= pml_price
+            pml_touched := true
+            line.set_color(pml_line, i_pml_swept)
+            if not na(pml_lbl)
+                label.set_textcolor(pml_lbl, i_pml_swept)
+
+    // Extend pRTH
+    if not na(rth_h_line)
+        line.set_x2(rth_h_line, bar_index)
+        if not na(rth_h_lbl)
+            label.set_x(rth_h_lbl, bar_index)
+    if not na(rth_l_line)
+        line.set_x2(rth_l_line, bar_index)
+        if not na(rth_l_lbl)
+            label.set_x(rth_l_lbl, bar_index)
+
+    // EQUILIBRIUM / PREMIUM / DISCOUNT
+    float eq_hi = i_eq_range == "Daily" ? daily_high : i_eq_range == "Weekly" ? weekly_high : monthly_period_high
+    float eq_lo = i_eq_range == "Daily" ? daily_low  : i_eq_range == "Weekly" ? weekly_low  : monthly_period_low
+    int   eq_start_bar = i_eq_range == "Daily" ? day_start_bar : i_eq_range == "Weekly" ? week_start_bar : month_start_bar
+
+    if i_eq_en and not na(eq_hi) and not na(eq_lo) and not na(eq_start_bar)
+        float eq_mid_now = (eq_hi + eq_lo) / 2
+        bool eq_new_period = (i_eq_range == "Daily" and is_day_start) or (i_eq_range == "Weekly" and is_week_start) or (i_eq_range == "Monthly" and is_new_month)
+        if na(eq_line) or eq_new_period
+            if not na(eq_line)
+                line.delete(eq_line)
+                box.delete(premium_box)
+                box.delete(discount_box)
+            eq_line      := line.new(eq_start_bar, eq_mid_now, bar_index, eq_mid_now, color=i_eq_color, style=line.style_dashed, width=1)
+            premium_box  := box.new(eq_start_bar, eq_hi, bar_index, eq_mid_now, bgcolor=i_premium_color, border_color=color.new(color.white, 100))
+            discount_box := box.new(eq_start_bar, eq_mid_now, bar_index, eq_lo, bgcolor=i_discount_color, border_color=color.new(color.white, 100))
+        else
+            line.set_xy1(eq_line, eq_start_bar, eq_mid_now)
+            line.set_xy2(eq_line, bar_index, eq_mid_now)
+            box.set_lefttop(premium_box, eq_start_bar, eq_hi)
+            box.set_rightbottom(premium_box, bar_index, eq_mid_now)
+            box.set_lefttop(discount_box, eq_start_bar, eq_mid_now)
+            box.set_rightbottom(discount_box, bar_index, eq_lo)
+
+    // WEEKLY & MONTHLY
+    if i_wk_h_en and is_sunday and is_1800
+        if not na(weekly_h_line)
+            line.delete(weekly_h_line)
+        if not na(weekly_h_lbl)
+            label.delete(weekly_h_lbl)
+        weekly_price := open
+        weekly_h_line := line.new(bar_index, weekly_price, bar_index, weekly_price, color=i_wk_h_color, style=getStyle(i_wk_h_style), width=getWidth(i_wk_h_width))
+        if i_wk_h_lbl
+            weekly_h_lbl := label.new(bar_index, weekly_price, i_wk_h_ltxt, color=color.new(color.white, 100), textcolor=i_wk_h_color, style=label.style_label_left, size=getSize(i_op_lbl_size))
+    if i_wk_v_en and is_sunday and is_1800
+        if not na(weekly_v_line)
+            line.delete(weekly_v_line)
+        if not na(weekly_v_lbl)
+            label.delete(weekly_v_lbl)
+        weekly_v_line := line.new(bar_index, high, bar_index, low, color=i_wk_v_color, style=getStyle(i_wk_v_style), width=getWidth(i_wk_v_width), extend=extend.both)
+        if i_wk_v_lbl
+            weekly_v_lbl := label.new(bar_index, close, "WEEK", color=color.new(color.white, 100), textcolor=i_wk_v_color, style=getVertLblStyle(i_wk_v_pos), size=getSize(i_vl_lbl_size), yloc=getVertLblYloc(i_wk_v_pos))
+    if not na(weekly_h_line)
+        line.set_x2(weekly_h_line, bar_index)
+        if not na(weekly_h_lbl)
+            label.set_x(weekly_h_lbl, bar_index)
+
+    if i_mo_h_en and is_new_month
+        if not na(monthly_h_line)
+            line.delete(monthly_h_line)
+        if not na(monthly_h_lbl)
+            label.delete(monthly_h_lbl)
+        monthly_price := open
+        monthly_h_line := line.new(bar_index, monthly_price, bar_index, monthly_price, color=i_mo_h_color, style=getStyle(i_mo_h_style), width=getWidth(i_mo_h_width))
+        if i_mo_h_lbl
+            monthly_h_lbl := label.new(bar_index, monthly_price, i_mo_h_ltxt, color=color.new(color.white, 100), textcolor=i_mo_h_color, style=label.style_label_left, size=getSize(i_op_lbl_size))
+    if i_mo_v_en and is_new_month
+        if not na(monthly_v_line)
+            line.delete(monthly_v_line)
+        if not na(monthly_v_lbl)
+            label.delete(monthly_v_lbl)
+        monthly_v_line := line.new(bar_index, high, bar_index, low, color=i_mo_v_color, style=getStyle(i_mo_v_style), width=getWidth(i_mo_v_width), extend=extend.both)
+        if i_mo_v_lbl
+            monthly_v_lbl := label.new(bar_index, close, "MONTH", color=color.new(color.white, 100), textcolor=i_mo_v_color, style=getVertLblStyle(i_mo_v_pos), size=getSize(i_vl_lbl_size), yloc=getVertLblYloc(i_mo_v_pos))
+    if not na(monthly_h_line)
+        line.set_x2(monthly_h_line, bar_index)
+        if not na(monthly_h_lbl)
+            label.set_x(monthly_h_lbl, bar_index)
+
+    // OPENING PRICE LINES
+    if i_op1_en and is_1800 and na(op_1800)
+        op_1800 := line.new(bar_index, open, bar_index, open, color=i_op1_color, style=getStyle(i_op1_style), width=getWidth(i_op1_width))
+        if i_op_lbl_en
+            op_1800_lbl := label.new(bar_index, open, "18:00", color=color.new(color.white, 100), textcolor=i_op1_color, style=label.style_label_left, size=getSize(i_op_lbl_size))
+    if not na(op_1800)
+        line.set_x2(op_1800, bar_index)
+        if not na(op_1800_lbl)
+            label.set_x(op_1800_lbl, bar_index)
+
+    if i_op2_en and is_0000 and na(op_0000)
+        op_0000 := line.new(bar_index, open, bar_index, open, color=i_op2_color, style=getStyle(i_op2_style), width=getWidth(i_op2_width))
+        if i_op_lbl_en
+            op_0000_lbl := label.new(bar_index, open, "00:00", color=color.new(color.white, 100), textcolor=i_op2_color, style=label.style_label_left, size=getSize(i_op_lbl_size))
+    if not na(op_0000)
+        line.set_x2(op_0000, bar_index)
+        if not na(op_0000_lbl)
+            label.set_x(op_0000_lbl, bar_index)
+
+    if i_op3_en and is_0130 and na(op_0130)
+        op_0130 := line.new(bar_index, open, bar_index, open, color=i_op3_color, style=getStyle(i_op3_style), width=getWidth(i_op3_width))
+        if i_op_lbl_en
+            op_0130_lbl := label.new(bar_index, open, "01:30", color=color.new(color.white, 100), textcolor=i_op3_color, style=label.style_label_left, size=getSize(i_op_lbl_size))
+    if not na(op_0130)
+        line.set_x2(op_0130, bar_index)
+        if not na(op_0130_lbl)
+            label.set_x(op_0130_lbl, bar_index)
+
+    if i_op4_en and is_0830 and na(op_0830)
+        op_0830 := line.new(bar_index, open, bar_index, open, color=i_op4_color, style=getStyle(i_op4_style), width=getWidth(i_op4_width))
+        if i_op_lbl_en
+            op_0830_lbl := label.new(bar_index, open, "08:30", color=color.new(color.white, 100), textcolor=i_op4_color, style=label.style_label_left, size=getSize(i_op_lbl_size))
+    if not na(op_0830)
+        line.set_x2(op_0830, bar_index)
+        if not na(op_0830_lbl)
+            label.set_x(op_0830_lbl, bar_index)
+
+    if i_op5_en and is_0930 and na(op_0930)
+        op_0930 := line.new(bar_index, open, bar_index, open, color=i_op5_color, style=getStyle(i_op5_style), width=getWidth(i_op5_width))
+        if i_op_lbl_en
+            op_0930_lbl := label.new(bar_index, open, "09:30", color=color.new(color.white, 100), textcolor=i_op5_color, style=label.style_label_left, size=getSize(i_op_lbl_size))
+    if not na(op_0930)
+        line.set_x2(op_0930, bar_index)
+        if not na(op_0930_lbl)
+            label.set_x(op_0930_lbl, bar_index)
+
+    if i_op6_en and is_1000 and na(op_1000)
+        op_1000 := line.new(bar_index, open, bar_index, open, color=i_op6_color, style=getStyle(i_op6_style), width=getWidth(i_op6_width))
+        if i_op_lbl_en
+            op_1000_lbl := label.new(bar_index, open, "10:00", color=color.new(color.white, 100), textcolor=i_op6_color, style=label.style_label_left, size=getSize(i_op_lbl_size))
+    if not na(op_1000)
+        line.set_x2(op_1000, bar_index)
+        if not na(op_1000_lbl)
+            label.set_x(op_1000_lbl, bar_index)
+
+    if i_op7_en and is_1030 and na(op_1030)
+        op_1030 := line.new(bar_index, open, bar_index, open, color=i_op7_color, style=getStyle(i_op7_style), width=getWidth(i_op7_width))
+        if i_op_lbl_en
+            op_1030_lbl := label.new(bar_index, open, "10:30", color=color.new(color.white, 100), textcolor=i_op7_color, style=label.style_label_left, size=getSize(i_op_lbl_size))
+    if not na(op_1030)
+        line.set_x2(op_1030, bar_index)
+        if not na(op_1030_lbl)
+            label.set_x(op_1030_lbl, bar_index)
+
+    if i_op8_en and is_1100 and na(op_1100)
+        op_1100 := line.new(bar_index, open, bar_index, open, color=i_op8_color, style=getStyle(i_op8_style), width=getWidth(i_op8_width))
+        if i_op_lbl_en
+            op_1100_lbl := label.new(bar_index, open, "11:00", color=color.new(color.white, 100), textcolor=i_op8_color, style=label.style_label_left, size=getSize(i_op_lbl_size))
+    if not na(op_1100)
+        line.set_x2(op_1100, bar_index)
+        if not na(op_1100_lbl)
+            label.set_x(op_1100_lbl, bar_index)
+
+    if i_op9_en and is_1330 and na(op_1330)
+        op_1330 := line.new(bar_index, open, bar_index, open, color=i_op9_color, style=getStyle(i_op9_style), width=getWidth(i_op9_width))
+        if i_op_lbl_en
+            op_1330_lbl := label.new(bar_index, open, "13:30", color=color.new(color.white, 100), textcolor=i_op9_color, style=label.style_label_left, size=getSize(i_op_lbl_size))
+    if not na(op_1330)
+        line.set_x2(op_1330, bar_index)
+        if not na(op_1330_lbl)
+            label.set_x(op_1330_lbl, bar_index)
+
+    // VERTICAL LINES
+    if i_vl1_en and is_1800
+        line.new(bar_index, 0, bar_index, 0, color=i_vl1_color, style=getStyle(i_vl1_style), width=getWidth(i_vl1_width), extend=extend.both)
+        if i_vl_lbl_en
+            label.new(bar_index, close, "18:00", color=color.new(color.white, 100), textcolor=i_vl1_color, style=getVertLblStyle(i_vl_lbl_pos), size=getSize(i_vl_lbl_size), yloc=getVertLblYloc(i_vl_lbl_pos))
+    if i_vl2_en and is_0000
+        line.new(bar_index, 0, bar_index, 0, color=i_vl2_color, style=getStyle(i_vl2_style), width=getWidth(i_vl2_width), extend=extend.both)
+        if i_vl_lbl_en
+            label.new(bar_index, close, "00:00", color=color.new(color.white, 100), textcolor=i_vl2_color, style=getVertLblStyle(i_vl_lbl_pos), size=getSize(i_vl_lbl_size), yloc=getVertLblYloc(i_vl_lbl_pos))
+    if i_vl3_en and is_0130
+        line.new(bar_index, 0, bar_index, 0, color=i_vl3_color, style=getStyle(i_vl3_style), width=getWidth(i_vl3_width), extend=extend.both)
+        if i_vl_lbl_en
+            label.new(bar_index, close, "01:30", color=color.new(color.white, 100), textcolor=i_vl3_color, style=getVertLblStyle(i_vl_lbl_pos), size=getSize(i_vl_lbl_size), yloc=getVertLblYloc(i_vl_lbl_pos))
+    if i_vl4_en and is_0830
+        line.new(bar_index, 0, bar_index, 0, color=i_vl4_color, style=getStyle(i_vl4_style), width=getWidth(i_vl4_width), extend=extend.both)
+        if i_vl_lbl_en
+            label.new(bar_index, close, "08:30", color=color.new(color.white, 100), textcolor=i_vl4_color, style=getVertLblStyle(i_vl_lbl_pos), size=getSize(i_vl_lbl_size), yloc=getVertLblYloc(i_vl_lbl_pos))
+    if i_vl5_en and is_0930
+        line.new(bar_index, 0, bar_index, 0, color=i_vl5_color, style=getStyle(i_vl5_style), width=getWidth(i_vl5_width), extend=extend.both)
+        if i_vl_lbl_en
+            label.new(bar_index, close, "09:30", color=color.new(color.white, 100), textcolor=i_vl5_color, style=getVertLblStyle(i_vl_lbl_pos), size=getSize(i_vl_lbl_size), yloc=getVertLblYloc(i_vl_lbl_pos))
+    if i_vl6_en and is_1000
+        line.new(bar_index, 0, bar_index, 0, color=i_vl6_color, style=getStyle(i_vl6_style), width=getWidth(i_vl6_width), extend=extend.both)
+        if i_vl_lbl_en
+            label.new(bar_index, close, "10:00", color=color.new(color.white, 100), textcolor=i_vl6_color, style=getVertLblStyle(i_vl_lbl_pos), size=getSize(i_vl_lbl_size), yloc=getVertLblYloc(i_vl_lbl_pos))
+    if i_vl7_en and is_1030
+        line.new(bar_index, 0, bar_index, 0, color=i_vl7_color, style=getStyle(i_vl7_style), width=getWidth(i_vl7_width), extend=extend.both)
+        if i_vl_lbl_en
+            label.new(bar_index, close, "10:30", color=color.new(color.white, 100), textcolor=i_vl7_color, style=getVertLblStyle(i_vl_lbl_pos), size=getSize(i_vl_lbl_size), yloc=getVertLblYloc(i_vl_lbl_pos))
+    if i_vl8_en and is_1100
+        line.new(bar_index, 0, bar_index, 0, color=i_vl8_color, style=getStyle(i_vl8_style), width=getWidth(i_vl8_width), extend=extend.both)
+        if i_vl_lbl_en
+            label.new(bar_index, close, "11:00", color=color.new(color.white, 100), textcolor=i_vl8_color, style=getVertLblStyle(i_vl_lbl_pos), size=getSize(i_vl_lbl_size), yloc=getVertLblYloc(i_vl_lbl_pos))
+    if i_vl9_en and is_1330
+        line.new(bar_index, 0, bar_index, 0, color=i_vl9_color, style=getStyle(i_vl9_style), width=getWidth(i_vl9_width), extend=extend.both)
+        if i_vl_lbl_en
+            label.new(bar_index, close, "13:30", color=color.new(color.white, 100), textcolor=i_vl9_color, style=getVertLblStyle(i_vl_lbl_pos), size=getSize(i_vl_lbl_size), yloc=getVertLblYloc(i_vl_lbl_pos))
+
+    // SUNDAY
+    if i_sun_en and is_sunday and is_1800
+        line.new(bar_index, 0, bar_index, 0, color=i_sun_color, style=getStyle(i_sun_style), width=getWidth(i_sun_width), extend=extend.both)
+        if i_sun_lbl
+            label.new(bar_index, close, "SUN", color=color.new(color.white, 100), textcolor=i_sun_color, style=getVertLblStyle(i_vl_lbl_pos), size=getSize(i_vl_lbl_size), yloc=getVertLblYloc(i_vl_lbl_pos))
+
+    // MACROS
+    if i_m1_en
+        bool m1_in = isInMacro(m1_sH, m1_sM, m1_eH, m1_eM, cur_hour, cur_min)
+        if cur_hour == m1_sH and cur_min == m1_sM and not m1_on
+            m1_on := true
+            m1_h := high
+            m1_l := low
+            m1_bar := bar_index
+            m1_box := box.new(bar_index, high, bar_index, low, bgcolor=i_mac_bg, border_color=i_mac_border)
+            if i_mac_lbl_en
+                m1_lbl := label.new(bar_index, i_mac_lbl_pos == "Top" ? high : low, i_m1_name, color=color.new(color.white, 100), textcolor=i_mac_lbl_col, style=i_mac_lbl_pos == "Top" ? label.style_label_down : label.style_label_up, size=getSize(i_mac_lbl_size))
+        if m1_on and m1_in
+            if high > m1_h
+                m1_h := high
+            if low < m1_l
+                m1_l := low
+            if not na(m1_box)
+                box.set_right(m1_box, bar_index)
+                box.set_top(m1_box, m1_h)
+                box.set_bottom(m1_box, m1_l)
+            if i_mac_lbl_en and not na(m1_lbl)
+                label.set_x(m1_lbl, m1_bar + math.round((bar_index - m1_bar) / 2))
+                label.set_y(m1_lbl, i_mac_lbl_pos == "Top" ? m1_h : m1_l)
+        if cur_hour == m1_eH and cur_min == m1_eM
+            m1_on := false
+
+    if i_m2_en
+        bool m2_in = isInMacro(m2_sH, m2_sM, m2_eH, m2_eM, cur_hour, cur_min)
+        if cur_hour == m2_sH and cur_min == m2_sM and not m2_on
+            m2_on := true
+            m2_h := high
+            m2_l := low
+            m2_bar := bar_index
+            m2_box := box.new(bar_index, high, bar_index, low, bgcolor=i_mac_bg, border_color=i_mac_border)
+            if i_mac_lbl_en
+                m2_lbl := label.new(bar_index, i_mac_lbl_pos == "Top" ? high : low, i_m2_name, color=color.new(color.white, 100), textcolor=i_mac_lbl_col, style=i_mac_lbl_pos == "Top" ? label.style_label_down : label.style_label_up, size=getSize(i_mac_lbl_size))
+        if m2_on and m2_in
+            if high > m2_h
+                m2_h := high
+            if low < m2_l
+                m2_l := low
+            if not na(m2_box)
+                box.set_right(m2_box, bar_index)
+                box.set_top(m2_box, m2_h)
+                box.set_bottom(m2_box, m2_l)
+            if i_mac_lbl_en and not na(m2_lbl)
+                label.set_x(m2_lbl, m2_bar + math.round((bar_index - m2_bar) / 2))
+                label.set_y(m2_lbl, i_mac_lbl_pos == "Top" ? m2_h : m2_l)
+        if cur_hour == m2_eH and cur_min == m2_eM
+            m2_on := false
+
+    if i_m3_en
+        bool m3_in = isInMacro(m3_sH, m3_sM, m3_eH, m3_eM, cur_hour, cur_min)
+        if cur_hour == m3_sH and cur_min == m3_sM and not m3_on
+            m3_on := true
+            m3_h := high
+            m3_l := low
+            m3_bar := bar_index
+            m3_box := box.new(bar_index, high, bar_index, low, bgcolor=i_mac_bg, border_color=i_mac_border)
+            if i_mac_lbl_en
+                m3_lbl := label.new(bar_index, i_mac_lbl_pos == "Top" ? high : low, i_m3_name, color=color.new(color.white, 100), textcolor=i_mac_lbl_col, style=i_mac_lbl_pos == "Top" ? label.style_label_down : label.style_label_up, size=getSize(i_mac_lbl_size))
+        if m3_on and m3_in
+            if high > m3_h
+                m3_h := high
+            if low < m3_l
+                m3_l := low
+            if not na(m3_box)
+                box.set_right(m3_box, bar_index)
+                box.set_top(m3_box, m3_h)
+                box.set_bottom(m3_box, m3_l)
+            if i_mac_lbl_en and not na(m3_lbl)
+                label.set_x(m3_lbl, m3_bar + math.round((bar_index - m3_bar) / 2))
+                label.set_y(m3_lbl, i_mac_lbl_pos == "Top" ? m3_h : m3_l)
+        if cur_hour == m3_eH and cur_min == m3_eM
+            m3_on := false
+
+    if i_m4_en
+        bool m4_in = isInMacro(m4_sH, m4_sM, m4_eH, m4_eM, cur_hour, cur_min)
+        if cur_hour == m4_sH and cur_min == m4_sM and not m4_on
+            m4_on := true
+            m4_h := high
+            m4_l := low
+            m4_bar := bar_index
+            m4_box := box.new(bar_index, high, bar_index, low, bgcolor=i_mac_bg, border_color=i_mac_border)
+            if i_mac_lbl_en
+                m4_lbl := label.new(bar_index, i_mac_lbl_pos == "Top" ? high : low, i_m4_name, color=color.new(color.white, 100), textcolor=i_mac_lbl_col, style=i_mac_lbl_pos == "Top" ? label.style_label_down : label.style_label_up, size=getSize(i_mac_lbl_size))
+        if m4_on and m4_in
+            if high > m4_h
+                m4_h := high
+            if low < m4_l
+                m4_l := low
+            if not na(m4_box)
+                box.set_right(m4_box, bar_index)
+                box.set_top(m4_box, m4_h)
+                box.set_bottom(m4_box, m4_l)
+            if i_mac_lbl_en and not na(m4_lbl)
+                label.set_x(m4_lbl, m4_bar + math.round((bar_index - m4_bar) / 2))
+                label.set_y(m4_lbl, i_mac_lbl_pos == "Top" ? m4_h : m4_l)
+        if cur_hour == m4_eH and cur_min == m4_eM
+            m4_on := false
+
+    if i_m5_en
+        bool m5_in = isInMacro(m5_sH, m5_sM, m5_eH, m5_eM, cur_hour, cur_min)
+        if cur_hour == m5_sH and cur_min == m5_sM and not m5_on
+            m5_on := true
+            m5_h := high
+            m5_l := low
+            m5_bar := bar_index
+            m5_box := box.new(bar_index, high, bar_index, low, bgcolor=i_mac_bg, border_color=i_mac_border)
+            if i_mac_lbl_en
+                m5_lbl := label.new(bar_index, i_mac_lbl_pos == "Top" ? high : low, i_m5_name, color=color.new(color.white, 100), textcolor=i_mac_lbl_col, style=i_mac_lbl_pos == "Top" ? label.style_label_down : label.style_label_up, size=getSize(i_mac_lbl_size))
+        if m5_on and m5_in
+            if high > m5_h
+                m5_h := high
+            if low < m5_l
+                m5_l := low
+            if not na(m5_box)
+                box.set_right(m5_box, bar_index)
+                box.set_top(m5_box, m5_h)
+                box.set_bottom(m5_box, m5_l)
+            if i_mac_lbl_en and not na(m5_lbl)
+                label.set_x(m5_lbl, m5_bar + math.round((bar_index - m5_bar) / 2))
+                label.set_y(m5_lbl, i_mac_lbl_pos == "Top" ? m5_h : m5_l)
+        if cur_hour == m5_eH and cur_min == m5_eM
+            m5_on := false
+
+    if i_m6_en
+        bool m6_in = isInMacro(m6_sH, m6_sM, m6_eH, m6_eM, cur_hour, cur_min)
+        if cur_hour == m6_sH and cur_min == m6_sM and not m6_on
+            m6_on := true
+            m6_h := high
+            m6_l := low
+            m6_bar := bar_index
+            m6_box := box.new(bar_index, high, bar_index, low, bgcolor=i_mac_bg, border_color=i_mac_border)
+            if i_mac_lbl_en
+                m6_lbl := label.new(bar_index, i_mac_lbl_pos == "Top" ? high : low, i_m6_name, color=color.new(color.white, 100), textcolor=i_mac_lbl_col, style=i_mac_lbl_pos == "Top" ? label.style_label_down : label.style_label_up, size=getSize(i_mac_lbl_size))
+        if m6_on and m6_in
+            if high > m6_h
+                m6_h := high
+            if low < m6_l
+                m6_l := low
+            if not na(m6_box)
+                box.set_right(m6_box, bar_index)
+                box.set_top(m6_box, m6_h)
+                box.set_bottom(m6_box, m6_l)
+            if i_mac_lbl_en and not na(m6_lbl)
+                label.set_x(m6_lbl, m6_bar + math.round((bar_index - m6_bar) / 2))
+                label.set_y(m6_lbl, i_mac_lbl_pos == "Top" ? m6_h : m6_l)
+        if cur_hour == m6_eH and cur_min == m6_eM
+            m6_on := false
+
+    if i_m7_en
+        bool m7_in = isInMacro(m7_sH, m7_sM, m7_eH, m7_eM, cur_hour, cur_min)
+        if cur_hour == m7_sH and cur_min == m7_sM and not m7_on
+            m7_on := true
+            m7_h := high
+            m7_l := low
+            m7_bar := bar_index
+            m7_box := box.new(bar_index, high, bar_index, low, bgcolor=i_mac_bg, border_color=i_mac_border)
+            if i_mac_lbl_en
+                m7_lbl := label.new(bar_index, i_mac_lbl_pos == "Top" ? high : low, i_m7_name, color=color.new(color.white, 100), textcolor=i_mac_lbl_col, style=i_mac_lbl_pos == "Top" ? label.style_label_down : label.style_label_up, size=getSize(i_mac_lbl_size))
+        if m7_on and m7_in
+            if high > m7_h
+                m7_h := high
+            if low < m7_l
+                m7_l := low
+            if not na(m7_box)
+                box.set_right(m7_box, bar_index)
+                box.set_top(m7_box, m7_h)
+                box.set_bottom(m7_box, m7_l)
+            if i_mac_lbl_en and not na(m7_lbl)
+                label.set_x(m7_lbl, m7_bar + math.round((bar_index - m7_bar) / 2))
+                label.set_y(m7_lbl, i_mac_lbl_pos == "Top" ? m7_h : m7_l)
+        if cur_hour == m7_eH and cur_min == m7_eM
+            m7_on := false
+
+    if i_m8_en
+        bool m8_in = isInMacro(m8_sH, m8_sM, m8_eH, m8_eM, cur_hour, cur_min)
+        if cur_hour == m8_sH and cur_min == m8_sM and not m8_on
+            m8_on := true
+            m8_h := high
+            m8_l := low
+            m8_bar := bar_index
+            m8_box := box.new(bar_index, high, bar_index, low, bgcolor=i_mac_bg, border_color=i_mac_border)
+            if i_mac_lbl_en
+                m8_lbl := label.new(bar_index, i_mac_lbl_pos == "Top" ? high : low, i_m8_name, color=color.new(color.white, 100), textcolor=i_mac_lbl_col, style=i_mac_lbl_pos == "Top" ? label.style_label_down : label.style_label_up, size=getSize(i_mac_lbl_size))
+        if m8_on and m8_in
+            if high > m8_h
+                m8_h := high
+            if low < m8_l
+                m8_l := low
+            if not na(m8_box)
+                box.set_right(m8_box, bar_index)
+                box.set_top(m8_box, m8_h)
+                box.set_bottom(m8_box, m8_l)
+            if i_mac_lbl_en and not na(m8_lbl)
+                label.set_x(m8_lbl, m8_bar + math.round((bar_index - m8_bar) / 2))
+                label.set_y(m8_lbl, i_mac_lbl_pos == "Top" ? m8_h : m8_l)
+        if cur_hour == m8_eH and cur_min == m8_eM
+            m8_on := false
+
+    if i_m9_en
+        bool m9_in = isInMacro(m9_sH, m9_sM, m9_eH, m9_eM, cur_hour, cur_min)
+        if cur_hour == m9_sH and cur_min == m9_sM and not m9_on
+            m9_on := true
+            m9_h := high
+            m9_l := low
+            m9_bar := bar_index
+            m9_box := box.new(bar_index, high, bar_index, low, bgcolor=i_mac_bg, border_color=i_mac_border)
+            if i_mac_lbl_en
+                m9_lbl := label.new(bar_index, i_mac_lbl_pos == "Top" ? high : low, i_m9_name, color=color.new(color.white, 100), textcolor=i_mac_lbl_col, style=i_mac_lbl_pos == "Top" ? label.style_label_down : label.style_label_up, size=getSize(i_mac_lbl_size))
+        if m9_on and m9_in
+            if high > m9_h
+                m9_h := high
+            if low < m9_l
+                m9_l := low
+            if not na(m9_box)
+                box.set_right(m9_box, bar_index)
+                box.set_top(m9_box, m9_h)
+                box.set_bottom(m9_box, m9_l)
+            if i_mac_lbl_en and not na(m9_lbl)
+                label.set_x(m9_lbl, m9_bar + math.round((bar_index - m9_bar) / 2))
+                label.set_y(m9_lbl, i_mac_lbl_pos == "Top" ? m9_h : m9_l)
+        if cur_hour == m9_eH and cur_min == m9_eM
+            m9_on := false
+
+    if i_m10_en
+        bool m10_in = isInMacro(m10_sH, m10_sM, m10_eH, m10_eM, cur_hour, cur_min)
+        if cur_hour == m10_sH and cur_min == m10_sM and not m10_on
+            m10_on := true
+            m10_h := high
+            m10_l := low
+            m10_bar := bar_index
+            m10_box := box.new(bar_index, high, bar_index, low, bgcolor=i_mac_bg, border_color=i_mac_border)
+            if i_mac_lbl_en
+                m10_lbl := label.new(bar_index, i_mac_lbl_pos == "Top" ? high : low, i_m10_name, color=color.new(color.white, 100), textcolor=i_mac_lbl_col, style=i_mac_lbl_pos == "Top" ? label.style_label_down : label.style_label_up, size=getSize(i_mac_lbl_size))
+        if m10_on and m10_in
+            if high > m10_h
+                m10_h := high
+            if low < m10_l
+                m10_l := low
+            if not na(m10_box)
+                box.set_right(m10_box, bar_index)
+                box.set_top(m10_box, m10_h)
+                box.set_bottom(m10_box, m10_l)
+            if i_mac_lbl_en and not na(m10_lbl)
+                label.set_x(m10_lbl, m10_bar + math.round((bar_index - m10_bar) / 2))
+                label.set_y(m10_lbl, i_mac_lbl_pos == "Top" ? m10_h : m10_l)
+        if cur_hour == m10_eH and cur_min == m10_eM
+            m10_on := false
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// A+ SETUP SCORE — computed every bar (out of 10)
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+float score_eq_hi = i_eq_range == "Daily" ? daily_high : i_eq_range == "Weekly" ? weekly_high : monthly_period_high
+float score_eq_lo = i_eq_range == "Daily" ? daily_low  : i_eq_range == "Weekly" ? weekly_low  : monthly_period_low
+float score_eq_mid = (not na(score_eq_hi) and not na(score_eq_lo)) ? (score_eq_hi + score_eq_lo) / 2 : na
+
+array<float> poi_levels = array.from(completed_daily_high, completed_daily_low, pwh_price, pwl_price, pmh_price, pml_price, weekly_price, monthly_price)
+bool at_poi = false
+for lvl in poi_levels
+    if not na(lvl) and math.abs(close - lvl) <= i_poi_dist
+        at_poi := true
+
+bool macro_active = (i_m1_en and isInMacro(m1_sH, m1_sM, m1_eH, m1_eM, cur_hour, cur_min)) or (i_m2_en and isInMacro(m2_sH, m2_sM, m2_eH, m2_eM, cur_hour, cur_min)) or (i_m3_en and isInMacro(m3_sH, m3_sM, m3_eH, m3_eM, cur_hour, cur_min)) or (i_m4_en and isInMacro(m4_sH, m4_sM, m4_eH, m4_eM, cur_hour, cur_min)) or (i_m5_en and isInMacro(m5_sH, m5_sM, m5_eH, m5_eM, cur_hour, cur_min)) or (i_m6_en and isInMacro(m6_sH, m6_sM, m6_eH, m6_eM, cur_hour, cur_min)) or (i_m7_en and isInMacro(m7_sH, m7_sM, m7_eH, m7_eM, cur_hour, cur_min)) or (i_m8_en and isInMacro(m8_sH, m8_sM, m8_eH, m8_eM, cur_hour, cur_min)) or (i_m9_en and isInMacro(m9_sH, m9_sM, m9_eH, m9_eM, cur_hour, cur_min)) or (i_m10_en and isInMacro(m10_sH, m10_sM, m10_eH, m10_eM, cur_hour, cur_min))
+
+bool in_discount = not na(score_eq_mid) and close < score_eq_mid
+bool in_premium  = not na(score_eq_mid) and close > score_eq_mid
+bool pd_aligned  = i_daily_bias == "Neutral" ? true : (i_daily_bias == "Bullish" and in_discount) or (i_daily_bias == "Bearish" and in_premium)
+
+int checklist_sum = (i_cl1 ? 1 : 0) + (i_cl2 ? 1 : 0) + (i_cl3 ? 1 : 0) + (i_cl4 ? 1 : 0) + (i_cl5 ? 1 : 0) + (i_cl6 ? 1 : 0) + (i_cl7 ? 1 : 0)
+
+int aplus_score = (at_poi ? 1 : 0) + (macro_active ? 1 : 0) + (pd_aligned ? 1 : 0) + checklist_sum  // out of 10
+
+// DAY OF WEEK LABELS
+dow_cond = i_dow_en and passes_filter and not hide_ind and cur_hour == dow_center_hour and cur_min == 0
+plotchar(dow_cond and cur_dow == dayofweek.monday, char=" ", text="M O N", color=color.new(i_dow_color, 100), location=dow_loc, textcolor=i_dow_color, size=size.normal)
+plotchar(dow_cond and cur_dow == dayofweek.tuesday, char=" ", text="T U E", color=color.new(i_dow_color, 100), location=dow_loc, textcolor=i_dow_color, size=size.normal)
+plotchar(dow_cond and cur_dow == dayofweek.wednesday, char=" ", text="W E D", color=color.new(i_dow_color, 100), location=dow_loc, textcolor=i_dow_color, size=size.normal)
+plotchar(dow_cond and cur_dow == dayofweek.thursday, char=" ", text="T H U", color=color.new(i_dow_color, 100), location=dow_loc, textcolor=i_dow_color, size=size.normal)
+plotchar(dow_cond and cur_dow == dayofweek.friday, char=" ", text="F R I", color=color.new(i_dow_color, 100), location=dow_loc, textcolor=i_dow_color, size=size.normal)
+
+// TABLES
+if barstate.islast and not hide_ind
+    if i_bias_en
+        int b_rows = (i_b1_en ? 1 : 0) + (i_b2_en ? 1 : 0) + (i_b3_en ? 1 : 0) + (i_b4_en ? 1 : 0) + 1
+        if not na(bias_table)
+            table.delete(bias_table)
+        bias_table := table.new(getPosition(i_bias_pos), 2, b_rows, bgcolor=i_bias_bg, border_width=1, border_color=i_bias_border)
+        int r = 0
+        if i_b1_en
+            table.cell(bias_table, 0, r, i_b1_name + ":", text_color=getNameColor(i_b1_bias), text_size=getSize(i_bias_size), text_halign=text.align_right)
+            table.cell(bias_table, 1, r, " " + i_b1_bias, text_color=getBiasColor(i_b1_bias), text_size=getSize(i_bias_size), text_halign=text.align_left)
+            r += 1
+        if i_b2_en
+            table.cell(bias_table, 0, r, i_b2_name + ":", text_color=getNameColor(i_b2_bias), text_size=getSize(i_bias_size), text_halign=text.align_right)
+            table.cell(bias_table, 1, r, " " + i_b2_bias, text_color=getBiasColor(i_b2_bias), text_size=getSize(i_bias_size), text_halign=text.align_left)
+            r += 1
+        if i_b3_en
+            table.cell(bias_table, 0, r, i_b3_name + ":", text_color=getNameColor(i_b3_bias), text_size=getSize(i_bias_size), text_halign=text.align_right)
+            table.cell(bias_table, 1, r, " " + i_b3_bias, text_color=getBiasColor(i_b3_bias), text_size=getSize(i_bias_size), text_halign=text.align_left)
+            r += 1
+        if i_b4_en
+            table.cell(bias_table, 0, r, i_b4_name + ":", text_color=getNameColor(i_b4_bias), text_size=getSize(i_bias_size), text_halign=text.align_right)
+            table.cell(bias_table, 1, r, " " + i_b4_bias, text_color=getBiasColor(i_b4_bias), text_size=getSize(i_bias_size), text_halign=text.align_left)
+            r += 1
+        table.cell(bias_table, 0, r, " " + str.format_time(timenow, "HH:mm", i_timezone) + " ET", text_color=color.gray, text_size=getSize(i_bias_size), text_halign=text.align_center)
+        table.merge_cells(bias_table, 0, r, 1, r)
+
+    if i_cl_en
+        if not na(checklist_table)
+            table.delete(checklist_table)
+        checklist_table := table.new(getPosition(i_cl_pos), 2, 8, bgcolor=#eae7e7, border_width=1, border_color=#8c8989)
+        table.cell(checklist_table, 0, 0, "  Checklist  ", text_color=#ffffff, text_size=getSize(i_cl_size), text_halign=text.align_center, bgcolor=#000000)
+        table.cell(checklist_table, 1, 0, " ✓ ", text_color=#ffffff, text_size=getSize(i_cl_size), text_halign=text.align_center, bgcolor=#000000)
+        table.cell(checklist_table, 0, 1, "  HTF P/D Array  ", text_color=#000000, text_size=getSize(i_cl_size), text_halign=text.align_left)
+        table.cell(checklist_table, 1, 1, i_cl1 ? "  ✔  " : "  ○  ", text_color=i_cl1 ? #4caf50 : #9e9e9e, text_size=getSize(i_cl_size), text_halign=text.align_center)
+        table.cell(checklist_table, 0, 2, "  Liquidity Sweep  ", text_color=#000000, text_size=getSize(i_cl_size), text_halign=text.align_left)
+        table.cell(checklist_table, 1, 2, i_cl2 ? "  ✔  " : "  ○  ", text_color=i_cl2 ? #4caf50 : #9e9e9e, text_size=getSize(i_cl_size), text_halign=text.align_center)
+        table.cell(checklist_table, 0, 3, "  Momentum  ", text_color=#000000, text_size=getSize(i_cl_size), text_halign=text.align_left)
+        table.cell(checklist_table, 1, 3, i_cl3 ? "  ✔  " : "  ○  ", text_color=i_cl3 ? #4caf50 : #9e9e9e, text_size=getSize(i_cl_size), text_halign=text.align_center)
+        table.cell(checklist_table, 0, 4, "  CISD  ", text_color=#000000, text_size=getSize(i_cl_size), text_halign=text.align_left)
+        table.cell(checklist_table, 1, 4, i_cl4 ? "  ✔  " : "  ○  ", text_color=i_cl4 ? #4caf50 : #9e9e9e, text_size=getSize(i_cl_size), text_halign=text.align_center)
+        table.cell(checklist_table, 0, 5, "  FVG  ", text_color=#000000, text_size=getSize(i_cl_size), text_halign=text.align_left)
+        table.cell(checklist_table, 1, 5, i_cl5 ? "  ✔  " : "  ○  ", text_color=i_cl5 ? #4caf50 : #9e9e9e, text_size=getSize(i_cl_size), text_halign=text.align_center)
+        table.cell(checklist_table, 0, 6, "  Clear Draws  ", text_color=#000000, text_size=getSize(i_cl_size), text_halign=text.align_left)
+        table.cell(checklist_table, 1, 6, i_cl6 ? "  ✔  " : "  ○  ", text_color=i_cl6 ? #4caf50 : #9e9e9e, text_size=getSize(i_cl_size), text_halign=text.align_center)
+        table.cell(checklist_table, 0, 7, "  SMT ES/YM  ", text_color=#000000, text_size=getSize(i_cl_size), text_halign=text.align_left)
+        table.cell(checklist_table, 1, 7, i_cl7 ? "  ✔  " : "  ○  ", text_color=i_cl7 ? #4caf50 : #9e9e9e, text_size=getSize(i_cl_size), text_halign=text.align_center)
+
+    if i_score_en
+        if not na(score_table)
+            table.delete(score_table)
+        score_table := table.new(getPosition(i_score_pos), 2, 7, bgcolor=color.new(color.black, 15), border_width=1, border_color=color.gray)
+
+        table.cell(score_table, 0, 0, "A+ SETUP SCORE", text_color=color.white, text_size=getSize(i_score_size), bgcolor=color.new(color.black, 0), text_halign=text.align_center)
+        table.merge_cells(score_table, 0, 0, 1, 0)
+
+        color score_color = aplus_score >= i_score_threshold ? color.new(color.green, 0) : aplus_score >= i_score_threshold - 2 ? color.new(color.orange, 0) : color.gray
+        table.cell(score_table, 0, 1, str.tostring(aplus_score) + " / 10", text_color=score_color, text_size=getSize(i_score_size), text_halign=text.align_center)
+        table.merge_cells(score_table, 0, 1, 1, 1)
+
+        string status_txt = aplus_score >= i_score_threshold ? "✅ A+ SETUP" : "⏳ WAIT"
+        table.cell(score_table, 0, 2, status_txt, text_color=score_color, text_size=getSize(i_score_size), text_halign=text.align_center)
+        table.merge_cells(score_table, 0, 2, 1, 2)
+
+        table.cell(score_table, 0, 3, "HTF POI", text_color=color.gray, text_size=getSize(i_score_size), text_halign=text.align_left)
+        table.cell(score_table, 1, 3, at_poi ? "✔" : "○", text_color=at_poi ? color.green : color.gray, text_size=getSize(i_score_size), text_halign=text.align_center)
+
+        table.cell(score_table, 0, 4, "In Macro", text_color=color.gray, text_size=getSize(i_score_size), text_halign=text.align_left)
+        table.cell(score_table, 1, 4, macro_active ? "✔" : "○", text_color=macro_active ? color.green : color.gray, text_size=getSize(i_score_size), text_halign=text.align_center)
+
+        table.cell(score_table, 0, 5, "P/D Aligned", text_color=color.gray, text_size=getSize(i_score_size), text_halign=text.align_left)
+        table.cell(score_table, 1, 5, pd_aligned ? "✔" : "○", text_color=pd_aligned ? color.green : color.gray, text_size=getSize(i_score_size), text_halign=text.align_center)
+
+        table.cell(score_table, 0, 6, "Checklist", text_color=color.gray, text_size=getSize(i_score_size), text_halign=text.align_left)
+        table.cell(score_table, 1, 6, str.tostring(checklist_sum) + "/7", text_color=checklist_sum >= 5 ? color.green : color.gray, text_size=getSize(i_score_size), text_halign=text.align_center)
+
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+// ALERTS
+// ════════════════════════════════════════════════════════════════════════════════════════════════
+alertcondition(aplus_score >= i_score_threshold and aplus_score[1] < i_score_threshold, title="LMR A+ Setup Reached", message="LMR A+ Setup: confluence score crossed your threshold")
