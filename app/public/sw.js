@@ -3,7 +3,7 @@
 // modernist redesign (v10 was byte-identical so browsers never detected an update).
 // HTML navigations are always network-first; old caches are purged on activate.
 
-const CACHE = 'lmr-v11';
+const CACHE = 'lmr-v12';
 const STATIC = [
   './chart.umd.min.js',
   './icons/icon-192.png',

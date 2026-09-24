@@ -16181,14 +16181,19 @@ var openTerm = '';
 var slashAt  = -1;   // index of the block whose / menu is open
 var focusUid = '';   // block to restore the caret into after a re-render
 
-function allTerms(){ return TERMS.concat(S.customTerms); }
-function find(k){ var a=allTerms(),i; for(i=0;i<a.length;i++) if(a[i][0]===k) return a[i]; return null; }
+function _norm(){ S.termBlocks=(S.termBlocks&&typeof S.termBlocks==='object')?S.termBlocks:{};
+  S.customTerms=Array.isArray(S.customTerms)?S.customTerms:[];
+  S.customCats=Array.isArray(S.customCats)?S.customCats:[];
+  S.builtinExtra=(S.builtinExtra&&typeof S.builtinExtra==='object')?S.builtinExtra:{}; }
+function allTerms(){ _norm(); return TERMS.concat(S.customTerms.filter(Boolean)); }
+function find(k){ var a=allTerms(),i; for(i=0;i<a.length;i++) if(a[i]&&a[i][0]===k) return a[i]; return null; }
 function commit(){ KB_PERSIST.write(); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 
 // ── GLOSSARY LIST ──────────────────────────────────────────────
 function renderList(){
+  _norm();
   var cats = CATS.map(function(c){ return [c[0], c[1].slice(), c[2]]; });
   S.customCats.forEach(function(c){ cats.push([c.title,(c.terms||[]).slice(),c.blurb||'']); });
   // Terms the user added into a built-in section.
@@ -16545,10 +16550,11 @@ window.loadKnowledgeCloud = async function(){
         if(kb.customCats)  state.customCats  = kb.customCats;
         if(kb.builtinExtra)state.builtinExtra= kb.builtinExtra;
         S = state;
-      }
+      } else { S = state; }
     }
   }catch(e){}
-  try{ show(); }catch(e){}
+  try{ _norm(); }catch(e){}
+  try{ show(); }catch(e){ try{ renderList(); }catch(_){} }
 };
 show();
 })();
