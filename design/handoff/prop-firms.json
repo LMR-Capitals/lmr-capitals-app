@@ -1,0 +1,889 @@
+{
+  "version": "2026-09",
+  "note": "FFF numbers are from the firm's official plan pages (reviewed Sept 2026). The other nine firms are the summary rulebook already in the app — verify against each firm before relying on exact figures.",
+  "firms": [
+    {
+      "id": "tradeify",
+      "name": "Tradeify",
+      "isLive": false,
+      "plans": [
+        "Growth",
+        "Select",
+        "Lightning"
+      ],
+      "sizes": [
+        25000,
+        50000,
+        100000,
+        150000
+      ],
+      "summary": {
+        "ddEval": "EOD trailing",
+        "ddFunded": "EOD trailing → locks at floor + $100",
+        "dailyLossLimit": "Growth $1,250 · Select none",
+        "minDays": "Select 3 · Growth 1",
+        "consistency": "35–40% eval · 40% funded",
+        "split": "90%",
+        "payout": "1st: any profit · 2nd+: positive since last",
+        "afterPayout": "Consistency resets each cycle"
+      },
+      "bySize": {
+        "25000": {
+          "evalTarget": 1500,
+          "maxDrawdown": 1250
+        },
+        "50000": {
+          "evalTarget": 3000,
+          "maxDrawdown": 2000
+        },
+        "100000": {
+          "evalTarget": 6000,
+          "maxDrawdown": 3000
+        },
+        "150000": {
+          "evalTarget": 9000,
+          "maxDrawdown": 4500
+        }
+      }
+    },
+    {
+      "id": "apex",
+      "name": "Apex",
+      "isLive": false,
+      "plans": [
+        "Full 1-step"
+      ],
+      "sizes": [
+        25000,
+        50000,
+        100000,
+        150000,
+        250000,
+        300000
+      ],
+      "summary": {
+        "ddEval": "EOD trailing (intraday opt-in)",
+        "ddFunded": "EOD trailing — unchanged",
+        "dailyLossLimit": "None",
+        "minDays": "7 days",
+        "consistency": "None eval · 50% funded",
+        "split": "100%",
+        "payout": "5 qualifying days · min $500",
+        "afterPayout": "Cap scales · PA closes after 6 payouts"
+      },
+      "bySize": {
+        "25000": {
+          "evalTarget": 1500,
+          "maxDrawdown": 1500
+        },
+        "50000": {
+          "evalTarget": 3000,
+          "maxDrawdown": 2500
+        },
+        "100000": {
+          "evalTarget": 6000,
+          "maxDrawdown": 3000
+        },
+        "150000": {
+          "evalTarget": 8000,
+          "maxDrawdown": 3000
+        },
+        "250000": {
+          "evalTarget": 12500,
+          "maxDrawdown": 3500
+        },
+        "300000": {
+          "evalTarget": 15000,
+          "maxDrawdown": 4500
+        }
+      }
+    },
+    {
+      "id": "topstep",
+      "name": "Topstep",
+      "isLive": true,
+      "plans": [
+        "Trading Combine",
+        "Live Funded"
+      ],
+      "sizes": [
+        50000,
+        100000,
+        150000
+      ],
+      "summary": {
+        "ddEval": "Intraday trailing",
+        "ddFunded": "EOD trailing (XFA) — softer",
+        "dailyLossLimit": "Removed 2024",
+        "minDays": "5 days ≥ $150",
+        "consistency": "40%",
+        "split": "90%",
+        "payout": "5 win days · balance above start",
+        "afterPayout": "MLL resets to $0 — zero buffer"
+      },
+      "bySize": {
+        "50000": {
+          "evalTarget": 3000,
+          "maxDrawdown": 2000
+        },
+        "100000": {
+          "evalTarget": 6000,
+          "maxDrawdown": 3000
+        },
+        "150000": {
+          "evalTarget": 9000,
+          "maxDrawdown": 4500
+        }
+      }
+    },
+    {
+      "id": "tpt",
+      "name": "Take Profit Trader",
+      "isLive": true,
+      "plans": [
+        "PRO",
+        "PRO+ (live)"
+      ],
+      "sizes": [
+        25000,
+        50000,
+        100000,
+        150000
+      ],
+      "summary": {
+        "ddEval": "EOD trailing",
+        "ddFunded": "PRO: intraday trailing · PRO+: EOD",
+        "dailyLossLimit": "Removed Jan 2025",
+        "minDays": "5 days",
+        "consistency": "50% max per day",
+        "split": "PRO 80% · PRO+ 90%",
+        "payout": "PRO: clear start + DD buffer · PRO+: day 1",
+        "afterPayout": "Daily payouts once buffer cleared"
+      },
+      "bySize": {
+        "25000": {
+          "evalTarget": 1500,
+          "maxDrawdown": 1500
+        },
+        "50000": {
+          "evalTarget": 3000,
+          "maxDrawdown": 2000
+        },
+        "100000": {
+          "evalTarget": 6000,
+          "maxDrawdown": 3000
+        },
+        "150000": {
+          "evalTarget": 9000,
+          "maxDrawdown": 4500
+        }
+      }
+    },
+    {
+      "id": "blue",
+      "name": "Blue Guardian",
+      "isLive": false,
+      "plans": [
+        "Standard",
+        "Guardian"
+      ],
+      "sizes": [
+        25000,
+        50000,
+        100000,
+        150000
+      ],
+      "summary": {
+        "ddEval": "EOD trailing (6% static)",
+        "ddFunded": "EOD trailing — unchanged",
+        "dailyLossLimit": "Standard $1,250–$3,750 · Guardian none",
+        "minDays": "5 days",
+        "consistency": "Standard 40% · Guardian 30%",
+        "split": "100% first $15K, then 90%",
+        "payout": "48h processing · Reserve: 5 win days",
+        "afterPayout": "DD floor locks at start + $100"
+      },
+      "bySize": {
+        "25000": {
+          "evalTarget": 1500,
+          "maxDrawdown": 1500
+        },
+        "50000": {
+          "evalTarget": 3000,
+          "maxDrawdown": 3000
+        },
+        "100000": {
+          "evalTarget": 6000,
+          "maxDrawdown": 6000
+        },
+        "150000": {
+          "evalTarget": 9000,
+          "maxDrawdown": 9000
+        }
+      }
+    },
+    {
+      "id": "lucid",
+      "name": "Lucid Trading",
+      "isLive": false,
+      "plans": [
+        "LucidPro",
+        "LucidFlex"
+      ],
+      "sizes": [
+        25000,
+        50000,
+        100000,
+        150000
+      ],
+      "summary": {
+        "ddEval": "EOD trailing",
+        "ddFunded": "EOD trailing — unchanged",
+        "dailyLossLimit": "Pro 20% of target · Flex none",
+        "minDays": "5 days",
+        "consistency": "50% eval · Pro 40% funded",
+        "split": "100% first $10K, then 90%",
+        "payout": "~15 min average",
+        "afterPayout": "90% split after first $10K paid"
+      },
+      "bySize": {
+        "25000": {
+          "evalTarget": 1500,
+          "maxDrawdown": 1000
+        },
+        "50000": {
+          "evalTarget": 3000,
+          "maxDrawdown": 2000
+        },
+        "100000": {
+          "evalTarget": 6000,
+          "maxDrawdown": 3000
+        },
+        "150000": {
+          "evalTarget": 9000,
+          "maxDrawdown": 4500
+        }
+      }
+    },
+    {
+      "id": "mff",
+      "name": "MyFundedFutures",
+      "isLive": false,
+      "plans": [
+        "Rapid",
+        "Flex",
+        "Pro",
+        "Builder"
+      ],
+      "sizes": [
+        25000,
+        50000,
+        100000,
+        150000
+      ],
+      "summary": {
+        "ddEval": "EOD trailing",
+        "ddFunded": "EOD trailing — unchanged",
+        "dailyLossLimit": "None on all plans",
+        "minDays": "5 days",
+        "consistency": "50% eval",
+        "split": "Rapid 90% · Flex/Pro 80%",
+        "payout": "Clear buffer $1,100–$4,600 first",
+        "afterPayout": "Rapid daily · Flex 5 win days · Pro 14 days"
+      },
+      "bySize": {
+        "25000": {
+          "evalTarget": 1500,
+          "maxDrawdown": 1500
+        },
+        "50000": {
+          "evalTarget": 3000,
+          "maxDrawdown": 2500
+        },
+        "100000": {
+          "evalTarget": 6000,
+          "maxDrawdown": 3000
+        },
+        "150000": {
+          "evalTarget": 9000,
+          "maxDrawdown": 4500
+        }
+      }
+    },
+    {
+      "id": "fnext",
+      "name": "FundedNext",
+      "isLive": false,
+      "plans": [
+        "Stellar",
+        "Rapid Pro",
+        "Rapid Daily"
+      ],
+      "sizes": [
+        25000,
+        50000,
+        100000,
+        200000
+      ],
+      "summary": {
+        "ddEval": "Stellar: static floor · Rapid: EOD trailing",
+        "ddFunded": "Same as eval — static stays static",
+        "dailyLossLimit": "Stellar 5% per day · Rapid optional",
+        "minDays": "5 days",
+        "consistency": "None eval · 40% funded",
+        "split": "Stellar 80% · Rapid 90%",
+        "payout": "40% consistency check per cycle",
+        "afterPayout": "Consistency re-checked each cycle"
+      },
+      "bySize": {
+        "25000": {
+          "evalTarget": 2500,
+          "maxDrawdown": 2500
+        },
+        "50000": {
+          "evalTarget": 5000,
+          "maxDrawdown": 5000
+        },
+        "100000": {
+          "evalTarget": 10000,
+          "maxDrawdown": 10000
+        },
+        "200000": {
+          "evalTarget": 20000,
+          "maxDrawdown": 20000
+        }
+      }
+    },
+    {
+      "id": "fff",
+      "name": "Funded Futures Family",
+      "isLive": false,
+      "plans": [
+        "Prime",
+        "Prime Max",
+        "Premier+ Fast Pass",
+        "Premier+ Standard",
+        "Velocity",
+        "Velocity + Daily",
+        "S2F Standard",
+        "S2F Accelerate"
+      ],
+      "sizes": [
+        25000,
+        50000,
+        100000,
+        150000
+      ],
+      "summary": {
+        "ddEval": "Prime: EOD · Premier+: EOD or intraday (your pick) · Velocity: intraday trailing · S2F: no eval",
+        "ddFunded": "EOD locks at start balance · Velocity/S2F Accelerate intraday",
+        "dailyLossLimit": "None on any plan",
+        "minDays": "Prime 1 · Premier+ FP 1 · Standard 2 · Velocity 3",
+        "consistency": "Eval: Prime/FP none, Std 50%, Velocity 40% · Funded 40% (S2F 25%)",
+        "split": "90% all plans",
+        "payout": "Prime 3 days + target · Premier+ 5 × $200 days · Velocity 3 days · S2F 7 × $200 days",
+        "afterPayout": "Consistency resets each payout · $100K lifetime cap · max 5 funded"
+      },
+      "bySize": {
+        "25000": {
+          "evalTarget": 1250,
+          "maxDrawdown": 1000
+        },
+        "50000": {
+          "evalTarget": 3000,
+          "maxDrawdown": 2000
+        },
+        "100000": {
+          "evalTarget": 6000,
+          "maxDrawdown": 3000
+        },
+        "150000": {
+          "evalTarget": 9000,
+          "maxDrawdown": 4500
+        }
+      },
+      "global": {
+        "split": 90,
+        "dailyLossLimit": null,
+        "qualifyingDay": 200,
+        "lifetimePayoutCap": 100000,
+        "maxFundedAccounts": 5,
+        "fundedResetsPerAccount": 3,
+        "newsTrading": true,
+        "holdRule": ">50% of trades and profits from positions held >10s",
+        "payoutRail": "Rise, instant approval",
+        "platforms": [
+          "Tradovate",
+          "TradingView",
+          "NinjaTrader (via Tradovate)",
+          "WealthCharts"
+        ]
+      },
+      "planRules": [
+        {
+          "id": "prime",
+          "name": "Prime",
+          "type": "evaluation",
+          "billing": "monthly",
+          "price": {
+            "25000": 129,
+            "50000": 179,
+            "100000": 279,
+            "150000": 365
+          },
+          "variants": {
+            "Prime Max": {
+              "price": {
+                "25000": 144,
+                "50000": 204,
+                "100000": 319,
+                "150000": 425
+              }
+            }
+          },
+          "eval": {
+            "profitTarget": {
+              "25000": 1250,
+              "50000": 3000,
+              "100000": 6000,
+              "150000": 9000
+            },
+            "maxLoss": {
+              "25000": 1000,
+              "50000": 2000,
+              "100000": 3000,
+              "150000": 4500
+            },
+            "drawdown": "EOD trailing, locks at starting balance",
+            "dailyLossLimit": null,
+            "minDays": 1,
+            "consistencyPct": null,
+            "maxContracts": {
+              "25000": "2 minis / 20 micros",
+              "50000": "4 / 40",
+              "100000": "6 / 60",
+              "150000": "10 / 100"
+            },
+            "maxContractsMax": {
+              "25000": "3 / 30",
+              "50000": "5 / 50",
+              "100000": "10 / 100",
+              "150000": "15 / 150"
+            }
+          },
+          "funded": {
+            "drawdown": "EOD trailing, locks at starting balance",
+            "consistencyPct": 40,
+            "consistencyResets": "after each approved payout",
+            "activationFee": 0,
+            "resetFee": {
+              "25000": 499,
+              "50000": 649,
+              "100000": 1099,
+              "150000": 1499
+            },
+            "scalingPlan": true
+          },
+          "payout": {
+            "split": 90,
+            "minTradingDays": 3,
+            "qualifyingDay": 200,
+            "profitTargetBetween": {
+              "25000": 300,
+              "50000": 500,
+              "100000": 750,
+              "150000": 1000
+            },
+            "bufferBalance": {
+              "25000": 26100,
+              "50000": 52100,
+              "100000": 103100,
+              "150000": 154600
+            },
+            "maxPayout1": {
+              "25000": 1000,
+              "50000": 2000,
+              "100000": 3000,
+              "150000": 3500
+            },
+            "maxPayout2plus": {
+              "25000": 1500,
+              "50000": 2500,
+              "100000": 3500,
+              "150000": 4000
+            }
+          }
+        },
+        {
+          "id": "premier-fp",
+          "name": "Premier+ Fast Pass",
+          "type": "evaluation",
+          "billing": "monthly",
+          "ddChoice": [
+            "Intraday trailing",
+            "EOD"
+          ],
+          "price": {
+            "intraday": {
+              "25000": 114,
+              "50000": 154,
+              "100000": 229,
+              "150000": 319
+            },
+            "eod": {
+              "25000": 144,
+              "50000": 194,
+              "100000": 299,
+              "150000": 529
+            }
+          },
+          "eval": {
+            "profitTarget": {
+              "25000": 1500,
+              "50000": 3000,
+              "100000": 6000,
+              "150000": 9000
+            },
+            "maxLoss": {
+              "intraday": {
+                "25000": 1000,
+                "50000": 2000,
+                "100000": 3000,
+                "150000": 4500
+              },
+              "eod": {
+                "25000": 750,
+                "50000": 1500,
+                "100000": 2500,
+                "150000": 4000
+              }
+            },
+            "dailyLossLimit": null,
+            "minDays": 1,
+            "consistencyPct": null,
+            "maxContracts": {
+              "25000": "2 minis",
+              "50000": "4",
+              "100000": "6",
+              "150000": "10"
+            }
+          },
+          "funded": {
+            "drawdown": "Same mode as chosen at purchase; EOD locks at base balance",
+            "consistencyPct": 40,
+            "consistencyNote": "Accounts bought before 9 Sep 2026: none",
+            "activationFee": 0,
+            "resetFee": {
+              "25000": 649,
+              "50000": 649,
+              "100000": 1099,
+              "150000": 1499
+            },
+            "scalingPlan": false
+          },
+          "payout": {
+            "split": 90,
+            "qualifyingDays": 5,
+            "qualifyingDay": 200,
+            "buffer": "none — just $1 net profit since last payout",
+            "maxPayoutPct": 50,
+            "maxPayout": {
+              "25000": 1000,
+              "50000": 2000,
+              "100000": 2500,
+              "150000": 3000
+            }
+          }
+        },
+        {
+          "id": "premier-std",
+          "name": "Premier+ Standard",
+          "type": "evaluation",
+          "billing": "monthly",
+          "ddChoice": [
+            "Intraday trailing",
+            "EOD"
+          ],
+          "price": {
+            "intraday": {
+              "25000": 89,
+              "50000": 119,
+              "100000": 189,
+              "150000": 259
+            },
+            "eod": {
+              "25000": 119,
+              "50000": 159,
+              "100000": 249,
+              "150000": 459
+            }
+          },
+          "eval": {
+            "profitTarget": {
+              "25000": 1500,
+              "50000": 3000,
+              "100000": 6000,
+              "150000": 9000
+            },
+            "maxLoss": {
+              "intraday": {
+                "25000": 1000,
+                "50000": 2000,
+                "100000": 3000,
+                "150000": 4500
+              },
+              "eod": {
+                "25000": 750,
+                "50000": 1500,
+                "100000": 2500,
+                "150000": 4000
+              }
+            },
+            "dailyLossLimit": null,
+            "minDays": 2,
+            "consistencyPct": 50,
+            "maxContracts": {
+              "25000": "2 minis",
+              "50000": "4",
+              "100000": "6",
+              "150000": "10"
+            }
+          },
+          "funded": "same as Premier+ Fast Pass",
+          "payout": "same as Premier+ Fast Pass"
+        },
+        {
+          "id": "velocity",
+          "name": "Velocity",
+          "type": "evaluation",
+          "billing": "monthly",
+          "price": {
+            "25000": 79,
+            "50000": 125,
+            "100000": 225,
+            "150000": 325
+          },
+          "variants": {
+            "Velocity + Daily Add-On": {
+              "price": {
+                "25000": 108,
+                "50000": 164,
+                "100000": 284,
+                "150000": 394
+              }
+            }
+          },
+          "eval": {
+            "profitTarget": {
+              "25000": 2500,
+              "50000": 4000,
+              "100000": 7000,
+              "150000": 10000
+            },
+            "maxLoss": {
+              "25000": 1250,
+              "50000": 2250,
+              "100000": 3250,
+              "150000": 4750
+            },
+            "drawdown": "Intraday trailing",
+            "dailyLossLimit": null,
+            "minDays": 3,
+            "consistencyPct": 40,
+            "maxContracts": {
+              "25000": "3 minis / 30 micros",
+              "50000": "5 / 50",
+              "100000": "10 / 100",
+              "150000": "15 / 150"
+            }
+          },
+          "funded": {
+            "drawdown": "Intraday trailing (same as eval)",
+            "consistencyPct": 40,
+            "consistencyNote": "Daily Add-On removes it",
+            "activationFee": 0,
+            "resetFee": {
+              "25000": 499,
+              "50000": 649,
+              "100000": 1099,
+              "150000": 1499
+            },
+            "scalingPlan": true
+          },
+          "payout": {
+            "split": 90,
+            "minTradingDays": 3,
+            "winningDays": 3,
+            "qualifyingDay": 200,
+            "profitRequiredBetween": {
+              "25000": 1500,
+              "50000": 3000,
+              "100000": 6000,
+              "150000": 9000
+            },
+            "maxPayout": {
+              "25000": 750,
+              "50000": 1250,
+              "100000": 2250,
+              "150000": 3250
+            },
+            "maxPayoutDailyAddOn": {
+              "25000": 600,
+              "50000": 1000,
+              "100000": 1500,
+              "150000": 2500
+            },
+            "dailyAddOn": "daily eligibility, no day count, no consistency"
+          }
+        },
+        {
+          "id": "s2f",
+          "name": "S2F Standard",
+          "type": "instant",
+          "billing": "one-time",
+          "price": {
+            "25000": 329,
+            "50000": 469,
+            "100000": 629,
+            "150000": 734
+          },
+          "eval": null,
+          "funded": {
+            "maxLoss": {
+              "25000": 1000,
+              "50000": 2000,
+              "100000": 3000,
+              "150000": 4500
+            },
+            "drawdown": "EOD trailing, locks at starting balance",
+            "initialTrail": {
+              "25000": 26000,
+              "50000": 52000,
+              "100000": 103000,
+              "150000": 154500
+            },
+            "consistencyPct": 25,
+            "consistencyResets": "after each approved payout",
+            "resetFee": null,
+            "scalingPlan": true,
+            "maxContracts": {
+              "25000": "1 mini / 10 micros",
+              "50000": "5 / 50",
+              "100000": "10 / 100",
+              "150000": "15 / 150"
+            }
+          },
+          "payout": {
+            "split": 90,
+            "qualifyingDays": 7,
+            "qualifyingDay": 200,
+            "cycleDays": 7,
+            "profitGoal1": {
+              "25000": 1500,
+              "50000": 3000,
+              "100000": 6000,
+              "150000": 9000
+            },
+            "profitGoal2plus": {
+              "25000": 1000,
+              "50000": 2000,
+              "100000": 3000,
+              "150000": 4500
+            },
+            "maxPayout1to3": {
+              "25000": 1000,
+              "50000": 2000,
+              "100000": 2500,
+              "150000": 3000
+            },
+            "maxPayout4": {
+              "25000": 1000,
+              "50000": 2500,
+              "100000": 3000,
+              "150000": 3500
+            }
+          }
+        },
+        {
+          "id": "s2f-acc",
+          "name": "S2F Accelerate",
+          "type": "instant",
+          "billing": "one-time",
+          "sizes": [
+            50000
+          ],
+          "price": {
+            "50000": 499
+          },
+          "eval": null,
+          "funded": {
+            "maxLoss": {
+              "50000": 2000
+            },
+            "drawdown": "Intraday trailing, never locks",
+            "consistencyPct": 25,
+            "consistencyResets": "never (lifetime)",
+            "maxContracts": {
+              "50000": "5 minis from day one"
+            }
+          },
+          "payout": {
+            "split": 90,
+            "qualifyingDays": 5,
+            "qualifyingDay": 200,
+            "maxPayouts": [
+              1250,
+              1250,
+              1500,
+              1500
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "alpha",
+      "name": "Alpha Futures",
+      "isLive": true,
+      "plans": [
+        "Zero",
+        "Advanced",
+        "Premium"
+      ],
+      "sizes": [
+        25000,
+        50000,
+        100000,
+        150000
+      ],
+      "summary": {
+        "ddEval": "EOD trailing (4% MLL)",
+        "ddFunded": "EOD trailing — unchanged",
+        "dailyLossLimit": "None on all plans",
+        "minDays": "Zero 1 · Advanced 3 · Premium 5",
+        "consistency": "Zero none · Premium 30%",
+        "split": "90% all plans",
+        "payout": "5 win days ≥ $200 · max 50% of profit",
+        "afterPayout": "Remaining 50% stays as buffer"
+      },
+      "bySize": {
+        "25000": {
+          "evalTarget": 1500,
+          "maxDrawdown": 1000
+        },
+        "50000": {
+          "evalTarget": 3000,
+          "maxDrawdown": 2000
+        },
+        "100000": {
+          "evalTarget": 6000,
+          "maxDrawdown": 3000
+        },
+        "150000": {
+          "evalTarget": 9000,
+          "maxDrawdown": 4500
+        }
+      }
+    }
+  ]
+}

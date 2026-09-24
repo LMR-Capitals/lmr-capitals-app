@@ -4688,11 +4688,11 @@ Midnight Open $______"></textarea>
         <div><label class="form-label">Status</label><select id="am-status"><option>Passed</option><option>In Progress</option><option>Blown</option></select></div>
       </div>
       <div class="cols2" style="margin-top:8px">
-        <div><label class="form-label">Prop Firm</label><input id="am-firm" list="am-firm-list" placeholder="e.g. Tradeify" oninput="amApplyPreset()"><datalist id="am-firm-list"><option>Tradeify</option><option>Apex</option><option>Topstep</option><option>Take Profit Trader</option><option>MyFundedFutures</option><option>FundedNext</option></datalist></div>
-        <div><label class="form-label">Account Size</label><select id="am-size" onchange="amApplyPreset()"><option value="">—</option><option value="25000">$25K</option><option value="50000">$50K</option><option value="100000">$100K</option><option value="150000">$150K</option></select></div>
+        <div><label class="form-label">Prop Firm</label><select id="am-firm" onchange="amFirmChanged()"><option value="">Select firm…</option></select></div>
+        <div><label class="form-label">Plan</label><select id="am-plan" onchange="amPlanChanged()"><option value="">Select plan…</option></select></div>
       </div>
       <div class="cols2" style="margin-top:8px">
-        <div><label class="form-label">Plan / Account Type</label><select id="am-plan" onchange="amApplyPreset()"><option value="">—</option><option>Growth</option><option>Select</option><option>Lightning</option><option>Other</option></select></div>
+        <div><label class="form-label">Account Size</label><select id="am-size" onchange="amApplyPreset()"><option value="">Select size…</option></select></div>
         <div><label class="form-label">Date Created</label><input type="date" id="am-date"></div>
       </div>
       <div class="form-row" style="margin-top:8px"><label class="form-label">Records trades from <span style="color:var(--text3);font-weight:400">(this account only mirrors the leader from this day onward — no older trades)</span></label><input type="date" id="am-recordfrom"></div>
@@ -4704,6 +4704,7 @@ Midnight Open $______"></textarea>
         <div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.09em">Payout Rules &amp; Drawdown</div>
         <span id="am-preset-tag" style="font-size:9px;color:var(--text3)"></span>
       </div>
+      <div id="am-rulebook" style="display:none;margin-bottom:10px;background:var(--bg3);border:1px solid var(--gold-border);border-radius:var(--r);padding:10px 12px;font-size:11px;color:var(--text2);line-height:1.7"></div>
       <div class="cols2">
         <div><label class="form-label">Profit Target ($)</label><input id="am-target" type="number" step="0.01"></div>
         <div><label class="form-label">Trailing Max DD ($)</label><input id="am-dd" type="number" step="0.01"></div>
@@ -8632,41 +8633,80 @@ function renderTradeTable(){
 let accFilter='All';
 function filterAcc(t){accFilter=t;document.querySelectorAll('.tabs .tab').forEach((tab,i)=>tab.classList.toggle('active',tab.textContent===t));renderAccountTable()}
 let _amEditId=null;
-// Tradeify public payout rules & drawdown presets (help.tradeify.co), per plan & size
-const TRADEIFY_PRESETS={
-  Growth:{
-    25000:{target:1500,dd:1000,dll:600,minDays:1,consistency:35,split:90},
-    50000:{target:3000,dd:2000,dll:1250,minDays:1,consistency:35,split:90},
-    100000:{target:6000,dd:3500,dll:2500,minDays:1,consistency:35,split:90},
-    150000:{target:9000,dd:5000,dll:3750,minDays:1,consistency:35,split:90}
-  },
-  Select:{
-    25000:{target:1500,dd:1000,dll:0,minDays:3,consistency:40,split:90},
-    50000:{target:3000,dd:2000,dll:0,minDays:3,consistency:40,split:90},
-    100000:{target:6000,dd:3000,dll:0,minDays:3,consistency:40,split:90},
-    150000:{target:9000,dd:4500,dll:0,minDays:3,consistency:40,split:90}
-  },
-  Lightning:{
-    25000:{target:0,dd:1000,dll:0,minDays:0,consistency:20,split:90},
-    50000:{target:0,dd:2000,dll:1250,minDays:0,consistency:20,split:90},
-    100000:{target:0,dd:4000,dll:2500,minDays:0,consistency:20,split:90},
-    150000:{target:0,dd:5250,dll:3000,minDays:0,consistency:20,split:90}
-  }
-};
+const PROP_FIRMS = [{"id":"tradeify","name":"Tradeify","isLive":false,"plans":["Growth","Select","Lightning"],"sizes":[25000,50000,100000,150000],"bySize":{"25000":{"evalTarget":1500,"maxDrawdown":1250},"50000":{"evalTarget":3000,"maxDrawdown":2000},"100000":{"evalTarget":6000,"maxDrawdown":3000},"150000":{"evalTarget":9000,"maxDrawdown":4500}},"summary":{"ddEval":"EOD trailing","ddFunded":"EOD trailing \u2192 locks at floor + $100","dailyLossLimit":"Growth $1,250 \u00b7 Select none","minDays":"Select 3 \u00b7 Growth 1","consistency":"35\u201340% eval \u00b7 40% funded","split":"90%","payout":"1st: any profit \u00b7 2nd+: positive since last","afterPayout":"Consistency resets each cycle"}},{"id":"apex","name":"Apex","isLive":false,"plans":["Full 1-step"],"sizes":[25000,50000,100000,150000,250000,300000],"bySize":{"25000":{"evalTarget":1500,"maxDrawdown":1500},"50000":{"evalTarget":3000,"maxDrawdown":2500},"100000":{"evalTarget":6000,"maxDrawdown":3000},"150000":{"evalTarget":8000,"maxDrawdown":3000},"250000":{"evalTarget":12500,"maxDrawdown":3500},"300000":{"evalTarget":15000,"maxDrawdown":4500}},"summary":{"ddEval":"EOD trailing (intraday opt-in)","ddFunded":"EOD trailing \u2014 unchanged","dailyLossLimit":"None","minDays":"7 days","consistency":"None eval \u00b7 50% funded","split":"100%","payout":"5 qualifying days \u00b7 min $500","afterPayout":"Cap scales \u00b7 PA closes after 6 payouts"}},{"id":"topstep","name":"Topstep","isLive":true,"plans":["Trading Combine","Live Funded"],"sizes":[50000,100000,150000],"bySize":{"50000":{"evalTarget":3000,"maxDrawdown":2000},"100000":{"evalTarget":6000,"maxDrawdown":3000},"150000":{"evalTarget":9000,"maxDrawdown":4500}},"summary":{"ddEval":"Intraday trailing","ddFunded":"EOD trailing (XFA) \u2014 softer","dailyLossLimit":"Removed 2024","minDays":"5 days \u2265 $150","consistency":"40%","split":"90%","payout":"5 win days \u00b7 balance above start","afterPayout":"MLL resets to $0 \u2014 zero buffer"}},{"id":"tpt","name":"Take Profit Trader","isLive":true,"plans":["PRO","PRO+ (live)"],"sizes":[25000,50000,100000,150000],"bySize":{"25000":{"evalTarget":1500,"maxDrawdown":1500},"50000":{"evalTarget":3000,"maxDrawdown":2000},"100000":{"evalTarget":6000,"maxDrawdown":3000},"150000":{"evalTarget":9000,"maxDrawdown":4500}},"summary":{"ddEval":"EOD trailing","ddFunded":"PRO: intraday trailing \u00b7 PRO+: EOD","dailyLossLimit":"Removed Jan 2025","minDays":"5 days","consistency":"50% max per day","split":"PRO 80% \u00b7 PRO+ 90%","payout":"PRO: clear start + DD buffer \u00b7 PRO+: day 1","afterPayout":"Daily payouts once buffer cleared"}},{"id":"blue","name":"Blue Guardian","isLive":false,"plans":["Standard","Guardian"],"sizes":[25000,50000,100000,150000],"bySize":{"25000":{"evalTarget":1500,"maxDrawdown":1500},"50000":{"evalTarget":3000,"maxDrawdown":3000},"100000":{"evalTarget":6000,"maxDrawdown":6000},"150000":{"evalTarget":9000,"maxDrawdown":9000}},"summary":{"ddEval":"EOD trailing (6% static)","ddFunded":"EOD trailing \u2014 unchanged","dailyLossLimit":"Standard $1,250\u2013$3,750 \u00b7 Guardian none","minDays":"5 days","consistency":"Standard 40% \u00b7 Guardian 30%","split":"100% first $15K, then 90%","payout":"48h processing \u00b7 Reserve: 5 win days","afterPayout":"DD floor locks at start + $100"}},{"id":"lucid","name":"Lucid Trading","isLive":false,"plans":["LucidPro","LucidFlex"],"sizes":[25000,50000,100000,150000],"bySize":{"25000":{"evalTarget":1500,"maxDrawdown":1000},"50000":{"evalTarget":3000,"maxDrawdown":2000},"100000":{"evalTarget":6000,"maxDrawdown":3000},"150000":{"evalTarget":9000,"maxDrawdown":4500}},"summary":{"ddEval":"EOD trailing","ddFunded":"EOD trailing \u2014 unchanged","dailyLossLimit":"Pro 20% of target \u00b7 Flex none","minDays":"5 days","consistency":"50% eval \u00b7 Pro 40% funded","split":"100% first $10K, then 90%","payout":"~15 min average","afterPayout":"90% split after first $10K paid"}},{"id":"mff","name":"MyFundedFutures","isLive":false,"plans":["Rapid","Flex","Pro","Builder"],"sizes":[25000,50000,100000,150000],"bySize":{"25000":{"evalTarget":1500,"maxDrawdown":1500},"50000":{"evalTarget":3000,"maxDrawdown":2500},"100000":{"evalTarget":6000,"maxDrawdown":3000},"150000":{"evalTarget":9000,"maxDrawdown":4500}},"summary":{"ddEval":"EOD trailing","ddFunded":"EOD trailing \u2014 unchanged","dailyLossLimit":"None on all plans","minDays":"5 days","consistency":"50% eval","split":"Rapid 90% \u00b7 Flex/Pro 80%","payout":"Clear buffer $1,100\u2013$4,600 first","afterPayout":"Rapid daily \u00b7 Flex 5 win days \u00b7 Pro 14 days"}},{"id":"fnext","name":"FundedNext","isLive":false,"plans":["Stellar","Rapid Pro","Rapid Daily"],"sizes":[25000,50000,100000,200000],"bySize":{"25000":{"evalTarget":2500,"maxDrawdown":2500},"50000":{"evalTarget":5000,"maxDrawdown":5000},"100000":{"evalTarget":10000,"maxDrawdown":10000},"200000":{"evalTarget":20000,"maxDrawdown":20000}},"summary":{"ddEval":"Stellar: static floor \u00b7 Rapid: EOD trailing","ddFunded":"Same as eval \u2014 static stays static","dailyLossLimit":"Stellar 5% per day \u00b7 Rapid optional","minDays":"5 days","consistency":"None eval \u00b7 40% funded","split":"Stellar 80% \u00b7 Rapid 90%","payout":"40% consistency check per cycle","afterPayout":"Consistency re-checked each cycle"}},{"id":"fff","name":"Funded Futures Family","isLive":false,"plans":["Prime","Prime Max","Premier+ Fast Pass","Premier+ Standard","Velocity","Velocity + Daily","S2F Standard","S2F Accelerate"],"sizes":[25000,50000,100000,150000],"bySize":{"25000":{"evalTarget":1250,"maxDrawdown":1000},"50000":{"evalTarget":3000,"maxDrawdown":2000},"100000":{"evalTarget":6000,"maxDrawdown":3000},"150000":{"evalTarget":9000,"maxDrawdown":4500}},"summary":{"ddEval":"Prime: EOD \u00b7 Premier+: EOD or intraday (your pick) \u00b7 Velocity: intraday trailing \u00b7 S2F: no eval","ddFunded":"EOD locks at start balance \u00b7 Velocity/S2F Accelerate intraday","dailyLossLimit":"None on any plan","minDays":"Prime 1 \u00b7 Premier+ FP 1 \u00b7 Standard 2 \u00b7 Velocity 3","consistency":"Eval: Prime/FP none, Std 50%, Velocity 40% \u00b7 Funded 40% (S2F 25%)","split":"90% all plans","payout":"Prime 3 days + target \u00b7 Premier+ 5 \u00d7 $200 days \u00b7 Velocity 3 days \u00b7 S2F 7 \u00d7 $200 days","afterPayout":"Consistency resets each payout \u00b7 $100K lifetime cap \u00b7 max 5 funded"}},{"id":"alpha","name":"Alpha Futures","isLive":true,"plans":["Zero","Advanced","Premium"],"sizes":[25000,50000,100000,150000],"bySize":{"25000":{"evalTarget":1500,"maxDrawdown":1000},"50000":{"evalTarget":3000,"maxDrawdown":2000},"100000":{"evalTarget":6000,"maxDrawdown":3000},"150000":{"evalTarget":9000,"maxDrawdown":4500}},"summary":{"ddEval":"EOD trailing (4% MLL)","ddFunded":"EOD trailing \u2014 unchanged","dailyLossLimit":"None on all plans","minDays":"Zero 1 \u00b7 Advanced 3 \u00b7 Premium 5","consistency":"Zero none \u00b7 Premium 30%","split":"90% all plans","payout":"5 win days \u2265 $200 \u00b7 max 50% of profit","afterPayout":"Remaining 50% stays as buffer"}}];
+
 const _amV=id=>(document.getElementById(id)?.value||'').trim();
 const _amSet=(id,v)=>{const el=document.getElementById(id);if(el)el.value=(v==null||v==='')?'':v;};
-
-function amApplyPreset(){
-  const firm=_amV('am-firm').toLowerCase();
-  const plan=_amV('am-plan'); const size=parseInt(_amV('am-size'))||0;
-  const tag=document.getElementById('am-preset-tag');
-  if(firm.includes('tradeify') && TRADEIFY_PRESETS[plan] && TRADEIFY_PRESETS[plan][size]){
-    const p=TRADEIFY_PRESETS[plan][size];
-    _amSet('am-target',p.target||''); _amSet('am-dd',p.dd||''); _amSet('am-dll',p.dll||'');
-    _amSet('am-mindays',p.minDays); _amSet('am-consistency',p.consistency); _amSet('am-split',p.split);
-    if(tag){ tag.textContent='✓ Tradeify '+plan+' preset applied'; tag.style.color='var(--bull)'; }
-  } else if(tag){ tag.textContent='Enter your firm’s rules manually'; tag.style.color='var(--text3)'; }
+function _pfFind(id){ return PROP_FIRMS.find(f=>f.id===id)||null; }
+function _sizeK(n){ n=+n||0; return n>=1000?('$'+Math.round(n/1000)+'K'):('$'+n); }
+function amFillFirms(){
+  const sel=document.getElementById('am-firm'); if(!sel) return;
+  sel.innerHTML='<option value="">Select firm…</option>'+PROP_FIRMS.map(f=>`<option value="${f.id}">${f.name}${f.isLive?' · live':''}</option>`).join('');
 }
+function amFillPlans(firmId, keep){
+  const sel=document.getElementById('am-plan'); const f=_pfFind(firmId); if(!sel) return;
+  sel.innerHTML='<option value="">Select plan…</option>'+((f&&f.plans)||[]).map(p=>`<option>${p}</option>`).join('');
+  if(keep) sel.value=keep;
+}
+function amFillSizes(firmId, keep){
+  const sel=document.getElementById('am-size'); const f=_pfFind(firmId); if(!sel) return;
+  sel.innerHTML='<option value="">Select size…</option>'+((f&&f.sizes)||[]).map(s=>`<option value="${s}">${_sizeK(s)}</option>`).join('');
+  if(keep) sel.value=String(keep);
+}
+function amFirmChanged(){ const fid=_amV('am-firm'); amFillPlans(fid); amFillSizes(fid); amApplyPreset(); }
+function amPlanChanged(){ amApplyPreset(); }
+// Descriptive rule snapshot (copied onto the account so later catalogue edits never change history)
+function _amFirmRules(){
+  const f=_pfFind(_amV('am-firm')); if(!f) return null;
+  const size=parseInt(_amV('am-size'))||0; const bs=(f.bySize||{})[String(size)]||{}; const sm=f.summary||{};
+  return { plan:_amV('am-plan')||null, evalTarget:bs.evalTarget??null, maxDrawdown:bs.maxDrawdown??null,
+    ddEval:sm.ddEval||null, ddFunded:sm.ddFunded||null, dailyLossLimit:sm.dailyLossLimit||null,
+    minDaysText:sm.minDays||null, consistencyText:sm.consistency||null,
+    payoutRule:sm.payout||null, afterPayout:sm.afterPayout||null };
+}
+
+// Catalogue-driven rules + rulebook preview for the chosen firm / plan / size.
+function amApplyPreset(fillFields){
+  if(fillFields===undefined) fillFields=true;
+  const f=_pfFind(_amV('am-firm')); const plan=_amV('am-plan'); const size=parseInt(_amV('am-size'))||0;
+  const tag=document.getElementById('am-preset-tag'); const rb=document.getElementById('am-rulebook');
+  if(!f){ if(tag){tag.textContent='';} if(rb){rb.style.display='none';rb.innerHTML='';} return; }
+  const bs=(f.bySize||{})[String(size)]||null;
+  const sm=f.summary||{};
+  const splitN=parseInt((sm.split||'').replace(/[^0-9]/g,''))||90;
+  if(bs && fillFields){
+    _amSet('am-target', bs.evalTarget!=null?bs.evalTarget:'');
+    _amSet('am-dd', bs.maxDrawdown!=null?bs.maxDrawdown:'');
+    _amSet('am-split', splitN);
+  }
+  // Auto-name: "Firm $50K · NN" (only when empty or still an auto-name)
+  const nameEl=document.getElementById('am-name');
+  if(nameEl && f && size && fillFields){
+    const base=`${f.name} ${_sizeK(size)}`;
+    const isAuto=!nameEl.value || /·\s*\d+$/.test(nameEl.value) || nameEl.value.startsWith(f.name) || nameEl.dataset.auto==='1';
+    if(isAuto){
+      const n=(state.accounts||[]).filter(a=>a.firm_id===f.id && (+a.size||0)===size).length+1;
+      nameEl.value=`${base} · ${String(n).padStart(2,'0')}`; nameEl.dataset.auto='1';
+    }
+  }
+  if(tag){ tag.textContent='✓ '+f.name+(plan?' · '+plan:'')+' rules applied'; tag.style.color='var(--bull)'; }
+  if(rb){
+    const row=(k,v)=> v?`<div><b style="color:var(--text);font-weight:700">${k}</b> ${v}</div>`:'';
+    rb.style.display='block';
+    rb.innerHTML=
+      row('Profit target', bs&&bs.evalTarget!=null?('$'+bs.evalTarget.toLocaleString()):'—')
+      + row('Max loss', bs&&bs.maxDrawdown!=null?('$'+bs.maxDrawdown.toLocaleString()):'—')
+      + row('Drawdown (eval)', sm.ddEval)
+      + row('Drawdown (funded)', sm.ddFunded)
+      + row('Daily loss limit', sm.dailyLossLimit)
+      + row('Min trading days', sm.minDays)
+      + row('Consistency', sm.consistency)
+      + row('Split', sm.split)
+      + row('Payout', sm.payout)
+      + row('After payout', sm.afterPayout);
+  }
+}
+
 
 function openAccountModal(editId){
   _amEditId=editId||null;
@@ -8679,15 +8719,21 @@ function openAccountModal(editId){
   _amSet('am-date',ex?ex.date:todayStr());
   _amSet('am-recordfrom', ex?(ex.startDate||ex.date||todayStr()):todayStr()); // new accounts start recording from today
   _amSet('am-deposit',ex?ex.deposit:'');
-  _amSet('am-firm',ex?ex.firm:'');
+  // Catalogue-driven firm → plan → size dropdowns
+  amFillFirms();
+  const nameEl=document.getElementById('am-name'); if(nameEl) nameEl.dataset.auto=ex?'0':'1';
+  let firmId = ex ? (ex.firm_id || ((PROP_FIRMS.find(f=>f.name===ex.firm)||{}).id) || '') : '';
+  _amSet('am-firm', firmId);
+  amFillPlans(firmId, ex?ex.plan:'');
+  amFillSizes(firmId, ex&&ex.size?ex.size:'');
   _amSet('am-accountno',ex&&ex.accountNo?ex.accountNo:'');
-  _amSet('am-plan',ex?ex.plan:'');
-  _amSet('am-size',ex&&ex.size?ex.size:'');
   const r=(ex&&ex.rules)||{};
   _amSet('am-target',r.target??''); _amSet('am-dd',r.dd??''); _amSet('am-dll',r.dll??'');
   _amSet('am-mindays',r.minDays??''); _amSet('am-consistency',r.consistency??''); _amSet('am-split',r.split??'');
   _amSet('am-balance',ex&&ex.balance!=null?ex.balance:'');
   const tag=document.getElementById('am-preset-tag'); if(tag)tag.textContent='';
+  // Render the rulebook preview for the current firm/plan/size (no field overwrite on edit)
+  amApplyPreset(!ex);
   document.getElementById('accModal').classList.add('show');
 }
 function saveAccount(){
@@ -8701,19 +8747,20 @@ function saveAccount(){
     date:_amV('am-date'),
     startDate:_amV('am-recordfrom')||_amV('am-date')||todayStr(), // copier records from this day onward (never older)
     deposit:parseFloat(_amV('am-deposit'))||0,
-    firm:_amV('am-firm')||null,
+    firm_id:_amV('am-firm')||null,
+    firm:(_pfFind(_amV('am-firm'))||{}).name||_amV('am-firm')||null,
     accountNo:_amV('am-accountno')||null,
     plan:_amV('am-plan')||null,
     size:parseInt(_amV('am-size'))||null,
     balance:isNaN(bal)?null:bal,
-    rules:{
+    rules:Object.assign({},(_amFirmRules()||{}),{
       target:parseFloat(_amV('am-target'))||0,
       dd:parseFloat(_amV('am-dd'))||0,
       dll:parseFloat(_amV('am-dll'))||0,
       minDays:parseInt(_amV('am-mindays'))||0,
       consistency:parseFloat(_amV('am-consistency'))||0,
       split:parseFloat(_amV('am-split'))||0
-    }
+    })
   });
   if(!a.name){alert('Name required');return}
   const wasPassed=!!(ex&&ex.status==='Passed');
