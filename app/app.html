@@ -2661,7 +2661,7 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
         <span id="rt-dot" style="width:6px;height:6px;border-radius:50%;background:var(--text3);display:inline-block"></span>
         <span id="rt-label">Offline</span>
       </div>
-      <button class="btn btn-primary btn-sm" onclick="openTradeModal()">+ Trade</button>
+      <button class="btn btn-primary btn-sm" id="tbAction" style="display:none"></button>
     </div>
   </div>
 
@@ -7029,11 +7029,24 @@ document.getElementById('profilePhotoInput').addEventListener('change',async e=>
   setTimeout(updatePWAIcon, 200);
 });
 
+// Per-panel header action button (design: each panel has its own action, no global + Trade).
+// Trades/Accounts/Transactions already carry their add buttons inside the panel, so the
+// header only supplies actions a panel would otherwise lack (e.g. Performance review).
+const TOPBAR_ACTIONS = {
+  perf: {label:'✦ Review Performance', fn:()=>generateAndSaveAIReport('full')}
+};
+function _updateTopbarAction(p){
+  const b=document.getElementById('tbAction'); if(!b) return;
+  const a=TOPBAR_ACTIONS[p];
+  if(a){ b.style.display=''; b.textContent=a.label; b.onclick=a.fn; }
+  else { b.style.display='none'; b.onclick=null; }
+}
 function navTo(p){
   panels.forEach(pn=>document.getElementById('p-'+pn).classList.toggle('active',pn===p));
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.toggle('active',i.dataset.panel===p));
   const [t,s]=titles[p];
   document.getElementById('tbTitle').textContent=t;
+  _updateTopbarAction(p);
   const tbSub=document.getElementById('tbSub');
   const day=dayCountFor(todayStr())||getNextDayCount();
   if(p==='dash'||p==='today'){
