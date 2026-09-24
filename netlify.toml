@@ -7,6 +7,9 @@
 #   /app     → trading app    (dist/app/app.html)
 #   /admin   → admin portal   (dist/admin/admin.html)
 [build]
+  # base "." = repo root. Set explicitly so this file (not a stale dashboard
+  # "base directory" setting) is authoritative; the build runs from the root.
+  base = "."
   command = "npm ci && npm run build"
   publish = "dist"
 
