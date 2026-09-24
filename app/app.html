@@ -3444,7 +3444,6 @@ Midnight Open $______"></textarea>
     <div class="card-head">
       <span class="card-tag t-r">Trade Log</span>
       <div class="card-title">All trades — click row for details &amp; images</div>
-      <button class="btn btn-primary btn-sm" onclick="openTradeModal()">+ Trade <span class="sb-key" style="background:rgba(0,0,0,.2);color:var(--bg)">T</span></button>
     </div>
     <div class="card-body">
       <div class="tw"><table class="tbl">
@@ -3498,7 +3497,6 @@ Midnight Open $______"></textarea>
     <div class="acc-toolbar-right">
       <button class="btn btn-ghost btn-sm" onclick="cleanDuplicateTradesUI()" title="Scan every account and remove duplicate trades (same date/time/market/model/P&L recorded twice)">⎘ Clean duplicates</button>
       <button class="acc-hidefail" id="accHideFailBtn" onclick="accToggleHideFailed()"><span>Hide Failed</span><span class="acc-switch"></span></button>
-      <button class="btn btn-primary btn-sm" onclick="openAccountModal()">+ Account <span class="sb-key" style="background:rgba(0,0,0,.2);color:var(--bg)">A</span></button>
     </div>
   </div>
   <div id="accCards" class="acc-cards"><div class="acc-empty">No accounts here. Press <b>A</b> to add one.</div></div>
@@ -7033,7 +7031,9 @@ document.getElementById('profilePhotoInput').addEventListener('change',async e=>
 // Trades/Accounts/Transactions already carry their add buttons inside the panel, so the
 // header only supplies actions a panel would otherwise lack (e.g. Performance review).
 const TOPBAR_ACTIONS = {
-  perf: {label:'✦ Review Performance', fn:()=>generateAndSaveAIReport('full')}
+  trades:   {label:'+ Trade',             fn:()=>openTradeModal()},
+  accounts: {label:'+ Account',           fn:()=>openAccountModal()},
+  perf:     {label:'✦ Review Performance', fn:()=>generateAndSaveAIReport('full')}
 };
 function _updateTopbarAction(p){
   const b=document.getElementById('tbAction'); if(!b) return;
