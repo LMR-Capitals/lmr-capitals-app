@@ -1,0 +1,12 @@
+# Netlify publishes only dist/, but keep secrets and dev-only files out of any scan.
+.env
+.env.*
+node_modules/
+lmr-notion-export.json
+notion-images/
+scripts/
+database/
+design/
+tasks/
+.claude/
+.DS_Store

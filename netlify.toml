@@ -1,36 +1,53 @@
 # LMR Capitals — production deploy config (authoritative; overrides dashboard).
-# The site is a Vite multi-page build in app/: the marketing landing is the root
-# (index.html), the trading app is served at /app (app.html), and the admin portal
-# at /admin (admin.html). Static root-served assets (sw.js, manifest.json,
-# chart.umd.min.js, icons/) live in app/public/ and are flattened to the site root
-# by `vite build` into app/dist.
+# Vite multi-page build from top-level surface folders (web/, app/, admin/), built
+# at the repo root. Output lands under dist/web, dist/app and dist/admin; shared
+# static assets in public/ (sw.js, manifest.json, chart.umd.min.js, icons/, …) are
+# flattened to the dist root. The redirects below map the clean public URLs:
+#   /        → landing        (dist/web/index.html)
+#   /app     → trading app    (dist/app/app.html)
+#   /admin   → admin portal   (dist/admin/admin.html)
 [build]
-  base = "app"
   command = "npm ci && npm run build"
   publish = "dist"
 
-# Clean URL for the trading application: /app serves app.html.
+# ── Clean URLs (rewrites, status 200) ─────────────────────────────────────
 [[redirects]]
-  from = "/app"
-  to = "/app.html"
+  from = "/"
+  to = "/web/index.html"
   status = 200
 
-# Clean URL for the standalone admin web portal: /admin serves admin.html.
+[[redirects]]
+  from = "/app"
+  to = "/app/app.html"
+  status = 200
+
 [[redirects]]
   from = "/admin"
-  to = "/admin.html"
+  to = "/admin/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/landing-preview"
+  to = "/web/landing-preview.html"
   status = 200
 
 # ── HTML — never cache (ensures updates deploy instantly) ──────────────────
 [[headers]]
-  for = "/index.html"
+  for = "/web/index.html"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
     Pragma = "no-cache"
     Expires = "0"
 
 [[headers]]
-  for = "/app.html"
+  for = "/app/app.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
+
+[[headers]]
+  for = "/admin/admin.html"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
     Pragma = "no-cache"
