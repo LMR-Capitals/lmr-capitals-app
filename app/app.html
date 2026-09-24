@@ -2939,10 +2939,10 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
               <div class="prop-label" style="color:var(--text2)">Price references</div>
               <div class="prop-type" id="priceRefCount">0 of 0 selected · click to build the order</div>
             </div>
-            <button class="btn btn-sm" id="priceRefToggle" style="margin-left:auto" onclick="togglePriceRefPicker()">Add / edit references</button>
+            <input id="priceRefSearch" placeholder="🔍 Search references…" oninput="filterPriceRefs(this.value)" style="margin-left:auto;width:230px;max-width:48%;font-size:12px">
+            <button class="btn btn-sm" id="priceRefToggle" onclick="togglePriceRefPicker()">Add / edit references</button>
           </div>
           <div id="priceRefPicker" style="display:none">
-            <input id="priceRefSearch" placeholder="Search references…" oninput="filterPriceRefs(this.value)" style="width:100%;max-width:360px;margin-bottom:8px;font-size:12px">
             <div class="chips" id="priceRefs" style="padding:2px 0"></div>
           </div>
           <div id="priceRefOrder" style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;align-items:center"></div>
@@ -7248,6 +7248,9 @@ function togglePriceRefPicker(){
 }
 function filterPriceRefs(q){
   q=(q||'').trim().toLowerCase();
+  // Auto-open the picker so search results are visible without clicking the toggle.
+  if(q){ const p=document.getElementById('priceRefPicker'), b=document.getElementById('priceRefToggle');
+    if(p&&(p.style.display==='none'||!p.style.display)){ p.style.display='block'; if(b)b.textContent='Hide references'; } }
   document.querySelectorAll('#priceRefs .chip[data-grp="priceRefs"]').forEach(c=>{
     c.style.display=(!q||(c.dataset.val||'').toLowerCase().includes(q))?'':'none';
   });
