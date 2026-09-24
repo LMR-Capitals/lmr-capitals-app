@@ -213,7 +213,7 @@ function Denied({ email, onSignOut }){
 }
 
 function Hub({ email, onPortal, onSignOut }){
-  const enterApp=()=>{ try{ sessionStorage.setItem('lmr_admin_surface','app'); }catch(e){} window.location.href='/'; };
+  const enterApp=()=>{ try{ sessionStorage.setItem('lmr_admin_surface','app'); }catch(e){} window.location.href='/app'; };
   return (
     <div className="wrap">
       <div className="hubhead">
