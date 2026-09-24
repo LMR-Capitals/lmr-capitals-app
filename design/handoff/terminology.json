@@ -1,0 +1,592 @@
+{
+  "version": 1,
+  "sections": [
+    {
+      "title": "Mechanics of the market fluctuations",
+      "blurb": "Chapter one of the LMR reference: what actually moves price before any array forms. Rates set the cost of money, bonds and yields reprice against it, and the ripple reaches the DXY and equity futures — read in that order, the macro tells you which side of the book to be on.",
+      "terms": [
+        "mm-rates",
+        "mm-bond",
+        "mm-yield",
+        "mm-treas",
+        "mm-ripple",
+        "mm-rise",
+        "mm-fall",
+        "mm-tny",
+        "mm-smtdxy"
+      ]
+    },
+    {
+      "title": "Market maker models",
+      "blurb": "How the algorithm delivers a whole move — the phases and the bias behind them.",
+      "terms": [
+        "amd",
+        "mmbm",
+        "mmsm",
+        "po3",
+        "judas",
+        "smt",
+        "prem",
+        "disc"
+      ]
+    },
+    {
+      "title": "Named & time assets",
+      "blurb": "The sessions and windows the day is divided into, each with its own behaviour.",
+      "terms": [
+        "t-asian",
+        "t-mid",
+        "t-lo",
+        "t-lkz",
+        "t-pre",
+        "t-am",
+        "t-lunch",
+        "t-pm",
+        "t-final"
+      ]
+    },
+    {
+      "title": "PD arrays",
+      "blurb": "Premium and discount arrays — the price levels the algorithm leaves behind and returns to.",
+      "terms": [
+        "ob",
+        "rb",
+        "pb",
+        "brkr",
+        "mit",
+        "susp",
+        "fvg",
+        "ifvg",
+        "rcfvg",
+        "bisi",
+        "sibi"
+      ]
+    },
+    {
+      "title": "Entry models",
+      "blurb": "The same arrays read as triggers: what has to happen before you click.",
+      "terms": [
+        "turtle",
+        "rb",
+        "ob",
+        "ifvg",
+        "fvg",
+        "susp",
+        "brkr",
+        "mit",
+        "rcfvg",
+        "ote"
+      ]
+    },
+    {
+      "title": "Time-based entry",
+      "blurb": "Setups defined by the clock rather than the level — the window is the edge.",
+      "terms": [
+        "t-18",
+        "t-mid",
+        "sblo",
+        "sb",
+        "sbpm"
+      ]
+    },
+    {
+      "title": "Draws / run on liquidity",
+      "blurb": "Where price is being delivered to, and the stops it raids on the way.",
+      "terms": [
+        "dol",
+        "d3hl",
+        "rfl",
+        "hrlr",
+        "ifed",
+        "nwog",
+        "ndog",
+        "erl"
+      ]
+    },
+    {
+      "title": "LMR macro times",
+      "blurb": "The named :50–:10 windows the day is tracked by, from the Asian open through to the close. Each trade carries the macro it was taken in, so the log can grade the windows as well as the models.",
+      "terms": [
+        "m-as1",
+        "m-as2",
+        "m-lo1",
+        "m-lo2",
+        "m-lo3",
+        "m-am0",
+        "m-am1",
+        "m-am2",
+        "m-lunch",
+        "m-pm",
+        "m-close",
+        "m-final"
+      ]
+    },
+    {
+      "title": "Gaps",
+      "blurb": "Price left untraded between one session’s close and the next one’s open. Nothing changed hands inside the gap, so its upper edge, lower edge and midpoint stay live as reference until price returns and rebalances them.",
+      "terms": [
+        "nwog",
+        "ndog",
+        "rth"
+      ]
+    },
+    {
+      "title": "Range & levels",
+      "blurb": "Subdivisions and projections of a dealing range — where inside it price is trading, and where it goes once the range breaks.",
+      "terms": [
+        "eq",
+        "prem",
+        "disc",
+        "ote",
+        "ceq",
+        "quad",
+        "fifth",
+        "hexa",
+        "protr",
+        "proj",
+        "rth05",
+        "ohlc"
+      ]
+    }
+  ],
+  "terms": [
+    {
+      "id": "mm-rates",
+      "name": "Engine of Change",
+      "gloss": "What moves interest rates?",
+      "body": "Interest rates are the price of borrowing money. They move on shifts in the supply and demand for credit, driven by two forces. Central bank policy: institutions like the Federal Reserve or the RBA raise rates to cool high inflation and lower them to stimulate growth in a slowdown. Inflationary pressures: when prices rise too fast, lenders demand higher rates to protect the purchasing power of money they will be repaid in later. Rising rates are the cause of a hot economy with high spending — the central bank must brake by making borrowing expensive. Declining rates follow a cooling economy with rising unemployment or falling demand — the bank accelerates by making money cheaper so businesses expand."
+    },
+    {
+      "id": "mm-bond",
+      "name": "Bond Price vs Yield",
+      "gloss": "The core inverse relationship",
+      "body": "Bonds are fixed-income instruments whose value is dictated by the current rate environment. When rates rise, new bonds are issued with higher payments, so existing lower-coupon bonds become less valuable and their market price must fall to attract buyers. As the price falls, the yield — the actual percentage return for a new buyer — rises until it matches the new market rate. Bond futures are contracts on that price: if you expect rates to rise, you expect bond prices to fall, so you short bond futures. Rising rates → falling bond prices → bond futures decline. Falling rates → rising bond prices → bond futures rise."
+    },
+    {
+      "id": "mm-yield",
+      "name": "Yield Futures",
+      "gloss": "Tracking the rate directly",
+      "body": "Bond futures track the price of the bond; yield futures track the interest rate itself. Yield is the return earned on a bond and moves in the SAME direction as interest rates — the opposite of bond prices. If the market expects the central bank to hike, yield futures increase in value. Traders use them to bet directly on where rates will be in coming months without the complex pricing of physical bonds. Expected rate hikes → yield futures increase. Expected cuts → yield futures decrease."
+    },
+    {
+      "id": "mm-treas",
+      "name": "Treasury Futures",
+      "gloss": "T-Notes and T-Bonds by maturity",
+      "body": "Treasury futures are categorised by the length of the debt, and each maturity is sensitive to a different kind of news. T-Note futures, 2-year to 10-year, are most sensitive to immediate central bank policy: if the Fed signals a hike next month, T-Note prices fall and futures drop almost instantly. T-Bond futures, 20-year to 30-year, are more sensitive to long-term inflation expectations: if the market believes inflation will stay high for a decade, T-Bond prices drop significantly as investors demand higher long-term protection."
+    },
+    {
+      "id": "mm-ripple",
+      "name": "The Global Ripple",
+      "gloss": "DXY and equity futures",
+      "body": "Rate changes act as a global signal for currency and stocks, creating a domino effect. U.S. Dollar Index: higher U.S. rates are a magnet for global capital — international investors buy dollars to access high-yielding U.S. assets, strengthening the DXY. As rates fall the magnet weakens, money moves abroad, and the dollar weakens. Equity futures: stocks generally fall when rates rise, because borrowing to grow becomes expensive and investors rotate out of risk into safe high-yielding bonds. Stocks generally rise when rates fall as borrowing costs drop, profits are expected to grow, and low bond yields force investors back into equities to find returns."
+    },
+    {
+      "id": "mm-rise",
+      "name": "Rising Rates Protocol",
+      "gloss": "The brake signal — expensive money",
+      "body": "When the central bank raises rates, usually to fight inflation, it creates a cycle of expensive money. Interest rate RISES — borrowing cost raised to slow inflation and overheating. Treasury note yield 2Y–10Y RISES — repricing higher to reflect tighter policy expectations. Bond price FALLS — existing lower-coupon bonds lose value as new bonds offer more. Bond yield RISES — falling prices mechanically increase yield for new buyers. Yield futures RISE — they track rates directly, so higher expectations lift them. T-Note and T-Bond futures FALL — futures track bond prices, which are declining. DXY RISES — higher yields attract global capital into USD assets. Equity futures FALL — higher financing costs reduce growth and risk appetite."
+    },
+    {
+      "id": "mm-fall",
+      "name": "Declining Rates Protocol",
+      "gloss": "The accelerator signal — cheap money",
+      "body": "When the central bank lowers rates, usually to boost a weak economy, it creates a cycle of cheap money. Interest rate FALLS — borrowing costs lowered to stimulate demand and investment. Treasury note yield 2Y–10Y FALLS — declining as markets price in easier policy. Bond price RISES — higher-coupon bonds become more valuable in a low-rate environment. Bond yield FALLS — rising prices reduce the effective yield for new buyers. Yield futures FALL — falling rate expectations reduce their price. T-Note and T-Bond futures RISE — futures rise as underlying bond prices increase. DXY FALLS — lower yields weaken USD demand relative to other currencies. Equity futures RISE — cheap capital encourages borrowing, expansion and risk-on behaviour."
+    },
+    {
+      "id": "mm-tny",
+      "name": "Why T-Note Yield Matters",
+      "gloss": "The market’s real-time vote on policy",
+      "body": "Treasury note yields are the market’s real-time vote on central bank policy, which is why ICT focuses on T-Note yields rather than generic bond yields. The 2Y yield reads immediate policy expectations. The 5Y and 10Y yields read the policy path plus growth expectations. The 30Y yield reads long-term inflation credibility. Read together they tell you what the market believes the central bank will actually do, ahead of the announcement."
+    },
+    {
+      "id": "mm-smtdxy",
+      "name": "DXY / Yield SMT",
+      "gloss": "Front-running equity futures",
+      "body": "Watch for SMT between the DXY and yields. If one makes a higher high while the other fails to confirm, it signals a potential reversal in the correlation. Because both feed into equity valuation through the same rate channel, that divergence can front-run moves in equity futures — the correlation breaking is the tell, before price in the index confirms it."
+    },
+    {
+      "id": "mmbm",
+      "name": "MMBM",
+      "gloss": "Market Maker Buy Model",
+      "body": "Accumulation below an old low, manipulation through it to engineer sell-side liquidity, then distribution to the buy side. The model only counts when all three phases are visible on the timeframe you traded."
+    },
+    {
+      "id": "mmsm",
+      "name": "MMSM",
+      "gloss": "Market Maker Sell Model",
+      "body": "The mirror of MMBM: accumulation above an old high, manipulation up through it to engineer buy-side liquidity, then distribution down. Look for the same three phases before calling it."
+    },
+    {
+      "id": "po3",
+      "name": "Power of 3",
+      "gloss": "Open · manipulation · expansion",
+      "body": "Every candle on every timeframe opens, manipulates against the intended direction, then expands. On a bullish day the open is near the high of the manipulation leg, not the low of the range."
+    },
+    {
+      "id": "rb",
+      "name": "Rejection Block",
+      "gloss": "Wick-based array",
+      "body": "Built from the wicks, not the bodies — a cluster of failed highs or lows where price was rejected. Trades as a level when price returns to the wick zone with displacement behind it."
+    },
+    {
+      "id": "ob",
+      "name": "Order Block",
+      "gloss": "Last opposing candle",
+      "body": "The final down-close candle before an up-move (or up-close before a down-move). Valid only when the move away from it displaced and left an imbalance."
+    },
+    {
+      "id": "pb",
+      "name": "Propulsion Block",
+      "gloss": "Order block on an order block",
+      "body": "Price returns to an existing order block and forms a new one inside its upper or lower half. The nested block propels the next leg — a continuation array, not a reversal one."
+    },
+    {
+      "id": "fvg",
+      "name": "FVG",
+      "gloss": "Fair Value Gap",
+      "body": "A three-candle imbalance left behind by a displacement leg. Price returns to rebalance it — the entry is the first touch of the gap in the direction of the higher-timeframe draw."
+    },
+    {
+      "id": "bisi",
+      "name": "BISI",
+      "gloss": "Buyside Imbalance · Sellside Inefficiency",
+      "body": "An up-side gap: buying pressure left inefficiency below. Treated as a discount array — support on the first revisit while the draw stays higher."
+    },
+    {
+      "id": "sibi",
+      "name": "SIBI",
+      "gloss": "Sellside Imbalance · Buyside Inefficiency",
+      "body": "The inverse of BISI: a down-side gap leaving inefficiency above. A premium array — resistance on the first revisit while the draw stays lower."
+    },
+    {
+      "id": "susp",
+      "name": "Suspension Block",
+      "gloss": "Consolidation array",
+      "body": "A tight band where price suspends before continuing. Not an entry on its own — it marks where the algorithm paused, and its edges become reference on the return."
+    },
+    {
+      "id": "brkr",
+      "name": "Breaker Block",
+      "gloss": "Failed order block",
+      "body": "An order block that price traded fully through. On the retest from the other side it flips polarity — the failure is what makes it tradeable."
+    },
+    {
+      "id": "mit",
+      "name": "Mitigation Block",
+      "gloss": "Loss-mitigation array",
+      "body": "Formed where a prior position was underwater: price returns to the origin of the failed leg to mitigate before continuing in the original direction."
+    },
+    {
+      "id": "rfl",
+      "name": "LRLR",
+      "gloss": "Low Resistance Liquidity Run",
+      "body": "A clean path with no arrays in the way — price runs freely to the draw. Low resistance means little to slow delivery, so the move is fast and the target is the pooled liquidity at the end of it."
+    },
+    {
+      "id": "d3hl",
+      "name": "3-Day High / Low",
+      "gloss": "Three-session extremes",
+      "body": "The highest high and lowest low of the last three sessions. Short-term liquidity pools that the algorithm reaches for before committing to the weekly draw — a 3-day low taken in a bullish week is the setup, not the warning."
+    },
+    {
+      "id": "hrlr",
+      "name": "HRLR",
+      "gloss": "High Resistance Liquidity Run",
+      "body": "The opposite of LRLR: the path to the draw is littered with arrays and old levels, so delivery is slow and choppy. Trading into high resistance is how a good idea still loses."
+    },
+    {
+      "id": "dol",
+      "name": "Equal H/L",
+      "gloss": "Equal highs and lows",
+      "body": "Two or more highs or lows sitting at the same price. The flat edge is where stops pool, which makes it the cleanest draw on the chart — price reaches for it before reversing or continuing."
+    },
+    {
+      "id": "nwog",
+      "name": "NWOG",
+      "gloss": "New Week Opening Gap",
+      "body": "The gap between Friday’s 16:00 close and Sunday’s 18:00 open. Its upper edge, lower edge and midpoint act as reference all week."
+    },
+    {
+      "id": "ndog",
+      "name": "NDOG",
+      "gloss": "New Day Opening Gap",
+      "body": "The same idea daily: the gap between the 16:00 close and the 18:00 open. A short-term array that most often gets rebalanced inside the session."
+    },
+    {
+      "id": "ohlc",
+      "name": "OHLC",
+      "gloss": "Open · High · Low · Close",
+      "body": "The four prices that define any candle. Which of the high or low forms first is the read — a bullish day tends to set the low before the high."
+    },
+    {
+      "id": "sb",
+      "name": "AM Silver Bullet",
+      "gloss": "10:00–11:00 ET",
+      "body": "The New York AM window. Requires a displacement leg into the hour and an FVG left behind. Strongest of the three — it runs with the RTH open still in play."
+    },
+    {
+      "id": "sbpm",
+      "name": "PM Silver Bullet",
+      "gloss": "14:00–15:00 ET",
+      "body": "The afternoon window. Same rules as the AM setup, but the draw is usually the session extreme rather than a new one — takes what the morning left unfinished."
+    },
+    {
+      "id": "sblo",
+      "name": "London Silver Bullet",
+      "gloss": "03:00–04:00 ET",
+      "body": "The London window. Runs into the London open expansion, so the displacement is often steeper and the gap smaller — size accordingly."
+    },
+    {
+      "id": "smt",
+      "name": "SMT",
+      "gloss": "Smart Money Technique",
+      "body": "Divergence between correlated indices. NQ makes the low, ES confirms, YM fails — the failure is the tell that the low is real."
+    },
+    {
+      "id": "ifvg",
+      "name": "IFVG",
+      "gloss": "Inversion Fair Value Gap",
+      "body": "An FVG that price closed decisively through. It inverts — a bullish gap becomes resistance, a bearish gap becomes support, on the retest."
+    },
+    {
+      "id": "rcfvg",
+      "name": "Reclaimed FVG",
+      "gloss": "Gap retaken in the original direction",
+      "body": "An FVG price traded through and then reclaimed — the close back inside restores it as a valid array. The reclaim is the confirmation; the retest of the reclaimed edge is the entry."
+    },
+    {
+      "id": "ote",
+      "name": "OTE",
+      "gloss": "Optimal Trade Entry",
+      "body": "The 62–79% retracement of a displacement leg. Deepest discount that still respects the leg, usually taken at the 70.5% level with the FVG confluent."
+    },
+    {
+      "id": "erl",
+      "name": "ERL / IRL",
+      "gloss": "External · Internal Range Liquidity",
+      "body": "ERL is the old high or low; IRL is the arrays inside the range (FVGs, order blocks). Delivery alternates between them — ERL to IRL, then IRL back to ERL."
+    },
+    {
+      "id": "eq",
+      "name": "Equilibrium",
+      "gloss": "50% of the dealing range",
+      "body": "The midpoint that splits premium from discount. Above it you are buying at a premium; below it you are selling at a discount."
+    },
+    {
+      "id": "t-asian",
+      "name": "Asian Open",
+      "gloss": "20:00–22:00 ET",
+      "body": "The Asian session opens and builds the overnight range. Low volume, tight delivery — its high and low become the range London manipulates through."
+    },
+    {
+      "id": "t-18",
+      "name": "18:00 Opening Price",
+      "gloss": "Futures session open",
+      "body": "Where the new futures day actually begins. Price relative to the 18:00 open frames the whole overnight session, and the gap it leaves against the 16:00 close is the NDOG."
+    },
+    {
+      "id": "t-mid",
+      "name": "Midnight Open",
+      "gloss": "00:00 ET",
+      "body": "The true day open. Price above it puts the session in premium, below it in discount — the single most useful reference for whether the day is bullish or bearish."
+    },
+    {
+      "id": "t-lo",
+      "name": "London Open",
+      "gloss": "01:30–02:00 ET",
+      "body": "The London open expansion. Usually delivers the Judas leg against the daily bias before turning — the first real displacement of the day."
+    },
+    {
+      "id": "t-lkz",
+      "name": "London Kill-zone",
+      "gloss": "02:00–05:00 ET",
+      "body": "The London killzone. Where the session high or low most often forms, and where the FVG that New York later respects gets left behind."
+    },
+    {
+      "id": "t-pre",
+      "name": "NY Pre-market",
+      "gloss": "07:00–09:30 ET",
+      "body": "Pre-market positioning into the cash open. Sets up the RTH gap and often runs the overnight extremes before 09:30."
+    },
+    {
+      "id": "t-am",
+      "name": "NY AM Session",
+      "gloss": "09:30–11:00 ET",
+      "body": "The highest-probability window of the day. The RTH open, the 09:30 purge, and the AM Silver Bullet all sit inside it."
+    },
+    {
+      "id": "t-lunch",
+      "name": "NY Lunch",
+      "gloss": "11:30–13:30 ET",
+      "body": "Lunch-hour consolidation. Delivery slows and ranges tighten — the arrays formed here are for the PM session, not for trading during it."
+    },
+    {
+      "id": "t-pm",
+      "name": "NY PM Session",
+      "gloss": "13:30–16:00 ET",
+      "body": "The afternoon drive. Either continues the AM direction or reverses it — the PM Silver Bullet and the final-hour run both live here."
+    },
+    {
+      "id": "t-final",
+      "name": "Final Hour",
+      "gloss": "16:00–17:00 ET",
+      "body": "The last hour before the close. Positions get squared and the close prints, which sets the daily candle and the next day’s reference."
+    },
+    {
+      "id": "rth",
+      "name": "RTH",
+      "gloss": "Regular Trading Hours",
+      "body": "The 09:30–16:00 ET cash session. Its open, high, low and close form their own dealing range, and the RTH gap against the overnight session is where the delivery profile is read."
+    },
+    {
+      "id": "ifed",
+      "name": "1st Presented FVG",
+      "gloss": "First gap after the open",
+      "body": "The first fair value gap presented after the session open. Taken on its first touch, in line with the higher-timeframe draw, before any later gap in the same leg."
+    },
+    {
+      "id": "rth05",
+      "name": "RTH −0.5 Levels",
+      "gloss": "Half-range projections off RTH",
+      "body": "The RTH range projected in 0.5 increments below its low and above its high — −0.5, −1.0, +0.5, +1.0. Where the cash session terminates once it trades outside its own range."
+    },
+    {
+      "id": "protr",
+      "name": "Protraction Range",
+      "gloss": "Fib 2 – 2.5 and 4.5 – 5 of the manipulation leg",
+      "body": "Measure the manipulation leg and project it: the 2 – 2.5 band is where the first protraction exhausts, the 4.5 – 5 band where an extended one does. Price runs past the obvious level into these zones before the real leg begins — the raid is the point, so treat them as where the manipulation ends, not as targets."
+    },
+    {
+      "id": "hexa",
+      "name": "Hexadecant Levels",
+      "gloss": "Range split into sixteenths",
+      "body": "The dealing range divided into sixteen — 6.25% increments. The finest subdivision in use: reach for it when price is delivering in a compressed range and the octants are too wide to read."
+    },
+    {
+      "id": "fifth",
+      "name": "Octants Levels",
+      "gloss": "Range split into eighths",
+      "body": "The dealing range divided into eight — 12.5%, 25%, 37.5%, 50%, 62.5%, 75%, 87.5%. Finer than quadrants, and useful when price is delivering inside a tight range where the 0.5 does not give enough resolution."
+    },
+    {
+      "id": "quad",
+      "name": "Quadrant Levels",
+      "gloss": "Range split into quarters",
+      "body": "The dealing range split into quarters. The 25% and 75% quadrants are where retracements stall inside premium and discount, and the quadrant a candle opens in tells you which half the algorithm is working."
+    },
+    {
+      "id": "m-as1",
+      "name": "ASIAN 1",
+      "gloss": "20:50 – 21:10 ET (8:50 – 9:10 PM)",
+      "body": "First Asian macro, shortly after the 20:00 open. Where the Asian range starts being built — the raid here usually defines one edge of the range London later manipulates."
+    },
+    {
+      "id": "m-as2",
+      "name": "ASIAN 2",
+      "gloss": "21:50 – 22:10 ET (9:50 – 10:10 PM)",
+      "body": "Second Asian macro, closing the session. Completes the Asian range: the high and low set across these two windows are the levels the London open trades away from."
+    },
+    {
+      "id": "m-lo1",
+      "name": "LONDON 1",
+      "gloss": "01:30 – 02:00 ET",
+      "body": "The London open macro. Price is repriced away from the Asian range before the session proper — the first raid of the day and the one that sets London’s direction."
+    },
+    {
+      "id": "m-lo2",
+      "name": "LONDON 2",
+      "gloss": "02:50 – 03:10 ET",
+      "body": "Mid-session London macro. Continuation window: it extends the leg London 1 established rather than starting a new one."
+    },
+    {
+      "id": "m-lo3",
+      "name": "LONDON 3",
+      "gloss": "04:30 – 05:00 ET",
+      "body": "The London close macro. Positions are unwound into the close, which often reverses the session leg and leaves the high or low of the London range."
+    },
+    {
+      "id": "m-am0",
+      "name": "NY AM",
+      "gloss": "08:50 – 09:10 ET",
+      "body": "Pre-open macro, before the cash open. Sets the opening imbalance and frequently prints the level the 09:30 open then trades away from."
+    },
+    {
+      "id": "m-am1",
+      "name": "NY AM1",
+      "gloss": "09:50 – 10:10 ET",
+      "body": "First post-open macro. The 09:30 push is either confirmed or reversed here — the highest-probability AM window when the daily bias is clear."
+    },
+    {
+      "id": "m-am2",
+      "name": "NY AM2",
+      "gloss": "10:50 – 11:10 ET",
+      "body": "Second AM macro, overlapping the Silver Bullet hour. Late continuation or the AM session’s final raid before lunch."
+    },
+    {
+      "id": "m-lunch",
+      "name": "LUNCH",
+      "gloss": "11:50 – 12:10 ET",
+      "body": "Lunch macro. Thin liquidity, so moves are sharp but rarely hold — treat it as a rebalancing window, not a trend one."
+    },
+    {
+      "id": "m-pm",
+      "name": "PM",
+      "gloss": "13:50 – 14:10 ET",
+      "body": "The PM session macro. Where the afternoon leg begins, typically delivering toward the level the AM session left unfinished."
+    },
+    {
+      "id": "m-close",
+      "name": "CLOSE",
+      "gloss": "15:15 – 15:45 ET",
+      "body": "Closing macro. The last real repricing window — algorithmic delivery into the settlement, often the day’s cleanest expansion."
+    },
+    {
+      "id": "m-final",
+      "name": "FINAL",
+      "gloss": "15:50 – 16:00 ET",
+      "body": "The final ten minutes. Settlement print only: positioning and imbalance, not a window to enter on."
+    },
+    {
+      "id": "amd",
+      "name": "AMD",
+      "gloss": "Accumulation · Manipulation · Distribution",
+      "body": "The three-phase cycle underneath every market maker model. Accumulation builds the position sideways, manipulation raids the opposite side to fill it, distribution delivers to the draw. Name the phase you are in before naming the setup — the same array means different things in each."
+    },
+    {
+      "id": "prem",
+      "name": "Premium",
+      "gloss": "Above equilibrium",
+      "body": "The upper half of the dealing range. You only sell here — buying at a premium means paying above the range midpoint and giving the algorithm room to reprice against you."
+    },
+    {
+      "id": "disc",
+      "name": "Discount",
+      "gloss": "Below equilibrium",
+      "body": "The lower half of the dealing range. You only buy here — the discount is where the market maker accumulates before repricing to premium."
+    },
+    {
+      "id": "ceq",
+      "name": "Consequent Encroachment",
+      "gloss": "Midpoint of a gap or wick",
+      "body": "The 50% of an FVG, order block or wick — the level inside the array where price most often turns. When a gap only fills halfway, this is the line it respected."
+    },
+    {
+      "id": "proj",
+      "name": "Range Projection",
+      "gloss": "0.5 levels beyond the range",
+      "body": "Once a range is taken, project it in 0.5 increments from the breach — 0.5, 1.0, 1.5, 2.0 of the original leg. Standard deviation targets for where expansion terminates."
+    },
+    {
+      "id": "judas",
+      "name": "Judas Swing",
+      "gloss": "False open move",
+      "body": "The first move after an open runs the wrong way to trap early entries, then reverses into the true direction. Most visible at the London and New York opens."
+    },
+    {
+      "id": "turtle",
+      "name": "Turtle Soup",
+      "gloss": "Failed breakout",
+      "body": "A run past an obvious old high or low that immediately fails and closes back inside. The stops above the level were the liquidity the move was after."
+    }
+  ]
+}

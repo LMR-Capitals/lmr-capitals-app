@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LMR Observation — drop-in section</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+<!-- ============================================================
+     LMR CAPITALS · OBSERVATION SECTION
+     Paste-ready for index.html. Three parts:
+       1. <style id="lmr-obs-css">   → into <head>
+       2. <div id="p-lmrobs">        → panel sibling
+       3. <script id="lmr-obs-js">   → before </body>
+     Reads/writes state.observations[]; chart images live in IndexedDB
+     keyed by each post's imgKey. Hook the host app in OBS_PERSIST.
+     ============================================================ -->
+
+<style id="lmr-obs-css">
+#p-lmrobs{
+  --o-bg:var(--bg1,#0A0A0F); --o-surface:var(--bg2,#101018);
+  --o-inset:var(--bg3,#14141C); --o-chip:#1A1A24;
+  --o-line:var(--border,rgba(255,255,255,0.08));
+  --o-txt:var(--text1,#EDEDF2); --o-mut:var(--text2,#A0A0B0);
+  --o-dim:var(--text3,#7A7A8C);
+  --o-gold:var(--gold,#F5A623); --o-rose:var(--bear,#FF4060);
+  --o-green:var(--bull,#3fb950); --o-blue:#6ea8fe;
+  --o-discord:#5865F2;
+  font-family:'Inter',system-ui,sans-serif; color:var(--o-txt);
+}
+#p-lmrobs .o-wrap{padding:20px 24px 48px;display:flex;flex-direction:column;gap:16px;max-width:1000px}
+#p-lmrobs .o-eyebrow{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+#p-lmrobs .o-sub{font-size:12px;color:var(--o-dim)}
+#p-lmrobs .o-lab{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--o-dim)}
+
+/* ── composer ──────────────────────────────────────────────── */
+#p-lmrobs .o-comp{border:1px solid var(--o-line);background:var(--o-surface);display:flex;flex-direction:column}
+#p-lmrobs .o-chead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--o-line);background:var(--o-inset)}
+#p-lmrobs .o-cbody{display:flex;flex-direction:column;gap:12px;padding:14px}
+#p-lmrobs .o-row{display:grid;grid-template-columns:130px minmax(0,1fr);gap:10px;align-items:center}
+#p-lmrobs .o-in{width:100%;box-sizing:border-box;background:var(--o-chip);border:1px solid var(--o-line);border-radius:3px;padding:9px 11px;color:var(--o-txt);font-family:'Inter',sans-serif;font-size:13px;outline:0}
+#p-lmrobs .o-in:focus{border-color:var(--o-gold)}
+#p-lmrobs .o-ta{width:100%;box-sizing:border-box;background:var(--o-chip);border:1px solid var(--o-line);border-radius:3px;padding:11px;color:var(--o-txt);font-family:'Inter',sans-serif;font-size:14px;line-height:1.65;outline:0;resize:vertical;min-height:112px}
+#p-lmrobs .o-ta:focus{border-color:var(--o-gold)}
+#p-lmrobs .o-chips{display:flex;gap:7px;flex-wrap:wrap}
+#p-lmrobs .o-chip{background:var(--o-chip);border:1px solid var(--o-line);padding:6px 13px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;letter-spacing:.04em;color:var(--o-mut)}
+#p-lmrobs .o-chip[aria-pressed="true"]{color:var(--o-bg);border-color:transparent}
+#p-lmrobs .o-tagchip{background:transparent;border:1px solid var(--o-line);padding:5px 11px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;color:var(--o-dim)}
+#p-lmrobs .o-tagchip[aria-pressed="true"]{color:var(--o-txt);border-color:var(--o-gold);background:rgba(245,166,35,.10)}
+#p-lmrobs .o-drop{position:relative;width:100%;aspect-ratio:16/9;max-height:250px;background:var(--o-inset);border:1px dashed #2E2E3A;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer}
+#p-lmrobs .o-drop.is-over{border-color:var(--o-gold);background:rgba(245,166,35,.06)}
+#p-lmrobs .o-drop img{width:100%;height:100%;object-fit:cover;display:block}
+#p-lmrobs .o-dph{font-size:12px;color:var(--o-dim);text-align:center;padding:0 16px;line-height:1.6}
+#p-lmrobs .o-x{position:absolute;top:6px;right:6px;z-index:4;width:24px;height:24px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;border:1px solid rgba(255,255,255,.25);border-radius:3px;background:rgba(0,0,0,.62);color:#fff;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px}
+#p-lmrobs .o-cfoot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-top:1px solid var(--o-line)}
+#p-lmrobs .o-btn{background:transparent;border:1px solid var(--o-line);padding:8px 13px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;color:var(--o-txt)}
+#p-lmrobs .o-btn:hover{background:var(--o-chip)}
+#p-lmrobs .o-post{margin-left:auto;background:var(--o-gold);border:0;padding:9px 20px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:12px;color:var(--o-bg)}
+#p-lmrobs .o-post[disabled]{opacity:.4;cursor:not-allowed}
+#p-lmrobs .o-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--o-dim)}
+
+/* ── feed ──────────────────────────────────────────────────── */
+#p-lmrobs .o-feedhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+#p-lmrobs .o-filters{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+#p-lmrobs .o-feed{display:flex;flex-direction:column;gap:12px}
+#p-lmrobs .o-card{border:1px solid var(--o-line);border-left-width:3px;background:var(--o-surface);display:flex;flex-direction:column}
+#p-lmrobs .o-khead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--o-line)}
+#p-lmrobs .o-tag{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:99px}
+#p-lmrobs .o-ktitle{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#p-lmrobs .o-kdate{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--o-dim);flex:none}
+#p-lmrobs .o-kdel{flex:none;background:transparent;border:1px solid var(--o-line);width:26px;height:26px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;border-radius:99px;color:var(--o-rose);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px}
+#p-lmrobs .o-ktext{margin:0;padding:14px;font-size:14px;line-height:1.7;color:var(--o-mut);white-space:pre-wrap;text-wrap:pretty}
+#p-lmrobs .o-kimg{margin:0 14px 14px;border:1px solid var(--o-line);border-radius:8px;overflow:hidden;background:var(--o-inset)}
+#p-lmrobs .o-kimg img{width:100%;display:block}
+#p-lmrobs .o-ktags{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 12px}
+#p-lmrobs .o-ktag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--o-dim);border:1px solid var(--o-line);border-radius:99px;padding:2px 8px}
+#p-lmrobs .o-kfoot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:0 14px 13px}
+#p-lmrobs .o-share{background:transparent;border:1px solid var(--o-line);border-radius:99px;padding:5px 12px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:10px;letter-spacing:.06em;color:var(--o-dim)}
+#p-lmrobs .o-share:hover{color:var(--o-txt);border-color:var(--o-gold)}
+#p-lmrobs .o-sent{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--o-green)}
+#p-lmrobs .o-none{border:1px dashed var(--o-line);padding:26px 16px;text-align:center;font-size:13px;color:var(--o-dim)}
+
+/* ── webhook bar ───────────────────────────────────────────── */
+#p-lmrobs .o-hook{border:1px solid var(--o-line);background:var(--o-surface);display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px}
+#p-lmrobs .o-hook .o-in{flex:1;min-width:220px}
+#p-lmrobs .o-dot{width:8px;height:8px;border-radius:99px;flex:none}
+</style>
+</head>
+<body style="margin:0;background:#0A0A0F">
+
+<!-- ==== 2. PANEL ==== -->
+<div class="panel" id="p-lmrobs"><div class="o-wrap">
+
+  <div class="o-comp">
+    <div class="o-chead">
+      <span class="o-eyebrow">New observation</span>
+      <span class="o-sub" id="oDayHint"></span>
+      <span class="o-count" id="oChars" style="margin-left:auto">0</span>
+    </div>
+    <div class="o-cbody">
+      <div class="o-chips" id="oKinds"></div>
+      <div class="o-row">
+        <span class="o-lab">Date</span>
+        <input class="o-in" type="date" id="oDate">
+        <span class="o-lab">Market</span>
+        <input class="o-in" type="text" id="oMarket" placeholder="NQ, ES, GC …">
+        <span class="o-lab">Headline</span>
+        <input class="o-in" type="text" id="oTitle" placeholder="What you are calling — one line">
+      </div>
+      <textarea class="o-ta" id="oText" placeholder="The read: where price is in the delivery, which array is in play, and what invalidates it."></textarea>
+      <div>
+        <span class="o-lab" style="display:block;margin-bottom:7px">Concepts</span>
+        <div class="o-chips" id="oTags"></div>
+      </div>
+      <div class="o-drop" id="oDrop">
+        <span class="o-dph">Click, drop or paste the chart<br>It posts with the observation and shows inside the card</span>
+      </div>
+    </div>
+    <div class="o-cfoot">
+      <button class="o-btn" id="oShot">Screenshot</button>
+      <button class="o-btn" id="oClear">Clear</button>
+      <button class="o-post" id="oPost" disabled>Post observation</button>
+    </div>
+  </div>
+
+  <div class="o-hook">
+    <span class="o-dot" id="oHookDot"></span>
+    <span class="o-lab">Discord webhook</span>
+    <input class="o-in" type="text" id="oHook" placeholder="https://discord.com/api/webhooks/…">
+    <button class="o-btn" id="oHookSave">Save</button>
+    <button class="o-btn" id="oHookTest">Test</button>
+  </div>
+
+  <div class="o-feedhead">
+    <span class="o-eyebrow">Posted</span>
+    <span class="o-sub" id="oCount"></span>
+    <div class="o-filters" id="oFilters"></div>
+  </div>
+  <div class="o-feed" id="oFeed"></div>
+</div></div>
+
+<!-- ==== 3. LOGIC ==== -->
+<script id="lmr-obs-js">
+(function(){
+'use strict';
+
+// Observation kinds. Colour is the card's left border and its tag.
+var KINDS = [
+  ['Setup',      'var(--o-gold)'],
+  ['Invalidated','var(--o-rose)'],
+  ['Playbook',   'var(--o-blue)'],
+  ['Review',     'var(--o-green)']
+];
+
+// LMR concept vocabulary — the tags a post can carry.
+var TAGS = ['Accumulation','Manipulation','Distribution','Judas Swing','OTE','FVG','BISI','SIBI',
+            'Order Block','Breaker','NWOG','NDOG','Liquidity Void','Equal Highs','Equal Lows',
+            'Turtle Soup','SMT','Silver Bullet','Macro','PD Array','Draw on Liquidity'];
+
+// ── PERSISTENCE ────────────────────────────────────────────────
+var OBS_PERSIST = {
+  read: function(){
+    if (typeof state === 'object' && state) return state;
+    try { return JSON.parse(localStorage.getItem('lmr_obs') || '{}'); }
+    catch(e){ return {}; }
+  },
+  write: function(rec){
+    if (typeof save === 'function') save();
+    else { try { localStorage.setItem('lmr_obs', JSON.stringify({observations:S.observations})); } catch(e){} }
+    if (rec && typeof sbSyncRecord === 'function' && typeof _sbUserId !== 'undefined' && _sbUserId) {
+      try {
+        sbSyncRecord('observations', {
+          id:String(rec.id), user_id:_sbUserId, date:rec.date||null, kind:rec.kind||null,
+          market:rec.market||null, title:rec.title||null, content:rec.text||'',
+          tags:(rec.tags||[]).join(','), created_at:rec.createdAt
+        });
+      } catch(e){}
+    }
+  },
+  del: function(id){ if (typeof sbDeleteRecord==='function'){ try{ sbDeleteRecord('observations', id); }catch(e){} } },
+  // NEVER localStorage for images — base64 there throws QuotaExceededError.
+  saveImg: function(k,b){ return (typeof saveImg==='function') ? saveImg(k,b) : Promise.resolve(_mem[k]=b); },
+  getImg:  function(k){   return (typeof getImg ==='function') ? getImg(k)    : Promise.resolve(_mem[k]); }
+};
+var _mem = {};
+var HOOK_LS = 'lmr_discord_hook';
+
+var S = OBS_PERSIST.read();
+S.observations = S.observations || [];
+
+var draft = { kind:'Setup', img:null, tags:[] };
+var oFilter = 'All';
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function today(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(iso){
+  if(!iso) return '';
+  var d=new Date(iso+'T00:00:00');
+  return isNaN(d) ? iso : d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+function colourFor(k){
+  for(var i=0;i<KINDS.length;i++) if(KINDS[i][0]===k) return KINDS[i][1];
+  return 'var(--o-line)';
+}
+function dayCount(iso){
+  if (typeof dayCountFor === 'function'){ try { return dayCountFor(iso); } catch(e){} }
+  return null;
+}
+
+// ── CHIPS ─────────────────────────────────────────────────────
+function renderKinds(){
+  document.getElementById('oKinds').innerHTML = KINDS.map(function(k){
+    var on = draft.kind===k[0];
+    return '<button class="o-chip" data-kind="'+k[0]+'" aria-pressed="'+on+'"'
+         + (on ? ' style="background:'+k[1]+'"' : '') + '>'+k[0]+'</button>';
+  }).join('');
+}
+function renderTags(){
+  document.getElementById('oTags').innerHTML = TAGS.map(function(t){
+    var on = draft.tags.indexOf(t)>-1;
+    return '<button class="o-tagchip" data-tag="'+esc(t)+'" aria-pressed="'+on+'">'+esc(t)+'</button>';
+  }).join('');
+}
+function renderFilters(){
+  var opts = ['All'].concat(KINDS.map(function(k){return k[0];}));
+  document.getElementById('oFilters').innerHTML = opts.map(function(o){
+    return '<button class="o-tagchip" data-filter="'+o+'" aria-pressed="'+(oFilter===o)+'">'+o+'</button>';
+  }).join('');
+}
+
+// ── DROP ZONE ─────────────────────────────────────────────────
+function paintDrop(){
+  var box=document.getElementById('oDrop');
+  box.innerHTML = draft.img
+    ? '<img src="'+draft.img+'" alt=""><button class="o-x" data-clearimg="1" title="Remove image">\u00d7</button>'
+    : '<span class="o-dph">Click, drop or paste the chart<br>It posts with the observation and shows inside the card</span>';
+}
+function pickFile(){
+  var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+  inp.onchange=function(){
+    var f=inp.files[0]; if(!f) return;
+    var r=new FileReader(); r.onload=function(){ draft.img=r.result; paintDrop(); };
+    r.readAsDataURL(f);
+  };
+  inp.click();
+}
+function screenshot(){
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){
+    alert('Screen capture is not available in this browser \u2014 paste or drop the chart instead.');
+    return;
+  }
+  navigator.mediaDevices.getDisplayMedia({video:true}).then(function(stream){
+    var track=stream.getVideoTracks()[0], video=document.createElement('video');
+    video.srcObject=stream; video.muted=true;
+    video.onloadedmetadata=function(){
+      video.play();
+      setTimeout(function(){
+        var c=document.createElement('canvas');
+        c.width=video.videoWidth; c.height=video.videoHeight;
+        c.getContext('2d').drawImage(video,0,0);
+        draft.img=c.toDataURL('image/png'); track.stop(); paintDrop();
+      },260);
+    };
+  }).catch(function(){});
+}
+
+// ── POST ──────────────────────────────────────────────────────
+function refreshPostState(){
+  var t=document.getElementById('oText').value;
+  document.getElementById('oChars').textContent = t.length;
+  document.getElementById('oPost').disabled = !t.trim();
+}
+
+function clearComposer(){
+  document.getElementById('oText').value='';
+  document.getElementById('oTitle').value='';
+  document.getElementById('oMarket').value='';
+  draft.img=null; draft.tags=[];
+  paintDrop(); renderTags(); refreshPostState();
+}
+
+function post(){
+  var text=document.getElementById('oText').value.trim();
+  if(!text) return;
+  var id=Date.now();
+  var rec={
+    id:id, kind:draft.kind,
+    title:document.getElementById('oTitle').value.trim(),
+    market:document.getElementById('oMarket').value.trim(),
+    date:document.getElementById('oDate').value || today(),
+    text:text, tags:draft.tags.slice(),
+    // The key lives ON the post, so the chart renders inside its card.
+    imgKey: draft.img ? ('obs-'+id) : null,
+    sentTo:[], createdAt:new Date().toISOString()
+  };
+  var done=function(){
+    S.observations.unshift(rec);          // newest first
+    OBS_PERSIST.write(rec);
+    clearComposer(); render();
+    if (typeof flash==='function') flash('\u2713 Observation posted');
+  };
+  if (rec.imgKey) OBS_PERSIST.saveImg(rec.imgKey, draft.img).then(done);
+  else done();
+}
+
+// ── SHARE ─────────────────────────────────────────────────────
+function postText(r){
+  var lines=[];
+  lines.push('**'+(r.title || r.kind)+'**'+(r.market ? ' \u00b7 '+r.market : ''));
+  lines.push(r.text);
+  if (r.tags && r.tags.length) lines.push(r.tags.map(function(t){return '#'+t.replace(/\s+/g,'');}).join(' '));
+  lines.push('\u2014 LMR Capitals \u00b7 '+fmtDate(r.date));
+  return lines.join('\n\n');
+}
+
+function sendDiscord(r){
+  var url=(localStorage.getItem(HOOK_LS)||'').trim();
+  if(!url){ alert('Add your Discord webhook URL first.'); return; }
+  fetch(url, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({username:'LMR Capitals', content:postText(r)})
+  }).then(function(res){
+    if(!res.ok) throw new Error(res.status);
+    if (r.sentTo.indexOf('Discord')<0) r.sentTo.push('Discord');
+    OBS_PERSIST.write(r); render();
+    if (typeof flash==='function') flash('\u2713 Sent to Discord');
+  }).catch(function(){ alert('Discord rejected the post \u2014 check the webhook URL.'); });
+}
+
+function sendTwitter(r){
+  var t = postText(r).replace(/\*\*/g,'');
+  window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(t.slice(0,270)), '_blank', 'noopener');
+  if (r.sentTo.indexOf('X')<0) r.sentTo.push('X');
+  OBS_PERSIST.write(r); render();
+}
+
+function copyPost(r){
+  var t = postText(r).replace(/\*\*/g,'');
+  if (navigator.clipboard) navigator.clipboard.writeText(t);
+  if (typeof flash==='function') flash('\u2713 Copied');
+}
+
+// ── WEBHOOK BAR ───────────────────────────────────────────────
+function paintHook(){
+  var url=(localStorage.getItem(HOOK_LS)||'');
+  document.getElementById('oHook').value=url;
+  document.getElementById('oHookDot').style.background = url ? 'var(--o-discord)' : 'var(--o-line)';
+}
+
+// ── FEED ──────────────────────────────────────────────────────
+function cardHTML(r){
+  var accent=colourFor(r.kind), dc=dayCount(r.date);
+  return '<article class="o-card" style="border-left-color:'+accent+'">'
+    + '<div class="o-khead">'
+      + '<span class="o-tag" style="background:'+accent+'26;color:'+accent+'">'+esc(r.kind)+'</span>'
+      + '<span class="o-ktitle">'+esc(r.title || r.kind)+(r.market ? ' \u00b7 '+esc(r.market) : '')+'</span>'
+      + '<span class="o-kdate">'+esc(fmtDate(r.date))+(dc!=null?' \u00b7 D'+dc:'')+'</span>'
+      + '<button class="o-kdel" data-del="'+r.id+'" title="Delete">\u00d7</button>'
+    + '</div>'
+    + '<p class="o-ktext">'+esc(r.text)+'</p>'
+    + (r.imgKey ? '<div class="o-kimg" data-slot="'+esc(r.imgKey)+'"></div>' : '')
+    + ((r.tags&&r.tags.length) ? '<div class="o-ktags">'+r.tags.map(function(t){
+        return '<span class="o-ktag">'+esc(t)+'</span>'; }).join('')+'</div>' : '')
+    + '<div class="o-kfoot">'
+      + '<button class="o-share" data-discord="'+r.id+'">Discord</button>'
+      + '<button class="o-share" data-x="'+r.id+'">Post to X</button>'
+      + '<button class="o-share" data-copy="'+r.id+'">Copy</button>'
+      + ((r.sentTo&&r.sentTo.length) ? '<span class="o-sent">\u2713 '+esc(r.sentTo.join(' \u00b7 '))+'</span>' : '')
+    + '</div>'
+  + '</article>';
+}
+
+function paintCardImages(root){
+  Array.prototype.forEach.call(root.querySelectorAll('[data-slot]'), function(box){
+    OBS_PERSIST.getImg(box.dataset.slot).then(function(src){
+      if (src) box.innerHTML='<img src="'+src+'" alt="">';
+      else box.remove();
+    });
+  });
+}
+
+function render(){
+  var rows = oFilter==='All' ? S.observations : S.observations.filter(function(r){return r.kind===oFilter;});
+  var feed=document.getElementById('oFeed');
+  document.getElementById('oCount').textContent =
+    rows.length + (rows.length===1?' post':' posts') + (oFilter==='All'?'':' \u00b7 '+oFilter);
+  feed.innerHTML = rows.length
+    ? rows.map(cardHTML).join('')
+    : '<div class="o-none">No observations yet \u2014 write the first read above.</div>';
+  paintCardImages(feed);
+  renderFilters();
+}
+
+function byId(id){
+  return S.observations.filter(function(r){return String(r.id)===String(id);})[0];
+}
+
+// ── EVENTS ────────────────────────────────────────────────────
+document.addEventListener('click', function(e){
+  var el=e.target.closest('[data-kind],[data-tag],[data-filter],[data-clearimg],[data-del],[data-discord],[data-x],[data-copy],#oDrop,#oPost,#oShot,#oClear,#oHookSave,#oHookTest');
+  if(!el) return;
+  var d=el.dataset;
+
+  if (d.kind){ draft.kind=d.kind; renderKinds(); return; }
+  if (d.tag){
+    var i=draft.tags.indexOf(d.tag);
+    if(i>-1) draft.tags.splice(i,1); else draft.tags.push(d.tag);
+    renderTags(); return;
+  }
+  if (d.filter){ oFilter=d.filter; render(); return; }
+  if (d.clearimg){ e.stopPropagation(); draft.img=null; paintDrop(); return; }
+  if (el.id==='oDrop'){ pickFile(); return; }
+  if (el.id==='oShot'){ screenshot(); return; }
+  if (el.id==='oClear'){ clearComposer(); return; }
+  if (el.id==='oPost'){ post(); return; }
+  if (el.id==='oHookSave'){
+    localStorage.setItem(HOOK_LS, document.getElementById('oHook').value.trim());
+    paintHook();
+    if (typeof flash==='function') flash('\u2713 Webhook saved');
+    return;
+  }
+  if (el.id==='oHookTest'){
+    var url=(document.getElementById('oHook').value||'').trim();
+    if(!url){ alert('Paste the webhook URL first.'); return; }
+    fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:'LMR Capitals',content:'LMR Capitals webhook connected.'})})
+      .then(function(res){ alert(res.ok ? 'Webhook works.' : 'Discord returned '+res.status+'.'); })
+      .catch(function(){ alert('Could not reach Discord.'); });
+    return;
+  }
+  if (d.discord){ sendDiscord(byId(d.discord)); return; }
+  if (d.x){ sendTwitter(byId(d.x)); return; }
+  if (d.copy){ copyPost(byId(d.copy)); return; }
+
+  if (d.del){
+    if(!window.confirm('Delete this observation?')) return;
+    var rec=byId(d.del);
+    if (rec && rec.imgKey) OBS_PERSIST.saveImg(rec.imgKey, null);
+    S.observations = S.observations.filter(function(r){return String(r.id)!==String(d.del);});
+    OBS_PERSIST.write(null); OBS_PERSIST.del(d.del); render();
+  }
+});
+
+document.addEventListener('input', function(e){
+  if (e.target.id==='oText') refreshPostState();
+});
+
+// Paste inside the panel lands in the drop zone.
+document.addEventListener('paste', function(e){
+  var p=document.getElementById('p-lmrobs');
+  if(!p || !(p.contains(e.target) || p.contains(document.activeElement))) return;
+  var items=(e.clipboardData||{}).items||[];
+  for(var i=0;i<items.length;i++){
+    if(items[i].type.indexOf('image')!==0) continue;
+    e.preventDefault();
+    var r=new FileReader();
+    r.onload=function(){ draft.img=r.result; paintDrop(); };
+    r.readAsDataURL(items[i].getAsFile());
+    return;
+  }
+});
+
+(function(){
+  var box=document.getElementById('oDrop');
+  box.addEventListener('dragover',function(e){ e.preventDefault(); box.classList.add('is-over'); });
+  box.addEventListener('dragleave',function(){ box.classList.remove('is-over'); });
+  box.addEventListener('drop',function(e){
+    e.preventDefault(); box.classList.remove('is-over');
+    var f=(e.dataTransfer.files||[])[0];
+    if(!f || f.type.indexOf('image')!==0) return;
+    var r=new FileReader();
+    r.onload=function(){ draft.img=r.result; paintDrop(); };
+    r.readAsDataURL(f);
+  });
+})();
+
+// ── MOUNT ─────────────────────────────────────────────────────
+function mount(){
+  document.getElementById('oDate').value = today();
+  var dc=dayCount(today());
+  if (dc!=null) document.getElementById('oDayHint').textContent='Day D'+dc;
+  renderKinds(); renderTags(); paintDrop(); paintHook(); refreshPostState(); render();
+}
+window.renderObservationSection = render;   // call from the panel switcher
+mount();
+})();
+</script>
+</body>
+</html>

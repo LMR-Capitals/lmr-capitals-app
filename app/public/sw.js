@@ -1,7 +1,9 @@
-// LMR Capitals — Service Worker v10
-// Fixes: lmrcapitals.com now always network-first (was cache-first — served old code)
+// LMR Capitals — Service Worker v11
+// v11: bump cache to force all clients to update, clear stale caches, and pull the
+// modernist redesign (v10 was byte-identical so browsers never detected an update).
+// HTML navigations are always network-first; old caches are purged on activate.
 
-const CACHE = 'lmr-v10';
+const CACHE = 'lmr-v12';
 const STATIC = [
   './chart.umd.min.js',
   './icons/icon-192.png',

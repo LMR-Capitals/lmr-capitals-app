@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LMR Psychology — drop-in section</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+<!-- ============================================================
+     LMR CAPITALS · PSYCHOLOGY
+       1. <style id="lmr-psy-css">   → into <head>
+       2. <div id="p-psychology">    → panel sibling
+       3. <script id="lmr-psy-js">   → before </body>
+
+     The score is NOT typed in. Each rule owns a detector that reads the
+     day's real trades, so the checkmarks are earned by how you actually
+     traded. The AI review then reads the same evidence and writes the
+     summary — it explains the marks, it does not award them.
+
+     Columns match public.lmr_psychology:
+       date · user_id · day_count · score · rules_met · rules_miss
+       · emotions · note · ai_summary
+     ============================================================ -->
+
+<style id="lmr-psy-css">
+#p-psychology{
+  --p-bg:var(--bg1,#0A0A0F); --p-surface:var(--bg2,#101018);
+  --p-inset:var(--bg3,#14141C); --p-chip:#1A1A24;
+  --p-line:var(--border,rgba(255,255,255,0.08));
+  --p-txt:var(--text1,#EDEDF2); --p-mut:var(--text2,#A0A0B0);
+  --p-dim:var(--text3,#7A7A8C);
+  --p-gold:var(--gold,#F5A623); --p-rose:var(--bear,#FF4060);
+  --p-green:var(--bull,#3fb950); --p-blue:#6ea8fe;
+  font-family:'Inter',system-ui,sans-serif; color:var(--p-txt);
+}
+#p-psychology .p-wrap{padding:20px 24px 48px;display:flex;flex-direction:column;gap:16px;max-width:1000px}
+#p-psychology .p-eyebrow{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+#p-psychology .p-sub{font-size:12px;color:var(--p-dim)}
+#p-psychology .p-lab{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--p-dim)}
+
+/* score header */
+#p-psychology .p-score{border:1px solid var(--p-line);background:var(--p-surface);display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;padding:18px;align-items:center}
+#p-psychology .p-ring{position:relative;width:120px;height:120px;flex:none}
+#p-psychology .p-ring svg{transform:rotate(-90deg);display:block}
+#p-psychology .p-ringv{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+#p-psychology .p-rn{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;line-height:1}
+#p-psychology .p-rl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--p-dim)}
+#p-psychology .p-sright{display:flex;flex-direction:column;gap:9px;min-width:0}
+#p-psychology .p-band{align-self:flex-start;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:4px 11px;border-radius:99px}
+#p-psychology .p-verdict{font-size:14px;line-height:1.65;color:var(--p-mut);text-wrap:pretty}
+#p-psychology .p-evid{display:flex;gap:16px;flex-wrap:wrap;padding-top:2px}
+#p-psychology .p-ev{display:flex;flex-direction:column;gap:2px}
+#p-psychology .p-evv{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700}
+#p-psychology .p-evk{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--p-dim)}
+
+/* date bar */
+#p-psychology .p-bar{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+#p-psychology .p-in{background:var(--p-chip);border:1px solid var(--p-line);border-radius:3px;padding:8px 11px;color:var(--p-txt);font-family:'Inter',sans-serif;font-size:13px;outline:0}
+#p-psychology .p-btn{background:transparent;border:1px solid var(--p-line);padding:8px 14px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;color:var(--p-txt)}
+#p-psychology .p-btn:hover{background:var(--p-chip)}
+#p-psychology .p-ai{margin-left:auto;background:var(--p-gold);border:0;padding:9px 18px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:12px;color:var(--p-bg)}
+#p-psychology .p-ai[disabled]{opacity:.5;cursor:not-allowed}
+
+/* rules */
+#p-psychology .p-rules{border:1px solid var(--p-line);background:var(--p-surface)}
+#p-psychology .p-rule{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:12px;align-items:start;padding:13px 15px;border-bottom:1px solid var(--p-line)}
+#p-psychology .p-rule:last-child{border-bottom:0}
+#p-psychology .p-mark{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:13px;flex:none;margin-top:1px}
+#p-psychology .p-mark.is-met{background:rgba(63,185,80,.14);color:var(--p-green);border:1px solid rgba(63,185,80,.35)}
+#p-psychology .p-mark.is-miss{background:rgba(255,64,96,.12);color:var(--p-rose);border:1px solid rgba(255,64,96,.32)}
+#p-psychology .p-mark.is-na{background:var(--p-chip);color:var(--p-dim);border:1px solid var(--p-line)}
+#p-psychology .p-rtext{display:flex;flex-direction:column;gap:3px;min-width:0}
+#p-psychology .p-rt{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;text-wrap:pretty}
+#p-psychology .p-rw{font-size:12px;line-height:1.6;color:var(--p-mut);text-wrap:pretty}
+#p-psychology .p-rs{flex:none;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:var(--p-dim);white-space:nowrap;margin-top:3px}
+
+/* ai summary */
+#p-psychology .p-doc{border:1px solid var(--p-line);background:var(--p-surface);display:flex;flex-direction:column}
+#p-psychology .p-dhead{display:flex;align-items:center;gap:10px;padding:13px 15px;border-bottom:1px solid var(--p-line);background:var(--p-inset)}
+#p-psychology .p-dbody{padding:15px;font-size:14px;line-height:1.75;color:var(--p-mut);white-space:pre-wrap;text-wrap:pretty}
+#p-psychology .p-note{width:100%;box-sizing:border-box;background:var(--p-chip);border:1px solid var(--p-line);border-radius:3px;padding:11px;color:var(--p-txt);font-family:'Inter',sans-serif;font-size:13px;line-height:1.6;outline:0;resize:vertical;min-height:80px}
+#p-psychology .p-none{border:1px dashed var(--p-line);padding:26px 16px;text-align:center;font-size:13px;color:var(--p-dim)}
+
+/* streak */
+#p-psychology .p-streak{display:flex;gap:3px;flex-wrap:wrap}
+#p-psychology .p-day{width:26px;height:26px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;border:1px solid var(--p-line)}
+</style>
+</head>
+<body style="margin:0;background:#0A0A0F">
+
+<!-- ==== 2. PANEL ==== -->
+<div class="panel" id="p-psychology"><div class="p-wrap">
+
+  <div class="p-bar">
+    <span class="p-lab">Day</span>
+    <input class="p-in" type="date" id="pDate">
+    <button class="p-btn" id="pPrev">◀</button>
+    <button class="p-btn" id="pToday">Today</button>
+    <button class="p-btn" id="pNext">▶</button>
+    <button class="p-ai" id="pReview">AI review this day</button>
+  </div>
+
+  <div class="p-score" id="pScore"></div>
+
+  <div>
+    <span class="p-eyebrow" style="display:block;margin-bottom:9px">Rules · earned from the day's trades</span>
+    <div class="p-rules" id="pRules"></div>
+  </div>
+
+  <div>
+    <span class="p-eyebrow" style="display:block;margin-bottom:9px">Last 20 sessions</span>
+    <div class="p-streak" id="pStreak"></div>
+  </div>
+
+  <div class="p-doc">
+    <div class="p-dhead"><span class="p-eyebrow">AI review</span>
+      <span class="p-sub" id="pAiMeta" style="margin-left:auto"></span></div>
+    <div class="p-dbody" id="pAiBody"></div>
+  </div>
+
+  <div>
+    <span class="p-eyebrow" style="display:block;margin-bottom:9px">Your own note</span>
+    <textarea class="p-note" id="pNote" placeholder="What the numbers do not show \u2014 how the day felt, and what you will change."></textarea>
+  </div>
+</div></div>
+
+<!-- ==== 3. LOGIC ==== -->
+<script id="lmr-psy-js">
+(function(){
+'use strict';
+
+// ── PERSISTENCE ────────────────────────────────────────────────
+var PSY_PERSIST = {
+  read: function(){
+    if (typeof state === 'object' && state) return state;
+    try { return JSON.parse(localStorage.getItem('lmr_psy') || '{}'); }
+    catch(e){ return {}; }
+  },
+  write: function(rec){
+    if (typeof save === 'function') save();
+    else { try { localStorage.setItem('lmr_psy', JSON.stringify({psychology:S.psychology})); } catch(e){} }
+    if (rec && typeof sbSyncRecord === 'function' && typeof _sbUserId !== 'undefined' && _sbUserId) {
+      try {
+        sbSyncRecord('lmr_psychology', {
+          date:rec.date, user_id:_sbUserId, day_count:rec.day_count||null,
+          score:rec.score, rules_met:rec.rules_met||[], rules_miss:rec.rules_miss||[],
+          emotions:rec.emotions||[], note:rec.note||null, ai_summary:rec.ai_summary||null,
+          updated_at:new Date().toISOString()
+        });
+      } catch(e){}
+    }
+  }
+};
+
+var S = PSY_PERSIST.read();
+S.psychology = S.psychology || {};
+S.trades = S.trades || [];
+
+var day = new Date().toISOString().slice(0,10);
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function fmtDate(iso){
+  var d=new Date(iso+'T00:00:00');
+  return isNaN(d) ? iso : d.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+}
+function money(n){
+  if (typeof fmtMoney==='function'){ try { return fmtMoney(n); } catch(e){} }
+  return (n<0?'-$':'+$')+Math.abs(Math.round(n)).toLocaleString('en-US');
+}
+function dayCount(iso){
+  if (typeof dayCountFor==='function'){ try { return dayCountFor(iso); } catch(e){} }
+  return null;
+}
+function tradesFor(iso){
+  return (S.trades||[]).filter(function(t){ return t.date===iso; });
+}
+function dailyFor(iso){
+  return (S.daily && S.daily[iso]) || (S.chain && S.chain.date===iso ? S.chain : null) || null;
+}
+function riskDefault(){
+  var p=S.profile||S.settings||{};
+  return Number(p.risk_default || p.riskDefault || 0) || null;
+}
+function minutes(hhmm){
+  if(!hhmm || hhmm.indexOf(':')<0) return null;
+  var a=hhmm.split(':');
+  return (parseInt(a[0],10)||0)*60 + (parseInt(a[1],10)||0);
+}
+
+// ── THE RULES ─────────────────────────────────────────────────
+// Each detector returns 'met' | 'miss' | 'na', plus the evidence line
+// that justifies the mark. 'na' means the day gave no chance to break
+// it — those are excluded from the score rather than counted as wins.
+var RULES = [
+  { id:'one-model', title:'One setup, one model, per session',
+    why:'Switching models mid-session means the thesis changed after the entry, not before it.',
+    test:function(ts){
+      if(!ts.length) return ['na','No trades'];
+      var bySess={};
+      ts.forEach(function(t){
+        var k=t.session||'—';
+        bySess[k]=bySess[k]||{};
+        (t.models||[]).forEach(function(m){ bySess[k][m]=1; });
+      });
+      var worst=0, where='';
+      Object.keys(bySess).forEach(function(k){
+        var n=Object.keys(bySess[k]).length;
+        if(n>worst){ worst=n; where=k; }
+      });
+      return worst>1 ? ['miss', worst+' models in '+where] : ['met','1 model per session'];
+    } },
+
+  { id:'two-loss-stop', title:'Stop after two losses',
+    why:'The third trade after two losses is the one that turns a bad day into a breach.',
+    test:function(ts){
+      var losses=0, after=0;
+      ts.slice().sort(function(a,b){ return String(a.openTime||'').localeCompare(String(b.openTime||'')); })
+        .forEach(function(t){
+          if (losses>=2) after++;
+          if ((Number(t.pnl)||0) < 0) losses++;
+        });
+      if (losses<2) return ['na', losses+' losses'];
+      return after ? ['miss', after+' trade'+(after>1?'s':'')+' after the 2nd loss'] : ['met','Stopped at 2'];
+    } },
+
+  { id:'risk-cap', title:'Risk never exceeds the default',
+    why:'Conviction is not a reason to size up. The default is the whole point of having one.',
+    test:function(ts){
+      var cap=riskDefault();
+      if(!cap) return ['na','No default set'];
+      var over=ts.filter(function(t){ return Number(t.risk)>cap; });
+      return over.length ? ['miss', over.length+' over '+money(cap)] : ['met','All within '+money(cap)];
+    } },
+
+  { id:'no-open-5', title:'No trades in the first 5 minutes',
+    why:'9:30 to 9:35 is the Judas move. Let the open resolve before committing.',
+    test:function(ts){
+      var timed=ts.filter(function(t){ return minutes(t.openTime)!=null; });
+      if(!timed.length) return ['na','No entry times'];
+      var early=timed.filter(function(t){ var m=minutes(t.openTime); return m>=570 && m<575; });
+      return early.length ? ['miss', early.length+' inside 9:30\u20139:35'] : ['met','Waited out the open'];
+    } },
+
+  { id:'on-array', title:'Traded the committed P/D array',
+    why:'The array you committed to in the chain is the day\u2019s thesis. Off-array trades are a different day\u2019s idea.',
+    test:function(ts, rec, d){
+      var arr = d && (d.pdArray || d.pd_array);
+      if(!arr) return ['na','No array committed'];
+      if(!ts.length) return ['na','No trades'];
+      var off=ts.filter(function(t){ return t.pdArray && t.pdArray!==arr; });
+      return off.length ? ['miss', off.length+' off-array'] : ['met','All on '+arr];
+    } },
+
+  { id:'macro', title:'Entered inside a macro window',
+    why:'Price reacts at a specific time. An entry outside a named window is an entry without the clock.',
+    test:function(ts){
+      if(!ts.length) return ['na','No trades'];
+      var none=ts.filter(function(t){ return !t.timePeriod; });
+      return none.length ? ['miss', none.length+' with no macro'] : ['met','All inside a window'];
+    } },
+
+  { id:'size-flat', title:'Size stayed constant',
+    why:'A size change mid-day is the clearest tell that the process gave way to feeling.',
+    test:function(ts){
+      if(ts.length<2) return ['na','Fewer than 2 trades'];
+      var sizes={}; ts.forEach(function(t){ sizes[t.size||1]=1; });
+      var n=Object.keys(sizes).length;
+      return n>1 ? ['miss', n+' different sizes'] : ['met','Flat at '+Object.keys(sizes)[0]];
+    } },
+
+  { id:'no-revenge', title:'No revenge trade',
+    why:'Re-entering bigger straight after a loss is the single most expensive habit in the log.',
+    test:function(ts){
+      var ord=ts.slice().sort(function(a,b){ return String(a.openTime||'').localeCompare(String(b.openTime||'')); });
+      for(var i=1;i<ord.length;i++){
+        var prev=ord[i-1], cur=ord[i];
+        if ((Number(prev.pnl)||0) >= 0) continue;
+        var gap = (minutes(cur.openTime)!=null && minutes(prev.closeTime)!=null)
+          ? minutes(cur.openTime)-minutes(prev.closeTime) : null;
+        if ((Number(cur.size)||1) > (Number(prev.size)||1) && (gap==null || gap<=15))
+          return ['miss','Size up '+(gap!=null?gap+'m ':'')+'after a loss'];
+      }
+      return ts.length<2 ? ['na','Fewer than 2 trades'] : ['met','No size-up after a loss'];
+    } },
+
+  { id:'emotion-logged', title:'Emotion logged on every trade',
+    why:'An unlogged emotion is the one you did not want to write down.',
+    test:function(ts){
+      if(!ts.length) return ['na','No trades'];
+      var blank=ts.filter(function(t){ return !(t.emotions||[]).length; });
+      return blank.length ? ['miss', blank.length+' unlogged'] : ['met','All '+ts.length+' logged'];
+    } },
+
+  { id:'plan-held', title:'Plan followed',
+    why:'Graded from the chain\u2019s own end-of-day review, not from the P&L.',
+    test:function(ts, rec, d){
+      if(!d || !d.plan) return ['na','No chain review'];
+      return d.plan==='Followed' ? ['met','Chain says followed'] : ['miss','Chain says unfollowed'];
+    } },
+
+  { id:'rr', title:'R:R of 2 or better',
+    why:'A sub-2R winner still loses money over a normal losing streak.',
+    test:function(ts){
+      var withR=ts.filter(function(t){ return t.rr!=null && t.risk; });
+      if(!withR.length) return ['na','No R values'];
+      var thin=withR.filter(function(t){ return Number(t.rr)<2 && Number(t.pnl)>0; });
+      return thin.length ? ['miss', thin.length+' under 2R'] : ['met','All 2R or better'];
+    } },
+
+  { id:'journaled', title:'Journaled before the close',
+    why:'Same-day narrative or it never gets written honestly.',
+    test:function(ts, rec, d, iso){
+      var j=(S.journal||[]).filter(function(e){ return e.date===iso; }).length;
+      var notes=(S.notes||[]).filter(function(e){ return e.date===iso; }).length;
+      var review=d && (d.reviewNotes||d.review_notes);
+      return (j||notes||review) ? ['met', j?j+' entry'+(j>1?'ies':''):'Chain review written']
+                                : ['miss','Nothing written'];
+    } }
+];
+
+function grade(iso){
+  var ts=tradesFor(iso), d=dailyFor(iso), rec=S.psychology[iso]||{};
+  var marks=RULES.map(function(r){
+    var out=r.test(ts, rec, d, iso);
+    return { id:r.id, title:r.title, why:r.why, mark:out[0], evidence:out[1] };
+  });
+  var scored=marks.filter(function(m){ return m.mark!=='na'; });
+  var met=scored.filter(function(m){ return m.mark==='met'; });
+  var score = scored.length ? Math.round((met.length/scored.length)*100) : null;
+  var pnl=ts.reduce(function(s,t){ return s+(Number(t.pnl)||0); },0);
+  return { marks:marks, scored:scored, met:met, score:score, trades:ts, pnl:pnl, daily:d };
+}
+
+function band(score){
+  if (score==null)  return ['No data','var(--p-dim)'];
+  if (score>=90)    return ['Disciplined','var(--p-green)'];
+  if (score>=75)    return ['Solid','var(--p-blue)'];
+  if (score>=60)    return ['Slipping','var(--p-gold)'];
+  return ['Breached','var(--p-rose)'];
+}
+
+// ── RENDER ────────────────────────────────────────────────────
+function renderScore(g){
+  var b=band(g.score), pct=g.score==null?0:g.score;
+  var C=2*Math.PI*52;
+  var dc=dayCount(day);
+  var verdict = g.score==null
+    ? 'No trades logged for ' + fmtDate(day) + '. The score is earned from trades \u2014 there is nothing to grade yet.'
+    : g.met.length + ' of ' + g.scored.length + ' applicable rules held. '
+      + (g.score>=90 ? 'This is what the process looks like when it is working \u2014 repeat it rather than improve it.'
+        : g.score>=75 ? 'Sound day with a gap or two. The misses below are the whole list; fix the cheapest one first.'
+        : g.score>=60 ? 'The process bent. Read the misses as a set \u2014 they usually share one cause.'
+        : 'The process broke. The P&L is not the problem here; the rules are.');
+  document.getElementById('pScore').innerHTML =
+    '<div class="p-ring"><svg width="120" height="120" viewBox="0 0 120 120">'
+      + '<circle cx="60" cy="60" r="52" fill="none" stroke="var(--p-line)" stroke-width="9"></circle>'
+      + '<circle cx="60" cy="60" r="52" fill="none" stroke="'+b[1]+'" stroke-width="9" stroke-linecap="round"'
+      + ' stroke-dasharray="'+C+'" stroke-dashoffset="'+(C*(1-pct/100))+'"></circle></svg>'
+      + '<div class="p-ringv"><span class="p-rn" style="color:'+b[1]+'">'+(g.score==null?'—':g.score)+'</span>'
+      + '<span class="p-rl">Score</span></div></div>'
+    + '<div class="p-sright">'
+      + '<span class="p-band" style="background:'+b[1]+'22;color:'+b[1]+'">'+b[0]+'</span>'
+      + '<p class="p-verdict" style="margin:0">'+esc(verdict)+'</p>'
+      + '<div class="p-evid">'
+        + '<span class="p-ev"><span class="p-evv">'+fmtDate(day).split(',')[0]+'</span><span class="p-evk">'+(dc!=null?'Day D'+dc:'Session')+'</span></span>'
+        + '<span class="p-ev"><span class="p-evv">'+g.trades.length+'</span><span class="p-evk">Trades</span></span>'
+        + '<span class="p-ev"><span class="p-evv" style="color:'+(g.pnl>=0?'var(--p-green)':'var(--p-rose)')+'">'+money(g.pnl)+'</span><span class="p-evk">Day P&L</span></span>'
+        + '<span class="p-ev"><span class="p-evv">'+g.marks.filter(function(m){return m.mark==='miss';}).length+'</span><span class="p-evk">Breaches</span></span>'
+      + '</div>'
+    + '</div>';
+}
+
+function renderRules(g){
+  document.getElementById('pRules').innerHTML = g.marks.map(function(m){
+    var cls = m.mark==='met' ? 'is-met' : m.mark==='miss' ? 'is-miss' : 'is-na';
+    var sym = m.mark==='met' ? '\u2713' : m.mark==='miss' ? '\u2715' : '\u2013';
+    return '<div class="p-rule">'
+      + '<span class="p-mark '+cls+'">'+sym+'</span>'
+      + '<span class="p-rtext"><span class="p-rt">'+esc(m.title)+'</span>'
+        + '<span class="p-rw">'+esc(m.why)+'</span></span>'
+      + '<span class="p-rs">'+esc(m.evidence)+'</span>'
+    + '</div>';
+  }).join('');
+}
+
+function renderStreak(){
+  var days=Object.keys(S.psychology).concat(
+    (S.trades||[]).map(function(t){ return t.date; })
+  ).filter(function(v,i,a){ return v && a.indexOf(v)===i; }).sort().slice(-20);
+  document.getElementById('pStreak').innerHTML = days.length
+    ? days.map(function(iso){
+        var g=grade(iso), b=band(g.score);
+        return '<span class="p-day" data-goto="'+iso+'" title="'+iso+' \u00b7 '+(g.score==null?'—':g.score)+'"'
+          + ' style="cursor:pointer;background:'+b[1]+'22;color:'+b[1]+';border-color:'+b[1]+'44">'
+          + (g.score==null?'—':g.score)+'</span>';
+      }).join('')
+    : '<span class="p-sub">No graded sessions yet.</span>';
+}
+
+function renderAi(){
+  var rec=S.psychology[day]||{};
+  document.getElementById('pAiBody').innerHTML = rec.ai_summary
+    ? esc(rec.ai_summary)
+    : '<span class="p-sub">No review yet. The checkmarks above are already computed from your trades \u2014 run the review and the AI will explain them.</span>';
+  document.getElementById('pAiMeta').textContent = rec.ai_at
+    ? 'Reviewed ' + new Date(rec.ai_at).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})
+    : '';
+  document.getElementById('pNote').value = rec.note || '';
+}
+
+function render(){
+  document.getElementById('pDate').value = day;
+  var g = grade(day);
+  renderScore(g); renderRules(g); renderStreak(); renderAi();
+  // Persist the derived grade so the dashboard and reports can read it
+  // without recomputing.
+  var rec = S.psychology[day] || {};
+  rec.date = day;
+  rec.day_count = dayCount(day);
+  rec.score = g.score;
+  rec.rules_met  = g.marks.filter(function(m){return m.mark==='met';}).map(function(m){return m.title;});
+  rec.rules_miss = g.marks.filter(function(m){return m.mark==='miss';}).map(function(m){return m.title;});
+  rec.emotions = g.trades.reduce(function(a,t){ return a.concat(t.emotions||[]); }, [])
+                   .filter(function(v,i,arr){ return arr.indexOf(v)===i; });
+  S.psychology[day] = rec;
+  PSY_PERSIST.write(rec);
+}
+
+// ── AI REVIEW ─────────────────────────────────────────────────
+// The marks are already decided. The model's job is to explain them and
+// name the one change worth making — never to re-score the day.
+function buildPrompt(g){
+  var lines=[];
+  lines.push('You are reviewing one trading day for an ICT/LMR futures trader.');
+  lines.push('The discipline score is ALREADY COMPUTED from the trade data. Do not change it, re-grade it, or invent rules.');
+  lines.push('');
+  lines.push('Date: '+day+(dayCount(day)!=null?' (Day D'+dayCount(day)+')':''));
+  lines.push('Score: '+(g.score==null?'n/a':g.score+'/100')+' \u2014 '+band(g.score)[0]);
+  lines.push('Trades: '+g.trades.length+' \u00b7 Day P&L: '+money(g.pnl));
+  if (g.daily && (g.daily.pdArray||g.daily.pd_array)) lines.push('Committed P/D array: '+(g.daily.pdArray||g.daily.pd_array));
+  if (g.daily && g.daily.bias) lines.push('Daily bias: '+g.daily.bias);
+  lines.push('');
+  lines.push('RULES HELD:');
+  g.marks.filter(function(m){return m.mark==='met';}).forEach(function(m){ lines.push('  \u2713 '+m.title+' ('+m.evidence+')'); });
+  lines.push('RULES BROKEN:');
+  var miss=g.marks.filter(function(m){return m.mark==='miss';});
+  if(!miss.length) lines.push('  none');
+  miss.forEach(function(m){ lines.push('  \u2715 '+m.title+' ('+m.evidence+')'); });
+  lines.push('');
+  lines.push('TRADES:');
+  g.trades.forEach(function(t,i){
+    lines.push('  '+(i+1)+'. '+(t.market||'?')+' '+(t.position||'')
+      +' \u00b7 '+(t.openTime||'?')+'\u2013'+(t.closeTime||'?')
+      +' \u00b7 '+(t.session||'?')+' / '+(t.timePeriod||'no macro')
+      +' \u00b7 '+((t.models||[]).join('+')||'no model')
+      +' \u00b7 '+money(Number(t.pnl)||0)
+      +' \u00b7 R '+(t.rr==null?'\u2014':t.rr)
+      +' \u00b7 size '+(t.size||1)
+      +' \u00b7 '+((t.emotions||[]).join('/')||'no emotion logged'));
+  });
+  lines.push('');
+  lines.push('Write 3 short paragraphs, plain prose, no headings, no bullet lists, no markdown:');
+  lines.push('1. What the execution actually shows \u2014 cite specific trades and times.');
+  lines.push('2. Why the broken rules broke, treating them as one pattern if they share a cause.');
+  lines.push('3. The single change for the next session, stated as a rule that can be checked.');
+  lines.push('Be direct. Do not praise a losing process or scold a sound one because the P&L disagreed.');
+  return lines.join('\n');
+}
+
+function localReview(g){
+  var miss=g.marks.filter(function(m){return m.mark==='miss';});
+  var out=[];
+  out.push(g.trades.length
+    ? 'The day ran '+g.trades.length+' trade'+(g.trades.length>1?'s':'')+' for '+money(g.pnl)
+      +', and '+g.met.length+' of '+g.scored.length+' applicable rules held.'
+    : 'No trades were logged, so there is no execution to read.');
+  if (miss.length) {
+    out.push('Broken: '+miss.map(function(m){ return m.title.toLowerCase()+' ('+m.evidence+')'; }).join('; ')
+      +'. Read these together rather than one at a time \u2014 in this log they usually trace back to a single decision early in the session.');
+    out.push('Next session, the one change worth making is to hold '+miss[0].title.toLowerCase()
+      +'. Make it checkable before the open, not after the close.');
+  } else if (g.trades.length) {
+    out.push('Nothing was broken. That is the version of the process worth repeating verbatim, independent of where the P&L landed.');
+  }
+  return out.join('\n\n');
+}
+
+function review(){
+  var g=grade(day);
+  if(!g.trades.length){
+    if (typeof flash==='function') flash('No trades on this day to review.');
+    return;
+  }
+  var btn=document.getElementById('pReview');
+  btn.disabled=true; btn.textContent='Reviewing\u2026';
+  var finish=function(text){
+    var rec=S.psychology[day]||{date:day};
+    rec.ai_summary=text; rec.ai_at=new Date().toISOString();
+    S.psychology[day]=rec; PSY_PERSIST.write(rec);
+    renderAi();
+    btn.disabled=false; btn.textContent='AI review this day';
+  };
+  if (window.claude && typeof window.claude.complete === 'function') {
+    window.claude.complete(buildPrompt(g))
+      .then(function(t){ finish((t||'').trim() || localReview(g)); })
+      .catch(function(){ finish(localReview(g)); });
+  } else {
+    // No model available in this context — the deterministic read still
+    // explains the marks rather than leaving the panel empty.
+    setTimeout(function(){ finish(localReview(g)); }, 260);
+  }
+}
+
+// ── EVENTS ────────────────────────────────────────────────────
+function shift(n){
+  var d=new Date(day+'T00:00:00');
+  d.setDate(d.getDate()+n);
+  day=d.toISOString().slice(0,10);
+  render();
+}
+
+document.addEventListener('click', function(e){
+  var el=e.target.closest('#pPrev,#pNext,#pToday,#pReview,[data-goto]');
+  if(!el) return;
+  if (el.id==='pPrev'){ shift(-1); return; }
+  if (el.id==='pNext'){ shift(1); return; }
+  if (el.id==='pToday'){ day=new Date().toISOString().slice(0,10); render(); return; }
+  if (el.id==='pReview'){ review(); return; }
+  if (el.dataset.goto){ day=el.dataset.goto; render(); }
+});
+
+document.addEventListener('change', function(e){
+  if (e.target.id==='pDate'){ day=e.target.value || day; render(); }
+});
+
+document.addEventListener('input', function(e){
+  if (e.target.id!=='pNote') return;
+  var rec=S.psychology[day]||{date:day};
+  rec.note=e.target.value;
+  S.psychology[day]=rec;
+  clearTimeout(window._psyT);
+  window._psyT=setTimeout(function(){ PSY_PERSIST.write(rec); }, 600);
+});
+
+window.renderPsychologySection = render;   // call from the panel switcher
+render();
+})();
+</script>
+</body>
+</html>
