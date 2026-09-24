@@ -3919,55 +3919,45 @@ Midnight Open $______"></textarea>
 
 <!-- Settings moved to side panel -->
 <!-- ── LMR OBSERVATION (journal — newest first) ── -->
-<div class="panel" id="p-observation"><div class="o-wrap">
+<div class="panel" id="p-observation">
+<div style="height:100%;overflow-y:auto;padding:20px 24px 60px">
 
-  <div class="o-comp">
-    <div class="o-chead">
-      <span class="o-eyebrow">New observation</span>
-      <span class="o-sub" id="oDayHint"></span>
-      <span class="o-count" id="oChars" style="margin-left:auto">0</span>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+    <div style="font-size:18px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:6px">
+      LMR Observation
+      <span style="display:inline-flex;width:15px;height:15px;border-radius:50%;border:1px solid var(--border3);color:var(--text3);font-size:10px;font-weight:700;align-items:center;justify-content:center;cursor:help;flex-shrink:0" title="A running journal of market observations — setups, confluences, pre/post-session notes. Each saved entry becomes a post below, newest first. Use the share icons to post an entry to Discord or X.">i</span>
     </div>
-    <div class="o-cbody">
-      <div class="o-chips" id="oKinds"></div>
-      <div class="o-row">
-        <span class="o-lab">Date</span>
-        <input class="o-in" type="date" id="oDate">
-        <span class="o-lab">Market</span>
-        <input class="o-in" type="text" id="oMarket" placeholder="NQ, ES, GC …">
-        <span class="o-lab">Headline</span>
-        <input class="o-in" type="text" id="oTitle" placeholder="What you are calling — one line">
-      </div>
-      <textarea class="o-ta" id="oText" placeholder="The read: where price is in the delivery, which array is in play, and what invalidates it."></textarea>
-      <div>
-        <span class="o-lab" style="display:block;margin-bottom:7px">Concepts</span>
-        <div class="o-chips" id="oTags"></div>
-      </div>
-      <div class="o-drop" id="oDrop">
-        <span class="o-dph">Click, drop or paste the chart<br>It posts with the observation and shows inside the card</span>
-      </div>
-    </div>
-    <div class="o-cfoot">
-      <button class="o-btn" id="oShot">Screenshot</button>
-      <button class="o-btn" id="oClear">Clear</button>
-      <button class="o-post" id="oPost" disabled>Post observation</button>
-    </div>
+    <button class="btn btn-primary btn-sm" onclick="obsNewEntry()" style="margin-left:auto">+ New</button>
   </div>
 
-  <div class="o-hook">
-    <span class="o-dot" id="oHookDot"></span>
-    <span class="o-lab">Discord webhook</span>
-    <input class="o-in" type="text" id="oHook" placeholder="https://discord.com/api/webhooks/…">
-    <button class="o-btn" id="oHookSave">Save</button>
-    <button class="o-btn" id="oHookTest">Test</button>
-  </div>
+  <!-- Current entry editor -->
+  <div class="card">
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+        <input id="obs-title-input" placeholder="Heading…" oninput="obsAutoSave()" style="flex:1;min-width:160px;background:none;border:none;font-size:18px;font-weight:800;color:var(--text);padding:4px 0;outline:none">
+        <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+          <span class="canvas-status" id="observation-status" style="font-size:10px;color:var(--text3)">Auto-saves</span>
+          <span id="obs-share-btns"></span>
+          <button class="btn btn-sm" onclick="obsDeleteEntry()" style="color:var(--bear);border-color:rgba(255,64,96,.25)" title="Delete this observation">✗</button>
+          <button class="btn btn-primary btn-sm" onclick="obsSaveEntry()" style="display:inline-flex;align-items:center;gap:5px"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save</button>
+        </div>
+      </div>
+      <div id="observation-content"
+           class="obs-img-grid"
+           contenteditable="true"
+           spellcheck="false"
+           data-placeholder="Write your market observations and paste chart images…&#10;&#10;2 images become 2 columns, 3 become 3, and so on."
+           style="min-height:120px;color:var(--text);font-size:14px;line-height:1.8;outline:none"
+           oninput="obsAutoSave()"
+           onpaste="obsHandlePaste(event)"
+      ></div>
 
-  <div class="o-feedhead">
-    <span class="o-eyebrow">Posted</span>
-    <span class="o-sub" id="oCount"></span>
-    <div class="o-filters" id="oFilters"></div>
+      <!-- Previous posts (newest first), embedded in the same card -->
+      <div id="obs-feed"></div>
+    </div>
   </div>
-  <div class="o-feed" id="oFeed"></div>
-</div></div>
+</div>
+</div>
 
 <!-- ==== 3. LOGIC ==== -->
 
@@ -7085,7 +7075,7 @@ function navTo(p){
   if(p==='settings') renderSettings();
   if(p==='terminology') setTimeout(()=>{ if(window.loadKnowledgeCloud)loadKnowledgeCloud(); else if(window.renderKnowledge)renderKnowledge(); },100);
   if(p==='psychology')  setTimeout(()=>{ if(window.loadPsychologyCloud)loadPsychologyCloud(); else if(window.renderPsychologySection)renderPsychologySection(); },100);
-  if(p==='observation') setTimeout(()=>{ if(window.loadObservationsCloud)loadObservationsCloud(); else if(window.renderObservationSection)renderObservationSection(); },100);
+  if(p==='observation') setTimeout(()=>{ if(typeof loadObservations==='function')loadObservations(); },100);
   if(p==='achievements') setTimeout(loadAchievements,100);
   if(p==='payout') setTimeout(renderPayoutModule,60);
   if(p==='ai-coach') { setTimeout(loadAndRenderAIHistory, 300); }
@@ -17080,358 +17070,6 @@ render();
 })();
 </script>
 
-<script id="lmr-obs-js">
-(function(){
-'use strict';
-
-// Observation kinds. Colour is the card's left border and its tag.
-var KINDS = [
-  ['Setup',      'var(--o-gold)'],
-  ['Invalidated','var(--o-rose)'],
-  ['Playbook',   'var(--o-blue)'],
-  ['Review',     'var(--o-green)']
-];
-
-// LMR concept vocabulary — the tags a post can carry.
-var TAGS = ['Accumulation','Manipulation','Distribution','Judas Swing','OTE','FVG','BISI','SIBI',
-            'Order Block','Breaker','NWOG','NDOG','Liquidity Void','Equal Highs','Equal Lows',
-            'Turtle Soup','SMT','Silver Bullet','Macro','PD Array','Draw on Liquidity'];
-
-// ── PERSISTENCE ────────────────────────────────────────────────
-var OBS_PERSIST = {
-  read: function(){
-    if (typeof state === 'object' && state) return state;
-    try { return JSON.parse(localStorage.getItem('lmr_obs') || '{}'); }
-    catch(e){ return {}; }
-  },
-  write: function(rec){
-    if (typeof save === 'function') save();
-    else { try { localStorage.setItem('lmr_obs', JSON.stringify({observations:S.observations})); } catch(e){} }
-    try {
-      if (typeof _sb !== 'undefined' && _sb && typeof _sbUserId !== 'undefined' && _sbUserId) {
-        _sb.from('lmr_observations').upsert({ user_id:_sbUserId, data:{ observations:S.observations } }, { onConflict:'user_id' });
-      }
-    } catch(e){}
-  },
-  del: function(id){ if (typeof sbDeleteRecord==='function'){ try{ sbDeleteRecord('observations', id); }catch(e){} } },
-  // NEVER localStorage for images — base64 there throws QuotaExceededError.
-  saveImg: function(k,b){ return (typeof saveImg==='function') ? saveImg(k,b) : Promise.resolve(_mem[k]=b); },
-  getImg:  function(k){   return (typeof getImg ==='function') ? getImg(k)    : Promise.resolve(_mem[k]); }
-};
-var _mem = {};
-var HOOK_LS = 'lmr_discord_hook';
-
-var S = OBS_PERSIST.read();
-S.observations = S.observations || [];
-
-var draft = { kind:'Setup', img:null, tags:[] };
-var oFilter = 'All';
-
-function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
-  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
-function today(){ return new Date().toISOString().slice(0,10); }
-function fmtDate(iso){
-  if(!iso) return '';
-  var d=new Date(iso+'T00:00:00');
-  return isNaN(d) ? iso : d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-}
-function colourFor(k){
-  for(var i=0;i<KINDS.length;i++) if(KINDS[i][0]===k) return KINDS[i][1];
-  return 'var(--o-line)';
-}
-function dayCount(iso){
-  if (typeof dayCountFor === 'function'){ try { return dayCountFor(iso); } catch(e){} }
-  return null;
-}
-
-// ── CHIPS ─────────────────────────────────────────────────────
-function renderKinds(){
-  document.getElementById('oKinds').innerHTML = KINDS.map(function(k){
-    var on = draft.kind===k[0];
-    return '<button class="o-chip" data-kind="'+k[0]+'" aria-pressed="'+on+'"'
-         + (on ? ' style="background:'+k[1]+'"' : '') + '>'+k[0]+'</button>';
-  }).join('');
-}
-function renderTags(){
-  document.getElementById('oTags').innerHTML = TAGS.map(function(t){
-    var on = draft.tags.indexOf(t)>-1;
-    return '<button class="o-tagchip" data-tag="'+esc(t)+'" aria-pressed="'+on+'">'+esc(t)+'</button>';
-  }).join('');
-}
-function renderFilters(){
-  var opts = ['All'].concat(KINDS.map(function(k){return k[0];}));
-  document.getElementById('oFilters').innerHTML = opts.map(function(o){
-    return '<button class="o-tagchip" data-filter="'+o+'" aria-pressed="'+(oFilter===o)+'">'+o+'</button>';
-  }).join('');
-}
-
-// ── DROP ZONE ─────────────────────────────────────────────────
-function paintDrop(){
-  var box=document.getElementById('oDrop');
-  box.innerHTML = draft.img
-    ? '<img src="'+draft.img+'" alt=""><button class="o-x" data-clearimg="1" title="Remove image">\u00d7</button>'
-    : '<span class="o-dph">Click, drop or paste the chart<br>It posts with the observation and shows inside the card</span>';
-}
-function pickFile(){
-  var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
-  inp.onchange=function(){
-    var f=inp.files[0]; if(!f) return;
-    var r=new FileReader(); r.onload=function(){ draft.img=r.result; paintDrop(); };
-    r.readAsDataURL(f);
-  };
-  inp.click();
-}
-function screenshot(){
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){
-    alert('Screen capture is not available in this browser \u2014 paste or drop the chart instead.');
-    return;
-  }
-  navigator.mediaDevices.getDisplayMedia({video:true}).then(function(stream){
-    var track=stream.getVideoTracks()[0], video=document.createElement('video');
-    video.srcObject=stream; video.muted=true;
-    video.onloadedmetadata=function(){
-      video.play();
-      setTimeout(function(){
-        var c=document.createElement('canvas');
-        c.width=video.videoWidth; c.height=video.videoHeight;
-        c.getContext('2d').drawImage(video,0,0);
-        draft.img=c.toDataURL('image/png'); track.stop(); paintDrop();
-      },260);
-    };
-  }).catch(function(){});
-}
-
-// ── POST ──────────────────────────────────────────────────────
-function refreshPostState(){
-  var t=document.getElementById('oText').value;
-  document.getElementById('oChars').textContent = t.length;
-  document.getElementById('oPost').disabled = !t.trim();
-}
-
-function clearComposer(){
-  document.getElementById('oText').value='';
-  document.getElementById('oTitle').value='';
-  document.getElementById('oMarket').value='';
-  draft.img=null; draft.tags=[];
-  paintDrop(); renderTags(); refreshPostState();
-}
-
-function post(){
-  var text=document.getElementById('oText').value.trim();
-  if(!text) return;
-  var id=Date.now();
-  var rec={
-    id:id, kind:draft.kind,
-    title:document.getElementById('oTitle').value.trim(),
-    market:document.getElementById('oMarket').value.trim(),
-    date:document.getElementById('oDate').value || today(),
-    text:text, tags:draft.tags.slice(),
-    // The key lives ON the post, so the chart renders inside its card.
-    imgKey: draft.img ? ('obs-'+id) : null,
-    sentTo:[], createdAt:new Date().toISOString()
-  };
-  var done=function(){
-    S.observations.unshift(rec);          // newest first
-    OBS_PERSIST.write(rec);
-    clearComposer(); render();
-    if (typeof flash==='function') flash('\u2713 Observation posted');
-  };
-  if (rec.imgKey) OBS_PERSIST.saveImg(rec.imgKey, draft.img).then(done);
-  else done();
-}
-
-// ── SHARE ─────────────────────────────────────────────────────
-function postText(r){
-  var lines=[];
-  lines.push('**'+(r.title || r.kind)+'**'+(r.market ? ' \u00b7 '+r.market : ''));
-  lines.push(r.text);
-  if (r.tags && r.tags.length) lines.push(r.tags.map(function(t){return '#'+t.replace(/\s+/g,'');}).join(' '));
-  lines.push('\u2014 LMR Capitals \u00b7 '+fmtDate(r.date));
-  return lines.join('\n\n');
-}
-
-function sendDiscord(r){
-  var url=(localStorage.getItem(HOOK_LS)||'').trim();
-  if(!url){ alert('Add your Discord webhook URL first.'); return; }
-  fetch(url, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({username:'LMR Capitals', content:postText(r)})
-  }).then(function(res){
-    if(!res.ok) throw new Error(res.status);
-    if (r.sentTo.indexOf('Discord')<0) r.sentTo.push('Discord');
-    OBS_PERSIST.write(r); render();
-    if (typeof flash==='function') flash('\u2713 Sent to Discord');
-  }).catch(function(){ alert('Discord rejected the post \u2014 check the webhook URL.'); });
-}
-
-function sendTwitter(r){
-  var t = postText(r).replace(/\*\*/g,'');
-  window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(t.slice(0,270)), '_blank', 'noopener');
-  if (r.sentTo.indexOf('X')<0) r.sentTo.push('X');
-  OBS_PERSIST.write(r); render();
-}
-
-function copyPost(r){
-  var t = postText(r).replace(/\*\*/g,'');
-  if (navigator.clipboard) navigator.clipboard.writeText(t);
-  if (typeof flash==='function') flash('\u2713 Copied');
-}
-
-// ── WEBHOOK BAR ───────────────────────────────────────────────
-function paintHook(){
-  var url=(localStorage.getItem(HOOK_LS)||'');
-  document.getElementById('oHook').value=url;
-  document.getElementById('oHookDot').style.background = url ? 'var(--o-discord)' : 'var(--o-line)';
-}
-
-// ── FEED ──────────────────────────────────────────────────────
-function cardHTML(r){
-  var accent=colourFor(r.kind), dc=dayCount(r.date);
-  return '<article class="o-card" style="border-left-color:'+accent+'">'
-    + '<div class="o-khead">'
-      + '<span class="o-tag" style="background:'+accent+'26;color:'+accent+'">'+esc(r.kind)+'</span>'
-      + '<span class="o-ktitle">'+esc(r.title || r.kind)+(r.market ? ' \u00b7 '+esc(r.market) : '')+'</span>'
-      + '<span class="o-kdate">'+esc(fmtDate(r.date))+(dc!=null?' \u00b7 D'+dc:'')+'</span>'
-      + '<button class="o-kdel" data-del="'+r.id+'" title="Delete">\u00d7</button>'
-    + '</div>'
-    + '<p class="o-ktext">'+esc(r.text)+'</p>'
-    + (r.imgKey ? '<div class="o-kimg" data-slot="'+esc(r.imgKey)+'"></div>' : '')
-    + ((r.tags&&r.tags.length) ? '<div class="o-ktags">'+r.tags.map(function(t){
-        return '<span class="o-ktag">'+esc(t)+'</span>'; }).join('')+'</div>' : '')
-    + '<div class="o-kfoot">'
-      + '<button class="o-share" data-discord="'+r.id+'">Discord</button>'
-      + '<button class="o-share" data-x="'+r.id+'">Post to X</button>'
-      + '<button class="o-share" data-copy="'+r.id+'">Copy</button>'
-      + ((r.sentTo&&r.sentTo.length) ? '<span class="o-sent">\u2713 '+esc(r.sentTo.join(' \u00b7 '))+'</span>' : '')
-    + '</div>'
-  + '</article>';
-}
-
-function paintCardImages(root){
-  Array.prototype.forEach.call(root.querySelectorAll('[data-slot]'), function(box){
-    OBS_PERSIST.getImg(box.dataset.slot).then(function(src){
-      if (src) box.innerHTML='<img src="'+src+'" alt="">';
-      else box.remove();
-    });
-  });
-}
-
-function render(){
-  var rows = oFilter==='All' ? S.observations : S.observations.filter(function(r){return r.kind===oFilter;});
-  var feed=document.getElementById('oFeed');
-  document.getElementById('oCount').textContent =
-    rows.length + (rows.length===1?' post':' posts') + (oFilter==='All'?'':' \u00b7 '+oFilter);
-  feed.innerHTML = rows.length
-    ? rows.map(cardHTML).join('')
-    : '<div class="o-none">No observations yet \u2014 write the first read above.</div>';
-  paintCardImages(feed);
-  renderFilters();
-}
-
-function byId(id){
-  return S.observations.filter(function(r){return String(r.id)===String(id);})[0];
-}
-
-// ── EVENTS ────────────────────────────────────────────────────
-document.addEventListener('click', function(e){
-  var el=e.target.closest('[data-kind],[data-tag],[data-filter],[data-clearimg],[data-del],[data-discord],[data-x],[data-copy],#oDrop,#oPost,#oShot,#oClear,#oHookSave,#oHookTest');
-  if(!el) return;
-  var d=el.dataset;
-
-  if (d.kind){ draft.kind=d.kind; renderKinds(); return; }
-  if (d.tag){
-    var i=draft.tags.indexOf(d.tag);
-    if(i>-1) draft.tags.splice(i,1); else draft.tags.push(d.tag);
-    renderTags(); return;
-  }
-  if (d.filter){ oFilter=d.filter; render(); return; }
-  if (d.clearimg){ e.stopPropagation(); draft.img=null; paintDrop(); return; }
-  if (el.id==='oDrop'){ pickFile(); return; }
-  if (el.id==='oShot'){ screenshot(); return; }
-  if (el.id==='oClear'){ clearComposer(); return; }
-  if (el.id==='oPost'){ post(); return; }
-  if (el.id==='oHookSave'){
-    localStorage.setItem(HOOK_LS, document.getElementById('oHook').value.trim());
-    paintHook();
-    if (typeof flash==='function') flash('\u2713 Webhook saved');
-    return;
-  }
-  if (el.id==='oHookTest'){
-    var url=(document.getElementById('oHook').value||'').trim();
-    if(!url){ alert('Paste the webhook URL first.'); return; }
-    fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({username:'LMR Capitals',content:'LMR Capitals webhook connected.'})})
-      .then(function(res){ alert(res.ok ? 'Webhook works.' : 'Discord returned '+res.status+'.'); })
-      .catch(function(){ alert('Could not reach Discord.'); });
-    return;
-  }
-  if (d.discord){ sendDiscord(byId(d.discord)); return; }
-  if (d.x){ sendTwitter(byId(d.x)); return; }
-  if (d.copy){ copyPost(byId(d.copy)); return; }
-
-  if (d.del){
-    if(!window.confirm('Delete this observation?')) return;
-    var rec=byId(d.del);
-    if (rec && rec.imgKey) OBS_PERSIST.saveImg(rec.imgKey, null);
-    S.observations = S.observations.filter(function(r){return String(r.id)!==String(d.del);});
-    OBS_PERSIST.write(null); OBS_PERSIST.del(d.del); render();
-  }
-});
-
-document.addEventListener('input', function(e){
-  if (e.target.id==='oText') refreshPostState();
-});
-
-// Paste inside the panel lands in the drop zone.
-document.addEventListener('paste', function(e){
-  var p=document.getElementById('p-observation');
-  if(!p || !(p.contains(e.target) || p.contains(document.activeElement))) return;
-  var items=(e.clipboardData||{}).items||[];
-  for(var i=0;i<items.length;i++){
-    if(items[i].type.indexOf('image')!==0) continue;
-    e.preventDefault();
-    var r=new FileReader();
-    r.onload=function(){ draft.img=r.result; paintDrop(); };
-    r.readAsDataURL(items[i].getAsFile());
-    return;
-  }
-});
-
-(function(){
-  var box=document.getElementById('oDrop');
-  box.addEventListener('dragover',function(e){ e.preventDefault(); box.classList.add('is-over'); });
-  box.addEventListener('dragleave',function(){ box.classList.remove('is-over'); });
-  box.addEventListener('drop',function(e){
-    e.preventDefault(); box.classList.remove('is-over');
-    var f=(e.dataTransfer.files||[])[0];
-    if(!f || f.type.indexOf('image')!==0) return;
-    var r=new FileReader();
-    r.onload=function(){ draft.img=r.result; paintDrop(); };
-    r.readAsDataURL(f);
-  });
-})();
-
-// ── MOUNT ─────────────────────────────────────────────────────
-function mount(){
-  document.getElementById('oDate').value = today();
-  var dc=dayCount(today());
-  if (dc!=null) document.getElementById('oDayHint').textContent='Day D'+dc;
-  renderKinds(); renderTags(); paintDrop(); paintHook(); refreshPostState(); render();
-}
-window.renderObservationSection = render;
-window.loadObservationsCloud = async function(){
-  try{
-    if (typeof _sb !== 'undefined' && _sb && typeof _sbUserId !== 'undefined' && _sbUserId){
-      var row = await _sb.from('lmr_observations').select('data').eq('user_id',_sbUserId).single();
-      var d = row && row.data && row.data.data;
-      if (d && d.observations){ state.observations = d.observations; S = state; }
-    }
-  }catch(e){}
-  try{ render(); }catch(e){}
-};   // call from the panel switcher
-mount();
-})();
-</script>
 
 <script id="lmr-jn-js">
 (function(){
