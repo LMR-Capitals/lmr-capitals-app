@@ -1,7 +1,14 @@
 # Secrets & generated output — never commit
 .env
+.env.*
+!.env.example
 lmr-notion-export.json
+notion-images/
 graphify-out/
+
+# Build output
+dist/
+.netlify/
 
 # Dependencies
 node_modules/
