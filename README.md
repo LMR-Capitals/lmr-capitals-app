@@ -52,6 +52,24 @@ In Xcode, choose your Apple Developer team under *Signing & Capabilities*, then 
 the app on a simulator, an iPhone, or "My Mac (Designed for iPad)". Use Product → Archive to
 upload it to TestFlight or the App Store.
 
+### Without a Mac: GitHub Actions → TestFlight
+
+`.github/workflows/ios.yml` builds the app on a GitHub macOS runner for every change
+to `ios/`. To ship a build to TestFlight, run it manually (Actions → **iOS app** →
+Run workflow → tick **testflight**). This one-time setup is needed first:
+
+1. Apple Developer Program membership, and an app record in App Store Connect with
+   bundle ID `com.lmrcapitals.app`.
+2. App Store Connect → Users and Access → Integrations → **App Store Connect API** →
+   create a key with the *App Manager* role and download the `.p8` file.
+3. Add these repository secrets (Settings → Secrets and variables → Actions):
+   `APPLE_TEAM_ID`, `ASC_KEY_ID`, `ASC_ISSUER_ID`, and `ASC_KEY_P8_BASE64`
+   (the output of `base64 -i AuthKey_XXXX.p8`).
+
+Each run uploads a new build numbered by the workflow run. Install it on iPhone, iPad or
+Apple-silicon Mac through the TestFlight app, then submit it for App Store review from
+App Store Connect.
+
 Live cross-device sync uses Supabase Realtime (`sbStartRealtime` in `app/app.html`).
 It needs migration `database/migrations/20260928090000_enable_realtime_sync.sql`
 applied to the project.
