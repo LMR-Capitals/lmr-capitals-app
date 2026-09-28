@@ -30,6 +30,16 @@
   status = 200
 
 [[redirects]]
+  from = "/privacy"
+  to = "/web/privacy.html"
+  status = 200
+
+[[redirects]]
+  from = "/support"
+  to = "/web/support.html"
+  status = 200
+
+[[redirects]]
   from = "/landing-preview"
   to = "/web/landing-preview.html"
   status = 200
