@@ -2521,8 +2521,8 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
           <button class="lg-btn" id="lg-forgot-send" onclick="lgForgotSend()">Send code →</button>
         </div>
         <div id="lg-forgot-step2" style="display:none">
-          <div class="lg-sub">If an account exists for <b id="lg-forgot-sent-to"></b>, a one-time code is on its way. Enter it with your new password.</div>
-          <div class="lg-field">
+          <div class="lg-sub" id="lg-forgot-step2-sub">If an account exists for <b id="lg-forgot-sent-to"></b>, an email is on its way. Enter the one-time code from it with your new password, or tap the link in the email.</div>
+          <div class="lg-field" id="lg-forgot-code-field">
             <label>One-time code</label>
             <input type="text" id="lg-forgot-code" placeholder="000000" maxlength="10" inputmode="numeric" autocomplete="one-time-code">
           </div>
@@ -2535,7 +2535,7 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
             <input type="password" id="lg-forgot-confirm" placeholder="repeat password" autocomplete="new-password">
           </div>
           <button class="lg-btn" id="lg-forgot-reset" onclick="lgForgotReset()">Set new password →</button>
-          <div class="lg-links center"><button class="lg-link" onclick="lgForgotSend(true)">Resend code</button></div>
+          <div class="lg-links center" id="lg-forgot-resend"><button class="lg-link" onclick="lgForgotSend(true)">Resend code</button></div>
         </div>
         <div class="lg-links center">
           <button class="lg-link" onclick="lgSwitchTab('signin')">← Back to sign in</button>
@@ -13525,12 +13525,18 @@ if(typeof navTo==='function'){
 const SB_URL = 'https://agrvylclhvxyevsmmexf.supabase.co';
 const SB_KEY = 'sb_publishable_vUhBxc3efVrs41yc9WZmAA_SnhBIrDh';
 let _sb = null;
+// Password-reset email links land here as #...type=recovery (or #error_code=otp_expired
+// when stale). Read the URL before supabase-js consumes and clears it.
+const _lgRecoveryLink = /type=recovery/.test(location.hash + location.search);
+const _lgRecoveryLinkError = /error_code=/.test(location.hash);
+let _lgRecoveryMode = false;
 
 function sbInit() {
   if (!window.supabase) { setSbStatus('SDK loading…', 'var(--text3)'); return null; }
   if (_sb) return _sb;
   try { _sb = window.supabase.createClient(SB_URL, SB_KEY); }
   catch (e) { setSbStatus('Init failed', 'var(--bear)'); return null; }
+  _sb.auth.onAuthStateChange(ev => { if (ev === 'PASSWORD_RECOVERY') lgStartRecovery(); });
   return _sb;
 }
 
@@ -14089,6 +14095,7 @@ async function adminRevoke(uid){
 }
 
 async function lgUnlock(user){
+  if(_lgRecoveryMode) return; // a reset-link session only allows setting a new password
   // Hide gate + landing page (mainApp stays hidden until re-rendered below
   // with THIS account's own data — see _switchUserStore)
   document.getElementById('loginGate').classList.add('hidden');
@@ -14228,6 +14235,7 @@ async function checkScheduledWeeklyReport(){
 
 // ── LOGIN GATE FORM SWITCHER: sign in · create account · forgot password ──
 function lgSwitchTab(tab){
+  if(_lgRecoveryMode && tab!=='forgot'){ _lgRecoveryMode=false; if(_sb) _sb.auth.signOut().catch(()=>{}); _lgRecoveryUI(false); }
   const forms={signin:'lg-signin-form',signup:'lg-signup-form',forgot:'lg-forgot-form'};
   Object.entries(forms).forEach(([k,id])=>{
     const el=document.getElementById(id); if(el) el.style.display=(k===tab)?'':'none';
@@ -14254,6 +14262,28 @@ function _lgMsg(kind,text){
   err.style.display='none'; suc.style.display='none';
   const el=kind==='err'?err:suc; el.textContent=text; el.style.display='';
 }
+// Opened from the reset-password email link: the session is only good for
+// choosing a new password, then it is signed out (see lgForgotReset).
+function _lgRecoveryUI(on){
+  document.getElementById('lg-forgot-code-field').style.display=on?'none':'';
+  document.getElementById('lg-forgot-resend').style.display=on?'none':'';
+}
+async function lgStartRecovery(){
+  if(_lgRecoveryMode) return;
+  _lgRecoveryMode=true;
+  history.replaceState(null,'',location.pathname);
+  document.getElementById('loginGate').classList.remove('hidden');
+  const main=document.getElementById('mainApp'); if(main) main.style.display='none';
+  lgSwitchTab('forgot');
+  let email='';
+  try{ const {data:{user}}=await _sb.auth.getUser(); email=(user&&user.email)||''; }catch(e){}
+  document.getElementById('lg-forgot-email').value=email;
+  document.getElementById('lg-forgot-step1').style.display='none';
+  document.getElementById('lg-forgot-step2').style.display='';
+  _lgRecoveryUI(true);
+  document.getElementById('lg-forgot-step2-sub').textContent='Choose a new password for '+(email||'your account')+'.';
+  document.getElementById('lg-forgot-pass').focus();
+}
 async function lgForgotSend(resend){
   if(!sbInit()){ _lgMsg('err','Auth service unavailable — check your connection.'); return; }
   const email=document.getElementById('lg-forgot-email').value.trim();
@@ -14261,8 +14291,9 @@ async function lgForgotSend(resend){
   const btn=document.getElementById(resend?'lg-forgot-reset':'lg-forgot-send');
   btn.disabled=true;
   try{
-    const { error } = await _sb.auth.resetPasswordForEmail(email);
+    const { error } = await _sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + '/app' });
     if(error) throw error;
+    document.getElementById('lg-forgot-step2-sub').innerHTML='If an account exists for <b id="lg-forgot-sent-to"></b>, an email is on its way. Enter the one-time code from it with your new password, or tap the link in the email.';
     document.getElementById('lg-forgot-sent-to').textContent=email;
     document.getElementById('lg-forgot-step1').style.display='none';
     document.getElementById('lg-forgot-step2').style.display='';
@@ -14275,19 +14306,21 @@ async function lgForgotSend(resend){
 }
 async function lgForgotReset(){
   if(!sbInit()) return;
+  const viaLink=_lgRecoveryMode;
   const email=document.getElementById('lg-forgot-email').value.trim();
   const token=document.getElementById('lg-forgot-code').value.replace(/\s/g,'');
   const pass=document.getElementById('lg-forgot-pass').value;
   const confirm=document.getElementById('lg-forgot-confirm').value;
-  if(!/^\d{6,10}$/.test(token)){ _lgMsg('err','Enter the code from the email.'); return; }
+  if(!viaLink && !/^\d{6,10}$/.test(token)){ _lgMsg('err','Enter the code from the email.'); return; }
   if(pass.length<8){ _lgMsg('err','New password must be at least 8 characters.'); return; }
   if(pass!==confirm){ _lgMsg('err','Passwords do not match.'); return; }
   const btn=document.getElementById('lg-forgot-reset');
   btn.disabled=true; btn.textContent='Updating…';
   try{
-    const { error:vErr } = await _sb.auth.verifyOtp({ email, token, type:'recovery' });
+    const { error:vErr } = viaLink ? { error:null } : await _sb.auth.verifyOtp({ email, token, type:'recovery' });
     if(vErr) throw new Error(/expired|invalid/i.test(vErr.message)?'That code is invalid or has expired — request a new one.':vErr.message);
     const { error:uErr } = await _sb.auth.updateUser({ password: pass });
+    _lgRecoveryMode=false; _lgRecoveryUI(false);
     await _sb.auth.signOut().catch(()=>{});
     if(uErr) throw uErr;
     ['lg-forgot-code','lg-forgot-pass','lg-forgot-confirm'].forEach(id=>{ document.getElementById(id).value=''; });
@@ -14363,8 +14396,14 @@ window.addEventListener('DOMContentLoaded', () => {
     try{
       const{data:{user}}=await _sb.auth.getUser();
       if(user){
+        // Opened from a password-reset link: set a new password first, never straight into the app.
+        if(_lgRecoveryLink||_lgRecoveryMode){ lgStartRecovery(); return; }
         // Already signed in — skip login screen, go straight to app
         lgUnlock(user);
+      } else if(_lgRecoveryLinkError){
+        lgSwitchTab('forgot');
+        _lgMsg('err','That reset link is invalid or has expired — request a new code below.');
+        history.replaceState(null,'',location.pathname);
       }
       // else: login gate stays visible, user must sign in
     }catch(e){
