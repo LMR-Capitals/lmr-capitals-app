@@ -2408,38 +2408,44 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
 </head>
 <body>
 
-<!-- ── APP START SCREEN (first screen: LMR Capitals · The Chain → login) ── -->
+<!-- ── LOGIN GATE = APP LANDING (LMR Capitals · The Chain + sign in / create account / forgot password) ── -->
 <style>
-#appStart{position:fixed;inset:0;z-index:10000;background:radial-gradient(ellipse at 50% 0%,rgba(217,139,10,.16),transparent 62%),#060B14;
+#loginGate{position:fixed;inset:0;z-index:10000;background:radial-gradient(ellipse at 50% 0%,rgba(217,139,10,.16),transparent 62%),#060B14;
   color:#EDF2FF;font-family:'Plus Jakarta Sans',sans-serif;display:flex;overflow-y:auto;-webkit-overflow-scrolling:touch;
   padding:calc(28px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));box-sizing:border-box;text-align:center}
-#appStart.hidden{display:none}
-#appStart .as-inner{margin:auto;width:100%;max-width:720px;display:flex;flex-direction:column;align-items:center}
-#appStart .as-corner{position:absolute;top:calc(16px + env(safe-area-inset-top));left:20px;display:flex;align-items:center;gap:10px;animation:asRise .7s ease-out both}
-#appStart .as-corner img{width:44px;height:44px;border-radius:50%}
-#appStart .as-corner span{font-size:17px;font-weight:700;letter-spacing:.06em;color:var(--gold2)}
-#appStart .as-mark{margin-top:40px;display:flex;flex-direction:column;align-items:center;animation:asRise .7s .2s ease-out both}
-#appStart h1{margin:0;font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;font-size:clamp(46px,13vw,84px);font-weight:700;letter-spacing:-.02em;line-height:.95;
+#loginGate.hidden{display:none}
+#loginGate::before{display:none}
+#loginGate .lg-card{width:min(380px,100%);margin-top:30px;text-align:left;animation:asRise .7s .45s ease-out both}
+#loginGate .lg-title{font-size:18px}
+#loginGate .lg-sub{margin-bottom:18px}
+#loginGate .lg-links{display:flex;justify-content:space-between;gap:12px;margin-top:14px;font-size:13px;color:#8A94A6}
+#loginGate .lg-links.center{justify-content:center}
+#loginGate .lg-link{background:none;border:0;padding:0;font:inherit;font-weight:600;color:var(--gold2);cursor:pointer}
+#loginGate .lg-link:hover{text-decoration:underline}
+#loginGate .lg-step-note{font-size:12px;color:#8A94A6;margin:-6px 0 14px;line-height:1.5}
+#loginGate #lg-forgot-code{font-family:'JetBrains Mono',monospace;letter-spacing:.3em;text-align:center;font-size:18px}
+#loginGate .as-inner{margin:auto;padding-top:56px;width:100%;max-width:720px;display:flex;flex-direction:column;align-items:center}
+#loginGate .as-corner{position:absolute;top:calc(16px + env(safe-area-inset-top));left:20px;display:flex;align-items:center;gap:10px;animation:asRise .7s ease-out both}
+#loginGate .as-corner img{width:44px;height:44px;border-radius:50%}
+#loginGate .as-corner span{font-size:17px;font-weight:700;letter-spacing:.06em;color:var(--gold2)}
+#loginGate .as-mark{margin-top:40px;display:flex;flex-direction:column;align-items:center;animation:asRise .7s .2s ease-out both}
+#loginGate h1{margin:0;font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;font-size:clamp(46px,13vw,84px);font-weight:700;letter-spacing:-.02em;line-height:.95;
   text-transform:uppercase;color:#EDF2FF;text-shadow:0 2px 0 rgba(0,0,0,.35)}
-#appStart h1 b{font-weight:700;color:var(--gold2);text-shadow:0 0 36px rgba(217,139,10,.4)}
-#appStart .as-chain{width:min(300px,78%);height:auto;margin:14px 0 0}
-#appStart .as-link{fill:none;stroke:#2A3140;stroke-width:5;animation:asLight 5.6s ease-in-out infinite}
-#appStart .as-link.v{stroke-width:7}
-#appStart .as-pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;margin-top:34px;animation:asRise .7s .35s ease-out both}
-#appStart .as-pillar{padding:18px 12px;border:1px solid rgba(217,139,10,.22);border-radius:14px;text-align:center;
+#loginGate h1 b{font-weight:700;color:var(--gold2);text-shadow:0 0 36px rgba(217,139,10,.4)}
+#loginGate .as-chain{width:min(300px,78%);height:auto;margin:14px 0 0}
+#loginGate .as-link{fill:none;stroke:#2A3140;stroke-width:5;animation:asLight 5.6s ease-in-out infinite}
+#loginGate .as-link.v{stroke-width:7}
+#loginGate .as-pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;margin-top:34px;animation:asRise .7s .35s ease-out both}
+#loginGate .as-pillar{padding:18px 12px;border:1px solid rgba(217,139,10,.22);border-radius:14px;text-align:center;
   background:linear-gradient(180deg,#10131B 0%,#0C0E14 100%)}
-#appStart .as-pillar h2{margin:0;font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:600;color:#EDF2FF}
-#appStart .as-actions{display:flex;flex-direction:column;gap:10px;width:min(320px,100%);margin-top:30px;animation:asRise .7s .45s ease-out both}
-#appStart button{height:50px;border-radius:12px;font:600 16px 'Plus Jakarta Sans',sans-serif;cursor:pointer}
-#appStart .as-primary{border:0;color:#12121A;background:linear-gradient(135deg,#F0C666,#D89B2D);box-shadow:0 6px 26px rgba(217,139,10,.28)}
-#appStart .as-secondary{background:transparent;border:1px solid var(--gold-border);color:var(--gold2)}
-#appStart .as-foot{margin-top:22px;font-size:11px;color:#4E5666}
-@media (max-width:640px){#appStart .as-pillars{gap:8px;margin-top:28px}#appStart .as-pillar{padding:14px 6px}#appStart .as-pillar h2{font-size:14px}}
+#loginGate .as-pillar h2{margin:0;font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:600;color:#EDF2FF}
+#loginGate .as-foot{margin-top:22px;font-size:11px;color:#4E5666}
+@media (max-width:640px){#loginGate .as-pillars{gap:8px;margin-top:28px}#loginGate .as-pillar{padding:14px 6px}#loginGate .as-pillar h2{font-size:14px}}
 @keyframes asRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @keyframes asLight{0%,8%{stroke:#2A3140}16%,70%{stroke:var(--gold2)}85%,100%{stroke:#2A3140}}
-@media (prefers-reduced-motion:reduce){#appStart *{animation:none!important}#appStart .as-link{stroke:var(--gold2)}}
+@media (prefers-reduced-motion:reduce){#loginGate *{animation:none!important}#loginGate .as-link{stroke:var(--gold2)}}
 </style>
-<div id="appStart">
+<div id="loginGate">
 <div class="as-corner"><img src="/icons/lmr-icon-circle.png" alt="LMR"><span>Capitals</span></div>
 <div class="as-inner">
   <div class="as-mark">
@@ -2460,39 +2466,7 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
     <div class="as-pillar"><h2>Psychology</h2></div>
     <div class="as-pillar"><h2>Observation</h2></div>
   </div>
-  <div class="as-actions">
-    <button class="as-primary" onclick="enterApp('signin')">Sign In</button>
-    <button class="as-secondary" onclick="enterApp('signup')">Create Account</button>
-  </div>
-  <div class="as-foot">LMR Capitals Pty. Ltd. © 2026</div>
-</div></div>
-
-<!-- ── LOGIN GATE (shown after the start screen) ── -->
-<div id="loginGate" class="hidden">
-  <button class="lg-back-home" onclick="showLanding()">← Home</button>
-
-  <!-- Left branding panel -->
-  <div class="lg-left">
-    <img src="/icons/lmr-icon.png" class="lg-brand-logo" alt="LMR">
-    <div class="lg-brand-capitals">Capitals</div>
-    <div class="lg-brand-tagline">Professional Trading Journal</div>
-    <div class="lg-features">
-      <div class="lg-feature"><div class="lg-feature-dot"></div>Real-time Cloud Sync</div>
-      <div class="lg-feature"><div class="lg-feature-dot"></div>Advanced Analytics</div>
-      <div class="lg-feature"><div class="lg-feature-dot"></div>Daily Chain Tracking</div>
-    </div>
-    <div class="lg-version">v3.1 · modernist · LMR Capitals © 2026</div>
-  </div>
-
-  <!-- Right form panel -->
-  <div class="lg-right">
     <div class="lg-card">
-
-      <!-- Sign In / Sign Up tabs -->
-      <div class="lg-tabs">
-        <button class="lg-tab active" id="lg-tab-signin" onclick="lgSwitchTab('signin')">Sign In</button>
-        <button class="lg-tab" id="lg-tab-signup" onclick="lgSwitchTab('signup')">Sign Up</button>
-      </div>
 
       <!-- Sign In form -->
       <div id="lg-signin-form">
@@ -2507,6 +2481,10 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
           <input type="password" id="lg-password" placeholder="Enter your password" autocomplete="new-password">
         </div>
         <button class="lg-btn" id="lg-submit" onclick="lgSignIn()">Sign In →</button>
+        <div class="lg-links">
+          <button class="lg-link" onclick="lgSwitchTab('forgot')">Forgot password?</button>
+          <span>New here? <button class="lg-link" onclick="lgSwitchTab('signup')">Create account</button></span>
+        </div>
       </div>
 
       <!-- Sign Up form -->
@@ -2526,6 +2504,42 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
           <input type="password" id="lg-signup-confirm" placeholder="repeat password">
         </div>
         <button class="lg-btn-out" id="lg-signup-submit" onclick="lgSignUp()">Create Account →</button>
+        <div class="lg-links center">
+          <span>Already have an account? <button class="lg-link" onclick="lgSwitchTab('signin')">Sign in</button></span>
+        </div>
+      </div>
+
+      <!-- Forgot password: email → one-time code → new password (existing accounts only) -->
+      <div id="lg-forgot-form" style="display:none">
+        <div class="lg-title">Reset password</div>
+        <div id="lg-forgot-step1">
+          <div class="lg-sub">Enter the email of your LMR Capitals account. We'll email you a one-time code.</div>
+          <div class="lg-field">
+            <label>Email</label>
+            <input type="email" id="lg-forgot-email" placeholder="you@example.com" autocomplete="email" spellcheck="false">
+          </div>
+          <button class="lg-btn" id="lg-forgot-send" onclick="lgForgotSend()">Send code →</button>
+        </div>
+        <div id="lg-forgot-step2" style="display:none">
+          <div class="lg-sub">If an account exists for <b id="lg-forgot-sent-to"></b>, a one-time code is on its way. Enter it with your new password.</div>
+          <div class="lg-field">
+            <label>One-time code</label>
+            <input type="text" id="lg-forgot-code" placeholder="000000" maxlength="10" inputmode="numeric" autocomplete="one-time-code">
+          </div>
+          <div class="lg-field">
+            <label>New password</label>
+            <input type="password" id="lg-forgot-pass" placeholder="min 8 characters" autocomplete="new-password">
+          </div>
+          <div class="lg-field">
+            <label>Confirm new password</label>
+            <input type="password" id="lg-forgot-confirm" placeholder="repeat password" autocomplete="new-password">
+          </div>
+          <button class="lg-btn" id="lg-forgot-reset" onclick="lgForgotReset()">Set new password →</button>
+          <div class="lg-links center"><button class="lg-link" onclick="lgForgotSend(true)">Resend code</button></div>
+        </div>
+        <div class="lg-links center">
+          <button class="lg-link" onclick="lgSwitchTab('signin')">← Back to sign in</button>
+        </div>
       </div>
 
       <!-- Session expired message -->
@@ -2553,9 +2567,8 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
       </div>
 
       <div class="lg-footer">Secured by <span>Supabase Auth</span> · LMR Capitals © 2026</div>
-    </div>
   </div>
-
+</div>
 </div>
 
 <!-- ── SUBSCRIBE GATE (shown after login when the account is not entitled) ── -->
@@ -13971,19 +13984,6 @@ function exportTradesCSV(){
 }
 
 // ── LANDING PAGE ↔ LOGIN GATE TOGGLES ──────────────────────────────
-function enterApp(tab){
-  const lp=document.getElementById('landingPage');
-  if(lp)lp.classList.add('hidden');
-  document.getElementById('appStart').classList.add('hidden');
-  document.getElementById('loginGate').classList.remove('hidden');
-  if(tab) lgSwitchTab(tab);
-}
-function showLanding(){
-  // Back to the app's start screen (The Chain), in the browser and the native app alike.
-  document.body.classList.remove('is-admin');
-  document.getElementById('loginGate').classList.add('hidden');
-  document.getElementById('appStart').classList.remove('hidden');
-}
 
 // Admin detection: an account is admin iff it's listed in public.admins
 // (RLS-checked). Toggles body.is-admin, which reveals the publish controls
@@ -14092,7 +14092,6 @@ async function lgUnlock(user){
   // Hide gate + landing page (mainApp stays hidden until re-rendered below
   // with THIS account's own data — see _switchUserStore)
   document.getElementById('loginGate').classList.add('hidden');
-  document.getElementById('appStart').classList.add('hidden');
   const lp=document.getElementById('landingPage');
   if(lp)lp.classList.add('hidden');
   // ── Admin gating: admins go through the premium /admin experience, which
@@ -14227,27 +14226,78 @@ async function checkScheduledWeeklyReport(){
   }catch(e){ console.warn('[LMR] Scheduled weekly report skipped:',e); }
 }
 
-// ── LOGIN GATE TAB SWITCHER ──────────────────────────────
+// ── LOGIN GATE FORM SWITCHER: sign in · create account · forgot password ──
 function lgSwitchTab(tab){
-  const signInForm=document.getElementById('lg-signin-form');
-  const signUpForm=document.getElementById('lg-signup-form');
-  const tabSI=document.getElementById('lg-tab-signin');
-  const tabSU=document.getElementById('lg-tab-signup');
-  const err=document.getElementById('lg-err');
-  const suc=document.getElementById('lg-success');
-  if(err){err.style.display='none';}
-  if(suc){suc.style.display='none';}
-  if(tab==='signin'){
-    if(signInForm)signInForm.style.display='';
-    if(signUpForm)signUpForm.style.display='none';
-    if(tabSI)tabSI.classList.add('active');
-    if(tabSU)tabSU.classList.remove('active');
-  } else {
-    if(signInForm)signInForm.style.display='none';
-    if(signUpForm)signUpForm.style.display='';
-    if(tabSI)tabSI.classList.remove('active');
-    if(tabSU)tabSU.classList.add('active');
+  const forms={signin:'lg-signin-form',signup:'lg-signup-form',forgot:'lg-forgot-form'};
+  Object.entries(forms).forEach(([k,id])=>{
+    const el=document.getElementById(id); if(el) el.style.display=(k===tab)?'':'none';
+  });
+  const err=document.getElementById('lg-err'); if(err) err.style.display='none';
+  const suc=document.getElementById('lg-success'); if(suc) suc.style.display='none';
+  if(tab==='forgot'){
+    // Always start at step 1, prefilled with whatever was typed on the sign-in form.
+    document.getElementById('lg-forgot-step1').style.display='';
+    document.getElementById('lg-forgot-step2').style.display='none';
+    const fe=document.getElementById('lg-forgot-email'), le=document.getElementById('lg-email');
+    if(fe&&le&&!fe.value) fe.value=le.value.trim();
   }
+}
+
+// ── FORGOT PASSWORD (email one-time code → new password) ───────────────────
+// Supabase only emails a code when the address belongs to an existing
+// account, and the reply is identical either way, so this can't be used to
+// discover which emails are registered. The code proves ownership of the
+// inbox; after the password is changed the session is signed out, so the
+// user signs in again through the normal flow (including 2FA / admin gating).
+function _lgMsg(kind,text){
+  const err=document.getElementById('lg-err'), suc=document.getElementById('lg-success');
+  err.style.display='none'; suc.style.display='none';
+  const el=kind==='err'?err:suc; el.textContent=text; el.style.display='';
+}
+async function lgForgotSend(resend){
+  if(!sbInit()){ _lgMsg('err','Auth service unavailable — check your connection.'); return; }
+  const email=document.getElementById('lg-forgot-email').value.trim();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ _lgMsg('err','Enter the email address of your account.'); return; }
+  const btn=document.getElementById(resend?'lg-forgot-reset':'lg-forgot-send');
+  btn.disabled=true;
+  try{
+    const { error } = await _sb.auth.resetPasswordForEmail(email);
+    if(error) throw error;
+    document.getElementById('lg-forgot-sent-to').textContent=email;
+    document.getElementById('lg-forgot-step1').style.display='none';
+    document.getElementById('lg-forgot-step2').style.display='';
+    _lgMsg('ok', resend ? 'A new code has been sent.' : 'Check your inbox for the one-time code.');
+    document.getElementById('lg-forgot-code').focus();
+  }catch(e){
+    const m=(e&&e.message)||'';
+    _lgMsg('err', /rate|seconds|too many/i.test(m) ? 'Please wait a minute before requesting another code.' : 'Could not send the code: '+m);
+  }finally{ btn.disabled=false; }
+}
+async function lgForgotReset(){
+  if(!sbInit()) return;
+  const email=document.getElementById('lg-forgot-email').value.trim();
+  const token=document.getElementById('lg-forgot-code').value.replace(/\s/g,'');
+  const pass=document.getElementById('lg-forgot-pass').value;
+  const confirm=document.getElementById('lg-forgot-confirm').value;
+  if(!/^\d{6,10}$/.test(token)){ _lgMsg('err','Enter the code from the email.'); return; }
+  if(pass.length<8){ _lgMsg('err','New password must be at least 8 characters.'); return; }
+  if(pass!==confirm){ _lgMsg('err','Passwords do not match.'); return; }
+  const btn=document.getElementById('lg-forgot-reset');
+  btn.disabled=true; btn.textContent='Updating…';
+  try{
+    const { error:vErr } = await _sb.auth.verifyOtp({ email, token, type:'recovery' });
+    if(vErr) throw new Error(/expired|invalid/i.test(vErr.message)?'That code is invalid or has expired — request a new one.':vErr.message);
+    const { error:uErr } = await _sb.auth.updateUser({ password: pass });
+    await _sb.auth.signOut().catch(()=>{});
+    if(uErr) throw uErr;
+    ['lg-forgot-code','lg-forgot-pass','lg-forgot-confirm'].forEach(id=>{ document.getElementById(id).value=''; });
+    lgSwitchTab('signin');
+    document.getElementById('lg-email').value=email;
+    _lgMsg('ok','✓ Password updated. Sign in with your new password.');
+    document.getElementById('lg-password').focus();
+  }catch(e){
+    _lgMsg('err', (e&&e.message)||'Could not reset the password.');
+  }finally{ btn.disabled=false; btn.textContent='Set new password →'; }
 }
 
 async function lgSignUp(){
