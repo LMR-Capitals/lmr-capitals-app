@@ -2,6 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>
+  // Password-reset email links fall back to the site root; hand them to the app, which handles them.
+  if (/type=recovery|error_code=/.test(location.hash)) location.replace('/app' + location.hash);
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#05080F">
 <title>LMR Capitals — Trade With a System. Master The Chain.</title>

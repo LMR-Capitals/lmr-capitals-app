@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -24,8 +24,8 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png">
 <link rel="shortcut icon" href="/icons/favicon-32.png">
 <!-- iOS / Android home screen icon -->
-<link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png">
-<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="/chart.umd.min.js"></script>
@@ -2408,32 +2408,65 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
 </head>
 <body>
 
-<!-- ── LOGIN GATE (first screen; marketing landing is the site root /) ── -->
+<!-- ── LOGIN GATE = APP LANDING (LMR Capitals · The Chain + sign in / create account / forgot password) ── -->
+<style>
+#loginGate{position:fixed;inset:0;z-index:10000;background:radial-gradient(ellipse at 50% 0%,rgba(217,139,10,.16),transparent 62%),#060B14;
+  color:#EDF2FF;font-family:'Plus Jakarta Sans',sans-serif;display:flex;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:calc(28px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));box-sizing:border-box;text-align:center}
+#loginGate.hidden{display:none}
+#loginGate::before{display:none}
+#loginGate .lg-card{width:min(380px,100%);margin-top:30px;text-align:left;animation:asRise .7s .45s ease-out both}
+#loginGate .lg-title{font-size:18px}
+#loginGate .lg-sub{margin-bottom:18px}
+#loginGate .lg-links{display:flex;justify-content:space-between;gap:12px;margin-top:14px;font-size:13px;color:#8A94A6}
+#loginGate .lg-links.center{justify-content:center}
+#loginGate .lg-link{background:none;border:0;padding:0;font:inherit;font-weight:600;color:var(--gold2);cursor:pointer}
+#loginGate .lg-link:hover{text-decoration:underline}
+#loginGate .lg-step-note{font-size:12px;color:#8A94A6;margin:-6px 0 14px;line-height:1.5}
+#loginGate #lg-forgot-code{font-family:'JetBrains Mono',monospace;letter-spacing:.3em;text-align:center;font-size:18px}
+#loginGate .as-inner{margin:auto;padding-top:56px;width:100%;max-width:720px;display:flex;flex-direction:column;align-items:center}
+#loginGate .as-corner{position:absolute;top:calc(16px + env(safe-area-inset-top));left:20px;display:flex;align-items:center;gap:10px;animation:asRise .7s ease-out both}
+#loginGate .as-corner img{width:44px;height:44px;border-radius:50%}
+#loginGate .as-corner span{font-size:17px;font-weight:700;letter-spacing:.06em;color:var(--gold2)}
+#loginGate .as-mark{margin-top:40px;display:flex;flex-direction:column;align-items:center;animation:asRise .7s .2s ease-out both}
+#loginGate h1{margin:0;font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;font-size:clamp(46px,13vw,84px);font-weight:700;letter-spacing:-.02em;line-height:.95;
+  text-transform:uppercase;color:#EDF2FF;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+#loginGate h1 b{font-weight:700;color:var(--gold2);text-shadow:0 0 36px rgba(217,139,10,.4)}
+#loginGate .as-chain{width:min(300px,78%);height:auto;margin:14px 0 0}
+#loginGate .as-link{fill:none;stroke:#2A3140;stroke-width:5;animation:asLight 5.6s ease-in-out infinite}
+#loginGate .as-link.v{stroke-width:7}
+#loginGate .as-pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;margin-top:34px;animation:asRise .7s .35s ease-out both}
+#loginGate .as-pillar{padding:18px 12px;border:1px solid rgba(217,139,10,.22);border-radius:14px;text-align:center;
+  background:linear-gradient(180deg,#10131B 0%,#0C0E14 100%)}
+#loginGate .as-pillar h2{margin:0;font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:600;color:#EDF2FF}
+#loginGate .as-foot{margin-top:22px;font-size:11px;color:#4E5666}
+@media (max-width:640px){#loginGate .as-pillars{gap:8px;margin-top:28px}#loginGate .as-pillar{padding:14px 6px}#loginGate .as-pillar h2{font-size:14px}}
+@keyframes asRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes asLight{0%,8%{stroke:#2A3140}16%,70%{stroke:var(--gold2)}85%,100%{stroke:#2A3140}}
+@media (prefers-reduced-motion:reduce){#loginGate *{animation:none!important}#loginGate .as-link{stroke:var(--gold2)}}
+</style>
 <div id="loginGate">
-  <button class="lg-back-home" onclick="showLanding()">← Home</button>
-
-  <!-- Left branding panel -->
-  <div class="lg-left">
-    <img src="/icons/lmr-icon.png" class="lg-brand-logo" alt="LMR">
-    <div class="lg-brand-capitals">Capitals</div>
-    <div class="lg-brand-tagline">Professional Trading Journal</div>
-    <div class="lg-features">
-      <div class="lg-feature"><div class="lg-feature-dot"></div>Real-time Cloud Sync</div>
-      <div class="lg-feature"><div class="lg-feature-dot"></div>Advanced Analytics</div>
-      <div class="lg-feature"><div class="lg-feature-dot"></div>Daily Chain Tracking</div>
-    </div>
-    <div class="lg-version">v3.1 · modernist · LMR Capitals © 2026</div>
+<div class="as-corner"><img src="/icons/lmr-icon-circle.png" alt="LMR"><span>Capitals</span></div>
+<div class="as-inner">
+  <div class="as-mark">
+  <h1>The <b>Chain</b></h1>
+  <svg class="as-chain" viewBox="0 0 300 60" role="img" aria-label="The Chain">
+    <!-- 7 interlocking links: flat (h) links alternate with edge-on (v) links; each lights up in turn -->
+    <rect class="as-link h" x="4"   y="14" width="64" height="32" rx="16" style="animation-delay:0s"/>
+    <rect class="as-link v" x="52"  y="24" width="44" height="12" rx="6"  style="animation-delay:.35s"/>
+    <rect class="as-link h" x="80"  y="14" width="64" height="32" rx="16" style="animation-delay:.7s"/>
+    <rect class="as-link v" x="128" y="24" width="44" height="12" rx="6"  style="animation-delay:1.05s"/>
+    <rect class="as-link h" x="156" y="14" width="64" height="32" rx="16" style="animation-delay:1.4s"/>
+    <rect class="as-link v" x="204" y="24" width="44" height="12" rx="6"  style="animation-delay:1.75s"/>
+    <rect class="as-link h" x="232" y="14" width="64" height="32" rx="16" style="animation-delay:2.1s"/>
+  </svg>
   </div>
-
-  <!-- Right form panel -->
-  <div class="lg-right">
+  <div class="as-pillars">
+    <div class="as-pillar"><h2>Methodology</h2></div>
+    <div class="as-pillar"><h2>Psychology</h2></div>
+    <div class="as-pillar"><h2>Observation</h2></div>
+  </div>
     <div class="lg-card">
-
-      <!-- Sign In / Sign Up tabs -->
-      <div class="lg-tabs">
-        <button class="lg-tab active" id="lg-tab-signin" onclick="lgSwitchTab('signin')">Sign In</button>
-        <button class="lg-tab" id="lg-tab-signup" onclick="lgSwitchTab('signup')">Sign Up</button>
-      </div>
 
       <!-- Sign In form -->
       <div id="lg-signin-form">
@@ -2448,6 +2481,10 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
           <input type="password" id="lg-password" placeholder="Enter your password" autocomplete="new-password">
         </div>
         <button class="lg-btn" id="lg-submit" onclick="lgSignIn()">Sign In →</button>
+        <div class="lg-links">
+          <button class="lg-link" onclick="lgSwitchTab('forgot')">Forgot password?</button>
+          <span>New here? <button class="lg-link" onclick="lgSwitchTab('signup')">Create account</button></span>
+        </div>
       </div>
 
       <!-- Sign Up form -->
@@ -2467,6 +2504,42 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
           <input type="password" id="lg-signup-confirm" placeholder="repeat password">
         </div>
         <button class="lg-btn-out" id="lg-signup-submit" onclick="lgSignUp()">Create Account →</button>
+        <div class="lg-links center">
+          <span>Already have an account? <button class="lg-link" onclick="lgSwitchTab('signin')">Sign in</button></span>
+        </div>
+      </div>
+
+      <!-- Forgot password: email → one-time code → new password (existing accounts only) -->
+      <div id="lg-forgot-form" style="display:none">
+        <div class="lg-title">Reset password</div>
+        <div id="lg-forgot-step1">
+          <div class="lg-sub">Enter the email of your LMR Capitals account. We'll email you a one-time code.</div>
+          <div class="lg-field">
+            <label>Email</label>
+            <input type="email" id="lg-forgot-email" placeholder="you@example.com" autocomplete="email" spellcheck="false">
+          </div>
+          <button class="lg-btn" id="lg-forgot-send" onclick="lgForgotSend()">Send code →</button>
+        </div>
+        <div id="lg-forgot-step2" style="display:none">
+          <div class="lg-sub" id="lg-forgot-step2-sub">If an account exists for <b id="lg-forgot-sent-to"></b>, an email is on its way. Enter the one-time code from it with your new password, or tap the link in the email.</div>
+          <div class="lg-field" id="lg-forgot-code-field">
+            <label>One-time code</label>
+            <input type="text" id="lg-forgot-code" placeholder="000000" maxlength="10" inputmode="numeric" autocomplete="one-time-code">
+          </div>
+          <div class="lg-field">
+            <label>New password</label>
+            <input type="password" id="lg-forgot-pass" placeholder="min 8 characters" autocomplete="new-password">
+          </div>
+          <div class="lg-field">
+            <label>Confirm new password</label>
+            <input type="password" id="lg-forgot-confirm" placeholder="repeat password" autocomplete="new-password">
+          </div>
+          <button class="lg-btn" id="lg-forgot-reset" onclick="lgForgotReset()">Set new password →</button>
+          <div class="lg-links center" id="lg-forgot-resend"><button class="lg-link" onclick="lgForgotSend(true)">Resend code</button></div>
+        </div>
+        <div class="lg-links center">
+          <button class="lg-link" onclick="lgSwitchTab('signin')">← Back to sign in</button>
+        </div>
       </div>
 
       <!-- Session expired message -->
@@ -2494,9 +2567,8 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
       </div>
 
       <div class="lg-footer">Secured by <span>Supabase Auth</span> · LMR Capitals © 2026</div>
-    </div>
   </div>
-
+</div>
 </div>
 
 <!-- ── SUBSCRIBE GATE (shown after login when the account is not entitled) ── -->
@@ -13453,12 +13525,18 @@ if(typeof navTo==='function'){
 const SB_URL = 'https://agrvylclhvxyevsmmexf.supabase.co';
 const SB_KEY = 'sb_publishable_vUhBxc3efVrs41yc9WZmAA_SnhBIrDh';
 let _sb = null;
+// Password-reset email links land here as #...type=recovery (or #error_code=otp_expired
+// when stale). Read the URL before supabase-js consumes and clears it.
+const _lgRecoveryLink = /type=recovery/.test(location.hash + location.search);
+const _lgRecoveryLinkError = /error_code=/.test(location.hash);
+let _lgRecoveryMode = false;
 
 function sbInit() {
   if (!window.supabase) { setSbStatus('SDK loading…', 'var(--text3)'); return null; }
   if (_sb) return _sb;
   try { _sb = window.supabase.createClient(SB_URL, SB_KEY); }
   catch (e) { setSbStatus('Init failed', 'var(--bear)'); return null; }
+  _sb.auth.onAuthStateChange(ev => { if (ev === 'PASSWORD_RECOVERY') lgStartRecovery(); });
   return _sb;
 }
 
@@ -13529,6 +13607,7 @@ async function sbDoSignUp() {
 async function sbDoSignOut() {
   if (!_sb) return;
   if(!confirm('Sign out of LMR Capitals?\n\nYour data is saved locally and in the cloud.'))return;
+  sbStopRealtime();
   await _sb.auth.signOut();
   _sbSyncEnabled=false;_sbUserId=null;
   localStorage.removeItem(SESSION_KEY);
@@ -13911,16 +13990,6 @@ function exportTradesCSV(){
 }
 
 // ── LANDING PAGE ↔ LOGIN GATE TOGGLES ──────────────────────────────
-function enterApp(){
-  const lp=document.getElementById('landingPage');
-  if(lp)lp.classList.add('hidden');
-  document.getElementById('loginGate').classList.remove('hidden');
-}
-function showLanding(){
-  // The marketing landing is the site root.
-  document.body.classList.remove('is-admin');
-  location.href='/';
-}
 
 // Admin detection: an account is admin iff it's listed in public.admins
 // (RLS-checked). Toggles body.is-admin, which reveals the publish controls
@@ -14026,6 +14095,7 @@ async function adminRevoke(uid){
 }
 
 async function lgUnlock(user){
+  if(_lgRecoveryMode) return; // a reset-link session only allows setting a new password
   // Hide gate + landing page (mainApp stays hidden until re-rendered below
   // with THIS account's own data — see _switchUserStore)
   document.getElementById('loginGate').classList.add('hidden');
@@ -14115,6 +14185,8 @@ async function lgUnlock(user){
         _sbDirty=true; sbScheduleSync();
       }
     }
+    // Initial pull done — from here on, changes from other devices stream in live.
+    sbStartRealtime();
     // ── Load profile from Supabase (always — overrides localStorage if cloud is newer) ──
     await loadProfileFromCloud();
     // Load AI settings from saved profile (API key, model, etc.)
@@ -14161,27 +14233,104 @@ async function checkScheduledWeeklyReport(){
   }catch(e){ console.warn('[LMR] Scheduled weekly report skipped:',e); }
 }
 
-// ── LOGIN GATE TAB SWITCHER ──────────────────────────────
+// ── LOGIN GATE FORM SWITCHER: sign in · create account · forgot password ──
 function lgSwitchTab(tab){
-  const signInForm=document.getElementById('lg-signin-form');
-  const signUpForm=document.getElementById('lg-signup-form');
-  const tabSI=document.getElementById('lg-tab-signin');
-  const tabSU=document.getElementById('lg-tab-signup');
-  const err=document.getElementById('lg-err');
-  const suc=document.getElementById('lg-success');
-  if(err){err.style.display='none';}
-  if(suc){suc.style.display='none';}
-  if(tab==='signin'){
-    if(signInForm)signInForm.style.display='';
-    if(signUpForm)signUpForm.style.display='none';
-    if(tabSI)tabSI.classList.add('active');
-    if(tabSU)tabSU.classList.remove('active');
-  } else {
-    if(signInForm)signInForm.style.display='none';
-    if(signUpForm)signUpForm.style.display='';
-    if(tabSI)tabSI.classList.remove('active');
-    if(tabSU)tabSU.classList.add('active');
+  if(_lgRecoveryMode && tab!=='forgot'){ _lgRecoveryMode=false; if(_sb) _sb.auth.signOut().catch(()=>{}); _lgRecoveryUI(false); }
+  const forms={signin:'lg-signin-form',signup:'lg-signup-form',forgot:'lg-forgot-form'};
+  Object.entries(forms).forEach(([k,id])=>{
+    const el=document.getElementById(id); if(el) el.style.display=(k===tab)?'':'none';
+  });
+  const err=document.getElementById('lg-err'); if(err) err.style.display='none';
+  const suc=document.getElementById('lg-success'); if(suc) suc.style.display='none';
+  if(tab==='forgot'){
+    // Always start at step 1, prefilled with whatever was typed on the sign-in form.
+    document.getElementById('lg-forgot-step1').style.display='';
+    document.getElementById('lg-forgot-step2').style.display='none';
+    const fe=document.getElementById('lg-forgot-email'), le=document.getElementById('lg-email');
+    if(fe&&le&&!fe.value) fe.value=le.value.trim();
   }
+}
+
+// ── FORGOT PASSWORD (email one-time code → new password) ───────────────────
+// Supabase only emails a code when the address belongs to an existing
+// account, and the reply is identical either way, so this can't be used to
+// discover which emails are registered. The code proves ownership of the
+// inbox; after the password is changed the session is signed out, so the
+// user signs in again through the normal flow (including 2FA / admin gating).
+function _lgMsg(kind,text){
+  const err=document.getElementById('lg-err'), suc=document.getElementById('lg-success');
+  err.style.display='none'; suc.style.display='none';
+  const el=kind==='err'?err:suc; el.textContent=text; el.style.display='';
+}
+// Opened from the reset-password email link: the session is only good for
+// choosing a new password, then it is signed out (see lgForgotReset).
+function _lgRecoveryUI(on){
+  document.getElementById('lg-forgot-code-field').style.display=on?'none':'';
+  document.getElementById('lg-forgot-resend').style.display=on?'none':'';
+}
+async function lgStartRecovery(){
+  if(_lgRecoveryMode) return;
+  _lgRecoveryMode=true;
+  history.replaceState(null,'',location.pathname);
+  document.getElementById('loginGate').classList.remove('hidden');
+  const main=document.getElementById('mainApp'); if(main) main.style.display='none';
+  lgSwitchTab('forgot');
+  let email='';
+  try{ const {data:{user}}=await _sb.auth.getUser(); email=(user&&user.email)||''; }catch(e){}
+  document.getElementById('lg-forgot-email').value=email;
+  document.getElementById('lg-forgot-step1').style.display='none';
+  document.getElementById('lg-forgot-step2').style.display='';
+  _lgRecoveryUI(true);
+  document.getElementById('lg-forgot-step2-sub').textContent='Choose a new password for '+(email||'your account')+'.';
+  document.getElementById('lg-forgot-pass').focus();
+}
+async function lgForgotSend(resend){
+  if(!sbInit()){ _lgMsg('err','Auth service unavailable — check your connection.'); return; }
+  const email=document.getElementById('lg-forgot-email').value.trim();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ _lgMsg('err','Enter the email address of your account.'); return; }
+  const btn=document.getElementById(resend?'lg-forgot-reset':'lg-forgot-send');
+  btn.disabled=true;
+  try{
+    const { error } = await _sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + '/app' });
+    if(error) throw error;
+    document.getElementById('lg-forgot-step2-sub').innerHTML='If an account exists for <b id="lg-forgot-sent-to"></b>, an email is on its way. Enter the one-time code from it with your new password, or tap the link in the email.';
+    document.getElementById('lg-forgot-sent-to').textContent=email;
+    document.getElementById('lg-forgot-step1').style.display='none';
+    document.getElementById('lg-forgot-step2').style.display='';
+    _lgMsg('ok', resend ? 'A new code has been sent.' : 'Check your inbox for the one-time code.');
+    document.getElementById('lg-forgot-code').focus();
+  }catch(e){
+    const m=(e&&e.message)||'';
+    _lgMsg('err', /rate|seconds|too many/i.test(m) ? 'Please wait a minute before requesting another code.' : 'Could not send the code: '+m);
+  }finally{ btn.disabled=false; }
+}
+async function lgForgotReset(){
+  if(!sbInit()) return;
+  const viaLink=_lgRecoveryMode;
+  const email=document.getElementById('lg-forgot-email').value.trim();
+  const token=document.getElementById('lg-forgot-code').value.replace(/\s/g,'');
+  const pass=document.getElementById('lg-forgot-pass').value;
+  const confirm=document.getElementById('lg-forgot-confirm').value;
+  if(!viaLink && !/^\d{6,10}$/.test(token)){ _lgMsg('err','Enter the code from the email.'); return; }
+  if(pass.length<8){ _lgMsg('err','New password must be at least 8 characters.'); return; }
+  if(pass!==confirm){ _lgMsg('err','Passwords do not match.'); return; }
+  const btn=document.getElementById('lg-forgot-reset');
+  btn.disabled=true; btn.textContent='Updating…';
+  try{
+    const { error:vErr } = viaLink ? { error:null } : await _sb.auth.verifyOtp({ email, token, type:'recovery' });
+    if(vErr) throw new Error(/expired|invalid/i.test(vErr.message)?'That code is invalid or has expired — request a new one.':vErr.message);
+    const { error:uErr } = await _sb.auth.updateUser({ password: pass });
+    _lgRecoveryMode=false; _lgRecoveryUI(false);
+    await _sb.auth.signOut().catch(()=>{});
+    if(uErr) throw uErr;
+    ['lg-forgot-code','lg-forgot-pass','lg-forgot-confirm'].forEach(id=>{ document.getElementById(id).value=''; });
+    lgSwitchTab('signin');
+    document.getElementById('lg-email').value=email;
+    _lgMsg('ok','✓ Password updated. Sign in with your new password.');
+    document.getElementById('lg-password').focus();
+  }catch(e){
+    _lgMsg('err', (e&&e.message)||'Could not reset the password.');
+  }finally{ btn.disabled=false; btn.textContent='Set new password →'; }
 }
 
 async function lgSignUp(){
@@ -14247,8 +14396,14 @@ window.addEventListener('DOMContentLoaded', () => {
     try{
       const{data:{user}}=await _sb.auth.getUser();
       if(user){
+        // Opened from a password-reset link: set a new password first, never straight into the app.
+        if(_lgRecoveryLink||_lgRecoveryMode){ lgStartRecovery(); return; }
         // Already signed in — skip login screen, go straight to app
         lgUnlock(user);
+      } else if(_lgRecoveryLinkError){
+        lgSwitchTab('forgot');
+        _lgMsg('err','That reset link is invalid or has expired — request a new code below.');
+        history.replaceState(null,'',location.pathname);
       }
       // else: login gate stays visible, user must sign in
     }catch(e){
@@ -14287,6 +14442,7 @@ function checkSessionTimeout(){
   if(Date.now() - ts > SESSION_TIMEOUT_MS){
     // Session expired — force re-login
     localStorage.removeItem(SESSION_KEY);
+    sbStopRealtime();
     if(_sb) _sb.auth.signOut().catch(()=>{});
     _sbSyncEnabled=false; _sbUserId=null;
     document.getElementById('loginGate').classList.remove('hidden');
@@ -14330,6 +14486,109 @@ function updateRTIndicator(status){
   lbl.style.color=s.color;
   lbl.textContent=s.label;
 }
+
+// ── LIVE CROSS-DEVICE SYNC (Supabase Realtime) ───────────────────
+// A save on one device (phone, Mac, browser) shows up on every other signed-in
+// device without a reload. Each device listens for row changes on this
+// account's tables; any change schedules a debounced pull that reuses
+// _sbDoPull (same mapping + safety guards as the login pull). Server-side RLS
+// scopes the stream to the signed-in user's own rows.
+// The pull never calls save() — save() marks the state dirty and pushes, which
+// would echo back as more change events and loop.
+const RT_TABLES=['trades','accounts','transactions','notes','journal','daily','monthly','weekly','copier_config'];
+let _rtChannel=null, _rtTimer=null, _rtPulling=false;
+
+function sbStartRealtime(){
+  if(!_sb||!_sbUserId) return;
+  sbStopRealtime();
+  const uid=_sbUserId;
+  const ch=_sb.channel('lmr-sync-'+uid);
+  RT_TABLES.forEach(table=>{
+    ch.on('postgres_changes',{event:'*',schema:'public',table,filter:'user_id=eq.'+uid},p=>_rtOnChange(table,p));
+  });
+  ch.subscribe(status=>{
+    if(status==='SUBSCRIBED') updateRTIndicator('live');
+    else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT') updateRTIndicator('offline');
+  });
+  _rtChannel=ch;
+}
+
+function sbStopRealtime(){
+  clearTimeout(_rtTimer); _rtTimer=null;
+  if(_rtChannel&&_sb){ try{ _sb.removeChannel(_rtChannel); }catch(e){} }
+  _rtChannel=null;
+}
+
+function _rtOnChange(table,p){
+  // DELETE events can't be filtered by user_id server-side and only carry the
+  // primary key, so ignore deletes that are clearly not ours / not on this device.
+  if(p&&p.eventType==='DELETE'){
+    const old=p.old||{};
+    if(old.user_id&&old.user_id!==_sbUserId) return;
+    const list={trades:state.trades,accounts:state.accounts,transactions:state.transactions,notes:state.notes,journal:state.journal}[table];
+    if(list&&old.id!=null&&!list.some(r=>String(r.id)===String(old.id))) return;
+  }
+  _rtSchedule(1200);
+}
+
+function _rtSchedule(ms){
+  if(!_sbSyncEnabled||!_sbUserId) return;
+  clearTimeout(_rtTimer);
+  _rtTimer=setTimeout(_rtPull,ms);
+}
+
+async function _rtPull(){
+  if(!_sb||!_sbSyncEnabled||!_sbUserId||_rtPulling) return;
+  // Local edits not yet pushed would be overwritten by the pull — push first;
+  // that push echoes back as a change event and we pull afterwards.
+  if(_sbDirty||_sbSyncing){ _rtSchedule(2500); return; }
+  // Don't re-render a form out from under someone who is typing in it.
+  const ae=document.activeElement;
+  if(ae&&(ae.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName))){ _rtSchedule(3000); return; }
+  _rtPulling=true;
+  updateRTIndicator('syncing');
+  try{
+    await _sbDoPull();
+    ensureState();
+    _rtRerender();
+    updateRTIndicator('live');
+  }catch(e){
+    // _sbDoPull refuses to shrink local data (e.g. several deletes elsewhere);
+    // keep local data as-is and stay live.
+    console.warn('[LMR] Live sync pull skipped:',e&&e.message);
+    updateRTIndicator('live');
+  }finally{ _rtPulling=false; }
+}
+
+// Re-render whatever panel is open with the freshly pulled state (no navTo —
+// it also toggles the mobile sidebar).
+function _rtRerender(){
+  try{ updateAllStats(); }catch(e){}
+  const p=panels.find(pn=>document.getElementById('p-'+pn)?.classList.contains('active'))||'';
+  const run={
+    dash:()=>renderDashboard(),
+    trades:()=>renderTradeTable(),
+    today:()=>loadDaily(),
+    monthly:()=>loadMonthly(),
+    weekly:()=>loadWeekly(),
+    daily:()=>renderDailyHeatmap(),
+    cal:()=>renderCal(),
+    perf:()=>renderPerfCharts(),
+    accounts:()=>{renderAccountCards();renderAccSummary();renderPayoutTracker();},
+    trans:()=>{renderTransTable();renderTransSummary();},
+    cockpit:()=>renderCopierCockpit(),
+    journal:()=>{ if(window.renderJournalSection)renderJournalSection(); },
+    notes:()=>{ if(window.renderNotesSection)renderNotesSection(); },
+    payout:()=>renderPayoutModule(),
+  }[p];
+  try{ if(run) run(); }catch(e){ console.warn('[LMR] Live sync re-render failed:',e); }
+}
+
+// Mobile/desktop apps drop the socket while backgrounded — catch up on resume.
+document.addEventListener('visibilitychange',()=>{
+  // supabase-js rejoins the channel by itself; this pulls what changed meanwhile.
+  if(document.visibilityState==='visible'&&_rtChannel) _rtSchedule(600);
+});
 
 // ── 2FA FUNCTIONS ────────────────────────────────────────────────
 let _mfaFactorId = null;

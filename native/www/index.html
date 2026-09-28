@@ -1,0 +1,35 @@
+<!doctype html>
+<!-- Bundled fallback for the native (Xcode) app. The app normally loads the live
+     site (capacitor.config.json → server.url); Capacitor shows this page when
+     that load fails, e.g. no connection. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LMR Capitals</title>
+<style>
+  :root { color-scheme: dark; }
+  html, body { height: 100%; margin: 0; background: #060B14; color: #E6EAF2;
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", sans-serif; }
+  main { min-height: 100%; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 16px; padding: 24px; text-align: center; box-sizing: border-box; }
+  img { width: 88px; height: 88px; }
+  h1 { margin: 0; font-size: 20px; font-weight: 600; }
+  p { margin: 0; color: #8A94A6; font-size: 15px; max-width: 320px; line-height: 1.45; }
+  button { margin-top: 8px; padding: 12px 28px; border: 0; border-radius: 10px;
+    background: #F5A623; color: #060B14; font-size: 16px; font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <img src="lmr-icon.png" alt="">
+  <h1>You're offline</h1>
+  <p>LMR Capitals needs a connection to sync The Chain. Your journal is safe — reconnect and try again.</p>
+  <button onclick="location.href='https://lmrcapitals.com/app'">Try again</button>
+</main>
+<script>
+  // Retry automatically once the connection comes back.
+  window.addEventListener('online', () => { location.href = 'https://lmrcapitals.com/app'; });
+</script>
+</body>
+</html>
