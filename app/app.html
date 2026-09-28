@@ -2415,9 +2415,10 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
   padding:calc(28px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));box-sizing:border-box;text-align:center}
 #appStart.hidden{display:none}
 #appStart .as-inner{margin:auto;width:100%;max-width:720px;display:flex;flex-direction:column;align-items:center}
-#appStart .as-logo{width:96px;height:96px;animation:asRise .7s ease-out both}
-#appStart .as-capitals{margin-top:-10px;font-size:28px;font-weight:700;letter-spacing:.08em;color:var(--gold2);animation:asRise .7s .1s ease-out both}
-#appStart .as-mark{margin-top:26px;display:flex;flex-direction:column;align-items:center;animation:asRise .7s .2s ease-out both}
+#appStart .as-corner{position:absolute;top:calc(16px + env(safe-area-inset-top));left:20px;display:flex;align-items:center;gap:8px;animation:asRise .7s ease-out both}
+#appStart .as-corner img{width:64px;height:64px;margin:-12px -8px}
+#appStart .as-corner span{font-size:17px;font-weight:700;letter-spacing:.06em;color:var(--gold2)}
+#appStart .as-mark{margin-top:40px;display:flex;flex-direction:column;align-items:center;animation:asRise .7s .2s ease-out both}
 #appStart h1{margin:0;font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;font-size:clamp(46px,13vw,84px);font-weight:700;letter-spacing:-.02em;line-height:.95;
   text-transform:uppercase;color:#EDF2FF;text-shadow:0 2px 0 rgba(0,0,0,.35)}
 #appStart h1 b{font-weight:700;color:var(--gold2);text-shadow:0 0 36px rgba(217,139,10,.4)}
@@ -2433,15 +2434,14 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
 #appStart .as-primary{border:0;color:#12121A;background:linear-gradient(135deg,#F0C666,#D89B2D);box-shadow:0 6px 26px rgba(217,139,10,.28)}
 #appStart .as-secondary{background:transparent;border:1px solid var(--gold-border);color:var(--gold2)}
 #appStart .as-foot{margin-top:22px;font-size:11px;color:#4E5666}
-@media (max-width:640px){#appStart .as-pillars{gap:8px;margin-top:28px}#appStart .as-pillar{padding:14px 6px}#appStart .as-pillar h2{font-size:14px}
-  #appStart .as-logo{width:84px;height:84px}#appStart .as-capitals{font-size:24px}}
+@media (max-width:640px){#appStart .as-pillars{gap:8px;margin-top:28px}#appStart .as-pillar{padding:14px 6px}#appStart .as-pillar h2{font-size:14px}}
 @keyframes asRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @keyframes asLight{0%,8%{stroke:#2A3140}16%,70%{stroke:var(--gold2)}85%,100%{stroke:#2A3140}}
 @media (prefers-reduced-motion:reduce){#appStart *{animation:none!important}#appStart .as-link{stroke:var(--gold2)}}
 </style>
-<div id="appStart"><div class="as-inner">
-  <img src="/icons/lmr-icon.png" class="as-logo" alt="LMR">
-  <div class="as-capitals">Capitals</div>
+<div id="appStart">
+<div class="as-corner"><img src="/icons/lmr-icon.png" alt="LMR"><span>Capitals</span></div>
+<div class="as-inner">
   <div class="as-mark">
   <h1>The <b>Chain</b></h1>
   <svg class="as-chain" viewBox="0 0 300 60" role="img" aria-label="The Chain">
