@@ -13710,8 +13710,16 @@ async function _sbDoPull() {
     console.warn('[LMR] Pull aborted — cloud has fewer trades ('+pulledTrades.length+') than local ('+state.trades.length+'). Use Force Push to send local data to cloud.');
     throw new Error('Cloud has fewer trades ('+pulledTrades.length+') than local ('+state.trades.length+'). Aborting pull to protect your data. Use Force Push to backup your data first.');
   }
+  // MERGE trades: keep local-only rows the cloud snapshot doesn't carry yet, same as
+  // notes/journal below. Without this, an echo/realtime pull that runs ~1.2s after you
+  // log a trade — before its upsert has committed or while the SELECT reads a lagging
+  // replica — replaces state.trades with a snapshot missing the new row, so the trade
+  // vanishes (the "fewer trades" guard above only trips when short by >2). Cloud wins for
+  // ids it has (edits sync across devices); local-only rows are preserved until they land.
+  const cloudTradeIds = new Set(pulledTrades.map(t=>String(t.id)));
+  const localOnlyTrades = (state.trades||[]).filter(t=>!cloudTradeIds.has(String(t.id)));
   // Sort newest → oldest after pull so array is always in correct order
-  state.trades = pulledTrades.sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
+  state.trades = [...pulledTrades, ...localOnlyTrades].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
   state.accounts = (ac.data||[]).map(a => ({ ...a, id: Number(a.id)||a.id, deposit:parseFloat(a.deposit)||0 }));
   // Preserve any in-memory receipt image if the cloud row doesn't carry one yet (so the cloud pull
   // never wipes a locally-uploaded image before it's synced — needs the transactions.image column).
