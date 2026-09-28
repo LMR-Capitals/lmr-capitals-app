@@ -13529,6 +13529,7 @@ async function sbDoSignUp() {
 async function sbDoSignOut() {
   if (!_sb) return;
   if(!confirm('Sign out of LMR Capitals?\n\nYour data is saved locally and in the cloud.'))return;
+  sbStopRealtime();
   await _sb.auth.signOut();
   _sbSyncEnabled=false;_sbUserId=null;
   localStorage.removeItem(SESSION_KEY);
@@ -14115,6 +14116,8 @@ async function lgUnlock(user){
         _sbDirty=true; sbScheduleSync();
       }
     }
+    // Initial pull done — from here on, changes from other devices stream in live.
+    sbStartRealtime();
     // ── Load profile from Supabase (always — overrides localStorage if cloud is newer) ──
     await loadProfileFromCloud();
     // Load AI settings from saved profile (API key, model, etc.)
@@ -14287,6 +14290,7 @@ function checkSessionTimeout(){
   if(Date.now() - ts > SESSION_TIMEOUT_MS){
     // Session expired — force re-login
     localStorage.removeItem(SESSION_KEY);
+    sbStopRealtime();
     if(_sb) _sb.auth.signOut().catch(()=>{});
     _sbSyncEnabled=false; _sbUserId=null;
     document.getElementById('loginGate').classList.remove('hidden');
@@ -14330,6 +14334,109 @@ function updateRTIndicator(status){
   lbl.style.color=s.color;
   lbl.textContent=s.label;
 }
+
+// ── LIVE CROSS-DEVICE SYNC (Supabase Realtime) ───────────────────
+// A save on one device (phone, Mac, browser) shows up on every other signed-in
+// device without a reload. Each device listens for row changes on this
+// account's tables; any change schedules a debounced pull that reuses
+// _sbDoPull (same mapping + safety guards as the login pull). Server-side RLS
+// scopes the stream to the signed-in user's own rows.
+// The pull never calls save() — save() marks the state dirty and pushes, which
+// would echo back as more change events and loop.
+const RT_TABLES=['trades','accounts','transactions','notes','journal','daily','monthly','weekly','copier_config'];
+let _rtChannel=null, _rtTimer=null, _rtPulling=false;
+
+function sbStartRealtime(){
+  if(!_sb||!_sbUserId) return;
+  sbStopRealtime();
+  const uid=_sbUserId;
+  const ch=_sb.channel('lmr-sync-'+uid);
+  RT_TABLES.forEach(table=>{
+    ch.on('postgres_changes',{event:'*',schema:'public',table,filter:'user_id=eq.'+uid},p=>_rtOnChange(table,p));
+  });
+  ch.subscribe(status=>{
+    if(status==='SUBSCRIBED') updateRTIndicator('live');
+    else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT') updateRTIndicator('offline');
+  });
+  _rtChannel=ch;
+}
+
+function sbStopRealtime(){
+  clearTimeout(_rtTimer); _rtTimer=null;
+  if(_rtChannel&&_sb){ try{ _sb.removeChannel(_rtChannel); }catch(e){} }
+  _rtChannel=null;
+}
+
+function _rtOnChange(table,p){
+  // DELETE events can't be filtered by user_id server-side and only carry the
+  // primary key, so ignore deletes that are clearly not ours / not on this device.
+  if(p&&p.eventType==='DELETE'){
+    const old=p.old||{};
+    if(old.user_id&&old.user_id!==_sbUserId) return;
+    const list={trades:state.trades,accounts:state.accounts,transactions:state.transactions,notes:state.notes,journal:state.journal}[table];
+    if(list&&old.id!=null&&!list.some(r=>String(r.id)===String(old.id))) return;
+  }
+  _rtSchedule(1200);
+}
+
+function _rtSchedule(ms){
+  if(!_sbSyncEnabled||!_sbUserId) return;
+  clearTimeout(_rtTimer);
+  _rtTimer=setTimeout(_rtPull,ms);
+}
+
+async function _rtPull(){
+  if(!_sb||!_sbSyncEnabled||!_sbUserId||_rtPulling) return;
+  // Local edits not yet pushed would be overwritten by the pull — push first;
+  // that push echoes back as a change event and we pull afterwards.
+  if(_sbDirty||_sbSyncing){ _rtSchedule(2500); return; }
+  // Don't re-render a form out from under someone who is typing in it.
+  const ae=document.activeElement;
+  if(ae&&(ae.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName))){ _rtSchedule(3000); return; }
+  _rtPulling=true;
+  updateRTIndicator('syncing');
+  try{
+    await _sbDoPull();
+    ensureState();
+    _rtRerender();
+    updateRTIndicator('live');
+  }catch(e){
+    // _sbDoPull refuses to shrink local data (e.g. several deletes elsewhere);
+    // keep local data as-is and stay live.
+    console.warn('[LMR] Live sync pull skipped:',e&&e.message);
+    updateRTIndicator('live');
+  }finally{ _rtPulling=false; }
+}
+
+// Re-render whatever panel is open with the freshly pulled state (no navTo —
+// it also toggles the mobile sidebar).
+function _rtRerender(){
+  try{ updateAllStats(); }catch(e){}
+  const p=panels.find(pn=>document.getElementById('p-'+pn)?.classList.contains('active'))||'';
+  const run={
+    dash:()=>renderDashboard(),
+    trades:()=>renderTradeTable(),
+    today:()=>loadDaily(),
+    monthly:()=>loadMonthly(),
+    weekly:()=>loadWeekly(),
+    daily:()=>renderDailyHeatmap(),
+    cal:()=>renderCal(),
+    perf:()=>renderPerfCharts(),
+    accounts:()=>{renderAccountCards();renderAccSummary();renderPayoutTracker();},
+    trans:()=>{renderTransTable();renderTransSummary();},
+    cockpit:()=>renderCopierCockpit(),
+    journal:()=>{ if(window.renderJournalSection)renderJournalSection(); },
+    notes:()=>{ if(window.renderNotesSection)renderNotesSection(); },
+    payout:()=>renderPayoutModule(),
+  }[p];
+  try{ if(run) run(); }catch(e){ console.warn('[LMR] Live sync re-render failed:',e); }
+}
+
+// Mobile/desktop apps drop the socket while backgrounded — catch up on resume.
+document.addEventListener('visibilitychange',()=>{
+  // supabase-js rejoins the channel by itself; this pulls what changed meanwhile.
+  if(document.visibilityState==='visible'&&_rtChannel) _rtSchedule(600);
+});
 
 // ── 2FA FUNCTIONS ────────────────────────────────────────────────
 let _mfaFactorId = null;

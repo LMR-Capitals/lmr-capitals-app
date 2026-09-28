@@ -1,0 +1,22 @@
+{
+  "appId": "com.lmrcapitals.app",
+  "appName": "LMR Capitals",
+  "webDir": "native/www",
+  "server": {
+    "url": "https://lmrcapitals.com/app",
+    "errorPath": "index.html",
+    "allowNavigation": [
+      "lmrcapitals.com",
+      "*.lmrcapitals.com",
+      "agrvylclhvxyevsmmexf.supabase.co",
+      "checkout.stripe.com",
+      "billing.stripe.com"
+    ]
+  },
+  "backgroundColor": "#060B14",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#060B14",
+    "limitsNavigationsToAppBoundDomains": false
+  }
+}
