@@ -5975,14 +5975,12 @@ function save(){
   // localStorage is just a LIGHT local cache — base64 images (transaction receipts) are stripped out so
   // we never blow the ~5MB quota. The full images live in memory for the session + sync to Supabase.
   const light=_lightState();
-  try{localStorage.setItem(STORE_KEY,JSON.stringify(light));}
-  catch(e){
-    // Quota hit → drop the backup copy and retry once; never block the app or lose the cloud sync.
-    try{ localStorage.removeItem(STORE_KEY+'_bk'); localStorage.setItem(STORE_KEY,JSON.stringify(light)); }
-    catch(e2){ console.error('[LMR] localStorage quota exceeded',e2); try{flash('⚠ Local cache full — data still syncs to the cloud');}catch(_){} }
-  }
-  // Backup (also light) when we have meaningful data
-  if(tradeCount||dailyCount||acctCount||state.notes.length){
+  const _persisted=_persistState(JSON.stringify(light));
+  if(!_persisted){ console.error('[LMR] localStorage quota exceeded — could not persist state even after cleanup'); try{flash('⚠ Local cache full — data still syncs to the cloud');}catch(_){} }
+  // Backup (also light) only when the primary save succeeded AND we have meaningful data.
+  // Best-effort: if it doesn't fit, skip it — the cloud is the real backup, and never let a
+  // backup copy crowd out the primary save (that's what made logged trades vanish).
+  if(_persisted && (tradeCount||dailyCount||acctCount||state.notes.length)){
     try{localStorage.setItem(STORE_KEY+'_bk',JSON.stringify(light));}catch(e){}
   }
   _sbDirty=true;
@@ -5993,6 +5991,22 @@ function _lightState(){
   const s={...state};
   if(Array.isArray(s.transactions)) s.transactions=s.transactions.map(t=>{ if(t&&t.image){ const c={...t}; delete c.image; return c; } return t; });
   return s;
+}
+// Strip base64 image payloads from a serialized-state string, so the STRUCTURED data
+// (trades, accounts, daily…) always fits even when embedded images have filled the quota.
+// Images live in IndexedDB + Supabase Storage, so the local cache dropping them is recoverable.
+function _stripStateB64(json){ try{ return String(json).replace(/data:image\/[A-Za-z0-9.+-]+;base64,[^"\\]*/g,''); }catch(e){ return json; } }
+// Persist the light state, progressively freeing space so a full localStorage can NEVER
+// silently drop a save — which is exactly what made logged trades vanish (save() threw
+// QuotaExceededError, the trade never persisted, and the next pull/reload wiped it).
+// Order: (1) write as-is; (2) evict the auxiliary backup copies (cloud is the real backup)
+// and retry; (3) last resort, strip base64 images from the cache so the trades still land.
+function _persistState(payload){
+  try{ localStorage.setItem(STORE_KEY,payload); return true; }catch(e){}
+  ['_bk','_pre_pull','_autobak'].forEach(sfx=>{ try{ localStorage.removeItem(STORE_KEY+sfx); }catch(_){} });
+  try{ localStorage.setItem(STORE_KEY,payload); return true; }catch(e){}
+  try{ localStorage.setItem(STORE_KEY,_stripStateB64(payload)); return true; }catch(e){}
+  return false;
 }
 
 // ── SAFE CLOUD SYNC ──────────────────────────────────────────────
@@ -13805,11 +13819,15 @@ async function _sbDoPull() {
     if(prevRaw){
       const prev=JSON.parse(prevRaw);
       if(prev && Array.isArray(prev.trades) && prev.trades.length > (state.trades||[]).length){
-        localStorage.setItem(STORE_KEY+'_autobak', JSON.stringify({at:Date.now(), tradeCount:prev.trades.length, state:prev}));
+        // Store base64-stripped so the backup can't itself blow the quota; trades carry no base64.
+        localStorage.setItem(STORE_KEY+'_autobak', _stripStateB64(JSON.stringify({at:Date.now(), tradeCount:prev.trades.length, state:prev})));
       }
     }
   }catch(e){}
-  try{localStorage.setItem(STORE_KEY, JSON.stringify(state));}catch(e){}
+  // Persist the pulled state through the SAME quota-safe path as save() — a light copy with
+  // progressive eviction — instead of writing the full blob (which bypassed the strip and
+  // could re-blow the localStorage quota on every realtime pull).
+  _persistState(JSON.stringify(_lightState()));
 }
 
 // Recover trades from the last auto-backup written by _sbDoPull's safety net above.
@@ -13838,7 +13856,7 @@ async function sbPullNow() {
   setSbStatus('⟳ Pulling from cloud…', 'var(--gold)');
   try {
     // Before pull, backup current local state
-    try{localStorage.setItem(STORE_KEY+'_pre_pull',JSON.stringify(state));}catch(e){}
+    try{localStorage.setItem(STORE_KEY+'_pre_pull',_stripStateB64(JSON.stringify(_lightState())));}catch(e){}
     await _sbDoPull();
     ensureState();
     const gotData = state.trades.length > 0 || state.accounts.length > 0 || Object.keys(state.daily).length > 0;
