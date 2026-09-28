@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'node:path'
 import react from '@vitejs/plugin-react'
+import { localTradePreview } from './scripts/local-trade-preview.mjs'
 
 // Multi-page build from the top-level surface folders:
 //   web/   → marketing landing        (served at /)
@@ -11,7 +12,7 @@ import react from '@vitejs/plugin-react'
 // root by `vite build`. Clean URLs are mapped by netlify.toml redirects.
 export default defineConfig({
   publicDir: 'public',
-  plugins: [react()],
+  plugins: [react(), localTradePreview()],
   build: {
     outDir: 'dist',
     emptyOutDir: true,
@@ -19,6 +20,7 @@ export default defineConfig({
       input: {
         main: resolve(import.meta.dirname, 'web/index.html'),                 // landing → /
         landingPreview: resolve(import.meta.dirname, 'web/landing-preview.html'),
+        experiencePreview: resolve(import.meta.dirname, 'web/experience-preview.html'),
         app: resolve(import.meta.dirname, 'app/app.html'),                    // trading app → /app
         admin: resolve(import.meta.dirname, 'admin/admin.html'),             // admin portal → /admin
       },

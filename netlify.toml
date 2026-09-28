@@ -34,6 +34,14 @@
   to = "/web/landing-preview.html"
   status = 200
 
+# Existing checkout links return to /index.html; preserve their query string
+# and hand the user back to the trading app.
+[[redirects]]
+  from = "/index.html"
+  to = "/app/app.html"
+  status = 302
+  query = { checkout = ":state" }
+
 # ── HTML — never cache (ensures updates deploy instantly) ──────────────────
 [[headers]]
   for = "/web/index.html"
