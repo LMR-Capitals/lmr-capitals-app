@@ -2411,34 +2411,41 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
 <!-- ── APP START SCREEN (first screen: LMR Capitals · The Chain → login) ── -->
 <style>
 #appStart{position:fixed;inset:0;z-index:10000;background:radial-gradient(ellipse at 50% 0%,rgba(217,139,10,.16),transparent 62%),#060B14;
-  color:#EDF2FF;font-family:'Plus Jakarta Sans',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));box-sizing:border-box;text-align:center;overflow-y:auto}
+  color:#EDF2FF;font-family:'Plus Jakarta Sans',sans-serif;display:flex;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:calc(28px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));box-sizing:border-box;text-align:center}
 #appStart.hidden{display:none}
-#appStart .as-logo{width:72px;height:72px;animation:asRise .7s ease-out both}
-#appStart .as-brand{margin-top:14px;font-size:13px;font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:#8A94A6;animation:asRise .7s .1s ease-out both}
-#appStart h1{margin:6px 0 0;font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;font-size:clamp(44px,12vw,72px);font-weight:700;letter-spacing:-.03em;line-height:1;
-  color:var(--gold2);text-shadow:0 0 40px rgba(217,139,10,.35);animation:asRise .7s .2s ease-out both}
-#appStart .as-tag{margin:14px 0 0;max-width:340px;font-size:15px;line-height:1.5;color:#A7B0C0;animation:asRise .7s .3s ease-out both}
-#appStart .as-chain{width:min(340px,100%);height:auto;margin:34px 0 10px}
+#appStart .as-inner{margin:auto;width:100%;max-width:720px;display:flex;flex-direction:column;align-items:center}
+#appStart .as-logo{width:96px;height:96px;animation:asRise .7s ease-out both}
+#appStart .as-capitals{margin-top:6px;font-size:28px;font-weight:700;letter-spacing:.08em;color:#EDF2FF;animation:asRise .7s .1s ease-out both}
+#appStart h1{margin:22px 0 0;font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;font-size:clamp(40px,11vw,68px);font-weight:700;letter-spacing:.02em;line-height:1;
+  text-transform:uppercase;color:var(--gold2);text-shadow:0 0 40px rgba(217,139,10,.35);animation:asRise .7s .2s ease-out both}
+#appStart .as-chain{width:min(360px,100%);height:auto;margin:26px 0 30px}
 #appStart .as-link{fill:none;stroke:#2A3140;stroke-width:5;animation:asLight 5.6s ease-in-out infinite}
 #appStart .as-link.v{stroke-width:7}
-#appStart .as-stages{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 12px;max-width:360px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#6B7486}
-#appStart .as-stages span{white-space:nowrap}
-#appStart .as-actions{display:flex;flex-direction:column;gap:10px;width:min(320px,100%);margin-top:34px;animation:asRise .7s .45s ease-out both}
+#appStart .as-pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;animation:asRise .7s .35s ease-out both}
+#appStart .as-pillar{padding:18px 16px;border:1px solid rgba(217,139,10,.18);border-radius:14px;text-align:left;
+  background:linear-gradient(180deg,#10131B 0%,#0C0E14 100%)}
+#appStart .as-pillar-num{font:600 11px 'JetBrains Mono',monospace;color:var(--gold2);letter-spacing:.1em}
+#appStart .as-pillar h2{margin:6px 0 6px;font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:600;color:#EDF2FF}
+#appStart .as-pillar p{margin:0;font-size:13px;line-height:1.5;color:#8A94A6}
+#appStart .as-actions{display:flex;flex-direction:column;gap:10px;width:min(320px,100%);margin-top:30px;animation:asRise .7s .45s ease-out both}
 #appStart button{height:50px;border-radius:12px;font:600 16px 'Plus Jakarta Sans',sans-serif;cursor:pointer}
 #appStart .as-primary{border:0;color:#12121A;background:linear-gradient(135deg,#F0C666,#D89B2D);box-shadow:0 6px 26px rgba(217,139,10,.28)}
 #appStart .as-secondary{background:transparent;border:1px solid var(--gold-border);color:var(--gold2)}
 #appStart .as-foot{margin-top:22px;font-size:11px;color:#4E5666}
+@media (max-width:640px){#appStart .as-pillars{grid-template-columns:1fr;gap:8px}#appStart .as-pillar{padding:12px 14px}
+  #appStart .as-pillar h2{font-size:16px;margin:2px 0 4px}#appStart .as-pillar p{font-size:12.5px}
+  #appStart .as-logo{width:72px;height:72px}#appStart .as-capitals{font-size:24px}#appStart h1{margin-top:14px}
+  #appStart .as-chain{margin:16px 0 20px}#appStart .as-actions{margin-top:20px}}
 @keyframes asRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @keyframes asLight{0%,8%{stroke:#2A3140}16%,70%{stroke:var(--gold2)}85%,100%{stroke:#2A3140}}
 @media (prefers-reduced-motion:reduce){#appStart *{animation:none!important}#appStart .as-link{stroke:var(--gold2)}}
 </style>
-<div id="appStart">
+<div id="appStart"><div class="as-inner">
   <img src="/icons/lmr-icon.png" class="as-logo" alt="LMR">
-  <div class="as-brand">LMR Capitals</div>
+  <div class="as-capitals">Capitals</div>
   <h1>The Chain</h1>
-  <p class="as-tag">Trade with a system. Monthly → Weekly → Daily → Session → Trade, journaled and synced live across your devices.</p>
-  <svg class="as-chain" viewBox="0 0 300 60" aria-hidden="true">
+  <svg class="as-chain" viewBox="0 0 300 60" role="img" aria-label="The Chain">
     <!-- 7 interlocking links: flat (h) links alternate with edge-on (v) links; each lights up in turn -->
     <rect class="as-link h" x="4"   y="14" width="64" height="32" rx="16" style="animation-delay:0s"/>
     <rect class="as-link v" x="52"  y="24" width="44" height="12" rx="6"  style="animation-delay:.35s"/>
@@ -2448,13 +2455,20 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
     <rect class="as-link v" x="204" y="24" width="44" height="12" rx="6"  style="animation-delay:1.75s"/>
     <rect class="as-link h" x="232" y="14" width="64" height="32" rx="16" style="animation-delay:2.1s"/>
   </svg>
-  <div class="as-stages"><span>Methodology</span><span>Monthly</span><span>Weekly</span><span>Daily</span><span>Session</span><span>Trade</span><span>Journal</span></div>
+  <div class="as-pillars">
+    <div class="as-pillar"><div class="as-pillar-num">01</div><h2>Methodology</h2>
+      <p>The LMR framework and terminology: Monthly → Weekly → Daily → Session → Trade, with PD arrays and models.</p></div>
+    <div class="as-pillar"><div class="as-pillar-num">02</div><h2>Psychology</h2>
+      <p>Mindset and discipline, scored against your rules after every session, so patience has a reason.</p></div>
+    <div class="as-pillar"><div class="as-pillar-num">03</div><h2>Observation</h2>
+      <p>Market notes, setups and confluences, with charts, logged as you see them and synced across devices.</p></div>
+  </div>
   <div class="as-actions">
     <button class="as-primary" onclick="enterApp('signin')">Sign In</button>
     <button class="as-secondary" onclick="enterApp('signup')">Create Account</button>
   </div>
   <div class="as-foot">LMR Capitals Pty. Ltd. © 2026</div>
-</div>
+</div></div>
 
 <!-- ── LOGIN GATE (shown after the start screen) ── -->
 <div id="loginGate" class="hidden">
