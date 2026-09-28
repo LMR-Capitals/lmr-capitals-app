@@ -13794,8 +13794,41 @@ async function _sbDoPull() {
     state.copier = { ...(state.copier||{}), ...cloudCopier };
   }
 
+  // SAFETY NET: a pull overwrites localStorage. If this pull carries FEWER trades than
+  // what's already stored (an echo pull that raced a not-yet-synced log, or a stale
+  // replica), stash the current, more-complete snapshot under _autobak BEFORE overwriting
+  // — so no pull can silently and permanently destroy trades. Recover with
+  // lmrRestoreAutoBackup(). (The realtime pull previously left no backup, which is why a
+  // pre-fix wipe was unrecoverable.)
+  try{
+    const prevRaw=localStorage.getItem(STORE_KEY);
+    if(prevRaw){
+      const prev=JSON.parse(prevRaw);
+      if(prev && Array.isArray(prev.trades) && prev.trades.length > (state.trades||[]).length){
+        localStorage.setItem(STORE_KEY+'_autobak', JSON.stringify({at:Date.now(), tradeCount:prev.trades.length, state:prev}));
+      }
+    }
+  }catch(e){}
   try{localStorage.setItem(STORE_KEY, JSON.stringify(state));}catch(e){}
 }
+
+// Recover trades from the last auto-backup written by _sbDoPull's safety net above.
+// Merges any backed-up trades missing from the current state, re-pushes them to the
+// cloud, and re-renders. Callable from the console: lmrRestoreAutoBackup()
+async function lmrRestoreAutoBackup(){
+  let bak; try{ bak=JSON.parse(localStorage.getItem(STORE_KEY+'_autobak')||'null'); }catch(e){}
+  if(!bak||!bak.state||!Array.isArray(bak.state.trades)){ try{flash('No auto-backup found');}catch(e){} return 0; }
+  const have=new Set((state.trades||[]).map(t=>String(t.id)));
+  const missing=bak.state.trades.filter(t=>!have.has(String(t.id)));
+  if(!missing.length){ try{flash('Auto-backup has nothing new to restore');}catch(e){} return 0; }
+  state.trades=[...(state.trades||[]), ...missing].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
+  try{save();}catch(e){}
+  missing.forEach(t=>{ try{ sbSyncRecord('trades',_mapTrade(t,_sbUserId)); }catch(e){} });
+  try{ renderTradeTable(); updateAllStats(); if(typeof renderAccountCards==='function') renderAccountCards(); }catch(e){}
+  try{flash('✓ Recovered '+missing.length+' trade(s) from backup');}catch(e){}
+  return missing.length;
+}
+if(typeof window!=='undefined') window.lmrRestoreAutoBackup=lmrRestoreAutoBackup;
 
 async function sbPullNow() {
   if (!sbInit()) return;
