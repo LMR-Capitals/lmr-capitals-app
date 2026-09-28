@@ -13746,6 +13746,7 @@ async function _sbDoPull() {
     state.daily[d.date] = {
       ...d,                                    // keep all raw fields
       dayCount:   d.day_count   || d.dayCount  || null,  // snake→camel
+      pdArray:    d.pd_array    || d.pdArray   || '',    // snake→camel — committed P/D array (design PD card reads chain().pdArray); without this a cloud/realtime pull wipes the day's committed array
       htfpoi:     d.htf_poi     || d.htfpoi    || '',
       weekdraws:  d.week_draws  || d.weekdraws || '',
       dailyRol:   d.daily_rol   || d.dailyRol  || '',
