@@ -19,6 +19,8 @@ export default defineConfig({
       input: {
         main: resolve(import.meta.dirname, 'web/index.html'),                 // landing → /
         landingPreview: resolve(import.meta.dirname, 'web/landing-preview.html'),
+        privacy: resolve(import.meta.dirname, 'web/privacy.html'),           // → /privacy
+        support: resolve(import.meta.dirname, 'web/support.html'),           // → /support
         app: resolve(import.meta.dirname, 'app/app.html'),                    // trading app → /app
         admin: resolve(import.meta.dirname, 'admin/admin.html'),             // admin portal → /admin
       },
