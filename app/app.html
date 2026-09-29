@@ -6176,7 +6176,12 @@ async function _sbUpsertAll(uid){
         created_at:n.createdAt||new Date().toISOString()})),{onConflict:'id'}));
   const dailyRows=Object.entries(state.daily).map(([date,d])=>_mapDaily(date,d,uid));
   if(dailyRows.length)_chk('daily', await _sb.from('daily').upsert(dailyRows,{onConflict:'date,user_id'}));
-  const monthlyRows=Object.entries(state.monthly).map(([key,data])=>({key,data,user_id:uid}));
+  // Knowledge sections own their OWN tables (lmr_terminology / lmr_psychology). Never push them
+  // through the shared `monthly` store — a Force Push of an empty local copy used to clobber the
+  // real terminology/psychology content in the cloud.
+  const monthlyRows=Object.entries(state.monthly)
+    .filter(([key])=>key!=='lmr-terminology'&&key!=='lmr-psychology')
+    .map(([key,data])=>({key,data,user_id:uid}));
   if(monthlyRows.length)_chk('monthly', await _sb.from('monthly').upsert(monthlyRows,{onConflict:'key,user_id'}));
   const weeklyRows=Object.entries(state.weekly).map(([week_key,data])=>({week_key,data,user_id:uid}));
   if(weeklyRows.length)_chk('weekly', await _sb.from('weekly').upsert(weeklyRows,{onConflict:'week_key,user_id'}));
@@ -10454,25 +10459,10 @@ async function lmrSimpleLoad(section){
   let html = '';
   let lmrbBlocks = null; // new block-editor format (preferred when present)
 
-  // One-time: fully wipe the Terminology section to a clean slate (user requested it emptied).
-  // Overwrites the cloud row with EMPTY (more reliable than delete) and only marks itself done once the
-  // cloud write actually succeeds — so if Supabase wasn't ready yet, it retries on the next load instead
-  // of leaving the old content in the cloud.
-  if(section==='terminology' && !localStorage.getItem('lmr_term_clear_v2')){
-    const _empty={html:'',lmrbBlocks:[]};
-    state['terminologyPage']=JSON.stringify(_empty);
-    let cloudDone=true;
-    try{
-      if(_sb&&_sbUserId){ const {error}=await _sb.from('lmr_terminology').upsert({data:_empty,user_id:_sbUserId},{onConflict:'user_id'}); cloudDone=!error; }
-      else cloudDone=false; // cloud not ready → don't mark done, retry next load
-    }catch(e){ cloudDone=false; }
-    try{ save&&save(); }catch(e){}
-    if(cloudDone) localStorage.setItem('lmr_term_clear_v2','1');
-    html=''; lmrbBlocks=[]; // force blank for this render regardless of what was cached
-    if(typeof lmrbInit==='function'){ lmrbInit(section,[],()=>lmrSimpleAutoSave(section)); }
-    if(statusEl) statusEl.textContent='✓ Cleared'; setTimeout(()=>{ if(statusEl) statusEl.textContent='Auto-saves'; },1500);
-    return; // done — blank editor mounted
-  }
+  // NOTE: a one-time auto-wipe of Terminology used to run here (it blanked the section on load
+  // and overwrote the cloud row with EMPTY). It has been removed — a section must never be
+  // auto-cleared out from under the user. Clearing is available only via the explicit
+  // "Clear section" button (lmrClearSection), which confirms first.
 
   // Try Supabase first
   if(_sb && _sbUserId){
@@ -13429,15 +13419,10 @@ function saveLmrPage(pageId){
   clone.querySelectorAll('img.lmr-inline-img').forEach(img=>{img.src='';});
   state[pageId+'Page']=clone.innerHTML;
   save();
-  // Immediate Supabase sync — store in monthly table with special key
-  if(_sbSyncEnabled&&_sbUserId&&_sb){
-    if(pageId==='terminology')
-      _sb.from('monthly').upsert({key:'lmr-terminology',data:{content:state.terminologyPage},user_id:_sbUserId},{onConflict:'key,user_id'})
-        .then(()=>setSbStatus('✓ Terminology saved to cloud','var(--bull)')).catch(()=>{});
-    if(pageId==='psychology')
-      _sb.from('monthly').upsert({key:'lmr-psychology',data:{content:state.psychologyPage},user_id:_sbUserId},{onConflict:'key,user_id'})
-        .then(()=>setSbStatus('✓ Psychology saved to cloud','var(--bull)')).catch(()=>{});
-  }
+  // Cloud sync for Terminology/Psychology is owned by their dedicated tables
+  // (lmr_terminology / lmr_psychology) via the Knowledge modules — do NOT also write the
+  // shared `monthly` store here (that duplicate write is what let an empty copy overwrite
+  // the real content). Local save above is enough for this legacy page path.
   const lbl=document.getElementById(pageId+'-saved');
   if(lbl)lbl.textContent='Saved '+new Date().toLocaleTimeString();
 }
@@ -13817,14 +13802,9 @@ async function _sbDoPull() {
   (mo.data||[]).forEach(m => { if(m.key&&m.data) cloudMonthly[m.key] = m.data; });
   state.monthly = { ...state.monthly, ...cloudMonthly }; // local base + cloud overrides
 
-  // Extract LMR knowledge pages from monthly — cloud version always wins
-  // This ensures ICT content loaded from Notion always shows correctly
-  if(cloudMonthly['lmr-terminology']?.content){
-    state.terminologyPage = cloudMonthly['lmr-terminology'].content;
-  }
-  if(cloudMonthly['lmr-psychology']?.content){
-    state.psychologyPage = cloudMonthly['lmr-psychology'].content;
-  }
+  // Terminology & Psychology are NOT read from `monthly` anymore — they own their tables
+  // (lmr_terminology / lmr_psychology) and load via loadKnowledgeCloud / loadPsychologyCloud.
+  // Reading them from a shared/empty monthly copy here is what used to blank the section.
 
   // Weekly: same MERGE approach
   const cloudWeekly = {};
