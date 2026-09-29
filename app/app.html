@@ -7279,6 +7279,7 @@ async function uploadImage(zone,file){
 }
 function getImgKey(z){
   const base=z.dataset.imgkey;
+  if(!base) return '';   // zone with no data-imgkey → nothing to key (guards restore/re-render crashes)
   // FIX: use 'week' in z.dataset (not z.dataset.week) because data-week="" is falsy
   if('week' in z.dataset) return `${state.currentMonth}-W${state.currentWeek}-${base}`;
   if(base.startsWith('m-')) return `${state.currentMonth}-${base}`;
@@ -7287,7 +7288,9 @@ function getImgKey(z){
   return base;
 }
 async function renderImgZone(z){
-  const blob=await getImg(getImgKey(z));
+  const key=getImgKey(z);
+  if(!key){ z.classList.remove('has-img'); z.innerHTML='<div class="img-zone-text">📋 Paste or click to upload</div>'; return; }
+  const blob=await getImg(key);
   if(!blob){z.classList.remove('has-img');z.innerHTML='<div class="img-zone-text">📋 Paste or click to upload</div>';return}
   const url=URL.createObjectURL(blob);
   z.classList.add('has-img');
