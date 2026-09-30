@@ -3102,6 +3102,13 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
     </div>
   </div><!-- /card -->
 
+  <!-- LMR SESSION CHAIN — schedule + session-wise read-out (auto-filled 17:20 NY) -->
+  <div class="card" id="lsc-today">
+    <div class="card-head"><span class="card-tag t-g">LMR Schedule</span><div class="card-title">Session Chain</div>
+      <div id="lsc-head" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto"></div></div>
+    <div class="card-body" id="lsc-body"><div class="lsc-empty">Loading session chain…</div></div>
+  </div>
+
   <!-- Today's Events -->
   <div class="card">
     <div class="card-head"><span class="card-tag t-m">Today's Events</span><div class="card-title">USA Economic Calendar</div></div>
@@ -4981,6 +4988,12 @@ Midnight Open $______"></textarea>
           <div class="form-row"><label class="form-label">Trade Plan</label>
             <textarea id="dm-tradeplan" rows="2" placeholder="Why I should take a trade?"></textarea></div>
         </div>
+      </div>
+
+      <!-- LMR Session Chain (auto-filled by the End-of-Day run) -->
+      <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+        <div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.09em;margin-bottom:8px">LMR Session Chain — session by session</div>
+        <div id="dm-lmr-chain"></div>
       </div>
 
       <!-- Images: 2x2 grid -->
@@ -7225,7 +7238,7 @@ function navTo(p){
   if(p==='cockpit') setTimeout(renderCopierCockpit,40);
   if(p==='trans'){renderTransTable();renderTransSummary();}
   if(p==='notes') setTimeout(()=>{ if(window.renderNotesSection)renderNotesSection(); },80);
-  if(p==='today') loadDaily();
+  if(p==='today'){ loadDaily(); if(window.lmrRenderToday) lmrRenderToday(); }
   if(p==='settings') renderSettings();
   if(p==='terminology') setTimeout(()=>{ if(window.loadKnowledgeCloud)loadKnowledgeCloud(); else if(window.renderKnowledge)renderKnowledge(); },100);
   if(p==='psychology')  setTimeout(()=>{ if(window.loadPsychologyCloud)loadPsychologyCloud(); else if(window.renderPsychologySection)renderPsychologySection(); },100);
@@ -13265,6 +13278,7 @@ function openDayModal(ds){
   const dmShareEl=document.getElementById('dm-share-btns');
   if(dmShareEl) dmShareEl.innerHTML=shareButtonsHTML('shareDailyEntry',`'${ds}'`);
   document.getElementById('dayModal').classList.add('show');
+  if(window.lmrRenderDayChain) lmrRenderDayChain(ds);
 }
 function colorDailySelect(sel){
   const colorMap={
@@ -17864,4 +17878,327 @@ mount();
 })();
 </script>
 
+<!-- ═══ LMR SESSION CHAIN — schedule + session-wise intraday / daily / weekly / monthly read-out ═══
+     Reads lmr_session_chain + lmr_profiles (filled by the 17:20 NY End-of-Day scheduled task).
+     Renders into #lsc-today (Today panel card) and #dm-lmr-chain (Day modal). -->
+<style>
+.lsc-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.lsc-tab{font-size:10px;font-weight:700;padding:4px 10px;border-radius:99px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;text-transform:uppercase;letter-spacing:.06em}
+.lsc-tab.on{background:var(--gold);color:#0a0b0f;border-color:var(--gold)}
+.lsc-nav{display:flex;align-items:center;gap:6px;margin-left:auto}
+.lsc-nav button{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:11px}
+.lsc-nav .lsc-d{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;min-width:96px;text-align:center}
+.lsc-now{display:flex;gap:8px 14px;align-items:center;flex-wrap:wrap;font-size:11.5px;color:var(--text2);margin-bottom:8px}
+.lsc-now b{color:var(--text)}
+.lsc-live{color:var(--gold);font-weight:800}
+.lsc-note{font-size:11px;color:var(--text3);padding:8px 10px;border:1px dashed var(--border2);border-radius:8px;margin-bottom:10px}
+.lsc-bar{position:relative;height:22px;border-radius:6px;overflow:visible;display:flex;background:var(--bg3);margin:4px 0 26px}
+.lsc-seg{flex:1;height:100%;font-size:9px;font-weight:800;letter-spacing:.06em;display:flex;align-items:center;justify-content:center;color:var(--text3);border-right:1px solid var(--bg)}
+.lsc-seg:nth-child(1){background:rgba(139,111,212,.14)}.lsc-seg:nth-child(2){background:rgba(91,168,255,.12)}
+.lsc-seg:nth-child(3){background:rgba(217,139,10,.14)}.lsc-seg:nth-child(4){background:rgba(62,207,142,.10)}
+.lsc-tick{position:absolute;top:22px;height:5px;width:1px;background:var(--text3)}
+.lsc-tick span{position:absolute;top:5px;left:-14px;font-size:8px;font-family:'JetBrains Mono',monospace;color:var(--text3);width:28px;text-align:center}
+.lsc-nowm{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--gold);box-shadow:0 0 6px var(--gold);border-radius:2px}
+.lsc-seq{display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin:14px 0 10px;font-size:10px;color:var(--text3)}
+.lsc-list{display:flex;flex-direction:column;gap:6px}
+.lsc-row{display:grid;grid-template-columns:70px 1fr;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg2)}
+.lsc-row.live{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold-border) inset;background:var(--gold-bg)}
+.lsc-row.up{opacity:.62}
+.lsc-row.rev{background:transparent;border-style:dashed}
+.lsc-time{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:13px;color:var(--gold)}
+.lsc-row.rev .lsc-time{color:var(--text3);font-size:11px}
+.lsc-sub{font-size:9px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.lsc-title{font-weight:700;font-size:12px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.lsc-guide{font-size:11px;color:var(--text3);margin-top:2px;line-height:1.45}
+.lsc-story{font-size:11.5px;margin-top:5px;line-height:1.55;color:var(--text)}
+.lsc-stats{display:flex;flex-wrap:wrap;gap:3px 12px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text2);margin-top:5px}
+.lsc-ph{font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px;letter-spacing:.04em;white-space:nowrap}
+.lsc-ph.M{background:var(--bear-bg);color:var(--bear)}.lsc-ph.D{background:var(--blue-bg);color:var(--blue)}
+.lsc-ph.R{background:var(--pur-bg);color:var(--pur)}.lsc-ph.A{background:var(--bull-bg);color:var(--bull)}
+.lsc-ph.X{background:var(--bg4);color:var(--text3)}
+.lsc-st{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:2px 6px;border-radius:4px;background:var(--bg4);color:var(--text3)}
+.lsc-st.live{background:var(--gold);color:#0a0b0f}.lsc-st.done{background:var(--bull-bg);color:var(--bull)}
+.lsc-tag{font-size:9px;padding:1px 6px;border-radius:4px;background:var(--bg4);color:var(--text2)}
+.lsc-tag.hod{background:var(--bull-bg);color:var(--bull)}.lsc-tag.lod{background:var(--bear-bg);color:var(--bear)}
+.lsc-kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-bottom:12px}
+.lsc-kv div{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:7px 9px}
+.lsc-kv small{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3)}
+.lsc-kv b{font-family:'JetBrains Mono',monospace;font-size:12px}
+.lsc-q{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
+.lsc-q div{border:1px solid var(--border);border-radius:8px;padding:7px;text-align:center;font-size:10px;color:var(--text3)}
+.lsc-q div.on{border-color:var(--gold);color:var(--text);background:var(--gold-bg)}
+.lsc-q b{display:block;font-size:12px;color:var(--text)}
+.lsc-md{font-size:12px;line-height:1.55;color:var(--text2)}
+.lsc-md h4{font-size:13px;margin:4px 0 8px;color:var(--text)}
+.lsc-md h5{font-size:10px;margin:14px 0 6px;color:var(--gold);text-transform:uppercase;letter-spacing:.09em}
+.lsc-md ul{margin:0 0 6px 16px;padding:0}.lsc-md ul ul{margin-bottom:0}
+.lsc-md b{color:var(--text)}
+.lsc-md .lsc-tw{overflow-x:auto;margin:6px 0}
+.lsc-md table{border-collapse:collapse;font-size:10px;font-family:'JetBrains Mono',monospace;min-width:100%}
+.lsc-md th,.lsc-md td{border-bottom:1px solid var(--border);padding:4px 6px;text-align:left;white-space:nowrap}
+.lsc-md th{color:var(--text3);font-weight:700}
+.lsc-empty{font-size:11.5px;color:var(--text3);padding:14px;text-align:center}
+#dm-lmr-chain details{margin-top:8px}#dm-lmr-chain summary{cursor:pointer;font-size:11px;color:var(--text2);font-weight:700}
+@media(max-width:600px){.lsc-row{grid-template-columns:1fr}.lsc-q{grid-template-columns:repeat(3,1fr)}}
+</style>
+<script>
+(function(){
+  // ── The LMR daily schedule: what each checkpoint reads (NY time) ─────────────
+  const CP=[
+    {cp:'00:00',name:'Asia',s:'18:00',e:'00:00',guide:'What Asia did 18:00–00:00 — its range, which side it took, accumulation or expansion. This is the range London works against.'},
+    {cp:'01:30',name:'Midnight range',s:'00:00',e:'01:30',guide:'From the 00:00 True Day Open: premium or discount, and did the midnight range start raiding the Asia high/low?'},
+    {cp:'02:00',name:'London Open',s:'01:30',e:'02:00',guide:'London open raid — did it sweep the Asia high or low (Judas swing)?'},
+    {cp:'05:00',name:'London Killzone',s:'02:00',e:'05:00',guide:'London delivery 02:00–05:00 — distribution away from the raid or continuation; where the London high/low formed.'},
+    {cp:'09:00',name:'NY Pre-market (08:30)',s:'07:00',e:'09:00',guide:'07:00 → 08:30 news → 09:00: did it take the London high/low and set up the NY draw?'},
+    {cp:'10:00',name:'RTH Open 09:30',s:'09:30',e:'10:00',guide:'Opening range 09:30–10:00 — which side was raided first, SMT at the open.'},
+    {cp:'13:30',name:'NY Lunch',s:'11:30',e:'13:30',guide:'Lunch 11:30–13:30 — consolidation, or a reversal of the AM move.'},
+    {cp:'14:00',name:'NY PM Open',s:'13:30',e:'14:00',guide:'PM open — raid of the lunch range; sets PM direction.'},
+    {cp:'15:10',name:'PM Silver Bullet',s:'14:00',e:'15:10',guide:'PM Silver Bullet 14:00–15:10 delivery.'},
+    {cp:'16:00',name:'Final hour',s:'15:00',e:'16:00',guide:'Final hour 15:00–16:00 — continuation or reversal into the close.'},
+    {cp:'18:00',name:'Whole PM session',s:'13:30',e:'17:00',guide:'The whole PM session 13:30–17:00 — how the trading day closed.'},
+  ];
+  const REV=[
+    {cp:'05:00–07:00',name:'London close → NY',s:'05:00',e:'07:00',guide:'Daily review only — London close into the NY morning.'},
+    {cp:'09:00–09:30',name:'Pre-open',s:'09:00',e:'09:30',guide:'Daily review only — the last 30 minutes before the RTH open.'},
+    {cp:'10:00–11:30',name:'NY AM after open',s:'10:00',e:'11:30',guide:'Daily review only — AM Silver Bullet 10–11 and the run into lunch.'},
+  ];
+  const PH={M:'Manipulation',D:'Distribution',R:'Re-accum / Continuation',A:'Accumulation'};
+  const NEXT={M:'D',D:'R',R:'A',A:'M'};
+  const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const toMin=t=>{const a=String(t).split(':');return (+a[0])*60+(+a[1]||0);};
+  const off=t=>(toMin(t)-1080+1440)%1440;            // minutes since 18:00 (trade-day start)
+  const offEnd=t=>off(t)||1440;
+  const num=v=>v==null||v===''?null:+v;
+  const f2=v=>{v=num(v);return v==null?'—':(Math.round(v*100)/100).toLocaleString('en-US',{maximumFractionDigits:2});};
+
+  function addDays(ds,n){const d=new Date(ds+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);}
+  function dowOf(ds){return new Date(ds+'T12:00:00Z').getUTCDay();}
+  function nextTradingDay(ds,dir){do{ds=addDays(ds,dir);}while([0,6].includes(dowOf(ds)));return ds;}
+  function fmtD(ds){const d=new Date(ds+'T12:00:00Z');return `${DOW[d.getUTCDay()]} ${d.getUTCDate()} ${MON[d.getUTCMonth()]}`;}
+  function nyNow(){
+    const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).formatToParts(new Date()).map(x=>[x.type,x.value]));
+    const mins=(+p.hour%24)*60+(+p.minute);
+    return {ds:`${p.year}-${p.month}-${p.day}`,mins,hm:`${String(+p.hour%24).padStart(2,'0')}:${p.minute}`};
+  }
+  // Trade date: the day that the current 18:00→17:00 cycle belongs to (weekends roll to Monday)
+  function tradeInfo(){
+    const n=nyNow();
+    let cal=n.mins>=1080?addDays(n.ds,1):n.ds;
+    let td=cal; while([0,6].includes(dowOf(td))) td=addDays(td,1);
+    const nowOff=(cal===td)?off(n.hm):-1;
+    return {td,nowOff,hm:n.hm};
+  }
+  function statusFor(ds,w,ti){
+    if(ds<ti.td) return 'done';
+    if(ds>ti.td||ti.nowOff<0) return 'up';
+    if(ti.nowOff>=offEnd(w.e)) return 'done';
+    if(ti.nowOff>=off(w.s)) return 'live';
+    return 'up';
+  }
+
+  // ── Data ─────────────────────────────────────────────────────────────
+  const cache={}; const pcache={};
+  function client(){ try{ return (typeof sbInit==='function')?sbInit():null; }catch(e){ return null; } }
+  function uid(){ try{ return (typeof _sbUserId!=='undefined')?_sbUserId:null; }catch(e){ return null; } }
+  async function loadDay(ds,force){
+    if(cache[ds]&&!force) return cache[ds];
+    const sb=client(); if(!sb||!uid()) return {signedOut:true,rows:[],daily:null};
+    const [a,b]=await Promise.all([
+      sb.from('lmr_session_chain').select('*').eq('trade_date',ds).eq('symbol','NQ'),
+      sb.from('lmr_profiles').select('summary,report_md').eq('scope','daily').eq('period_key',ds).maybeSingle()
+    ]);
+    const res={rows:(a&&a.data)||[],daily:(b&&b.data)||null,err:(a&&a.error)||(b&&b.error)||null};
+    if(!res.err) cache[ds]=res;
+    return res;
+  }
+  async function loadProfile(scope,ds){
+    const k=scope+'|'+ds; if(pcache[k]) return pcache[k];
+    const sb=client(); if(!sb||!uid()) return null;
+    const {data}=await sb.from('lmr_profiles').select('period_key,period_start,period_end,report_md,summary')
+      .eq('scope',scope).lte('period_start',ds).order('period_start',{ascending:false}).limit(1);
+    const r=(data&&data[0])||null; pcache[k]=r; return r;
+  }
+
+  // ── Narrative for one window ────────────────────────────────────────────
+  function story(r,daily){
+    if(!r||r.o==null) return '';
+    const took=Array.isArray(r.took)?r.took:[];
+    const cl=num(r.close_loc);
+    const closeTxt=cl==null?'':cl>=70?'closed strong near its high':cl<=30?'closed weak near its low':'closed mid-range';
+    let s=took.length?`Took <b>${esc(took.join(', '))}</b>`:'Stayed inside the prior levels (no liquidity taken)';
+    if(closeTxt) s+=`; ${closeTxt} (${cl}% of ${f2(r.range_pts)} pts)`;
+    if(r.vs_true_open&&r.vs_true_open!=='—') s+=`, trading in <b>${esc(String(r.vs_true_open).toLowerCase())}</b> vs the 00:00 True Open`;
+    s+='.';
+    if(PH[r.phase]) s+=` Read as <b>${PH[r.phase]}</b> → next expected ${PH[NEXT[r.phase]]}.`;
+    if(r.smt) s+=` <span style="color:var(--gold)">SMT — ${esc(r.smt)}.</span>`;
+    return s;
+  }
+  function phChip(p){ return PH[p]?`<span class="lsc-ph ${p}">${p} · ${PH[p]}</span>`:''; }
+
+  function rowHTML(w,r,st,daily,isRev){
+    const sm=daily&&daily.summary||{};
+    let tags='';
+    if(r&&sm.day_h!=null&&num(r.h)===num(sm.day_h)) tags+='<span class="lsc-tag hod">HOD</span>';
+    if(r&&sm.day_l!=null&&num(r.l)===num(sm.day_l)) tags+='<span class="lsc-tag lod">LOD</span>';
+    const stTxt=st==='live'?'Live':st==='done'?(r?'Read':'Closed'):'Upcoming';
+    const stats=r&&r.o!=null?`<div class="lsc-stats"><span>O ${f2(r.o)}</span><span>H ${f2(r.h)} <i>${esc(r.h_time||'')}</i></span><span>L ${f2(r.l)} <i>${esc(r.l_time||'')}</i></span><span>C ${f2(r.c)}</span><span>${f2(r.range_pts)} pts</span></div>`:'';
+    return `<div class="lsc-row ${st}${isRev?' rev':''}">
+      <div><div class="lsc-time">${esc(w.cp)}</div><div class="lsc-sub">${esc(w.s)}–${esc(w.e)}</div></div>
+      <div>
+        <div class="lsc-title">${esc(w.name)} <span class="lsc-st ${st}">${stTxt}</span>${isRev?'<span class="lsc-tag">review</span>':''}${r?phChip(r.phase):''}${tags}</div>
+        <div class="lsc-guide">${esc(w.guide)}</div>
+        ${r?`<div class="lsc-story">${story(r,daily)}</div>`:''}
+        ${stats}
+      </div></div>`;
+  }
+
+  function barHTML(ds,ti){
+    let h='<div class="lsc-bar"><div class="lsc-seg">ASI 18–00</div><div class="lsc-seg">LDN 00–06</div><div class="lsc-seg">NAM 06–12</div><div class="lsc-seg">NPM 12–18</div>';
+    CP.forEach(w=>{const p=(offEnd(w.cp==='18:00'?'17:00':w.e)/1440*100).toFixed(2);h+=`<div class="lsc-tick" style="left:${p}%"><span>${w.cp}</span></div>`;});
+    if(ds===ti.td&&ti.nowOff>=0) h+=`<div class="lsc-nowm" style="left:${(ti.nowOff/1440*100).toFixed(2)}%" title="Now ${ti.hm} NY"></div>`;
+    return h+'</div>';
+  }
+
+  // ── Mini markdown (headings, bullets, tables, bold) ───────────────────────
+  function md(src){
+    if(!src) return '';
+    const lines=String(src).split('\n'); let out='',i=0,depth=0;
+    const inl=t=>esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+    const closeLists=d=>{while(depth>d){out+='</ul>';depth--;}};
+    while(i<lines.length){
+      const ln=lines[i];
+      if(/^\s*\|/.test(ln)){
+        closeLists(0); const rows=[];
+        while(i<lines.length&&/^\s*\|/.test(lines[i])){ if(!/^\s*\|[\s\-|:]+\|\s*$/.test(lines[i])) rows.push(lines[i]); i++; }
+        out+='<div class="lsc-tw"><table>'+rows.map((r,ri)=>'<tr>'+r.trim().replace(/^\||\|$/g,'').split('|').map(c=>ri?`<td>${inl(c.trim())}</td>`:`<th>${inl(c.trim())}</th>`).join('')+'</tr>').join('')+'</table></div>';
+        continue;
+      }
+      const b=ln.match(/^(\s*)- (.*)$/);
+      if(b){ const d=Math.floor(b[1].length/2)+1; while(depth<d){out+='<ul>';depth++;} closeLists(d); out+=`<li>${inl(b[2])}</li>`; i++; continue; }
+      closeLists(0);
+      if(/^## /.test(ln)) out+=`<h5>${inl(ln.slice(3))}</h5>`;
+      else if(/^# /.test(ln)) out+=`<h4>${inl(ln.slice(2))}</h4>`;
+      else if(ln.trim()) out+=`<p style="margin:4px 0">${inl(ln)}</p>`;
+      i++;
+    }
+    closeLists(0); return out;
+  }
+  function mdSection(src,title){
+    if(!src) return '';
+    const m=String(src).split(/\n(?=## )/).find(s=>s.startsWith('## '+title));
+    return m||'';
+  }
+
+  // ── Views ───────────────────────────────────────────────────────────
+  function intradayHTML(ds,data,ti,compact){
+    const byCp={}; (data.rows||[]).forEach(r=>byCp[r.checkpoint]=r);
+    const all=CP.map(w=>({w,rev:false})).concat(REV.map(w=>({w,rev:true})))
+      .sort((a,b)=>offEnd(a.w.cp==='18:00'?'17:00':a.w.e)-offEnd(b.w.cp==='18:00'?'17:00':b.w.e));
+    let h='';
+    if(!compact){
+      let live=null,next=null;
+      CP.forEach(w=>{const st=statusFor(ds,w,ti); if(st==='live'&&!live) live=w; if(st==='up'&&!next) next=w;});
+      h+=`<div class="lsc-now"><span>NY <b>${ti.hm}</b></span><span>Trade date <b>${fmtD(ds)}</b></span>`;
+      if(ds===ti.td){ if(live) h+=`<span class="lsc-live">● Live: ${esc(live.name)} (${live.s}–${live.e})</span>`; if(next) h+=`<span>Next read <b>${next.cp}</b> · ${esc(next.name)}</span>`; }
+      h+='</div>';
+      h+=barHTML(ds,ti);
+    }
+    if(data.signedOut) h+='<div class="lsc-note">Sign in to load the session chain for this day.</div>';
+    else if(!data.rows.length) h+=`<div class="lsc-note">${ds>=ti.td?'The chain for this day is filled automatically at 17:20 NY by the End-of-Day run. The schedule below shows what each checkpoint reads.':'No session chain recorded for this day.'}</div>`;
+    const seq=CP.map(w=>byCp[w.cp]).filter(r=>r&&PH[r.phase]);
+    if(seq.length) h+=`<div class="lsc-seq">Phase chain ${seq.map(r=>`<span class="lsc-ph ${r.phase}" title="${esc(r.window_name)}">${r.checkpoint} ${r.phase}</span>`).join('<span>→</span>')}</div>`;
+    const shown=compact&&data.rows.length?all.filter(x=>byCp[x.w.cp]):all;
+    h+='<div class="lsc-list">'+shown.map(({w,rev})=>rowHTML(w,byCp[w.cp],statusFor(ds,w,ti),data.daily,rev)).join('')+'</div>';
+    return h;
+  }
+  function dailyHTML(ds,data){
+    const d=data.daily; if(!d) return `<div class="lsc-empty">${data.signedOut?'Sign in to load the daily profile.':'Daily profile for '+fmtD(ds)+' is written at 17:20 NY.'}</div>`;
+    const s=d.summary||{};
+    const rng=(s.day_h!=null&&s.day_l!=null)?(s.day_h-s.day_l):null;
+    const kv=[['Open',f2(s.day_o)],['High',f2(s.day_h)],['Low',f2(s.day_l)],['Close',f2(s.day_c)],['Range',rng==null?'—':f2(rng)+' pts'],
+      ['True Open 00:00',f2(s.true_open)],['RTH Open',f2(s.rth_open)],['PDH',f2(s.pdh)],['PDL',f2(s.pdl)],
+      ['HOD',`${esc(s.hod_time||'—')} · ${esc(s.hod_session||'')}`],['LOD',`${esc(s.lod_time||'—')} · ${esc(s.lod_session||'')}`],['Formed first',esc(s.first||'—')]];
+    const dir=(s.day_c!=null&&s.true_open!=null)?(s.day_c>=s.true_open?'<span class="lsc-ph A">Close above True Open</span>':'<span class="lsc-ph M">Close below True Open</span>'):'';
+    return `<div style="margin-bottom:8px">${dir}</div><div class="lsc-kv">${kv.map(([k,v])=>`<div><small>${k}</small><b>${v}</b></div>`).join('')}</div>
+      <div class="lsc-md">${md(mdSection(d.report_md,'Daily profile'))}${md(mdSection(d.report_md,'Next-day map'))}</div>`;
+  }
+  function weekQuarters(ds){
+    const dw=dowOf(ds);
+    return '<div class="lsc-q">'+[['Q1','Mon',1],['Q2','Tue',2],['Q3','Wed',3],['Q4','Thu',4],['FRI','Fri',5]].map(([q,n,i])=>`<div class="${dw===i?'on':''}"><b>${q}</b>${n}</div>`).join('')+'</div>';
+  }
+  async function weekSoFar(ds){
+    const sb=client(); if(!sb||!uid()) return '';
+    const mon=addDays(ds,-((dowOf(ds)+6)%7)), fri=addDays(mon,4);
+    const {data}=await sb.from('lmr_profiles').select('period_key,summary').eq('scope','daily').gte('period_key',mon).lte('period_key',fri).order('period_key',{ascending:true});
+    const ds_=(data||[]).filter(d=>d.summary&&d.summary.day_h!=null);
+    if(!ds_.length) return '';
+    const wh=Math.max(...ds_.map(d=>+d.summary.day_h)), wl=Math.min(...ds_.map(d=>+d.summary.day_l));
+    const QN=['','Q1','Q2','Q3','Q4','FRI'];
+    const rows=ds_.map(d=>{const s=d.summary,dw=dowOf(d.period_key);
+      const tags=(+s.day_h===wh?' <span class="lsc-tag hod">week H</span>':'')+(+s.day_l===wl?' <span class="lsc-tag lod">week L</span>':'');
+      return `<tr><td>${QN[dw]||''} ${fmtD(d.period_key)}${tags}</td><td>${f2(s.day_h)} <i>${esc(s.hod_time||'')} ${esc(s.hod_session||'')}</i></td><td>${f2(s.day_l)} <i>${esc(s.lod_time||'')} ${esc(s.lod_session||'')}</i></td><td>${f2(s.day_h-s.day_l)}</td><td>${f2(s.day_o)} → ${f2(s.day_c)} ${+s.day_c>=+s.day_o?'▲':'▼'}</td><td>${esc(s.first||'')} first</td></tr>`;}).join('');
+    return `<h5 style="font-size:10px;margin:4px 0 6px;color:var(--gold);text-transform:uppercase;letter-spacing:.09em">This week so far — how each day builds the weekly profile</h5>
+      <div class="lsc-md"><div class="lsc-tw"><table><tr><th>Day</th><th>High (time · session)</th><th>Low (time · session)</th><th>Range</th><th>Open → Close</th><th>Formed</th></tr>${rows}</table></div></div>
+      <div class="lsc-sub" style="margin:6px 0 14px">Week so far: H ${f2(wh)} · L ${f2(wl)} · ${f2(wh-wl)} pts</div>`;
+  }
+  async function profileHTML(scope,ds){
+    const p=await loadProfile(scope,ds);
+    let head=scope==='weekly'?weekQuarters(ds):'';
+    if(scope==='weekly') head+=await weekSoFar(ds);
+    if(!p) return head+`<div class="lsc-empty">${scope==='weekly'?'Weekly profile is written every Friday at 17:20 NY.':'Monthly profile is written on the last trading day of the month at 17:20 NY.'}</div>`;
+    const stale=p.period_end&&p.period_end<ds;
+    return head+`<div class="lsc-sub" style="margin-bottom:6px">${scope==='weekly'?'Weekly':'Monthly'} profile · ${esc(p.period_start)} → ${esc(p.period_end)}${stale?' (latest completed '+(scope==='weekly'?'week':'month')+')':''}</div><div class="lsc-md">${md(p.report_md)}</div>`;
+  }
+
+  // ── Today panel card ───────────────────────────────────────────────────
+  const S={ds:null,tab:'intra'};
+  async function renderToday(force){
+    const host=document.getElementById('lsc-today'); if(!host) return;
+    const ti=tradeInfo(); if(!S.ds) S.ds=ti.td;
+    const ds=S.ds;
+    const tabs=[['intra','Intraday'],['daily','Daily'],['weekly','Weekly'],['monthly','Monthly']];
+    const head=document.getElementById('lsc-head');
+    if(head) head.innerHTML=`<div class="lsc-tabs">${tabs.map(([k,l])=>`<button class="lsc-tab ${S.tab===k?'on':''}" onclick="lmrChainTab('${k}')">${l}</button>`).join('')}</div>
+      <div class="lsc-nav"><button onclick="lmrChainNav(-1)">‹</button><span class="lsc-d">${fmtD(ds)}</span><button onclick="lmrChainNav(1)">›</button><button onclick="lmrChainNav(0)">Today</button><button onclick="lmrChainOpenDay()" title="Open this day in the journal">↗</button></div>`;
+    const body=document.getElementById('lsc-body'); if(!body) return;
+    try{
+      if(S.tab==='weekly'||S.tab==='monthly'){ body.innerHTML=await profileHTML(S.tab,ds); return; }
+      const data=await loadDay(ds,force);
+      if(S.ds!==ds) return;
+      body.innerHTML=S.tab==='daily'?dailyHTML(ds,data):intradayHTML(ds,data,ti,false);
+    }catch(e){ body.innerHTML=`<div class="lsc-empty">Could not load the session chain (${esc(e.message||e)}).</div>`; }
+  }
+  window.lmrChainTab=k=>{S.tab=k;renderToday();};
+  window.lmrChainNav=dir=>{S.ds=dir?nextTradingDay(S.ds||tradeInfo().td,dir):tradeInfo().td;renderToday();};
+  window.lmrChainOpenDay=()=>{ if(typeof openDayModal==='function') openDayModal(S.ds); };
+  window.lmrRenderToday=renderToday;
+
+  // ── Day modal section ──────────────────────────────────────────────────
+  window.lmrRenderDayChain=async function(ds){
+    const host=document.getElementById('dm-lmr-chain'); if(!host) return;
+    host.innerHTML='<div class="lsc-empty">Loading session chain…</div>';
+    try{
+      const ti=tradeInfo(); const data=await loadDay(ds);
+      if(document.getElementById('dm-ds').value!==ds) return;
+      let h=intradayHTML(ds,data,ti,true);
+      if(data.daily) h+=`<details open><summary>Daily profile &amp; next-day map</summary><div style="margin-top:8px">${dailyHTML(ds,data)}</div></details>`;
+      if(dowOf(ds)===5) h+=`<details><summary>Weekly profile</summary><div style="margin-top:8px">${await profileHTML('weekly',ds)}</div></details>`;
+      host.innerHTML=h;
+    }catch(e){ host.innerHTML=`<div class="lsc-empty">Could not load the session chain.</div>`; }
+  };
+
+  // Live refresh while the Today panel is open: clock/now-marker every minute, data every 10 min
+  let tick=0;
+  setInterval(()=>{
+    const p=document.getElementById('p-today'); if(!p||!p.classList.contains('active')) return;
+    tick++; const today=S.ds===tradeInfo().td;
+    if(today&&tick%10===0){ delete cache[S.ds]; }
+    if(S.tab==='intra'||tick%10===0) renderToday();
+  },60000);
+  setTimeout(()=>renderToday(),2500);
+})();
+</script>
 </body></html>
