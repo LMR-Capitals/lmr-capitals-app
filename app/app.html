@@ -2403,6 +2403,10 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
 /* Chart sits directly beneath the text, inside the same card. */
 #p-journal .jn-kimg, #p-notes .jn-kimg{margin:0 14px 14px;border:1px solid var(--jn-line);border-radius:8px;overflow:hidden;background:var(--jn-inset)}
 #p-journal .jn-kimg img, #p-notes .jn-kimg img{width:100%;display:block}
+#p-journal .jn-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:10px;margin:0 14px 14px}
+#p-journal .jn-gallery .jn-kimg{margin:0;min-height:120px}
+#p-journal .jn-gallery img{width:100%;height:auto;display:block;cursor:zoom-in}
+#p-journal .jn-source{display:block;margin-top:12px;padding-top:10px;border-top:1px solid var(--jn-line);color:var(--jn-dim);font-size:12px}
 #p-journal .jn-none, #p-notes .jn-none{border:1px dashed var(--jn-line);padding:26px 16px;text-align:center;font-size:13px;color:var(--jn-dim)}
 </style>
 </head>
@@ -6193,13 +6197,26 @@ async function _sbUpsertAll(uid){
       state.notes.map(n=>({id:String(n.id),user_id:uid,notion_id:n.notionId||null,
         title:n.title||null,text:n.text||'',date:n.date||null,
         created_at:n.createdAt||new Date().toISOString()})),{onConflict:'id'}));
-  // Journal → its own table (same shape saveJournal syncs with). Force Push skipped this before,
-  // so journal entries only reached the cloud via their per-save sync; now a manual backup covers them.
-  if((state.journal||[]).length)
-    _chk('journal', await _sb.from('journal').upsert(
-      state.journal.map(j=>({id:String(j.id),user_id:uid,date:j.date||null,
-        title:j.type||j.title||null,content:j.text||j.content||'',
-        created_at:j.createdAt||j.created_at||new Date().toISOString()})),{onConflict:'id'}));
+  // A previous Notion import produced local copies of the same Journal notes.
+  // Read the owner's canonical source titles before a Force Push so stale tabs
+  // cannot re-create deleted copies or overwrite the curated headings.
+  if((state.journal||[]).length){
+    const imported = await _sb.from('journal').select('import_source_title')
+      .not('import_source_id','is',null);
+    _chk('journal import check', imported);
+    if(!imported.error){
+      const sourceTitles=new Set((imported.data||[])
+        .map(j=>String(j.import_source_title||'').trim().toLowerCase()));
+      const rows=state.journal.filter(j=>j.import_source_id ||
+        !sourceTitles.has(String(j.text||j.content||'').trim().toLowerCase()));
+      if(rows.length) _chk('journal', await _sb.from('journal').upsert(
+        rows.map(j=>({id:String(j.id),user_id:uid,date:j.date||null,
+          title:j.title||j.type||null,type:j.type||j.title||'Lesson',
+          text:j.text||j.content||'',content:j.text||j.content||'',
+          img_key:j.imgKey||j.img_key||null,
+          created_at:j.createdAt||j.created_at||new Date().toISOString()})),{onConflict:'id'}));
+    }
+  }
   const dailyRows=Object.entries(state.daily).map(([date,d])=>_mapDaily(date,d,uid));
   if(dailyRows.length)_chk('daily', await _sb.from('daily').upsert(dailyRows,{onConflict:'date,user_id'}));
   // Knowledge sections own their OWN tables (lmr_terminology / lmr_psychology). Never push them
@@ -13800,9 +13817,21 @@ async function _sbDoPull() {
     .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
 
   // MERGE journal: same approach
-  const cloudJournal = (ju.data||[]).map(j => ({ ...j, id: Number(j.id)||j.id }));
+  const cloudJournal = (ju.data||[]).map(j => ({
+    ...j, id: Number(j.id)||j.id,
+    type: j.type || j.title || 'Lesson',
+    text: j.text || j.content || '',
+    imgKey: j.img_key || j.imgKey || null,
+    imageKeys: Array.isArray(j.image_keys) ? j.image_keys : []
+  }));
   const cloudJournalIds = new Set(cloudJournal.map(j=>String(j.id)));
-  const localOnlyJournal = (state.journal||[]).filter(j=>!cloudJournalIds.has(String(j.id)));
+  // Earlier Notion imports left undated local copies. Once a source note has a
+  // canonical cloud row, do not reintroduce those deleted copies from cache.
+  const importedSourceTitles = new Set(cloudJournal.filter(j=>j.import_source_id)
+    .map(j=>String(j.import_source_title||'').trim().toLowerCase()));
+  const localOnlyJournal = (state.journal||[]).filter(j=>
+    !cloudJournalIds.has(String(j.id)) &&
+    !importedSourceTitles.has(String(j.text||j.content||'').trim().toLowerCase()));
   state.journal = [...cloudJournal, ...localOnlyJournal];
   // Daily: replace entirely — map Supabase snake_case columns to app camelCase
   state.daily = {};
@@ -17570,7 +17599,9 @@ var JN_PERSIST = {
       try {
         if (kind === 'journal')
           sbSyncRecord('journal', {id:String(rec.id), user_id:_sbUserId, date:rec.date||null,
-            title:rec.type||null, content:rec.text||'', created_at:rec.createdAt});
+            title:rec.title||rec.type||null, type:rec.type||'Lesson',
+            text:rec.text||'', content:rec.text||'', img_key:rec.imgKey||null,
+            created_at:rec.createdAt});
         else
           sbSyncRecord('notes', {id:String(rec.id), user_id:_sbUserId, title:rec.title||null,
             text:rec.text||'', date:rec.date||null, created_at:rec.createdAt});
@@ -17581,7 +17612,13 @@ var JN_PERSIST = {
     if (typeof sbDeleteRecord === 'function') { try { sbDeleteRecord(kind, id); } catch(e){} }
   },
   // NEVER localStorage — base64 there throws QuotaExceededError at 5MB.
-  saveImg: function(k,b){ return (typeof saveImg==='function') ? saveImg(k,b) : Promise.resolve(_mem[k]=b); },
+  saveImg: function(k,b){
+    if (typeof b==='string' && b.indexOf('data:')===0)
+      return fetch(b).then(function(r){return r.blob();}).then(function(blob){
+        return (typeof saveImg==='function') ? saveImg(k,blob) : (_mem[k]=b);
+      });
+    return (typeof saveImg==='function') ? saveImg(k,b) : Promise.resolve(_mem[k]=b);
+  },
   getImg:  function(k){   return (typeof getImg ==='function') ? getImg(k)    : Promise.resolve(_mem[k]); }
 };
 var _mem = {};
@@ -17748,18 +17785,61 @@ function cardHTML(kind, r){
        +  '</div>';
   return '<article class="jn-card" style="border-left-color:'+accent+'">'
        + head
-       + '<p class="jn-ktext">'+esc(r.text)+'</p>'
+       + '<p class="jn-ktext">'+esc(r.text||r.content||'')
+       + (r.import_source_title ? '<span class="jn-source">Original note: '+esc(r.import_source_title)+'</span>' : '')
+       + '</p>'
        + (r.imgKey ? '<div class="jn-kimg" data-slot="'+esc(r.imgKey)+'"></div>' : '')
+       + (kind==='journal' && Array.isArray(r.imageKeys) && r.imageKeys.length
+          ? '<div class="jn-gallery">'+r.imageKeys.map(function(key,i){
+              return '<div class="jn-kimg" data-private-slot="'+esc(key)+'" data-image-number="'+(i+1)+'"></div>';
+            }).join('')+'</div>' : '')
        + '</article>';
 }
 
 // Images are fetched after the markup lands, then painted in place.
+var _jnObjectUrls=[];
+var _jnImageObserver=null;
+function releaseCardImages(){
+  if(_jnImageObserver){_jnImageObserver.disconnect();_jnImageObserver=null;}
+  _jnObjectUrls.forEach(function(url){URL.revokeObjectURL(url);});
+  _jnObjectUrls=[];
+}
 function paintCardImages(root){
   Array.prototype.forEach.call(root.querySelectorAll('[data-slot]'), function(box){
     JN_PERSIST.getImg(box.dataset.slot).then(function(src){
-      if (src) box.innerHTML = '<img src="'+src+'" alt="">';
+      if(!box.isConnected) return;
+      if (src){
+        var url=src instanceof Blob ? URL.createObjectURL(src) : src;
+        if(src instanceof Blob) _jnObjectUrls.push(url);
+        var img=document.createElement('img');img.src=url;img.alt='Journal chart';img.loading='lazy';
+        box.replaceChildren(img);
+      }
       else box.remove();
-    });
+    }).catch(function(){if(box.isConnected) box.remove();});
+  });
+  function loadPrivateChart(box){
+    if(typeof _sb==='undefined' || !_sb){box.remove();return;}
+    _sb.storage.from('lmr-images').download(box.dataset.privateSlot).then(function(result){
+      if(!box.isConnected) return;
+      if(result.error || !result.data){box.remove();return;}
+      var url=URL.createObjectURL(result.data);_jnObjectUrls.push(url);
+      var img=document.createElement('img');img.src=url;img.loading='lazy';
+      img.alt='Journal chart '+box.dataset.imageNumber;box.replaceChildren(img);
+    }).catch(function(){if(box.isConnected) box.remove();});
+  }
+  if('IntersectionObserver' in window){
+    var observer=new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(!entry.isIntersecting) return;
+        observer.unobserve(entry.target);
+        loadPrivateChart(entry.target);
+      });
+    },{rootMargin:'450px'});
+    _jnImageObserver=observer;
+  }
+  Array.prototype.forEach.call(root.querySelectorAll('[data-private-slot]'), function(box){
+    if(_jnImageObserver) _jnImageObserver.observe(box);
+    else loadPrivateChart(box);
   });
 }
 
@@ -17771,7 +17851,7 @@ function renderJournal(){
   feed.innerHTML = rows.length
     ? rows.map(function(r){ return cardHTML('journal', r); }).join('')
     : '<div class="jn-none">No entries yet \u2014 write the first one above.</div>';
-  paintCardImages(feed);
+  releaseCardImages();paintCardImages(feed);
   renderFilters();
 }
 

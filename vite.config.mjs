@@ -22,6 +22,7 @@ export default defineConfig({
         landingPreview: resolve(import.meta.dirname, 'web/landing-preview.html'),
         experiencePreview: resolve(import.meta.dirname, 'web/experience-preview.html'),
         app: resolve(import.meta.dirname, 'app/app.html'),                    // trading app → /app
+        journalImport: resolve(import.meta.dirname, 'app/journal-import.html'), // signed-in one-time chart importer
         admin: resolve(import.meta.dirname, 'admin/admin.html'),             // admin portal → /admin
       },
     },
