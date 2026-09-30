@@ -6174,6 +6174,13 @@ async function _sbUpsertAll(uid){
       state.notes.map(n=>({id:String(n.id),user_id:uid,notion_id:n.notionId||null,
         title:n.title||null,text:n.text||'',date:n.date||null,
         created_at:n.createdAt||new Date().toISOString()})),{onConflict:'id'}));
+  // Journal → its own table (same shape saveJournal syncs with). Force Push skipped this before,
+  // so journal entries only reached the cloud via their per-save sync; now a manual backup covers them.
+  if((state.journal||[]).length)
+    _chk('journal', await _sb.from('journal').upsert(
+      state.journal.map(j=>({id:String(j.id),user_id:uid,date:j.date||null,
+        title:j.type||j.title||null,content:j.text||j.content||'',
+        created_at:j.createdAt||j.created_at||new Date().toISOString()})),{onConflict:'id'}));
   const dailyRows=Object.entries(state.daily).map(([date,d])=>_mapDaily(date,d,uid));
   if(dailyRows.length)_chk('daily', await _sb.from('daily').upsert(dailyRows,{onConflict:'date,user_id'}));
   // Knowledge sections own their OWN tables (lmr_terminology / lmr_psychology). Never push them
