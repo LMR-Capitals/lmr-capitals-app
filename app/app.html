@@ -8569,7 +8569,12 @@ function saveTradeAndClose(){
   const date=document.getElementById('tm-date').value;
   if(!date&&!pnl&&!_tmEditId){closeModal('tradeModal');return;}
   // Design hard block: a new trade must be validated against today's committed P/D array.
-  if(!_tmEditId && window.PD && typeof PD.check==='function' && !PD.check(getChipsValues('modelChips',true))){ return; }
+  // PD.check shows the red block modal; also flash a clear toast so it's obvious WHY the trade
+  // did not log (the modal alone was easy to miss — it read as "nothing happened").
+  if(!_tmEditId && window.PD && typeof PD.check==='function' && !PD.check(getChipsValues('modelChips',true))){
+    try{ flash('⚠ Commit today’s P/D array in the Today chain before logging a trade'); }catch(e){}
+    return;
+  }
   const editId=_tmEditId;
   saveTrade();
   // Auto AI analysis if enabled
