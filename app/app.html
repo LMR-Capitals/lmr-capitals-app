@@ -9608,6 +9608,9 @@ async function openNoteDetail(id){
 
 function renderNotesList(){
   const w=document.getElementById('notesList');
+  if(!w) return; // #notesList was consolidated into the journal feed (#jFeed); nothing to render here.
+                 // Without this guard, renderNotesList() threw on null and blocked the whole
+                 // post-login render (mainApp never showed) — "app not opening after signing in".
   // Merge notes + journal entries — sort newest to oldest by date then id
   const allEntries=[...state.notes,...(state.journal||[])].sort((a,b)=>{
     const da=(a.date||'0000-00-00');const db=(b.date||'0000-00-00');
