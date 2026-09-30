@@ -2742,27 +2742,9 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
     </div>
   </div>
 
-<!-- ── ADAPTIVE ALERT BANNER ── Fixed between topbar and panels ── -->
-<div id="alert-banner" class="alert-banner" style="display:none">
-  <span id="ab-label" class="ab-label">FOCUS</span>
-  <span id="ab-msg" class="ab-msg">Loading…</span>
-  <div class="ab-right">
-    <div id="ab-dots" class="ab-dots"></div>
-    <button class="ab-ai-btn" onclick="alertAIDeepDive()" title="✦ AI deep analysis (uses Claude API)">✦</button>
-    <button class="ab-min-btn" onclick="toggleAlertMin()" id="ab-min-btn" title="Minimise">—</button>
-  </div>
-</div>
-
 <!-- DASHBOARD -->
 <div class="panel active" id="p-dash">
 <div class="panel-inner">
-
-  <!-- Journal reminder ticker -->
-  <div class="ticker-bar" id="journalTicker" onclick="navTo('notes')">
-    <span class="ticker-alert-label">⚠ JOURNAL ALERT</span>
-    <span class="ticker-content" id="tickerText">Loading journal reminder…</span>
-    <span class="ticker-badge">JOURNAL</span>
-  </div>
 
   <!-- KEY STATS — 5-tile row (design v2) -->
   <div class="m-card" style="margin-bottom:14px">
@@ -15507,6 +15489,13 @@ function copierState(){
   if(!state.copier.masterSize) state.copier.masterSize=1;
   return state.copier;
 }
+// Futures contract value in $ per 1.0 point move. Micro = 1/10 of its E-mini. Used to scale a
+// follower's copied P&L by ITS instrument+qty vs the leader's — a real trade-copier, so each
+// account with its own size records a realistic (justifiable) result. Tune values here if needed.
+const _CONTRACT_PV={ES:50,MES:5,NQ:20,MNQ:2,GC:100,MGC:10,CL:1000,MCL:100,RTY:50,M2K:5,YM:5,MYM:0.5};
+function _instrPV(sym){ return _CONTRACT_PV[String(sym||'').toUpperCase()]||0; }
+// Instruments a follower can pick (micro + standard, grouped by underlying).
+const _COPIER_INSTRUMENTS=['MNQ','NQ','MES','ES','MGC','GC','MCL','CL','M2K','RTY','MYM','YM'];
 function copierLeader(){ const c=copierState(); return (state.accounts||[]).find(a=>String(a.id)===String(c.leaderId))||null; }
 // newest-first comparator (by created date, then id timestamp)
 function _accNewer(a,b){ return (new Date(b.date||0)-new Date(a.date||0)) || (Number(b.id)-Number(a.id)); }
@@ -15539,6 +15528,9 @@ function copierToggleFollower(id){ const c=copierState(); if(String(id)===String
 // trades. Falls back to the copier connected-since date, then the creation date.
 function _folSince(acc,cfg){ return ((acc&&acc.startDate)||'').slice(0,10) || (cfg&&cfg.connectedAt) || ((acc&&acc.date)||'').slice(0,10) || ''; }
 function copierSetMult(id,v){ const c=copierState(); if(!c.followers[id]) c.followers[id]={enabled:true,multiplier:1}; c.followers[id].multiplier=Math.max(.5,Math.min(3,parseFloat(v)||1)); save(); _copierUpdateCalc(); }
+// Per-account instrument + quantity — this account's copied P&L scales by its own contract value × qty.
+function copierSetFollowerInstrument(id,v){ const c=copierState(); if(!c.followers[id]) c.followers[id]={enabled:true,multiplier:1}; c.followers[id].instrument=v; if(!(parseFloat(c.followers[id].qty)>0)) c.followers[id].qty=c.masterSize||1; save(); renderCopierCockpit(); }
+function copierSetFollowerQty(id,v){ const c=copierState(); if(!c.followers[id]) c.followers[id]={enabled:true,multiplier:1}; c.followers[id].qty=Math.max(1,Math.min(100,parseInt(v)||1)); if(!c.followers[id].instrument) c.followers[id].instrument=c.instrument||'MNQ'; save(); renderCopierCockpit(); }
 function copierSetMaster(v){ const c=copierState(); c.masterSize=Math.max(1,Math.min(10,parseInt(v)||1)); save(); _copierUpdateCalc(); }
 function copierSetInstrument(v){ const c=copierState(); c.instrument=v; save(); _copierUpdateCalc(); }
 function copierToggleAuto(){ const c=copierState(); c.autoMirror=!c.autoMirror; save(); renderCopierCockpit(); }
@@ -15573,13 +15565,23 @@ function _copierFollowerView(accountId){
   if(!cfg||!cfg.enabled) return null;                                     // not a connected follower
   const acc=(state.accounts||[]).find(a=>String(a.id)===String(accountId));
   const since=_folSince(acc,cfg), m=cfg.multiplier||1;
+  const folPV=_instrPV(cfg.instrument), folQty=parseFloat(cfg.qty)||0;
+  // Contract-value scaling: if this follower has its own instrument+qty, its copied $ result scales
+  // from the leader trade by (its contract value × qty) ÷ (the leader trade's contract value × lots).
+  // Otherwise fall back to the legacy flat × multiplier so un-migrated followers are unchanged.
+  const useContracts = !!(cfg.instrument && folQty>0 && folPV>0);
   // Derive from ALL of the leader's REAL trades (its own, non-copy) on/after this follower's start date.
   // (No structural mirror-id filter here — that could wrongly drop a leader trade when a stray copy exists.)
   return (state.trades||[])
     .filter(t=>String(t.accountId)===String(c.leaderId) && !t.mirror && (!since || (t.date||'').slice(0,10)>=since))
-    .map(t=>{ const pnl=Math.round((parseFloat(t.pnl)||0)*m*100)/100, risk=Math.round((parseFloat(t.risk)||0)*m*100)/100;
-      return Object.assign({},t,{ id:'d-'+accountId+'-'+t.id, accountId:String(accountId), mirror:true, mirrorFrom:String(t.id), mirrorLeader:String(c.leaderId), mirrorMult:m,
-        pnl, risk, lots:Math.round((parseFloat(t.lots)||0)*m*100)/100, rr:risk>0?(pnl/risk).toFixed(2):(t.rr||0), win:pnl>0 }); });
+    .map(t=>{
+      let ratio=m;
+      if(useContracts){ const ldrPV=_instrPV(t.market), ldrQty=parseFloat(t.lots)||1;
+        ratio = (ldrPV>0 && ldrQty>0) ? (folPV*folQty)/(ldrPV*ldrQty) : m; }
+      const pnl=Math.round((parseFloat(t.pnl)||0)*ratio*100)/100, risk=Math.round((parseFloat(t.risk)||0)*ratio*100)/100;
+      return Object.assign({},t,{ id:'d-'+accountId+'-'+t.id, accountId:String(accountId), mirror:true, mirrorFrom:String(t.id), mirrorLeader:String(c.leaderId), mirrorMult:ratio,
+        market:useContracts?cfg.instrument:t.market,
+        pnl, risk, lots:useContracts?folQty:Math.round((parseFloat(t.lots)||0)*ratio*100)/100, rr:risk>0?(pnl/risk).toFixed(2):(t.rr||0), win:pnl>0 }); });
 }
 // Followers derive live, so mirroring stores NOTHING now — just refresh the views on a new leader trade.
 function copierMirrorLeaderTrade(t){
@@ -15817,12 +15819,15 @@ function renderCopierCockpit(){
     const st=_copierAcctStats(a), isLeader=!!st.leader;
     const cfg=c.followers[a.id]||{enabled:false,multiplier:1}, on=isLeader||cfg.enabled;
     const idTail=String(a.accountNo||a.id).slice(-8);
+    const folInstr=cfg.instrument||c.instrument||'MNQ';
+    const folQty=parseFloat(cfg.qty)>0?parseFloat(cfg.qty):(c.masterSize||1);
     const follow=isLeader
       ? `<span class="cks-crown" title="Leader">♛</span>`
       : `<span class="cks-tg ${cfg.enabled?'on':''}" onclick="copierToggleFollower('${a.id}')" title="${cfg.enabled?'Connected (following)':'Not following'}"></span>`;
+    const instrOpts=_COPIER_INSTRUMENTS.map(s=>`<option ${folInstr===s?'selected':''}>${s}</option>`).join('');
     const ratio=isLeader
       ? `<span class="cks-leadtag">LEADER</span>`
-      : `<input class="cks-ratio" type="number" min="0.5" max="10" step="0.1" value="${(cfg.multiplier||1)}" ${cfg.enabled?'':'disabled'} onchange="copierSetMult('${a.id}',this.value);renderCopierCockpit()"> ×`;
+      : `<span style="display:inline-flex;gap:5px;align-items:center"><select class="cks-sel" style="width:72px" ${cfg.enabled?'':'disabled'} title="Instrument this account trades" onchange="copierSetFollowerInstrument('${a.id}',this.value)">${instrOpts}</select><input class="cks-ratio" type="number" min="1" max="100" step="1" value="${folQty}" ${cfg.enabled?'':'disabled'} title="Contracts (quantity)" onchange="copierSetFollowerQty('${a.id}',this.value)"></span>`;
     const bal=st.bal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
     return `<tr class="cks-row ${isLeader?'lead':''} ${on?'':'off'}">
       <td><span class="cks-dot ${on?'on':''}"></span></td>
@@ -15830,7 +15835,7 @@ function renderCopierCockpit(){
       <td class="mono dim">…${_ckEsc(idTail)}</td>
       <td class="dim">${_ckEsc(a.firm||'Tradeify')} Account</td>
       <td class="cks-name">${_ckEsc(a.accountNo||a.name)}</td>
-      <td class="mono">${_ckEsc(c.instrument)}</td>
+      <td class="mono">${_ckEsc(isLeader?c.instrument:folInstr)}</td>
       <td class="dim">—</td>
       <td class="mono bal">$${bal}</td>
       <td>${ratio}</td>
@@ -15839,7 +15844,7 @@ function renderCopierCockpit(){
   }).join('');
 
   const table=`<div class="cks-tablewrap"><table class="cks-table">
-    <thead><tr><th>Status</th><th>Follow</th><th>ID</th><th>Connection</th><th>Account</th><th>Symbol</th><th>Position</th><th>Balance</th><th>Ratio</th><th>Day P&L</th></tr></thead>
+    <thead><tr><th>Status</th><th>Follow</th><th>ID</th><th>Connection</th><th>Account</th><th>Symbol</th><th>Position</th><th>Balance</th><th>Size</th><th>Day P&L</th></tr></thead>
     <tbody>${rows}</tbody></table></div>`;
 
   // Count leader trades not yet connected to each follower (since the follower's creation date).
@@ -15849,7 +15854,7 @@ function renderCopierCockpit(){
     const _lt=(state.trades||[]).filter(t=>!t.mirror&&String(t.accountId)===String(leader.id));
     fols.forEach(({acc})=>{ const created=(acc.date||'').slice(0,10); const have=new Set((state.trades||[]).filter(t=>String(t.accountId)===String(acc.id)).map(_sig)); _lt.forEach(t=>{ if((!created||(t.date||'').slice(0,10)>=created)&&!have.has(_sig(t))) _unsynced++; }); });
   }
-  const hint=`<div class="cks-hint">${_unsynced?`<div style="color:var(--bear);font-weight:700;margin-bottom:6px">⚠ ${_unsynced} trade-link${_unsynced>1?'s':''} not connected yet — some follower accounts are missing the leader's trades. Hit <b style="color:var(--blue)">⟳ Sync to followers</b> to connect them (with images).</div>`:''}When you log a trade on the <b style="color:var(--gold)">leader</b>, it syncs to each connected follower from that follower's <b>creation date</b> onward, carrying the chart images. Your Trade Log shows <b>one row</b> per trade; the Daily page & account views show it per-account.${leader&&accs.length>fols.length+1?` · <a onclick="copierEnableAllActive()" style="color:var(--blue);cursor:pointer">Connect all active</a>`:''}</div>`;
+  const hint=`<div class="cks-hint">${_unsynced?`<div style="color:var(--bear);font-weight:700;margin-bottom:6px">⚠ ${_unsynced} trade-link${_unsynced>1?'s':''} not connected yet — some follower accounts are missing the leader's trades. Hit <b style="color:var(--blue)">⟳ Sync to followers</b> to connect them (with images).</div>`:''}When you log a trade on the <b style="color:var(--gold)">leader</b>, it syncs to each connected follower from that follower's <b>creation date</b> onward, carrying the chart images. Each follower's <b>Size</b> (its own instrument + contracts) scales the copied P&L by contract value — micro vs mini/standard — so every account records a realistic result. Your Trade Log shows <b>one row</b> per trade; the Daily page & account views show it per-account.${leader&&accs.length>fols.length+1?` · <a onclick="copierEnableAllActive()" style="color:var(--blue);cursor:pointer">Connect all active</a>`:''}</div>`;
 
   root.innerHTML = _cksStyle + `<div class="cks">${bar}${stats}${table}${hint}</div>`;
   _copierStartLatency();
