@@ -17903,7 +17903,7 @@ mount();
 .lsc-sub{font-size:9px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px}
 .lsc-title{font-weight:700;font-size:12px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .lsc-guide{font-size:11px;color:var(--text3);margin-top:2px;line-height:1.45}
-.lsc-story{font-size:11.5px;margin-top:5px;line-height:1.55;color:var(--text)}
+.lsc-story{font-size:12px;margin-top:5px;line-height:1.5;color:var(--text);padding:6px 9px;border-left:2px solid var(--gold);background:var(--gold-bg);border-radius:0 6px 6px 0}
 .lsc-stats{display:flex;flex-wrap:wrap;gap:3px 12px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text2);margin-top:5px}
 .lsc-ph{font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px;letter-spacing:.04em;white-space:nowrap}
 .lsc-ph.M{background:var(--bear-bg);color:var(--bear)}.lsc-ph.D{background:var(--blue-bg);color:var(--blue)}
@@ -18018,18 +18018,26 @@ mount();
   }
 
   // ── Narrative for one window ────────────────────────────────────────────
+  // One line, ICT language: what this session did with liquidity, how it closed, where vs the True Day Open
   function story(r,daily){
     if(!r||r.o==null) return '';
     const took=Array.isArray(r.took)?r.took:[];
-    const cl=num(r.close_loc);
-    const closeTxt=cl==null?'':cl>=70?'closed strong near its high':cl<=30?'closed weak near its low':'closed mid-range';
-    let s=took.length?`Took <b>${esc(took.join(', '))}</b>`:'Stayed inside the prior levels (no liquidity taken)';
-    if(closeTxt) s+=`; ${closeTxt} (${cl}% of ${f2(r.range_pts)} pts)`;
-    if(r.vs_true_open&&r.vs_true_open!=='—') s+=`, trading in <b>${esc(String(r.vs_true_open).toLowerCase())}</b> vs the 00:00 True Open`;
-    s+='.';
-    if(PH[r.phase]) s+=` Read as <b>${PH[r.phase]}</b> → next expected ${PH[NEXT[r.phase]]}.`;
-    if(r.smt) s+=` <span style="color:var(--gold)">SMT — ${esc(r.smt)}.</span>`;
-    return s;
+    const clean=t=>String(t).replace(/\s*[↑↓]\s*$/,'').replace(/^prev /,'prior window ');
+    const bsl=took.filter(t=>/↑/.test(t)).map(clean), ssl=took.filter(t=>/↓/.test(t)).map(clean);
+    const cl=num(r.close_loc), strong=cl!=null&&cl>=70, weak=cl!=null&&cl<=30;
+    const B=a=>`<b>${esc(a.join(', '))}</b>`;
+    let s;
+    if(bsl.length&&ssl.length) s=`Two-sided run — took BSL ${B(bsl)} and SSL ${B(ssl)}, ${strong?'closed at the highs: SSL raid was the Judas, bullish delivery':weak?'closed at the lows: BSL raid was the Judas, bearish delivery':'closed mid-range: no clean delivery yet'}`;
+    else if(bsl.length) s=weak?`Raided BSL ${B(bsl)} and rejected — Judas swing / turtle-soup high, bearish displacement`:strong?`Displaced through BSL ${B(bsl)} and held — bullish expansion, draw still higher`:`Ran BSL ${B(bsl)} then stalled — no displacement, watch for rejection`;
+    else if(ssl.length) s=strong?`Swept SSL ${B(ssl)} and reversed — stop hunt below lows, bullish displacement`:weak?`Displaced through SSL ${B(ssl)} and held — bearish expansion, draw still lower`:`Ran SSL ${B(ssl)} then stalled — no displacement, watch for reversal`;
+    else s=weak?`No fresh liquidity taken — ranged and closed at its low: bearish consolidation, SSL resting below`:strong?`No fresh liquidity taken — ranged and closed at its high: bullish consolidation, BSL resting above`:`No fresh liquidity taken — balanced consolidation, liquidity building both sides`;
+    const sm=daily&&daily.summary||{};
+    if(sm.day_h!=null&&num(r.h)===num(sm.day_h)&&!r.window_name?.includes('Session')) s+=`; set the day's high`;
+    if(sm.day_l!=null&&num(r.l)===num(sm.day_l)&&!r.window_name?.includes('Session')) s+=`; set the day's low`;
+    if(r.vs_true_open==='Premium') s+=`, trading in <b>premium</b> above the True Day Open`;
+    else if(r.vs_true_open==='Discount') s+=`, trading in <b>discount</b> below the True Day Open`;
+    if(r.smt) s+=` · <span style="color:var(--gold)">${esc(String(r.smt).split('; ').map(x=>x.replace(/^(High|Low): (.*)$/,(m,side,rest)=>`SMT at the ${side.toLowerCase()} (${rest})`)).join('; '))}</span>`;
+    return s+'.';
   }
   function phChip(p){ return PH[p]?`<span class="lsc-ph ${p}">${p} · ${PH[p]}</span>`:''; }
 
