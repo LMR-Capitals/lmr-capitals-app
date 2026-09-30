@@ -2657,6 +2657,7 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
     <div class="sb-sec">Session</div>
     <button class="sb-item active" data-panel="dash"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg></span> Dashboard</button>
     <button class="sb-item" data-panel="today"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="m9 16 2 2 4-4"/></svg></span> Today</button>
+    <button class="sb-item" data-panel="live"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49M7.76 16.24a6 6 0 0 1 0-8.49M19.07 4.93a10 10 0 0 1 0 14.14M4.93 19.07a10 10 0 0 1 0-14.14"/></svg></span> Live Session</button>
     <button class="sb-item" data-panel="cal"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span> Calendar</button>
     <button class="sb-item" data-panel="perf"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg></span> Performance</button>
     <div class="sb-sec">Analysis</div>
@@ -3102,13 +3103,6 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
     </div>
   </div><!-- /card -->
 
-  <!-- LMR SESSION CHAIN — schedule + session-wise read-out (auto-filled 17:20 NY) -->
-  <div class="card" id="lsc-today">
-    <div class="card-head"><span class="card-tag t-g">LMR Schedule</span><div class="card-title">Session Chain</div>
-      <div id="lsc-head" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto"></div></div>
-    <div class="card-body" id="lsc-body"><div class="lsc-empty">Loading session chain…</div></div>
-  </div>
-
   <!-- Today's Events -->
   <div class="card">
     <div class="card-head"><span class="card-tag t-m">Today's Events</span><div class="card-title">USA Economic Calendar</div></div>
@@ -3158,6 +3152,18 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
 </div>
 
 <!-- CALENDAR -->
+<div class="panel" id="p-live">
+<div class="panel-inner">
+  <!-- LMR SESSION CHAIN — schedule + session-wise read-out (auto-filled 17:20 NY) -->
+  <div class="card" id="lsc-today">
+    <div class="card-head"><span class="card-tag t-g">● Live</span><div class="card-title">Session Chain</div>
+      <div id="lsc-head" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto"></div></div>
+    <div class="card-body" id="lsc-body"><div class="lsc-empty">Loading session chain…</div></div>
+  </div>
+
+</div>
+</div>
+
 <div class="panel" id="p-cal">
 <div class="panel-inner">
 
@@ -6767,10 +6773,11 @@ function filterReports(type, tabEl){
 }
 
 // ============= NAVIGATION =============
-const panels=['dash','today','cal','perf','monthly','weekly','daily','trades','accounts','cockpit','trans','journal','notes','terminology','psychology','observation','achievements','payout','ai-coach','reports'];
+const panels=['dash','today','live','cal','perf','monthly','weekly','daily','trades','accounts','cockpit','trans','journal','notes','terminology','psychology','observation','achievements','payout','ai-coach','reports'];
 const titles={
   dash:['Dashboard','Welcome back · Day '],
   today:['Today','Fill the chain · Day '],
+  live:['Live Session','Session chain · updates at each checkpoint (NY)'],
   cal:['Calendar','US Economic Calendar · All impact levels'],
   perf:['Performance','Live analytics from your trades'],
   monthly:['Monthly Analysis','LMR Monthly framework'],
@@ -7238,7 +7245,8 @@ function navTo(p){
   if(p==='cockpit') setTimeout(renderCopierCockpit,40);
   if(p==='trans'){renderTransTable();renderTransSummary();}
   if(p==='notes') setTimeout(()=>{ if(window.renderNotesSection)renderNotesSection(); },80);
-  if(p==='today'){ loadDaily(); if(window.lmrRenderToday) lmrRenderToday(); }
+  if(p==='today') loadDaily();
+  if(p==='live'&&window.lmrRenderToday) lmrRenderToday();
   if(p==='settings') renderSettings();
   if(p==='terminology') setTimeout(()=>{ if(window.loadKnowledgeCloud)loadKnowledgeCloud(); else if(window.renderKnowledge)renderKnowledge(); },100);
   if(p==='psychology')  setTimeout(()=>{ if(window.loadPsychologyCloud)loadPsychologyCloud(); else if(window.renderPsychologySection)renderPsychologySection(); },100);
@@ -17880,7 +17888,7 @@ mount();
 
 <!-- ═══ LMR SESSION CHAIN — schedule + session-wise intraday / daily / weekly / monthly read-out ═══
      Reads lmr_session_chain + lmr_profiles (filled by the 17:20 NY End-of-Day scheduled task).
-     Renders into #lsc-today (Today panel card) and #dm-lmr-chain (Day modal). -->
+     Renders into #lsc-today (Live Session panel) and #dm-lmr-chain (Day modal). -->
 <style>
 .lsc-tabs{display:flex;gap:4px;flex-wrap:wrap}
 .lsc-tab{font-size:10px;font-weight:700;padding:4px 10px;border-radius:99px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;text-transform:uppercase;letter-spacing:.06em}
@@ -17962,6 +17970,7 @@ mount();
     {cp:'09:00–09:30',name:'Pre-open',s:'09:00',e:'09:30',guide:'Daily review only — the last 30 minutes before the RTH open.'},
     {cp:'10:00–11:30',name:'NY AM after open',s:'10:00',e:'11:30',guide:'Daily review only — AM Silver Bullet 10–11 and the run into lunch.'},
   ];
+  const RUNS=['00:02','01:32','02:02','05:02','09:02','10:02','13:32','14:02','15:12','16:02','17:20'];
   const PH={M:'Manipulation',D:'Distribution',R:'Re-accum / Continuation',A:'Accumulation'};
   const NEXT={M:'D',D:'R',R:'A',A:'M'};
   const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -18102,12 +18111,15 @@ mount();
       let live=null,next=null;
       CP.forEach(w=>{const st=statusFor(ds,w,ti); if(st==='live'&&!live) live=w; if(st==='up'&&!next) next=w;});
       h+=`<div class="lsc-now"><span>NY <b>${ti.hm}</b></span><span>Trade date <b>${fmtD(ds)}</b></span>`;
-      if(ds===ti.td){ if(live) h+=`<span class="lsc-live">● Live: ${esc(live.name)} (${live.s}–${live.e})</span>`; if(next) h+=`<span>Next read <b>${next.cp}</b> · ${esc(next.name)}</span>`; }
+      if(ds===ti.td){ if(live) h+=`<span class="lsc-live">● Live: ${esc(live.name)} (${live.s}–${live.e})</span>`; if(next) h+=`<span>Next read <b>${next.cp}</b> · ${esc(next.name)}</span>`;
+        const asof=data.daily&&data.daily.summary&&data.daily.summary.live_asof;
+        const nowM=toMin(ti.hm); const nr=(nowM>=1080||ti.nowOff<0)?RUNS[0]:(RUNS.find(r=>toMin(r)>nowM)||null);
+        h+=`<span>${asof?`Updated <b>${esc(asof)}</b> NY`:(data.rows.length?'Final (17:20 run)':'Not updated yet')}${nr?` · next update <b>${nr}</b>`:''}</span>`; }
       h+='</div>';
       h+=barHTML(ds,ti);
     }
     if(data.signedOut) h+='<div class="lsc-note">Sign in to load the session chain for this day.</div>';
-    else if(!data.rows.length) h+=`<div class="lsc-note">${ds>=ti.td?'The chain for this day is filled automatically at 17:20 NY by the End-of-Day run. The schedule below shows what each checkpoint reads.':'No session chain recorded for this day.'}</div>`;
+    else if(!data.rows.length) h+=`<div class="lsc-note">${ds>=ti.td?'Each checkpoint fills in live a couple of minutes after it closes (00:02, 01:32, 02:02, 05:02, 09:02, 10:02, 13:32, 14:02, 15:12, 16:02 NY) and the day is finalised at 17:20 NY. The schedule below shows what each checkpoint reads.':'No session chain recorded for this day.'}</div>`;
     const seq=CP.map(w=>byCp[w.cp]).filter(r=>r&&PH[r.phase]);
     if(seq.length) h+=`<div class="lsc-seq">Phase chain ${seq.map(r=>`<span class="lsc-ph ${r.phase}" title="${esc(r.window_name)}">${r.checkpoint} ${r.phase}</span>`).join('<span>→</span>')}</div>`;
     const shown=compact&&data.rows.length?all.filter(x=>byCp[x.w.cp]):all;
@@ -18193,10 +18205,10 @@ mount();
   // Live refresh while the Today panel is open: clock/now-marker every minute, data every 10 min
   let tick=0;
   setInterval(()=>{
-    const p=document.getElementById('p-today'); if(!p||!p.classList.contains('active')) return;
+    const p=document.getElementById('p-live'); if(!p||!p.classList.contains('active')) return;
     tick++; const today=S.ds===tradeInfo().td;
-    if(today&&tick%10===0){ delete cache[S.ds]; }
-    if(S.tab==='intra'||tick%10===0) renderToday();
+    if(today&&tick%2===0){ delete cache[S.ds]; }
+    if(S.tab==='intra'||tick%2===0) renderToday();
   },60000);
   setTimeout(()=>renderToday(),2500);
 })();
