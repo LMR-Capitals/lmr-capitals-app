@@ -7815,7 +7815,8 @@ function updateTodayJournalPreview(ds){
   if(!el) return;
   const entry = (state.notes||[]).find(n=>n.date===ds) || (state.journal||[]).find(n=>n.date===ds);
   if(entry){
-    el.innerHTML=`<span style="color:var(--bull)">✓ Saved</span> · ${entry.text.slice(0,60)}${entry.text.length>60?'…':''}`;
+    const txt = entry.text || entry.content || '';   // consolidated entries may store body in `content` (text can be null)
+    el.innerHTML=`<span style="color:var(--bull)">✓ Saved</span> · ${txt.slice(0,60)}${txt.length>60?'…':''}`;
   } else {
     el.textContent='Not saved yet';
   }
@@ -14284,7 +14285,10 @@ async function lgUnlock(user){
   _sbDirty=true;sbScheduleSync();
   // Run app init
   sbRefreshUI();
-  init().then(async()=>{
+  // Resilience: a throw inside init() (e.g. a render helper hitting bad/renamed data) must
+  // NEVER leave the user staring at a blank screen after sign-in. Swallow init's rejection so
+  // the app is always revealed and the cloud pull + re-render below still runs.
+  init().catch(e=>{ console.error('[LMR] init() error (revealing app anyway):', e); }).then(async()=>{
     // Now that init() has rendered THIS account's own data, it's safe to
     // reveal the app (avoids a flash of a previous account's cached UI).
     document.getElementById('mainApp').style.display='';
