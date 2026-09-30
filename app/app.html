@@ -14536,25 +14536,10 @@ const SESSION_TIMEOUT_MS = 12 * 60 * 60 * 1000; // 12 hours (was 1 hour)
 const SESSION_KEY = 'lmr_session_ts';
 
 function checkSessionTimeout(){
-  const ts = parseInt(localStorage.getItem(SESSION_KEY)||'0');
-  if(!ts) return; // not logged in
-  if(Date.now() - ts > SESSION_TIMEOUT_MS){
-    // Session expired — force re-login
-    localStorage.removeItem(SESSION_KEY);
-    sbStopRealtime();
-    if(_sb) _sb.auth.signOut().catch(()=>{});
-    _sbSyncEnabled=false; _sbUserId=null;
-    document.getElementById('loginGate').classList.remove('hidden');
-    document.getElementById('mainApp').style.display='none';
-    document.getElementById('lg-email').value='';
-    document.getElementById('lg-password').value='';
-    document.getElementById('lg-err').style.display='none';
-    document.getElementById('lg-submit').disabled=false;
-    document.getElementById('lg-submit').textContent='Sign In →';
-    const expMsg=document.getElementById('lg-session-msg');
-    if(expMsg){expMsg.style.display='';expMsg.textContent='⏱ Session expired after 1 hour. Please sign in again.';}
-    flash('Session expired — please sign in again');
-  }
+  // Auto-logout DISABLED (user request): stay signed in until the explicit "Sign Off" button.
+  // Supabase already persists the session in localStorage and auto-refreshes the access token,
+  // so the login survives reloads and closing the tab indefinitely. Only sbSignOut() ends it.
+  return;
 }
 
 // Check every 5 minutes while app is open
