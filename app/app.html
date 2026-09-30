@@ -5759,6 +5759,23 @@ async function delImg(k){
 
 async function allImgKeys(){await openDB();return new Promise(res=>{const t=db.transaction(STORE,'readonly');const r=t.objectStore(STORE).getAllKeys();r.onsuccess=()=>res(r.result||[])})}
 
+// List EVERY object under this user's folder, paging past Supabase Storage's per-request cap.
+// A single .list() returns at most ~1000 rows; with more images than that a lone call silently
+// truncates, so the image index (_imgIdxSetAll) misses keys and getImg() then skips the cloud
+// fetch for them → blank images. Paging with offset returns the complete set.
+async function _sbListAllUserImages(){
+  if(!_sb||!_sbUserId) return [];
+  const PAGE=1000; let offset=0; const all=[];
+  for(;;){
+    const {data,error}=await _sb.storage.from(SB_IMG_BUCKET).list(`${_sbUserId}/`,{limit:PAGE,offset});
+    if(error||!data||!data.length) break;
+    all.push(...data);
+    if(data.length<PAGE) break;
+    offset+=PAGE;
+  }
+  return all;
+}
+
 // ── SYNC ALL LOCAL IMAGES TO CLOUD ─────────────────────────────
 // Run once to back up all existing IndexedDB images to Supabase Storage
 async function syncAllImagesToCloud(){
@@ -5785,9 +5802,9 @@ async function restoreAllImagesFromCloud(){
   if(!_sbUserId){flash('⚠ Sign in first');return;}
   flash('⟳ Restoring images from cloud…');
   try{
-    // Use Supabase API to list files (still needs SDK for listing)
-    const{data:files,error}=await _sb.storage.from(SB_IMG_BUCKET).list(`${_sbUserId}/`,{limit:1000});
-    if(error||!files||!files.length){flash('No images found in cloud');return;}
+    // Use Supabase API to list files (still needs SDK for listing) — paged so >1000 images all come back
+    const files=await _sbListAllUserImages();
+    if(!files.length){flash('No images found in cloud');return;}
 
     let done=0;
     let skipped=0;
@@ -5826,8 +5843,8 @@ async function autoRestoreImagesOnLogin(){
   if(!_sbUserId) return;
   try{
     const localKeys=await allImgKeys();
-    const{data:files}=await _sb.storage.from(SB_IMG_BUCKET).list(`${_sbUserId}/`,{limit:1000});
-    if(!files||!files.length){ _imgIdxSetAll(localKeys); return; } // no cloud images → index = local only (still synced)
+    const files=await _sbListAllUserImages(); // paged: with >1000 images a single list() truncates and the index misses keys
+    if(!files.length){ _imgIdxSetAll(localKeys); return; } // no cloud images → index = local only (still synced)
 
     // Find images in cloud but not local
     const cloudKeys=new Set(files.map(f=>decodeURIComponent(f.name)));
@@ -5881,7 +5898,13 @@ let state=JSON.parse(JSON.stringify(DEFAULT_STATE));
 // Wipe in-memory state back to a clean slate (used when switching to an
 // account that has never used this device/browser before).
 function resetState(){
-  state=JSON.parse(JSON.stringify(DEFAULT_STATE));
+  // Mutate the existing `state` object IN PLACE — never reassign it. The journal/notes,
+  // terminology and psychology modules capture `state` once at parse time; reassigning here
+  // (this runs on every login via _switchUserStore) would detach those references, so those
+  // sections read/write a stale copy — journal entries "vanish" and new ones don't persist.
+  const fresh=JSON.parse(JSON.stringify(DEFAULT_STATE));
+  for(const k in state){ if(Object.prototype.hasOwnProperty.call(state,k)) delete state[k]; }
+  Object.assign(state,fresh);
   ensureState();
 }
 
@@ -5953,13 +5976,17 @@ function ensureState(){
 function load(){
   try{
     const r=localStorage.getItem(STORE_KEY);
-    if(r){const parsed=JSON.parse(r);state={...state,...parsed};}
+    // Merge IN PLACE (Object.assign) — never reassign `state` to a new object. Some modules
+    // (journal/notes/terminology/psychology) capture `state` once at parse time; reassigning
+    // it here detaches those references so they read/write a stale copy (journal entries then
+    // "vanish" and new ones don't persist locally). Mutating preserves the shared reference.
+    if(r){const parsed=JSON.parse(r);Object.assign(state,parsed);}
     ensureState();
     // If primary is empty, restore from backup
     const hasData=state.trades.length||state.accounts.length||Object.keys(state.daily).length;
     if(!hasData){
       const bk=localStorage.getItem(STORE_KEY+'_bk');
-      if(bk){const p=JSON.parse(bk);state={...state,...p};ensureState();console.log('[LMR] Restored from backup');}
+      if(bk){const p=JSON.parse(bk);Object.assign(state,p);ensureState();console.log('[LMR] Restored from backup');}
     }
   }catch(e){ensureState();console.error('[LMR] load error',e);}
 }
@@ -13841,7 +13868,8 @@ async function _sbDoPull() {
   const localOnlyJournal = (state.journal||[]).filter(j=>
     !cloudJournalIds.has(String(j.id)) &&
     !importedSourceTitles.has(String(j.text||j.content||'').trim().toLowerCase()));
-  state.journal = [...cloudJournal, ...localOnlyJournal];
+  state.journal = [...cloudJournal, ...localOnlyJournal]
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
   // Daily: replace entirely — map Supabase snake_case columns to app camelCase
   state.daily = {};
   (da.data||[]).forEach(d => {
@@ -13947,14 +13975,14 @@ async function sbPullNow() {
     } else {
       // Cloud was empty — restore the backup we just took
       const bk=localStorage.getItem(STORE_KEY+'_pre_pull');
-      if(bk){const p=JSON.parse(bk);state={...state,...p};ensureState();save();}
+      if(bk){const p=JSON.parse(bk);Object.assign(state,p);ensureState();save();}
       setSbStatus('Cloud is empty — your local data is unchanged', 'var(--warn)');
       flash('⚠ Cloud had no data — your local data was kept untouched');
     }
   } catch (e) {
     // Restore pre-pull backup if pull was aborted or failed
     const bk=localStorage.getItem(STORE_KEY+'_pre_pull');
-    if(bk){try{const p=JSON.parse(bk);state={...state,...p};ensureState();}catch(ex){}}
+    if(bk){try{const p=JSON.parse(bk);Object.assign(state,p);ensureState();}catch(ex){}}
     setSbStatus('Pull blocked — your local data is safe', 'var(--warn)');
     flash('⚠ '+e.message);
   }
@@ -17829,9 +17857,25 @@ function paintCardImages(root){
       else box.remove();
     }).catch(function(){if(box.isConnected) box.remove();});
   });
+  // The imported journal charts referenced by image_keys live in the PUBLIC `journal-images`
+  // bucket as `note_<hash>_<N>.png` — NOT in `lmr-images` (which is empty). Derive the real
+  // object name from the image_keys path `<uid>/journal-import/<hash>/chart-NN.png`
+  // (chart-01 → note_<hash>_0.png) and download it from journal-images.
+  function _jnImportObjectName(slot){
+    var parts=String(slot||'').split('/');
+    if(parts.length<3) return null;
+    var hash=parts[2];
+    var file=parts[parts.length-1]||'';
+    var m=file.match(/(\d+)/);
+    var idx=m?(parseInt(m[1],10)-1):0;
+    if(!hash||idx<0) return null;
+    return 'note_'+hash+'_'+idx+'.png';
+  }
   function loadPrivateChart(box){
     if(typeof _sb==='undefined' || !_sb){box.remove();return;}
-    _sb.storage.from('lmr-images').download(box.dataset.privateSlot).then(function(result){
+    var objName=_jnImportObjectName(box.dataset.privateSlot);
+    if(!objName){box.remove();return;}
+    _sb.storage.from('journal-images').download(objName).then(function(result){
       if(!box.isConnected) return;
       if(result.error || !result.data){box.remove();return;}
       var url=URL.createObjectURL(result.data);_jnObjectUrls.push(url);
