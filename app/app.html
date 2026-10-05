@@ -8366,12 +8366,22 @@ function _pdResolveName(v){
   return v;
 }
 function _todayChain(){ const ds=todayStr(); return (state.daily&&state.daily[ds])||{}; }
+// Today's ordered price references, from the best available source: the saved `price` or `priceRefs`
+// keys, else the live in-memory order (_priceRefOrder) that holds them before the chain's debounced
+// autosave flushes to state.daily. This is why the field was coming up empty right after editing.
+function _todayPriceRefs(){
+  const ch=_todayChain();
+  if(Array.isArray(ch.price)&&ch.price.length) return ch.price.slice();
+  if(Array.isArray(ch.priceRefs)&&ch.priceRefs.length) return ch.priceRefs.slice();
+  if(typeof _priceRefOrder!=='undefined'&&Array.isArray(_priceRefOrder)&&_priceRefOrder.length) return _priceRefOrder.slice();
+  return [];
+}
 // Daily info → trade: prefill P/D array + ordered price references from today's committed session.
 function tmPrefillFromToday(){
   const ch=_todayChain();
   const pd=document.getElementById('tm-pdarray'); if(pd&&!pd.value){ const nm=_pdResolveName(ch.pdArray); if(nm) pd.value=nm; }
   const refs=document.getElementById('tm-refs');
-  if(refs&&!refs.value){ const pr=Array.isArray(ch.price)?ch.price:(ch.price?[ch.price]:[]); if(pr.length) refs.value=pr.join(', '); }
+  if(refs&&!refs.value){ const pr=_todayPriceRefs(); if(pr.length) refs.value=pr.join(', '); }
 }
 function openTradeModal(editId,presetAccId){
   _tmEditId=editId||null;
@@ -8509,7 +8519,7 @@ function saveTrade(){
   if(!_tmEditId){
     const ch=_todayChain();
     const pdNm=_pdResolveName(ch.pdArray); if(pdNm) t.pdArray=pdNm;
-    const pr=Array.isArray(ch.price)?ch.price:(ch.price?[ch.price]:[]); if(pr.length) t.refs=pr.slice();
+    const pr=_todayPriceRefs(); if(pr.length) t.refs=pr.slice();
   }
   // ≥4 confirmations ⇒ A+ setup + plan Followed (discipline is credited in LMR Psychology).
   if((t.confirmations||[]).length>=4){ t.grade='A+'; t.planFollowed='Followed'; }
