@@ -14943,8 +14943,19 @@ async function lgVerify2FA(){
 
 <script>
 if ('serviceWorker' in navigator) {
+  // Auto-update: when a new service worker takes control (new deploy), reload ONCE so the client
+  // always gets the latest app instead of a stale cached build. Only reload if the page was already
+  // controlled (a first-ever install must not reload). The SW uses skipWaiting + clients.claim, so a
+  // new version takes over open pages and fires controllerchange.
+  const _wasControlled = !!navigator.serviceWorker.controller;
+  let _swReloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!_wasControlled || _swReloaded) return;
+    _swReloaded = true;
+    location.reload();
+  });
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    navigator.serviceWorker.register('/sw.js').then(reg => { try { reg.update(); } catch(e){} }).catch(() => {});
   });
 }
 </script>
