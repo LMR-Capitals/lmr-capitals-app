@@ -4707,7 +4707,7 @@ Midnight Open $______"></textarea>
       </div>
       <div class="cols2" style="margin-top:8px">
         <div><label class="form-label">Session</label><select id="tm-session" onchange="tmSessionChanged()"></select></div>
-        <div><label class="form-label">LMR Macro Time</label><select id="tm-tp"></select></div>
+        <div><label class="form-label">LMR Macro Time</label><select id="tm-tp" onchange="tmMacroChanged()"></select></div>
       </div>
       <hr class="div">
       <label class="form-label">Trading Models</label>
@@ -5050,9 +5050,11 @@ const TRADING_MODELS = ["Turtle Soup","Unicorn Models","Venom Model","AMD","OTE"
 // Confirmation — exactly these five. ≥4 selected ⇒ auto A+, plan Followed, and a disciplined day.
 const CONFIRMATIONS = ["Macro Time","Liquidity Sweep","Displacement","SMT","Clean Draws"];
 // Session dropdown grouping (major → intraday sessions) + reverse map for RTH gating.
+// Clock bands (ET): Asian 18:00–23:59 · London 00:00–05:59 · NY AM 06:00–11:59 · NY PM 12:00–16:59.
+// Midnight Open (00:00) belongs to London.
 const SESSION_GROUPS = [
-  ["Asian",  ["Asian Killzone","Midnight Open"]],
-  ["London", ["London Open","London Kill Zone","London Close"]],
+  ["Asian",  ["Asian Killzone"]],
+  ["London", ["Midnight Open","London Open","London Kill Zone","London Close"]],
   ["NY AM",  ["Pre-NY Session","NY AM","NY Lunch"]],
   ["NY PM",  ["NY PM","Final Hour"]],
 ];
@@ -5064,6 +5066,21 @@ const LMR_MACRO_GROUPS = [
   ["NY AM",  ["NY AM · 08:50–09:10 ET","NY AM1 · 09:50–10:10 ET","NY AM2 · 10:50–11:10 ET","LUNCH · 11:50–12:10 ET"]],
   ["NY PM",  ["PM · 13:50–14:10 ET","CLOSE · 15:15–15:45 ET","FINAL · 15:50–16:00 ET"]],
 ];
+// Selecting a macro time auto-fills the matching intraday Session (time-accurate).
+const MACRO_TO_SESSION = {
+  "ASIAN 1 · 20:50–21:10 ET":"Asian Killzone",
+  "ASIAN 2 · 21:50–22:10 ET":"Asian Killzone",
+  "LONDON 1 · 01:30–02:00 ET":"London Open",
+  "LONDON 2 · 02:50–03:10 ET":"London Kill Zone",
+  "LONDON 3 · 04:30–05:00 ET":"London Kill Zone",
+  "NY AM · 08:50–09:10 ET":"Pre-NY Session",
+  "NY AM1 · 09:50–10:10 ET":"NY AM",
+  "NY AM2 · 10:50–11:10 ET":"NY AM",
+  "LUNCH · 11:50–12:10 ET":"NY Lunch",
+  "PM · 13:50–14:10 ET":"NY PM",
+  "CLOSE · 15:15–15:45 ET":"Final Hour",
+  "FINAL · 15:50–16:00 ET":"Final Hour",
+};
 const EMOTIONS = ["Emotional Decision","Revange Trading","FOMO","Neutral","Disciplined","Flow State"];
 const MARKET_PHASES = ["Accumulation","Retracement","Manipulation","Distribution","Reversal","Continuation"];
 const MMM_OPTS = ["MMBM","MMSM"];
@@ -8313,6 +8330,13 @@ function tmFillMacro(val){
   sel.innerHTML='<option value="">Select…</option>'+LMR_MACRO_GROUPS.map(g=>
     '<optgroup label="'+g[0]+'">'+g[1].map(s=>`<option${val===s?' selected':''}>${s}</option>`).join('')+'</optgroup>').join('');
   if(val) sel.value=val;
+}
+// Picking a macro time auto-selects its matching Session (one-way; only on real user selection).
+function tmMacroChanged(){
+  const tp=document.getElementById('tm-tp'), sess=document.getElementById('tm-session');
+  if(!tp||!sess) return;
+  const s=MACRO_TO_SESSION[tp.value];
+  if(s){ sess.value=s; tmSessionChanged(); }
 }
 // RTH Profile shows only for NY sessions (NY AM / NY PM).
 function tmSessionChanged(){
