@@ -4686,9 +4686,10 @@ Midnight Open $______"></textarea>
     <div class="modal-head"><div class="modal-title">+ Log Trade</div><span style="font-size:9px;color:var(--bull);margin-left:8px;font-weight:700">AUTO-SAVE</span><span id="tm-share-btns" style="margin-left:8px"></span><button class="close" style="margin-left:auto" onclick="saveTradeAndClose()">×</button></div>
     <div class="modal-body">
       <div class="cols2">
-        <div><label class="form-label">Date</label><input type="date" id="tm-date"></div>
+        <div><label class="form-label">Date</label><input type="date" id="tm-date" oninput="tmSyncDay()"></div>
         <div><label class="form-label">Market</label><select id="tm-market"><option>NQ</option><option>ES</option><option>YM</option><option>MNQ</option><option>MES</option></select></div>
       </div>
+      <div class="form-row" style="margin-top:8px"><label class="form-label">HTF Delivery <span style="color:var(--text3);font-weight:400">· where it delivered</span></label><input id="tm-htf" placeholder="e.g. delivered to Daily FVG / PWH $20,480"></div>
       <!-- Start / End time -->
       <div class="cols2" style="margin-top:8px">
         <div>
@@ -4702,20 +4703,22 @@ Midnight Open $______"></textarea>
       </div>
       <div class="cols2" style="margin-top:8px">
         <div><label class="form-label">Position</label><select id="tm-pos"><option>Long</option><option>Short</option></select></div>
-        <div><label class="form-label">Day</label><select id="tm-day"><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option></select></div>
+        <div><label class="form-label">Day <span style="color:var(--text3);font-weight:400">· from date</span></label><input id="tm-day" readonly style="background:var(--bg3);color:var(--text2);cursor:default"></div>
       </div>
       <div class="cols2" style="margin-top:8px">
-        <div><label class="form-label">Session</label><select id="tm-session"><option>Asian</option><option>London</option><option>NY AM</option><option>NY PM</option></select></div>
+        <div><label class="form-label">Session</label><select id="tm-session" onchange="tmSessionChanged()"></select></div>
         <div><label class="form-label">LMR Macro Time</label><select id="tm-tp"></select></div>
       </div>
       <hr class="div">
-      <label class="form-label">Trade Entry Drill (Model)</label>
+      <label class="form-label">Trading Models</label>
+      <div class="chips" id="tradingModelChips" style="margin-bottom:8px"></div>
+      <label class="form-label">Trade Entry Drill</label>
       <div class="chips" id="modelChips" style="margin-bottom:8px"></div>
-      <label class="form-label">Confirmation</label>
+      <label class="form-label">Confirmation <span style="color:var(--text3);font-weight:400">· 4+ ⇒ A+ · Followed · disciplined</span></label>
       <div class="chips" id="confChips" style="margin-bottom:8px"></div>
       <label class="form-label">Emotions</label>
       <div class="chips" id="emoChips" style="margin-bottom:8px"></div>
-      <label class="form-label">Market Phase</label>
+      <label class="form-label">HTF Market Phase</label>
       <div class="chips" id="phaseChips" style="margin-bottom:8px"></div>
       <label class="form-label">Market Maker Model</label>
       <div class="chips" id="mmmChips" style="margin-bottom:8px"></div>
@@ -4724,9 +4727,8 @@ Midnight Open $______"></textarea>
       <label class="form-label">T Frame</label>
       <div class="chips" id="tfChips" style="margin-bottom:8px"></div>
       <hr class="div">
-      <div class="cols2">
-        <div><label class="form-label">RTH Profile</label><select id="tm-rth"></select></div>
-        <div><label class="form-label">HTF Delivery</label><select id="tm-htf"><option>Delivered</option><option>Undelivered</option></select></div>
+      <div id="tm-rth-wrap" class="form-row">
+        <label class="form-label">RTH Profile <span style="color:var(--text3);font-weight:400">· NY AM / PM only</span></label><select id="tm-rth"></select>
       </div>
       <!-- Trade quality (design v2): PD array committed, grade, plan adherence, refs -->
       <div class="cols3" style="margin-top:8px">
@@ -5040,8 +5042,28 @@ Midnight Open $______"></textarea>
 <script>
 // ============= DATA CONSTANTS =============
 const TIME_PERIODS = ["9:31 - 10:00 AM","9:45-10:10 AM","8:50 to 9:10 AM","6:50-7:10 AM","AM Sliver Bullet 10:00 to 11:00 AM","10:50 to 11:10 AM","11:50 to 12:10 AM","12:50 to 13:00 PM","13:50 to 14:10 PM","14:50 to 15:10 AM","15:15 to 15:45 PM","PM Sliver Bullet 14:00 to 15:00","15:50 to 16:10Pm","PM FH 16:10 to 16:45"];
-const MODELS = ["Breaker Block","OB","OTE","CSID","IOFED","Sliver Bullet","Turtle Soup","IFVG","ICT 2022 Modle","Stupidity"];
-const CONFIRMATIONS = ["Macro Time","Liquidity Sweep","Displacement Candle","CSID","LTF OTE","OB","MSS","IDM","Breaker Block","SMT","Clean Draws","Prior To the Confirmation","HTF Delivery"];
+// Trade Entry Drill — the entry sequence (in order). Kept in the existing `models` column.
+const ENTRY_DRILL = ["Wick Rejection","Inducement","FVG","OB","CSID","IFVG","IOFED","Reclaimed FVG","Breaker Block","Suspension Block","Mitigation Block"];
+const MODELS = ENTRY_DRILL; // #modelChips renders the entry drill
+// Trading Models — higher-level setup type (new field → `trade_models` column).
+const TRADING_MODELS = ["Turtle Soup","Unicorn Models","Venom Model","AMD","OTE"];
+// Confirmation — exactly these five. ≥4 selected ⇒ auto A+, plan Followed, and a disciplined day.
+const CONFIRMATIONS = ["Macro Time","Liquidity Sweep","Displacement","SMT","Clean Draws"];
+// Session dropdown grouping (major → intraday sessions) + reverse map for RTH gating.
+const SESSION_GROUPS = [
+  ["Asian",  ["Asian Killzone","Midnight Open"]],
+  ["London", ["London Open","London Kill Zone","London Close"]],
+  ["NY AM",  ["Pre-NY Session","NY AM","NY Lunch"]],
+  ["NY PM",  ["NY PM","Final Hour"]],
+];
+const SESSION_MAJOR = {}; SESSION_GROUPS.forEach(g=>g[1].forEach(s=>{ SESSION_MAJOR[s]=g[0]; }));
+// LMR macro windows grouped by major session (Asian + London added alongside NY).
+const LMR_MACRO_GROUPS = [
+  ["Asian",  ["ASIAN 1 · 20:50–21:10 ET","ASIAN 2 · 21:50–22:10 ET"]],
+  ["London", ["LONDON 1 · 01:30–02:00 ET","LONDON 2 · 02:50–03:10 ET","LONDON 3 · 04:30–05:00 ET"]],
+  ["NY AM",  ["NY AM · 08:50–09:10 ET","NY AM1 · 09:50–10:10 ET","NY AM2 · 10:50–11:10 ET","LUNCH · 11:50–12:10 ET"]],
+  ["NY PM",  ["PM · 13:50–14:10 ET","CLOSE · 15:15–15:45 ET","FINAL · 15:50–16:00 ET"]],
+];
 const EMOTIONS = ["Emotional Decision","Revange Trading","FOMO","Neutral","Disciplined","Flow State"];
 const MARKET_PHASES = ["Accumulation","Retracement","Manipulation","Distribution","Reversal","Continuation"];
 const MMM_OPTS = ["MMBM","MMSM"];
@@ -6142,7 +6164,7 @@ function _mapTrade(t,uid){
     account_id:t.accountId?String(t.accountId):null,
     date:t.date,day_count:t.dayCount||null,market:t.market||null,position:t.position||null,
     day:t.day||null,month:t.month||null,session:t.session||null,time_period:t.timePeriod||null,
-    models:Array.isArray(t.models)?t.models:[],confirmations:Array.isArray(t.confirmations)?t.confirmations:[],
+    models:Array.isArray(t.models)?t.models:[],trade_models:Array.isArray(t.tradeModels)?t.tradeModels:[],confirmations:Array.isArray(t.confirmations)?t.confirmations:[],
     emotions:Array.isArray(t.emotions)?t.emotions:[],phases:Array.isArray(t.phases)?t.phases:[],
     mmm:Array.isArray(t.mmm)?t.mmm:[],movement:Array.isArray(t.movement)?t.movement:[],
     tframes:Array.isArray(t.tframes)?t.tframes:[],
@@ -7430,6 +7452,8 @@ document.addEventListener('click',e=>{
     else { _priceRefOrder=_priceRefOrder.filter(x=>x!==val); }
     _renderPriceOrder();
   }
+  // Confirmations: ≥4 selected ⇒ auto A+ / Followed (reflected live in the modal).
+  if(grp==='confChips' && typeof tmApplyConfAuto==='function') tmApplyConfAuto();
   // Auto-save if chip is in Today panel
   if(document.getElementById('p-today').classList.contains('active'))autoSaveDaily();
 });
@@ -8270,6 +8294,61 @@ async function _migrateTradeImgKeys(oldPrefix,newId){
     }catch(e){}
   }
 }
+// ── Trade modal helpers (LMR overhaul) ──────────────────────────────────
+const _WEEKDAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+function tmSyncDay(){
+  const d=document.getElementById('tm-date'), dayEl=document.getElementById('tm-day');
+  if(!d||!dayEl) return;
+  if(d.value){ const dt=new Date(d.value+'T12:00'); dayEl.value=isNaN(dt)?'':_WEEKDAYS[dt.getDay()]; } else dayEl.value='';
+}
+function tmFillSession(val){
+  const sel=document.getElementById('tm-session'); if(!sel) return;
+  sel.innerHTML='<option value="">Select…</option>'+SESSION_GROUPS.map(g=>
+    '<optgroup label="'+g[0]+'">'+g[1].map(s=>`<option${val===s?' selected':''}>${s}</option>`).join('')+'</optgroup>').join('');
+  if(val) sel.value=val;
+  tmSessionChanged();
+}
+function tmFillMacro(val){
+  const sel=document.getElementById('tm-tp'); if(!sel) return;
+  sel.innerHTML='<option value="">Select…</option>'+LMR_MACRO_GROUPS.map(g=>
+    '<optgroup label="'+g[0]+'">'+g[1].map(s=>`<option${val===s?' selected':''}>${s}</option>`).join('')+'</optgroup>').join('');
+  if(val) sel.value=val;
+}
+// RTH Profile shows only for NY sessions (NY AM / NY PM).
+function tmSessionChanged(){
+  const sel=document.getElementById('tm-session'), wrap=document.getElementById('tm-rth-wrap');
+  if(!sel||!wrap) return;
+  const major=SESSION_MAJOR[sel.value]||'';
+  const isNY=(major==='NY AM'||major==='NY PM');
+  wrap.style.display=isNY?'':'none';
+  if(!isNY){ const r=document.getElementById('tm-rth'); if(r) r.value=''; }
+}
+// ≥4 confirmations ⇒ auto Grade A+ and Plan Followed (only while still auto; user can override).
+function tmApplyConfAuto(){
+  const n=document.querySelectorAll('#confChips .chip.on').length;
+  const g=document.getElementById('tm-grade'), p=document.getElementById('tm-plan');
+  if(n>=4){
+    if(g&&(!g.value||g.dataset.auto==='1')){ g.value='A+'; g.dataset.auto='1'; }
+    if(p&&(!p.value||p.dataset.auto==='1')){ p.value='Followed'; p.dataset.auto='1'; }
+  } else {
+    if(g&&g.dataset.auto==='1'){ g.value=''; g.dataset.auto=''; }
+    if(p&&p.dataset.auto==='1'){ p.value=''; p.dataset.auto=''; }
+  }
+}
+// Resolve a P/D array id/name/short → its canonical name (chain stores an id; the trade select is name-keyed).
+function _pdResolveName(v){
+  if(!v) return '';
+  if(typeof LMR_PD_ARRAYS!=='undefined'){ const a=LMR_PD_ARRAYS.find(x=>x.id===v||x.name===v||x.short===v); if(a) return a.name; }
+  return v;
+}
+function _todayChain(){ const ds=todayStr(); return (state.daily&&state.daily[ds])||{}; }
+// Daily info → trade: prefill P/D array + ordered price references from today's committed session.
+function tmPrefillFromToday(){
+  const ch=_todayChain();
+  const pd=document.getElementById('tm-pdarray'); if(pd&&!pd.value){ const nm=_pdResolveName(ch.pdArray); if(nm) pd.value=nm; }
+  const refs=document.getElementById('tm-refs');
+  if(refs&&!refs.value){ const pr=Array.isArray(ch.price)?ch.price:(ch.price?[ch.price]:[]); if(pr.length) refs.value=pr.join(', '); }
+}
 function openTradeModal(editId,presetAccId){
   _tmEditId=editId||null;
   // Manual add from an account view: remember the account (reopen after save) + don't mirror it.
@@ -8281,12 +8360,14 @@ function openTradeModal(editId,presetAccId){
   // Normalise to same type used when images were saved
   const ex=editId?state.trades.find(t=>String(t.id)===String(editId)):null;
   document.getElementById('tm-date').value=ex?ex.date:todayStr();
+  tmSyncDay(); // Day is derived from the date (not manual)
   // Open/close time: MANUAL only — never auto-fill with current time
   // For new trades: empty (user fills manually)
   // For edits: show saved value only (not current time)
   document.getElementById('tm-open-time').value=ex&&ex.openTime?ex.openTime:'';
   document.getElementById('tm-close-time').value=ex&&ex.closeTime?ex.closeTime:'';
   // build chips
+  buildChips('tradingModelChips',TRADING_MODELS,true,'tradingModelChips');
   buildChips('modelChips',MODELS,true,'modelChips');
   buildChips('confChips',CONFIRMATIONS,true,'confChips');
   buildChips('emoChips',EMOTIONS,true,'emoChips');
@@ -8294,8 +8375,9 @@ function openTradeModal(editId,presetAccId){
   buildChips('mmmChips',MMM_OPTS,true,'mmmChips');
   buildChips('movChips',MOVEMENT,true,'movChips');
   buildChips('tfChips',T_FRAMES,true,'tfChips');
-  // build selects
-  const tp=document.getElementById('tm-tp');tp.innerHTML='<option value="">Select...</option>'+TIME_PERIODS.map(t=>`<option>${t}</option>`).join('');
+  // build selects (grouped: session + LMR macro time)
+  tmFillSession(ex?ex.session:'');
+  tmFillMacro(ex?ex.timePeriod:'');
   const rth=document.getElementById('tm-rth');rth.innerHTML='<option value="">Select...</option>'+RTH_PROFILES.map(t=>`<option>${t}</option>`).join('');
   // Account picker = the wire into the Copier Cockpit. Show ACTIVE accounts only (Blown/Passed hidden),
   // newest→oldest, with the Leader (♛) and connected followers (↳) marked. When editing an old trade
@@ -8323,9 +8405,8 @@ function openTradeModal(editId,presetAccId){
     // Pre-fill from existing
     document.getElementById('tm-market').value=ex.market||'NQ';
     document.getElementById('tm-pos').value=ex.position||'Long';
-    document.getElementById('tm-day').value=ex.day||'';
-    document.getElementById('tm-session').value=ex.session||'';
-    if(ex.timePeriod)document.getElementById('tm-tp').value=ex.timePeriod;
+    tmSyncDay(); // derived from the date
+    setChipsValues('tradingModelChips',ex.tradeModels||ex.trade_models||[]);
     setChipsValues('modelChips',ex.models||[]);
     setChipsValues('confChips',ex.confirmations||[]);
     setChipsValues('emoChips',ex.emotions||[]);
@@ -8333,8 +8414,9 @@ function openTradeModal(editId,presetAccId){
     setChipsValues('mmmChips',ex.mmm||[]);
     setChipsValues('movChips',ex.movement||[]);
     setChipsValues('tfChips',ex.tframes||[]);
+    tmSessionChanged();
     if(ex.rth)document.getElementById('tm-rth').value=ex.rth;
-    document.getElementById('tm-htf').value=ex.htf||'Delivered';
+    document.getElementById('tm-htf').value=ex.htf||'';
     document.getElementById('tm-pnl').value=ex.pnl||'';
     document.getElementById('tm-risk').value=ex.risk||'';
     document.getElementById('tm-lots').value=ex.lots||'';
@@ -8349,7 +8431,9 @@ function openTradeModal(editId,presetAccId){
     // New trade: if adding from a specific account → that account; else the Copier LEADER; else active account.
     const _def=(presetAccId?String(presetAccId):'')||_lid||(state.currentAcc?String(state.currentAcc):'');
     if(_def) document.getElementById('tm-acc').value=_def;
-    ['tm-pnl','tm-risk','tm-lots','tm-draws','tm-fb','tm-pdarray','tm-grade','tm-plan','tm-refs'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+    ['tm-pnl','tm-risk','tm-lots','tm-draws','tm-fb','tm-htf','tm-pdarray','tm-grade','tm-plan','tm-refs'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+    { const g=document.getElementById('tm-grade'); if(g)g.dataset.auto=''; const p=document.getElementById('tm-plan'); if(p)p.dataset.auto=''; }
+    tmPrefillFromToday(); // daily info → trade: today's committed P/D array + ordered price references
   }
   // Set image keys — use existing trade ID for edits, pre-generate for new
   const imgId = editId || ('new-'+Date.now());
@@ -8369,10 +8453,11 @@ function saveTrade(){
     openTime:document.getElementById('tm-open-time').value,
     closeTime:document.getElementById('tm-close-time').value,
     position:document.getElementById('tm-pos').value,
-    day:document.getElementById('tm-day').value,
+    day:_WEEKDAYS[new Date(date+'T12:00').getDay()]||'',   // derived from the calendar date, not manual
     month:['Dec','Jan','Feb','March','April','May','June','July','Aug','Sep','Oct','Nov'][new Date(date+'T12:00').getMonth()],
     session:document.getElementById('tm-session').value,
     timePeriod:document.getElementById('tm-tp').value,
+    tradeModels:getChipsValues('tradingModelChips',true),
     models:getChipsValues('modelChips',true),
     confirmations:getChipsValues('confChips',true),
     emotions:getChipsValues('emoChips',true),
@@ -8396,6 +8481,14 @@ function saveTrade(){
   };
   t.rr=t.risk>0?(t.pnl/t.risk).toFixed(2):0;
   t.win=t.pnl>0;
+  // Daily info → trade (new trades only): carry today's committed P/D array + ordered price refs.
+  if(!_tmEditId){
+    const ch=_todayChain();
+    const pdNm=_pdResolveName(ch.pdArray); if(pdNm) t.pdArray=pdNm;
+    const pr=Array.isArray(ch.price)?ch.price:(ch.price?[ch.price]:[]); if(pr.length) t.refs=pr.slice();
+  }
+  // ≥4 confirmations ⇒ A+ setup + plan Followed (discipline is credited in LMR Psychology).
+  if((t.confirmations||[]).length>=4){ t.grade='A+'; t.planFollowed='Followed'; }
   const _oldImgId=_tmCurrentImgId; // capture before reset, may be "new-<ts>"
   const _isNewTrade=!_tmEditId;
   if(_tmEditId){state.trades=state.trades.map(x=>x.id===_tmEditId?t:x);flash('✓ Trade updated');}
@@ -8575,11 +8668,11 @@ function saveTradeAndClose(){
   const pnl=document.getElementById('tm-pnl').value;
   const date=document.getElementById('tm-date').value;
   if(!date&&!pnl&&!_tmEditId){closeModal('tradeModal');return;}
-  // Design hard block: a new trade must be validated against today's committed P/D array.
-  // PD.check shows the red block modal; also flash a clear toast so it's obvious WHY the trade
-  // did not log (the modal alone was easy to miss — it read as "nothing happened").
-  if(!_tmEditId && window.PD && typeof PD.check==='function' && !PD.check(getChipsValues('modelChips',true))){
-    try{ flash('⚠ Commit today’s P/D array in the Today chain before logging a trade'); }catch(e){}
+  // Save rule (design): a new trade just needs TODAY's P/D array committed — it then inherits it.
+  // No model-match block (that was stopping valid saves). If nothing is committed, prompt to pick one.
+  if(!_tmEditId && !((_todayChain()||{}).pdArray)){
+    if(window.PD&&typeof PD.showBlock==='function') PD.showBlock('No P/D array committed','Commit today’s P/D array in the Today chain — the trade inherits it and then logs.');
+    try{ flash('⚠ Commit today’s P/D array in the Today chain first'); }catch(e){}
     return;
   }
   const editId=_tmEditId;
@@ -13791,6 +13884,7 @@ async function _sbDoPull() {
     pdArray:  t.pd_array||t.pdArray||'',           // design v2 trade-quality fields
     grade:    t.grade||'',
     planFollowed: t.plan_followed||t.planFollowed||'',
+    tradeModels: Array.isArray(t.trade_models)?t.trade_models:[],   // new Trading Models field
     refs:     Array.isArray(t.refs)?t.refs:(t.refs?[t.refs]:[])
   }));
   // ── SAFETY: never overwrite more local trades with fewer cloud trades ──
@@ -17238,6 +17332,14 @@ function minutes(hhmm){
 // that justifies the mark. 'na' means the day gave no chance to break
 // it — those are excluded from the score rather than counted as wins.
 var RULES = [
+  { id:'conf-clean', title:'Clean setup — 4+ confirmations',
+    why:'Macro time, liquidity sweep, displacement, SMT and clean draws — four or more is an A+, disciplined entry.',
+    test:function(ts){
+      var withConf=ts.filter(function(t){ return Array.isArray(t.confirmations)&&t.confirmations.length; });
+      if(!withConf.length) return ['na','No confirmation data'];
+      var clean=withConf.filter(function(t){ return t.confirmations.length>=4; });
+      return clean.length===withConf.length ? ['met', clean.length+' clean'] : ['miss',(withConf.length-clean.length)+' under 4'];
+    } },
   { id:'one-model', title:'One setup, one model, per session',
     why:'Switching models mid-session means the thesis changed after the entry, not before it.',
     test:function(ts){
