@@ -12124,6 +12124,11 @@ async function shareContent(platform,title,text,color,opts){
   }else if(platform==='x'){
     const full=title?`${title}\n\n${body}`:body;
     const tweet=full.length>270?full.slice(0,267)+'…':full;
+    // Open the compose window FIRST, while the click's user activation is still
+    // valid. navigator.clipboard.write() below consumes the activation, and a
+    // window.open() after that is treated as non-user-initiated — browsers then
+    // block it (or open a blank tab), which is why the X share looked broken.
+    window.open('https://x.com/intent/tweet?text='+encodeURIComponent(tweet),'_blank');
     // X's compose intent can't attach images via URL — copy the first image to the
     // clipboard instead so the user can paste it (Ctrl/Cmd+V) into the tweet box.
     if(opts.images&&opts.images.length&&navigator.clipboard&&window.ClipboardItem){
@@ -12132,7 +12137,6 @@ async function shareContent(platform,title,text,color,opts){
         flash('✓ Image copied — paste it (Ctrl/Cmd+V) into the tweet');
       }catch(e){}
     }
-    window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(tweet),'_blank');
   }
 }
 
