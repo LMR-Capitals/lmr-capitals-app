@@ -7680,6 +7680,12 @@ function saveDaily(){
     dailyRol:document.getElementById('ch-dailyrol')?document.getElementById('ch-dailyrol').value:'',
     dailyDol:document.getElementById('ch-dailydol')?document.getElementById('ch-dailydol').value:'',
     rth:document.getElementById('ch-rth').value,
+    monthlyBias:(() => {
+      // Auto-capture the month's directional context so the Daily page carries
+      // monthly + weekly automatically (no manual re-entry on the day modal).
+      const m = state.monthly[state.currentMonth] || {};
+      return m['m-qshift'] || m['m-profile'] || '';
+    })(),
     weekly_key:weeklyKey,
     dayCount,
     savedAt:new Date().toISOString()
@@ -13981,11 +13987,17 @@ async function _sbDoPull() {
     !importedSourceTitles.has(String(j.text||j.content||'').trim().toLowerCase()));
   state.journal = [...cloudJournal, ...localOnlyJournal]
     .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
-  // Daily: replace entirely — map Supabase snake_case columns to app camelCase
-  state.daily = {};
+  // Daily: MERGE cloud into local — never wipe locally-entered chain data.
+  // A full replace here erased today's just-typed bias/plan/sessions before they
+  // were safely synced (login, a realtime postgres change, or the post-deploy
+  // auto-reload all run this pull). Keep local-only dates, and for a date present
+  // in both keep whichever side has the newer savedAt so a stale-cloud pull can't
+  // clobber fresh local edits while a genuinely newer cross-device edit still wins.
+  const _ms = v => { const t = Date.parse(v||0); return isNaN(t) ? 0 : t; };
+  const cloudDaily = {};
   (da.data||[]).forEach(d => {
     if(!d.date) return;
-    state.daily[d.date] = {
+    cloudDaily[d.date] = {
       ...d,                                    // keep all raw fields
       dayCount:   d.day_count   || d.dayCount  || null,  // snake→camel
       pdArray:    d.pd_array    || d.pdArray   || '',    // snake→camel — committed P/D array (design PD card reads chain().pdArray); without this a cloud/realtime pull wipes the day's committed array
@@ -14001,6 +14013,12 @@ async function _sbDoPull() {
       savedAt:    d.saved_at    || d.savedAt   || ''
     };
   });
+  const mergedDaily = { ...state.daily };    // keep local-only dates
+  Object.keys(cloudDaily).forEach(date => {
+    const loc = state.daily[date], cl = cloudDaily[date];
+    mergedDaily[date] = (loc && _ms(loc.savedAt||loc.saved_at) > _ms(cl.savedAt||cl.saved_at)) ? loc : cl;
+  });
+  state.daily = mergedDaily;
 
   // Monthly: MERGE cloud into local — never wipe months that exist locally
   // Cloud wins for months it has, local wins for months cloud doesn't have
