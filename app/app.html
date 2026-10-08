@@ -6387,17 +6387,30 @@ const currentMonthStr=()=>todayStr().slice(0,7);
 // ── AUTO-SAVE DEBOUNCE ───────────────────────────────────────────
 const _autoSaveTimers={};
 function autoSave(key,fn,ms=800){
-  clearTimeout(_autoSaveTimers[key]);
-  _autoSaveTimers[key]=setTimeout(()=>{
+  clearTimeout((_autoSaveTimers[key]||{}).t);
+  const run=()=>{
+    _autoSaveTimers[key]=null;
     fn();
     const el=document.getElementById('sb-save-status');
     if(el){el.textContent='Saved ✓';el.style.color='var(--bull)';setTimeout(()=>{el.textContent='Auto-saved';el.style.color='';},1800);}
-  },ms);
+  };
+  _autoSaveTimers[key]={t:setTimeout(run,ms),run};
 }
 // Alias for explicit debounce with configurable delay
 function debounceSave(key,fn,delay=600){
-  clearTimeout(_autoSaveTimers[key]);
-  _autoSaveTimers[key]=setTimeout(()=>fn(),delay);
+  clearTimeout((_autoSaveTimers[key]||{}).t);
+  const run=()=>{_autoSaveTimers[key]=null;fn();};
+  _autoSaveTimers[key]={t:setTimeout(run,delay),run};
+}
+// Run every pending debounced save immediately. Called on tab-hide / unload / pre-reload so the
+// just-typed form (which lives in the DOM until its 800ms debounce fires) is copied into `state`
+// BEFORE it is persisted — without this, a reload (e.g. the post-deploy auto-reload) tears down
+// the DOM and the in-progress Today-session chain is never recorded.
+function flushAutoSaves(){
+  Object.keys(_autoSaveTimers).forEach(k=>{
+    const e=_autoSaveTimers[k];
+    if(e&&e.t){ clearTimeout(e.t); _autoSaveTimers[k]=null; try{ e.run(); }catch(_){} }
+  });
 }
 // Chain completion meter — the 9 pre-9:30 fields: Bias, HTF POI, Week Draws, London, NY, Asian Range,
 // Price Refs, Session, RTH. Reads live UI state; fills gold, flips green when all 9 are done.
@@ -14712,6 +14725,8 @@ window.addEventListener('DOMContentLoaded', () => {
 // Sync when tab goes to background or page closes
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden'){
+    // Flush any pending debounced autosave so the in-progress form is in `state` first
+    try{flushAutoSaves();}catch(e){}
     // Tab hidden/closed — force immediate sync
     if(_sbDirty) sbDoSafeSync();
     // Also save current state to localStorage as final backup
@@ -14720,12 +14735,14 @@ document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible') checkSessionTimeout();
 });
 window.addEventListener('pagehide',()=>{
-  // Final save before page unloads
+  // Flush pending autosave, then final save before page unloads
+  try{flushAutoSaves();}catch(e){}
   try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){}
   if(_sbDirty) sbDoSafeSync();
 });
 window.addEventListener('beforeunload',()=>{
-  // Triple-safe: write to localStorage on every possible exit
+  // Triple-safe: flush the form, then write to localStorage on every possible exit
+  try{flushAutoSaves();}catch(e){}
   try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){}
 });
 
@@ -14971,10 +14988,43 @@ if ('serviceWorker' in navigator) {
   // new version takes over open pages and fires controllerchange.
   const _wasControlled = !!navigator.serviceWorker.controller;
   let _swReloaded = false;
+  let _pendingSwReload = false;
+  // Is the user actively filling the Today-session chain? (a chain field focused, or a daily
+  // autosave still pending). If so, reloading now would discard in-progress work.
+  const _editingChain = () => {
+    const a = document.activeElement;
+    if (a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName) && a.closest && a.closest('#p-today')) return true;
+    return !!(_autoSaveTimers && _autoSaveTimers['daily'] && _autoSaveTimers['daily'].t);
+  };
+  const _doSwReload = () => {
+    if (_swReloaded) return;
+    _swReloaded = true;
+    // Capture the in-progress form + persist before the reload tears down the DOM.
+    try { flushAutoSaves(); } catch (e) {}
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+    location.reload();
+  };
+  const _maybeSwReload = () => {
+    if (_swReloaded) return;
+    if (_editingChain()) {           // defer: don't yank the page mid-edit
+      if (_pendingSwReload) return;
+      _pendingSwReload = true;
+      // Reload at the next safe moment: when the tab is backgrounded, or shortly after the
+      // user stops editing the chain (focus leaves + no pending autosave).
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') _doSwReload();
+      });
+      const poll = setInterval(() => {
+        if (_swReloaded) { clearInterval(poll); return; }
+        if (!_editingChain()) { clearInterval(poll); _doSwReload(); }
+      }, 1500);
+    } else {
+      _doSwReload();
+    }
+  };
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (!_wasControlled || _swReloaded) return;
-    _swReloaded = true;
-    location.reload();
+    _maybeSwReload();
   });
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').then(reg => { try { reg.update(); } catch(e){} }).catch(() => {});
