@@ -1,0 +1,464 @@
+[
+  {
+    "chapter": 1,
+    "questions": [
+      {
+        "prompt": "Which LMR term matches “What moves interest rates?”?",
+        "options": [
+          {
+            "id": "mm-bond",
+            "label": "Bond Price vs Yield"
+          },
+          {
+            "id": "mm-yield",
+            "label": "Yield Futures"
+          },
+          {
+            "id": "mm-treas",
+            "label": "Treasury Futures"
+          },
+          {
+            "id": "mm-rates",
+            "label": "Engine of Change"
+          }
+        ]
+      },
+      {
+        "prompt": "Which LMR term matches “The core inverse relationship”?",
+        "options": [
+          {
+            "id": "mm-yield",
+            "label": "Yield Futures"
+          },
+          {
+            "id": "mm-treas",
+            "label": "Treasury Futures"
+          },
+          {
+            "id": "mm-rates",
+            "label": "Engine of Change"
+          },
+          {
+            "id": "mm-bond",
+            "label": "Bond Price vs Yield"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "chapter": 2,
+    "questions": [
+      {
+        "prompt": "Which LMR term matches “Accumulation · Manipulation · Distribution”?",
+        "options": [
+          {
+            "id": "mmsm",
+            "label": "MMSM"
+          },
+          {
+            "id": "po3",
+            "label": "Power of 3"
+          },
+          {
+            "id": "amd",
+            "label": "AMD"
+          },
+          {
+            "id": "mmbm",
+            "label": "MMBM"
+          }
+        ]
+      },
+      {
+        "prompt": "Which LMR term matches “Market Maker Buy Model”?",
+        "options": [
+          {
+            "id": "po3",
+            "label": "Power of 3"
+          },
+          {
+            "id": "amd",
+            "label": "AMD"
+          },
+          {
+            "id": "mmbm",
+            "label": "MMBM"
+          },
+          {
+            "id": "mmsm",
+            "label": "MMSM"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "chapter": 3,
+    "questions": [
+      {
+        "prompt": "Which LMR term matches “20:00–22:00 ET”?",
+        "options": [
+          {
+            "id": "t-lkz",
+            "label": "London Kill-zone"
+          },
+          {
+            "id": "t-asian",
+            "label": "Asian Open"
+          },
+          {
+            "id": "t-mid",
+            "label": "Midnight Open"
+          },
+          {
+            "id": "t-lo",
+            "label": "London Open"
+          }
+        ]
+      },
+      {
+        "prompt": "Which LMR term matches “00:00 ET”?",
+        "options": [
+          {
+            "id": "t-asian",
+            "label": "Asian Open"
+          },
+          {
+            "id": "t-mid",
+            "label": "Midnight Open"
+          },
+          {
+            "id": "t-lo",
+            "label": "London Open"
+          },
+          {
+            "id": "t-lkz",
+            "label": "London Kill-zone"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "chapter": 4,
+    "questions": [
+      {
+        "prompt": "Which LMR term matches “Last opposing candle”?",
+        "options": [
+          {
+            "id": "ob",
+            "label": "Order Block"
+          },
+          {
+            "id": "rb",
+            "label": "Rejection Block"
+          },
+          {
+            "id": "pb",
+            "label": "Propulsion Block"
+          },
+          {
+            "id": "brkr",
+            "label": "Breaker Block"
+          }
+        ]
+      },
+      {
+        "prompt": "Which LMR term matches “Wick-based array”?",
+        "options": [
+          {
+            "id": "rb",
+            "label": "Rejection Block"
+          },
+          {
+            "id": "pb",
+            "label": "Propulsion Block"
+          },
+          {
+            "id": "brkr",
+            "label": "Breaker Block"
+          },
+          {
+            "id": "ob",
+            "label": "Order Block"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "chapter": 5,
+    "questions": [
+      {
+        "prompt": "Which LMR term matches “Failed breakout”?",
+        "options": [
+          {
+            "id": "rb",
+            "label": "Rejection Block"
+          },
+          {
+            "id": "ob",
+            "label": "Order Block"
+          },
+          {
+            "id": "ifvg",
+            "label": "IFVG"
+          },
+          {
+            "id": "turtle",
+            "label": "Turtle Soup"
+          }
+        ]
+      },
+      {
+        "prompt": "Which LMR term matches “Wick-based array”?",
+        "options": [
+          {
+            "id": "ob",
+            "label": "Order Block"
+          },
+          {
+            "id": "ifvg",
+            "label": "IFVG"
+          },
+          {
+            "id": "turtle",
+            "label": "Turtle Soup"
+          },
+          {
+            "id": "rb",
+            "label": "Rejection Block"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "chapter": 6,
+    "questions": [
+      {
+        "prompt": "Which LMR term matches “Futures session open”?",
+        "options": [
+          {
+            "id": "sblo",
+            "label": "London Silver Bullet"
+          },
+          {
+            "id": "sb",
+            "label": "AM Silver Bullet"
+          },
+          {
+            "id": "t-18",
+            "label": "18:00 Opening Price"
+          },
+          {
+            "id": "t-mid",
+            "label": "Midnight Open"
+          }
+        ]
+      },
+      {
+        "prompt": "Which LMR term matches “00:00 ET”?",
+        "options": [
+          {
+            "id": "sb",
+            "label": "AM Silver Bullet"
+          },
+          {
+            "id": "t-18",
+            "label": "18:00 Opening Price"
+          },
+          {
+            "id": "t-mid",
+            "label": "Midnight Open"
+          },
+          {
+            "id": "sblo",
+            "label": "London Silver Bullet"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "chapter": 7,
+    "questions": [
+      {
+        "prompt": "Which LMR term matches “Equal highs and lows”?",
+        "options": [
+          {
+            "id": "hrlr",
+            "label": "HRLR"
+          },
+          {
+            "id": "dol",
+            "label": "Equal H/L"
+          },
+          {
+            "id": "d3hl",
+            "label": "3-Day High / Low"
+          },
+          {
+            "id": "rfl",
+            "label": "LRLR"
+          }
+        ]
+      },
+      {
+        "prompt": "Which LMR term matches “Three-session extremes”?",
+        "options": [
+          {
+            "id": "dol",
+            "label": "Equal H/L"
+          },
+          {
+            "id": "d3hl",
+            "label": "3-Day High / Low"
+          },
+          {
+            "id": "rfl",
+            "label": "LRLR"
+          },
+          {
+            "id": "hrlr",
+            "label": "HRLR"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "chapter": 8,
+    "questions": [
+      {
+        "prompt": "Which LMR term matches “20:50 – 21:10 ET (8:50 – 9:10 PM)”?",
+        "options": [
+          {
+            "id": "m-as1",
+            "label": "ASIAN 1"
+          },
+          {
+            "id": "m-as2",
+            "label": "ASIAN 2"
+          },
+          {
+            "id": "m-lo1",
+            "label": "LONDON 1"
+          },
+          {
+            "id": "m-lo2",
+            "label": "LONDON 2"
+          }
+        ]
+      },
+      {
+        "prompt": "Which LMR term matches “21:50 – 22:10 ET (9:50 – 10:10 PM)”?",
+        "options": [
+          {
+            "id": "m-as2",
+            "label": "ASIAN 2"
+          },
+          {
+            "id": "m-lo1",
+            "label": "LONDON 1"
+          },
+          {
+            "id": "m-lo2",
+            "label": "LONDON 2"
+          },
+          {
+            "id": "m-as1",
+            "label": "ASIAN 1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "chapter": 9,
+    "questions": [
+      {
+        "prompt": "Which LMR term matches “New Week Opening Gap”?",
+        "options": [
+          {
+            "id": "nwog",
+            "label": "NWOG"
+          },
+          {
+            "id": "ndog",
+            "label": "NDOG"
+          },
+          {
+            "id": "rth",
+            "label": "RTH"
+          }
+        ]
+      },
+      {
+        "prompt": "Which LMR term matches “New Day Opening Gap”?",
+        "options": [
+          {
+            "id": "ndog",
+            "label": "NDOG"
+          },
+          {
+            "id": "rth",
+            "label": "RTH"
+          },
+          {
+            "id": "nwog",
+            "label": "NWOG"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "chapter": 10,
+    "questions": [
+      {
+        "prompt": "Which LMR term matches “50% of the dealing range”?",
+        "options": [
+          {
+            "id": "disc",
+            "label": "Discount"
+          },
+          {
+            "id": "ote",
+            "label": "OTE"
+          },
+          {
+            "id": "eq",
+            "label": "Equilibrium"
+          },
+          {
+            "id": "prem",
+            "label": "Premium"
+          }
+        ]
+      },
+      {
+        "prompt": "Which LMR term matches “Above equilibrium”?",
+        "options": [
+          {
+            "id": "ote",
+            "label": "OTE"
+          },
+          {
+            "id": "eq",
+            "label": "Equilibrium"
+          },
+          {
+            "id": "prem",
+            "label": "Premium"
+          },
+          {
+            "id": "disc",
+            "label": "Discount"
+          }
+        ]
+      }
+    ]
+  }
+]

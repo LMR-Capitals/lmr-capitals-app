@@ -19,6 +19,14 @@
   to = "/web/index.html"
   status = 200
 
+# Stripe's existing checkout function returns to /index.html?checkout=... .
+# Send that callback to the app, where the entitlement refresh is handled.
+[[redirects]]
+  from = "/index.html"
+  to = "/app/app.html"
+  status = 302
+  query = { checkout = ":state" }
+
 [[redirects]]
   from = "/app"
   to = "/app/app.html"
@@ -28,6 +36,16 @@
   from = "/admin"
   to = "/admin/admin.html"
   status = 200
+
+[[redirects]]
+  from = "/admin/terminal"
+  to = "/admin/terminal.html"
+  status = 200
+
+[[headers]]
+  for = "/admin/terminal.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
 
 [[redirects]]
   from = "/landing-preview"
@@ -93,8 +111,88 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    X-Frame-Options           = "DENY"
     X-Content-Type-Options    = "nosniff"
     X-XSS-Protection          = "1; mode=block"
     Referrer-Policy           = "strict-origin-when-cross-origin"
     Permissions-Policy        = "camera=(), microphone=(), geolocation=()"
+
+# Only the dedicated Journal workspace entry can be embedded, on this origin.
+[[headers]]
+  for = "/app/workspace.html"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    Content-Security-Policy = "frame-ancestors 'self'"
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/"
+  [headers.values]
+    X-Frame-Options = "DENY"
+[[headers]]
+  for = "/web/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+[[headers]]
+  for = "/inner-circle*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+[[headers]]
+  for = "/members"
+  [headers.values]
+    X-Frame-Options = "DENY"
+[[headers]]
+  for = "/member/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+[[headers]]
+  for = "/admin*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+[[headers]]
+  for = "/app"
+  [headers.values]
+    X-Frame-Options = "DENY"
+[[headers]]
+  for = "/app/app.html"
+  [headers.values]
+    X-Frame-Options = "DENY"
+[[headers]]
+  for = "/app/journal-import*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+
+# Inner Circle member application
+[[redirects]]
+  from = "/inner-circle/guide"
+  to = "/member/guide.html"
+  status = 200
+
+[[headers]]
+  for = "/inner-circle/guide"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/member/guide.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[redirects]]
+  from = "/members"
+  to = "/inner-circle"
+  status = 302
+
+[[redirects]]
+  from = "/inner-circle"
+  to = "/member/index.html"
+  status = 200
+
+[[headers]]
+  for = "/inner-circle"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/member/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"

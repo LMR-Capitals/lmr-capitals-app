@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const source=fs.readFileSync(new URL('../app/app.html',import.meta.url),'utf8');
+// Exercise the actual cloud-pull merge with local-only, stale and newer remote data.
+const start=source.indexOf('  const _ms = v =>',source.indexOf('async function _sbDoPull()'));
+const end=source.indexOf('  // Monthly:',start);
+assert.ok(start>0 && end>start);
+const merge=source.slice(start,end);
+const fresh={savedAt:'2026-10-07T20:00:00Z',tradePlan:'fresh local plan',pdArray:'local array'};
+const localOnly={savedAt:'2026-10-07T19:00:00Z',tradePlan:'not uploaded yet'};
+const state={daily:{'2026-10-06':localOnly,'2026-10-07':fresh,'2026-10-08':{savedAt:'2026-10-07T12:00:00Z',tradePlan:'older local'}}};
+const context=vm.createContext({state,da:{data:[{date:'2026-10-07',saved_at:'2026-10-07T18:00:00Z',trade_plan:'stale cloud'},{date:'2026-10-08',saved_at:'2026-10-07T21:00:00Z',trade_plan:'new remote',pd_array:'remote array',monthly_bias:'Bullish'}]},_normNY:value=>value});
+vm.runInContext(merge,context);
+assert.equal(state.daily['2026-10-06'],localOnly);
+assert.equal(state.daily['2026-10-07'],fresh);
+assert.equal(state.daily['2026-10-08'].tradePlan,'new remote');
+assert.equal(state.daily['2026-10-08'].pdArray,'remote array');
+assert.equal(state.daily['2026-10-08'].monthlyBias,'Bullish');
+const saveDaily=source.slice(source.indexOf('function saveDaily(){'),source.indexOf('function clearDaily(){'));
+const saveContext=vm.createContext({state:{daily:{},monthly:{'2026-10':{'m-qshift':'Bearish'}},weekly:{},currentMonth:'2026-10',currentWeek:1},todayStr:()=> '2026-10-07',getNextDayCount:()=>1,getWeeklyKeyForDate:()=> '2026-10-W1',getChipsValues:()=>[],_priceRefOrder:[],_sbUserId:'test-user',_mapDaily:(date,day)=>day,save:()=>{},sbSyncRecord:()=>{},flash:()=>{},document:{getElementById:()=>({value:'',textContent:''})}});
+vm.runInContext(saveDaily+'\nsaveDaily();',saveContext);
+assert.equal(saveContext.state.daily['2026-10-07'].monthlyBias,'Bearish');
+console.log('PASS: latest Journal fixes preserved — local daily edits survive stale pulls, newer cloud edits win, monthly bias auto-captures.');
