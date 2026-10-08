@@ -1,5 +1,7 @@
 # START HERE — Claude Code brief
 
+> **Current deployment context (7 October 2026):** this design-migration brief is historical. For the existing complete landing, Inner Circle, LMR Studio and embedded Journal, read [deployment/CURRENT.md](../../deployment/CURRENT.md) and root [CLAUDE.md](../../CLAUDE.md). Website redeployment uploads only the root Vite `dist/` build; it does not require the migration/backfill steps below. Preserve all stored data and incoming Journal fixes.
+
 ## What you are doing
 
 There is an **existing, deployed LMR Capitals trading-journal app** backed by a **live Supabase project with real data in it**. There is also a **new design** (this bundle).

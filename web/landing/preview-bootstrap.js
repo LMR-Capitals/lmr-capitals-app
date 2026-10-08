@@ -35,7 +35,7 @@ async function startPreview() {
   }
   const showFailure = () => {
     const root = document.getElementById('root');
-    if (root && (!root.hasChildNodes() || root.querySelector('#boot'))) root.innerHTML = '<main role="alert" style="max-width:44rem;margin:12vh auto;padding:2rem;color:#edf2f7;font:18px/1.5 system-ui"><h1>Page could not load</h1><p>Reload this tab to try again.</p><button style="padding:.8rem 1.2rem;cursor:pointer" onclick="location.reload()">Reload page</button></main>';
+    if (root && !root.hasChildNodes()) root.innerHTML = '<main role="alert" style="max-width:44rem;margin:12vh auto;padding:2rem;color:#edf2f7;font:18px/1.5 system-ui"><h1>Preview could not load</h1><p>Reload this tab to try again.</p><button style="padding:.8rem 1.2rem;cursor:pointer" onclick="location.reload()">Reload preview</button></main>';
   };
   window.addEventListener('error', showFailure, { once: true });
   setTimeout(showFailure, 5000);

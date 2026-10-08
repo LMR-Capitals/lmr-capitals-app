@@ -83,7 +83,7 @@ function Header({ reduced, toggleMotion }) {
   return <header className="site-header"><div className="shell header-inner">
     <a href="#top" className="brand" aria-label="LMR Capitals — back to top" onClick={() => setOpen(false)}><Mark /></a>
     <nav ref={navRef} id="main-navigation" className={`nav${open ? ' nav-open' : ''}`} aria-label="Primary navigation">{NAV.map(([id, label]) => <a key={id} href={`#${id}`} aria-current={active === id ? 'location' : undefined} onClick={() => { setOpen(false); if (window.innerWidth <= 900) requestAnimationFrame(() => { const section = document.getElementById(id); section?.setAttribute('tabindex', '-1'); section?.focus({ preventScroll: true }); }); }}>{label}{active === id && <motion.span className="nav-active" layoutId="active-section" transition={{ duration: reduced ? 0 : .28, ease: EASE }} />}</a>)}</nav>
-    <div className="header-actions"><button className="motion-toggle" type="button" onClick={toggleMotion} aria-pressed={!reduced} aria-label={`Page motion ${reduced ? 'off' : 'on'}. ${reduced ? 'Enable' : 'Disable'} animation`}><span className="motion-dot" />Motion <b>{reduced ? 'off' : 'on'}</b></button><a className="button button-gold header-signin" href="/app/app.html">Sign In</a><button ref={menuRef} className="menu-toggle" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} aria-controls="main-navigation" onClick={() => setOpen(value => !value)}><span /><span /></button></div>
+    <div className="header-actions"><button className="motion-toggle" type="button" onClick={toggleMotion} aria-pressed={!reduced} aria-label={`Page motion ${reduced ? 'off' : 'on'}. ${reduced ? 'Enable' : 'Disable'} animation`}><span className="motion-dot" />Motion <b>{reduced ? 'off' : 'on'}</b></button><a className="button button-gold header-signin" href="/member/index.html">Sign In</a><button ref={menuRef} className="menu-toggle" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} aria-controls="main-navigation" onClick={() => setOpen(value => !value)}><span /><span /></button></div>
   </div></header>;
 }
 
@@ -92,7 +92,7 @@ function Hero({ reduced }) {
   return <section ref={ref} id="top" className="hero" aria-labelledby="hero-title" data-od-id="stage">
     <style>{MARKET_CSS}</style><div className="market-art" data-active={active && !reduced} dangerouslySetInnerHTML={{ __html: MARKET_SVG }} /><div className="hero-shade" />
     <div className="shell hero-frame" data-od-id="chrome"><span>A DOCUMENTED TRADING PRACTICE</span><span>LMR CAPITALS / THE CHAIN</span></div>
-    <div className="shell hero-content"><p className="hero-role">Trader <i /> Mentor <i /> Fund Manager</p><h1 id="hero-title" data-od-id="headline">Trade With a System.<br />Master <em>The Chain.</em></h1><p className="hero-body">LMR Capitals is the professional trading practice and journal behind a structured Daily → Weekly → Monthly methodology. Every trade, every model, and every lesson is logged here in real time—and the same framework powers the mentorship and managed accounts I run for clients.</p><div className="hero-actions"><a className="button button-gold" href="/app/app.html">Sign In / Sign Up <Arrow /></a><a className="button button-outline" href="#about">Learn More <Arrow /></a></div></div>
+    <div className="shell hero-content"><p className="hero-role">Trader <i /> Mentor <i /> Fund Manager</p><h1 id="hero-title" data-od-id="headline">Trade With a System.<br />Master <em>The Chain.</em></h1><p className="hero-body">LMR Capitals is the professional trading practice and journal behind a structured Daily → Weekly → Monthly methodology. Every trade, every model, and every lesson is logged here in real time—and the same framework powers the mentorship and managed accounts I run for clients.</p><div className="hero-actions"><a className="button button-gold" href="/member/index.html">Sign In / Sign Up <Arrow /></a><a className="button button-outline" href="#about">Learn More <Arrow /></a></div></div>
     <div className="shell hero-baseline"><span>Context. Execution. Review.</span><a href="#about">Follow the process <Arrow /></a><span>DAILY / WEEKLY / MONTHLY</span></div>
   </section>;
 }
@@ -205,11 +205,11 @@ function LegalPreview({ kind, onClose }) {
 }
 function Plans({ reduced }) {
   return <section id="plans" className="plans-section section-space" aria-labelledby="plans-title"><div className="shell plans-layout">
-    <div className="plans-intro"><Reveal reduced={reduced}><h2 id="plans-title">The system stays <em>within reach.</em></h2></Reveal><p>Start with a 7-day free trial of the LMR Capitals app. Sign in to choose the billing period and continue to secure checkout.</p><a className="button button-gold" href="/app/app.html">Start free trial <Arrow /></a></div>
+    <div className="plans-intro"><Reveal reduced={reduced}><h2 id="plans-title">The system stays <em>within reach.</em></h2></Reveal><p>Create a free Inner Circle account for chapter learning and resources. Membership unlocks live analysis, observations, private support and the trading application.</p><a className="button button-gold" href="/inner-circle?signup=1">Join free Inner Circle <Arrow /></a></div>
     <div className="plans-prices" aria-label="LMR Capitals app subscription options">
-      <div className="plans-price"><div><h3>Monthly</h3><p>Billed monthly after your trial.</p></div><div className="plans-amount"><strong>$25</strong><span>/ month</span></div></div>
-      <div className="plans-price"><div><h3>Yearly</h3><p>Billed yearly after your trial. Save $30 compared with 12 monthly payments.</p></div><div className="plans-amount"><strong>$270</strong><span>/ year</span></div></div>
-      <p className="plans-footnote">The app displays both plans after sign-in. Choose one there to start the 7-day trial.</p>
+      <div className="plans-price"><div><h3>Monthly</h3><p>Billed monthly with paid membership.</p></div><div className="plans-amount"><strong>$25</strong><span>/ month</span></div></div>
+      <div className="plans-price"><div><h3>Yearly</h3><p>Billed yearly with paid membership. Save $30 compared with 12 monthly payments.</p></div><div className="plans-amount"><strong>$270</strong><span>/ year</span></div></div>
+      <p className="plans-footnote">Your account starts free. Choose membership after sign-in; the final price, currency, taxes and renewal terms appear in Stripe before you confirm.</p>
     </div>
   </div></section>;
 }
@@ -230,7 +230,7 @@ function App() {
     <main id="main"><Hero reduced={reduced} /><Who reduced={reduced} /><What reduced={reduced} /><TradingJourney reduced={reduced} /><Proof reduced={reduced} />
       <RecentTrades reduced={reduced} /><Plans reduced={reduced} /><Contact reduced={reduced} />
     </main>
-    <footer className="footer"><div className="shell footer-inner"><div className="footer-brand"><Mark /><p>Built on The Chain methodology.<br /><span className="footer-abn">ABN 24 168 533 274</span></p></div><nav className="footer-links" aria-label="Information"><span>Information</span><div>{Object.entries(LEGAL).filter(([key]) => previewPage || key === 'risk').map(([key, item]) => <button key={key} type="button" onClick={() => setLegalOpen(key)}>{item.title}</button>)}</div></nav></div><div className="shell footer-bottom"><span>LMR Capitals © {new Date().getFullYear()}</span>{previewPage && <span>Policy wording in this preview requires review before publication.</span>}</div></footer>
+    <footer className="footer"><div className="shell footer-inner"><div className="footer-brand"><Mark /><p>Built on The Chain methodology.<br /><span className="footer-abn">ABN 24 168 533 274</span></p></div><nav className="footer-links" aria-label="Information"><span>Information</span><div><a href="/inner-circle/guide">Joining guide</a><a href="/inner-circle/guide#terms">Account terms</a><a href="/inner-circle/guide#privacy">Privacy notice</a>{Object.entries(LEGAL).filter(([key]) => previewPage || key === 'risk').map(([key, item]) => <button key={key} type="button" onClick={() => setLegalOpen(key)}>{item.title}</button>)}</div></nav></div><div className="shell footer-bottom"><span>LMR Capitals © {new Date().getFullYear()}</span>{previewPage && <span>Policy wording in this preview requires review before publication.</span>}</div></footer>
     {legalOpen && <LegalPreview kind={legalOpen} onClose={() => setLegalOpen(null)} />}
   </MotionConfig>;
 }

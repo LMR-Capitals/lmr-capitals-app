@@ -9,10 +9,12 @@ import { createRoot } from 'react-dom/client';
 import { createClient } from '@supabase/supabase-js';
 import { ConstellationField } from '@designcodeio/threeui';
 import '@designcodeio/threeui/style.css';
+import { adminReturnDestination } from '../member/portal-flow.mjs';
 
-const SB_URL = 'https://agrvylclhvxyevsmmexf.supabase.co';
-const SB_KEY = 'sb_publishable_vUhBxc3efVrs41yc9WZmAA_SnhBIrDh';
+const SB_URL = import.meta.env.VITE_SUPABASE_URL || 'https://agrvylclhvxyevsmmexf.supabase.co';
+const SB_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_vUhBxc3efVrs41yc9WZmAA_SnhBIrDh';
 const sb = createClient(SB_URL, SB_KEY);
+const requestedSurface = new URLSearchParams(window.location.search).get('next');
 
 /* ── one-time global styling ─────────────────────────────────────────────── */
 const CSS = `
@@ -84,7 +86,7 @@ label{display:block;font-size:11px;color:var(--text3);text-transform:uppercase;l
 /* tiles */
 .tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:26px}
 .tile{padding:16px 18px;border-radius:16px}
-.tile .v{font-size:25px;font-weight:800;line-height:1.05;background:linear-gradient(135deg,#fff,#b9c6de);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.tile .v{font-size:25px;font-weight:800;line-height:1.05;color:var(--text)}
 .tile .k{font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-top:5px}
 @media(max-width:820px){.tiles{grid-template-columns:repeat(2,1fr)}}
 
@@ -142,7 +144,7 @@ const Brand = () => (
 
 /* ── auth screens ────────────────────────────────────────────────────────── */
 function Login({ onDone }){
-  const [email,setEmail]=useState(''); const [pass,setPass]=useState('');
+  const [email,setEmail]=useState('admin@lmrcapitals.com'); const [pass,setPass]=useState('');
   const [busy,setBusy]=useState(false); const [err,setErr]=useState('');
   const submit=async()=>{
     setErr(''); if(!email||!pass){setErr('Email and password are required.');return;}
@@ -156,12 +158,12 @@ function Login({ onDone }){
     <div className="center"><div className="glass auth">
       <Brand />
       <div className="title">Admin sign in</div>
-      <div className="sub">Restricted area — administrators only.</div>
-      <div className="field"><label>Email</label>
-        <input className="input" type="email" autoComplete="username" value={email}
+      <div className="sub">{requestedSurface === 'terminal' ? 'Use your existing Admin Hub credentials to open the Admin Terminal.' : 'Use your administrator account to open the Inner Circle Admin Hub.'}</div>
+      <div className="field"><label htmlFor="admin-email">Email</label>
+        <input id="admin-email" className="input" type="email" autoComplete="username" value={email}
           onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} /></div>
-      <div className="field"><label>Password</label>
-        <input className="input" type="password" autoComplete="current-password" value={pass}
+      <div className="field"><label htmlFor="admin-password">Password</label>
+        <input id="admin-password" className="input" type="password" autoComplete="current-password" value={pass}
           onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} /></div>
       <button className="btn btn-gold" disabled={busy} onClick={submit}>{busy?'Signing in…':'Continue →'}</button>
       <div className="err">{err}</div>
@@ -232,9 +234,14 @@ function Hub({ email, onPortal, onSignOut }){
         <div className="glass hubcard" onClick={enterApp}>
           <span className="go">↗</span>
           <div className="ic">📈</div>
-          <h3>Admin Application</h3>
+          <h3>Journal Application</h3>
           <p>The full LMR Capitals trading journal — sessions, analysis, trades, knowledge, and in-app admin controls.</p>
         </div>
+        <a className="glass hubcard" href="/admin/terminal.html" style={{textDecoration:'none'}}>
+          <span className="go">↗</span>
+          <h3>Admin Terminal</h3>
+          <p>Publish member observations, execution images, achievements, live sessions and announcements. Respond to questions and private mentorship requests.</p>
+        </a>
       </div>
       <div style={{textAlign:'center',marginTop:28}}><button className="link" onClick={onSignOut}>Sign out</button></div>
     </div>
@@ -390,27 +397,40 @@ function App(){
   const [stage,setStage]=useState('boot');    // boot|login|enroll|challenge|denied|hub|portal
   const [email,setEmail]=useState('');
   const [enroll,setEnroll]=useState(null);
+  const [gateError,setGateError]=useState('');
   const factorRef=useRef(null); const challengeRef=useRef(null);
 
   const signOut=useCallback(async()=>{ try{ sessionStorage.removeItem('lmr_admin_surface'); }catch(e){} await sb.auth.signOut(); setStage('login'); },[]);
 
   // After a session exists: verify admin, then enforce 2FA (aal2).
   const gate=useCallback(async()=>{
-    const { data:{ user } } = await sb.auth.getUser();
+    try {
+    setGateError('');
+    const { data:{ user }, error: identityError } = await sb.auth.getUser();
+    if(identityError?.name==='AuthSessionMissingError') { setStage('login'); return; }
+    if(identityError) throw identityError;
     if(!user){ setStage('login'); return; }
     setEmail(user.email||'');
-    const { data:isAdmin } = await sb.rpc('is_admin');
-    if(!isAdmin){ setStage('denied'); return; }
-    const { data:aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-    if(aal && aal.currentLevel==='aal2'){ setStage('hub'); return; }
+    const { data:isAdmin, error: registryError } = await sb.rpc('is_admin');
+    if(registryError) throw registryError;
+    if(isAdmin !== true){ setStage('denied'); return; }
+    const { data:aal, error: assuranceError } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+    if(assuranceError) throw assuranceError;
+    if(aal && aal.currentLevel==='aal2'){
+      if(requestedSurface === 'legacy') { setStage('hub'); return; }
+      if(requestedSurface === 'journal') { try { sessionStorage.setItem('lmr_admin_surface','app'); } catch {} }
+      window.location.assign(adminReturnDestination(requestedSurface)); return;
+    }
     // needs 2FA — use an existing verified factor, else enroll a fresh one
-    const { data:factors } = await sb.auth.mfa.listFactors();
+    const { data:factors, error: factorError } = await sb.auth.mfa.listFactors();
+    if(factorError) throw factorError;
     const verified=(factors?.totp||[]).filter(f=>f.status==='verified');
-    if(verified.length){ factorRef.current=verified[0].id; const {data:ch}=await sb.auth.mfa.challenge({factorId:verified[0].id}); challengeRef.current=ch?.id; setStage('challenge'); return; }
+    if(verified.length){ factorRef.current=verified[0].id; const {data:ch,error:challengeError}=await sb.auth.mfa.challenge({factorId:verified[0].id}); if(challengeError) throw challengeError; challengeRef.current=ch.id; setStage('challenge'); return; }
     for(const f of (factors?.all||[]).filter(f=>f.status!=='verified')){ try{ await sb.auth.mfa.unenroll({factorId:f.id}); }catch(e){} }
     const { data:en, error } = await sb.auth.mfa.enroll({ factorType:'totp', friendlyName:'LMR Admin '+Date.now() });
-    if(error){ setStage('denied'); return; }
+    if(error) throw error;
     factorRef.current=en.id; setEnroll(en); setStage('enroll');
+    } catch(error) { setGateError(error.message || 'Admin verification is unavailable.'); setStage('error'); }
   },[]);
 
   useEffect(()=>{ gate(); },[gate]);
@@ -421,11 +441,12 @@ function App(){
       const { error } = await sb.auth.mfa.verify({ factorId:factorRef.current, challengeId:challengeRef.current, code });
       challengeRef.current=null;
       if(error) return error.message;
-      setStage('hub'); return null;
+      await gate(); return null;
     }catch(e){ return e.message||String(e); }
-  },[]);
+  },[gate]);
 
   if(stage==='boot') return <Frame><div className="center"><div className="sub">Loading…</div></div></Frame>;
+  if(stage==='error') return <Frame><div className="center"><div className="glass auth"><Brand /><h1 className="title">Admin connection unavailable</h1><p className="err" role="alert">{gateError}</p><button className="btn btn-gold" onClick={()=>{setStage('boot');gate();}}>Try again</button><button className="link" onClick={signOut}>Sign out</button></div></div></Frame>;
   if(stage==='login') return <Frame><Login onDone={()=>{ setStage('boot'); gate(); }} /></Frame>;
   if(stage==='enroll') return <Frame><TwoFA mode="enroll" enroll={enroll} onVerify={verify} onSignOut={signOut} /></Frame>;
   if(stage==='challenge') return <Frame><TwoFA mode="challenge" onVerify={verify} onSignOut={signOut} /></Frame>;
