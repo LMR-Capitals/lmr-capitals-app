@@ -1113,6 +1113,10 @@ function App() {
       </aside>
       <div className={`app-main${(route === "application" && canOpenJournal(accessState) || route === "life-os" && accessState?.adminVerified) ? " journal-surface-active" : ""}`}>
         <header className="topbar">
+          <a className="mobile-workspace-brand" href="/" aria-label="LMR Capitals home">
+            <img src="/icons/lmr-icon-circle.png" alt="" />
+            <span><strong>LMR <b>CAPITALS</b></strong><small>{route === "application" ? "Trading Journal" : route === "life-os" ? "Life OS" : "Inner Circle"}</small></span>
+          </a>
           <button
             className="icon-button mobile-menu"
             hidden={(route === "application" && canOpenJournal(accessState) || route === "life-os" && accessState?.adminVerified)}
@@ -1178,6 +1182,9 @@ function App() {
             />
           </div>
         </header>
+        {!["application", "life-os"].includes(route) && <nav className="mobile-section-nav" aria-label="Inner Circle sections">
+          {(admin ? [["admin", "LMR Studio", "shield"], ...studioSections.map(s => [s.route, s.label, s.icon])] : navigation.filter(([id]) => !id.startsWith("studio-") && !["notifications", "profile", "settings", "billing", "admin", "admin-hub", "life-os", "application"].includes(id)).map(([id, label]) => [id, label, id])).map(([id, label, icon]) => <button key={id} aria-current={route === id ? "page" : undefined} onClick={() => go(id)}><Icon name={icon} size={17} />{label}{!admin && premiumRoutes.includes(id) && !entitled && <Icon name="lock" size={12} />}</button>)}
+        </nav>}
         <main className="page" id="workspace-content" tabIndex={-1} hidden={(route === "application" && canOpenJournal(accessState) || route === "life-os" && accessState?.adminVerified)}>
           <div className="page-head">
             <div>
