@@ -2,7 +2,13 @@
 
 This file is the deployment entry point for Claude and other collaborators. Historical receipts remain in this directory; the latest verified production ID below takes precedence over draft URLs and older deploy notes.
 
-## Current release status
+## Mobile workspace update — 12 October 2026
+
+The latest verified production Git release before the mobile update is `6acc605fe0c1ac0008ea51b9`, commit `af9da91c7adb369146ef11732d9c52600e3250cb` (#74), published `2026-10-12T04:22:06.999Z`. It includes #73 Life OS and #74 single sign-on. Both must remain in all future builds.
+
+The mobile-only frontend update is tracked in `codex/mobile-workspace-navigation` and [its release notes](MOBILE-WORKSPACES-2026-10-12.md). Use Git continuous deployment after review and merge; preserve the complete root build. The verified production ID for that merge will be recorded in the pull request. No database or storage operations are part of this update.
+
+## Earlier release status
 
 **Latest verified production deploy:** `6acc35760f93dfd5ccc6982d`, published `2026-10-12T01:18:57.321Z` (11 October, New York). [Live LMR](https://lmrcapitals.com) · [Life OS admin entry](https://lmrcapitals.com/admin?next=life-os). Reviewed draft: `6acc3536fc7dc093edd5118f`. See [Life OS release receipt](LIFE-OS-2026-10-11.md).
 
