@@ -56,8 +56,5 @@
  footer{padding-bottom:max(20px,env(safe-area-inset-bottom,0px))}
 }
 
-/* Mobile: remove routine status and duplicate breadcrumb chrome. */
-@media(max-width:760px){
- .cloud-status.is-saved{display:none}
- .main>.topbar{display:none}
-}
+/* Routine success feedback stays quiet; saving and recovery alerts remain visible. */
+.cloud-status.is-saved{display:none}
