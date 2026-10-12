@@ -5,10 +5,10 @@ export function workspaceRole(access) {
   if (access.admin === true) return "administrator";
   return access.paid === true && access.entitled === true ? "paid" : "free";
 }
-export const administratorRoutes = ["admin-hub", "admin", "application", "profile", "settings", "notifications", ...studioSections.map(section => section.route)];
+export const administratorRoutes = ["life-os", "admin-hub", "admin", "application", "profile", "settings", "notifications", ...studioSections.map(section => section.route)];
 export function administratorEntry(access, route) {
   if (workspaceRole(access) !== "administrator") return null;
-  if (!access.adminVerified) return "/admin?next=circle";
+  if (!access.adminVerified) return route === "life-os" ? "/admin?next=life-os" : "/admin?next=circle";
   if (!administratorRoutes.includes(route)) return "/inner-circle#admin";
   return null;
 }

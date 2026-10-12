@@ -24,6 +24,7 @@ export default defineConfig({
         main: resolve(import.meta.dirname, 'web/index.html'),                 // landing → /
         landingPreview: resolve(import.meta.dirname, 'web/landing-preview.html'),
         experiencePreview: resolve(import.meta.dirname, 'web/experience-preview.html'),
+        lifeOS: resolve(import.meta.dirname, 'life-os/index.html'),
         app: resolve(import.meta.dirname, 'app/app.html'),                    // trading app → /app
         member: resolve(import.meta.dirname, 'member/index.html'),
         memberGuide: resolve(import.meta.dirname, 'member/guide.html'),

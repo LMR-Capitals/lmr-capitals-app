@@ -16,6 +16,7 @@ import Admin from "./admin";
 import AdminHub from "./admin-hub";
 import { circleUrl, canOpenJournal } from "./portal-flow.mjs";
 import JournalWorkspace from "./journal-workspace";
+import LifeOSWorkspace from "./life-os-workspace";
 import { administratorEntry, workspaceRole } from "./workspace-access.mjs";
 import { studioSections, studioSection } from "./studio-model.mjs";
 import { avatarSource } from "./profile-photo.mjs";
@@ -120,6 +121,7 @@ const navigation = [
     "LMR Studio",
     "The admin workspace for your member community.",
   ],
+  ["life-os", "Life OS", "Your goals, plans and personal progress."],
   ["admin-hub", "Admin Hub", "Your accounts, subscriptions and journal database."],
   ["callouts", "LMR Callouts", "The conditions, context and invalidation behind the idea."],
   ...studioSections.map(({route, label, description}) => [route, label, description]),
@@ -237,7 +239,7 @@ function App() {
     setSearch("");
   };
   useEffect(() => {
-    if (route !== "application") lastCircleRoute.current = route === "admin-hub" ? "settings" : route;
+    if (!["application","life-os"].includes(route)) lastCircleRoute.current = route === "admin-hub" ? "settings" : route;
   }, [route]);
   useEffect(() => {
     if (!menu) return;
@@ -343,7 +345,7 @@ function App() {
   useEffect(() => {
     if (loading || !accessState || !user || recovery) return;
     if (preview) {
-      if (route === "admin-hub") go("settings");
+      if (route === "admin-hub" || (route === "life-os" && !accessState.admin)) go("settings");
       else if (administratorEntry(accessState, route)) go("admin");
       return;
     }
@@ -357,7 +359,7 @@ function App() {
       } else location.replace(administratorDestination);
       return;
     }
-    if (route === "admin-hub") { go("settings"); return; }
+    if (route === "admin-hub" || (route === "life-os" && !accessState.admin)) { go("settings"); return; }
     const requestedJournal = new URLSearchParams(location.search).get("next") === "journal";
     if (requestedJournal && canOpenJournal(accessState)) {
       const query = new URLSearchParams(location.search);
@@ -879,6 +881,7 @@ function App() {
       case "questions":
         screen = <Questions data={data} onQuestion={question} />;
         break;
+      case "life-os":
       case "application":
         screen = null;
         break;
@@ -966,9 +969,9 @@ function App() {
     }
   return (
     <div className={preview && !comparisonPreview ? "is-preview" : ""}>
-      <a className="skip" href={route === "application" && canOpenJournal(accessState) ? "#workspace-journal" : "#workspace-content"} onClick={(event) => {
+      <a className="skip" href={(route === "application" && canOpenJournal(accessState) || route === "life-os" && accessState?.adminVerified) ? (route === "life-os" ? "#workspace-life-os" : "#workspace-journal") : "#workspace-content"} onClick={(event) => {
         event.preventDefault();
-        document.getElementById(route === "application" && canOpenJournal(accessState) ? "workspace-journal" : "workspace-content")?.focus();
+        document.getElementById((route === "application" && canOpenJournal(accessState) || route === "life-os" && accessState?.adminVerified) ? (route === "life-os" ? "workspace-life-os" : "workspace-journal") : "workspace-content")?.focus();
       }}>
         Skip to content
       </a>
@@ -1004,7 +1007,7 @@ function App() {
         id="member-navigation"
         ref={sidebar}
         className={`app-sidebar ${menu ? "open" : ""}`}
-        hidden={route === "application" && canOpenJournal(accessState)}
+        hidden={(route === "application" && canOpenJournal(accessState) || route === "life-os" && accessState?.adminVerified)}
       >
         <a href="/" aria-label="LMR Capitals home"><Logo /></a>
         <div className="workspace-label">{admin ? "ADMINISTRATOR WORKSPACE" : role === "paid" ? "PAID MEMBER WORKSPACE" : "FREE MEMBER WORKSPACE"}</div>
@@ -1020,6 +1023,7 @@ function App() {
                   "billing",
                   "admin",
                   "admin-hub",
+                  "life-os",
                   "application",
                 ].includes(id),
             )
@@ -1107,11 +1111,11 @@ function App() {
           />
         </div>
       </aside>
-      <div className={`app-main${route === "application" && canOpenJournal(accessState) ? " journal-surface-active" : ""}`}>
+      <div className={`app-main${(route === "application" && canOpenJournal(accessState) || route === "life-os" && accessState?.adminVerified) ? " journal-surface-active" : ""}`}>
         <header className="topbar">
           <button
             className="icon-button mobile-menu"
-            hidden={route === "application" && canOpenJournal(accessState)}
+            hidden={(route === "application" && canOpenJournal(accessState) || route === "life-os" && accessState?.adminVerified)}
             ref={menuButton}
             aria-label="Open navigation"
             aria-expanded={menu}
@@ -1121,8 +1125,9 @@ function App() {
             <Icon name="menu" />
           </button>
           <div className="workspace-switcher" role="group" aria-label="Switch workspace">
-            <button aria-pressed={route !== "application"} onClick={() => go(route === "application" ? lastCircleRoute.current : admin ? "admin" : "dashboard")}><Icon name="dashboard" size={16} /><span>Inner Circle</span></button>
+            <button aria-pressed={!["application","life-os"].includes(route)} onClick={() => go(["application","life-os"].includes(route) ? lastCircleRoute.current : admin ? "admin" : "dashboard")}><Icon name="dashboard" size={16} /><span>Inner Circle</span></button>
             <button aria-pressed={route === "application"} onClick={() => go("application")}><Icon name="application" size={16} /><span>Trading Journal</span>{!canOpenJournal(accessState) && <Icon name="lock" size={12} />}</button>
+            {admin && <button aria-pressed={route === "life-os"} onClick={() => go("life-os")}><Icon name="calendar" size={16}/><span>Life OS</span></button>}
           </div>
           <div className="top-actions">
             {!entitled && !admin && (
@@ -1173,7 +1178,7 @@ function App() {
             />
           </div>
         </header>
-        <main className="page" id="workspace-content" tabIndex={-1} hidden={route === "application" && canOpenJournal(accessState)}>
+        <main className="page" id="workspace-content" tabIndex={-1} hidden={(route === "application" && canOpenJournal(accessState) || route === "life-os" && accessState?.adminVerified)}>
           <div className="page-head">
             <div>
               <h1>
@@ -1254,6 +1259,7 @@ function App() {
             </div>
           </footer>
         </main>
+        {admin && accessState.adminVerified && <LifeOSWorkspace key={"life-os:"+user.id} active={route === "life-os"} preview={preview}/>}
         {canOpenJournal(accessState) && <JournalWorkspace key={user.id} active={route === "application"} preview={preview} administrator={admin} onNavigate={go} onAccessCheck={() => refresh(true)} onVerify={() => location.assign("/admin?next=journal")} />}
       </div>
       {modalView}
