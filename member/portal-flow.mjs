@@ -16,6 +16,7 @@ export function openJournal(access) {
 }
 export function adminReturnDestination(next) {
   return {
+    "life-os": `${circleUrl}#life-os`,
     journal: `${circleUrl}#application`,
     circle: `${circleUrl}#admin`,
     terminal: `${circleUrl}#admin`,

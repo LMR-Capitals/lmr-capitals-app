@@ -1,0 +1,1 @@
+import React from "react";import {createRoot} from "react-dom/client";import LifeOS from "./LifeOS";createRoot(document.getElementById("root")).render(<LifeOS/>);

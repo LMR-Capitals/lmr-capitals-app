@@ -4,9 +4,19 @@ This file is the deployment entry point for Claude and other collaborators. Hist
 
 ## Current release status
 
+**Latest verified production deploy:** `6acc35760f93dfd5ccc6982d`, published `2026-10-12T01:18:57.321Z` (11 October, New York). [Live LMR](https://lmrcapitals.com) · [Life OS admin entry](https://lmrcapitals.com/admin?next=life-os). Reviewed draft: `6acc3536fc7dc093edd5118f`. See [Life OS release receipt](LIFE-OS-2026-10-11.md).
+
+Life OS now sits beside Trading Journal in the admin workspace switcher. Source: `life-os/`, `member/life-os-workspace.jsx` and the existing member navigation; output `dist/life-os/index.html`. Build from the repository root and deploy the complete `dist/` as before.
+
+An explicitly authorized Life OS schema addition and one-time reference-data initialization were completed in the existing Supabase project: `public.life_os_workspaces` and `life_os_save_workspace`. RLS requires user ownership, `is_admin()` and an `aal2` session. Existing Journal, accounts, images, billing and member records were preserved. Do not reapply the saved `database/patches/life-os-admin-workspace.sql`; it is an applied reference. Other pending patches remain pending. Full validation and initial storage limits are in the linked receipt.
+
+The prior actual live Git release was `6ac706f45ee5be000851c2d4` (#72), later than the historical receipt below. Its Journal script blocks match this release. Git CD remains enabled. This release is a manual website deployment; no source commit or push was made, so a later main build can replace Life OS unless the integration is retained.
+
+## Previous release history
+
 The owner requested a full production redeployment on 7 October 2026 without overwriting stored database data. Previous full production release: `6ac6ee783c2a68cb0b300fd2`. A later Git deployment (`6ac6f2a7fdde6a000883de1f`, commit `739f9a1b23bccd8fd49cb70497a0e4976d5f27b2`) replaced that manual release and contains Claude's Journal autosave/refresh preservation fix (#71). That exact fix was merged into the local full-site Journal before rebuilding, preserving the Inner Circle integration.
 
-**Latest verified production deploy:** `6ac6f66836c3649427724425`, published at `2026-10-08T01:48:28.022Z` (7 October, New York). [Live website](https://lmrcapitals.com) · [Inner Circle](https://lmrcapitals.com/inner-circle) · [Netlify release details](https://app.netlify.com/projects/lmrcapitalsapp/deploys/6ac6f66836c3649427724425). Reviewed draft: `6ac6f627cdf71842a68db825`.
+**Previous verified production deploy:** `6ac6f66836c3649427724425`, published at `2026-10-08T01:48:28.022Z` (7 October, New York). [Live website](https://lmrcapitals.com) · [Inner Circle](https://lmrcapitals.com/inner-circle) · [Netlify release details](https://app.netlify.com/projects/lmrcapitalsapp/deploys/6ac6f66836c3649427724425). Reviewed draft: `6ac6f627cdf71842a68db825`.
 
 16 regression test files passed, including actual Journal autosave flush/deferred refresh, cloud merge preservation, embedded workspace bridge, member access controls, Studio publication data and chronology. `npm run build` succeeded (existing unrelated ThreeUI export warnings). The production site API confirmed this deploy ID is published. Landing, Inner Circle, joining guide, admin and embedded Journal routes all returned the reviewed build; the embedded HTML comparison accounted for Netlify's existing pretty-URL anchor rewriting. Hosted admin preview rendered the full LMR Studio navigation and newest-first ENTRY selector. Production screenshot: `member/verification/lmr-claude-handoff-production-2026-10-07.png` (clearly labelled illustrative administrator preview).
 
@@ -34,7 +44,7 @@ This release ran no database commands/migrations, Supabase function deployments,
 4. When authorized, upload that same reviewed output with `netlify deploy --prod --dir dist --no-build`. This is a fresh atomic file deployment, not a database operation. Do not restore/publish an old deploy.
 5. Verify the Netlify published ID and primary-domain landing, Inner Circle, guide, admin and embedded Journal routes. Record the ID, timestamp and screenshots here.
 
-Git CD is connected to `https://github.com/LMR-Capitals/lmr-capitals-app` on `main`. Manual deployment does not commit or push local source. A later Git build can replace it with a version missing uncommitted Inner Circle work. The complete portal source is now prepared on `codex/inner-circle-portal` for Git integration; see [the source handoff](GITHUB-HANDOFF.md). This branch is based on current `main` and excludes unrelated Mac changes. It is not merged into production `main`; integration/merge/deployment require a separate authorized task.
+Git CD is connected to `https://github.com/LMR-Capitals/lmr-capitals-app` on `main`. Manual deployment does not commit or push local source. A later Git build can replace it with a version missing uncommitted Inner Circle work. Integration of the complete portal into Git is a separate task requiring review of the extensive existing local changes.
 
 ## Preserve data
 
@@ -53,4 +63,4 @@ Git CD is connected to `https://github.com/LMR-Capitals/lmr-capitals-app` on `ma
 
 ## Claude context
 
-For source integration, read `GITHUB-HANDOFF.md`: this branch supplies the source that earlier releases described as Mac-only. Older home-project memory describes a single static file in `LMR Capitals APP_files`, a home-rooted Git repo and no Git deployments. That memory describes an earlier setup and must not govern this checkout. Root `CLAUDE.md` links here so Claude can locate the full build and release evidence. An already-running Claude session may need to reread this file; editing a file does not prove that session has consumed it.
+Older home-project memory describes a single static file in `LMR Capitals APP_files`, a home-rooted Git repo and no Git deployments. That memory describes an earlier setup and must not govern this checkout. Root `CLAUDE.md` links here so Claude can locate the full build and release evidence. An already-running Claude session may need to reread this file; editing a file does not prove that session has consumed it.

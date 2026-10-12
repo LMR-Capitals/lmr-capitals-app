@@ -18,11 +18,13 @@ assert.equal(administratorEntry(access, "dashboard"), "/inner-circle#admin");
 assert.equal(administratorEntry(access, "billing"), "/inner-circle#admin");
 assert.equal(administratorEntry(access, "admin-hub"), null);
 assert.equal(administratorEntry(access, "application"), null);
+assert.equal(administratorEntry(access, "life-os"), null);
 assert.equal(workspaceRole({ ...access, paid: true }), "administrator", "Admin role wins over paid status");
 level = "aal1";
 access = await resolveWorkspaceAccess(client, user);
 assert.equal(access.entitled, false);
 assert.equal(administratorEntry(access, "admin-hub"), "/admin?next=circle");
+assert.equal(administratorEntry(access, "life-os"), "/admin?next=life-os");
 registered = false;
 for (const [invoice, permission, role] of [[false, false, "free"], [true, true, "paid"], [true, false, "free"], [false, true, "free"]]) {
   paid = invoice; entitled = permission; calls = [];
