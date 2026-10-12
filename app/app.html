@@ -7952,7 +7952,7 @@ function saveTodayJournal(ds, dc){
   // round-trips, without disturbing other same-day Journal entries.
   const key='today-'+ds;
   const existing=(state.journal||[]).find(n=>String(n.id)===key);
-  const rec = { id:key, type, date:ds, dayCount:dc, title:`D${dc} · ${fmtDate(ds)}`, text, imgKey:existing?.imgKey||null, createdAt:existing?.createdAt||new Date().toISOString() };
+  const rec = { id:key, type, date:ds, dayCount:dc, title:`D${dc} · ${fmtDate(ds)}`, text, imgKey:existing?.imgKey||(todayStr()+'-today-journal-1'), createdAt:existing?.createdAt||new Date().toISOString() };
   state.journal = (state.journal||[]).filter(n=>String(n.id)!==key);
   state.journal.unshift(rec);
   if(typeof JN_PERSIST!=='undefined') JN_PERSIST.write('journal',rec); else save();
@@ -8005,7 +8005,7 @@ function saveTodayJournalInline(){
   // through the cloud, and never touches other same-day Journal entries (which use numeric ids).
   const key='today-'+ds;
   const existing=(state.journal||[]).find(n=>String(n.id)===key);
-  const rec={ id:key, type:_todayJType||'Lesson', date:ds, dayCount:dc, title:`D${dc} · ${fmtDate(ds)}`, text, imgKey:existing?.imgKey||null, createdAt:existing?.createdAt||new Date().toISOString() };
+  const rec={ id:key, type:_todayJType||'Lesson', date:ds, dayCount:dc, title:`D${dc} · ${fmtDate(ds)}`, text, imgKey:existing?.imgKey||(todayStr()+'-today-journal-1'), createdAt:existing?.createdAt||new Date().toISOString() };
   state.journal=(state.journal||[]).filter(n=>String(n.id)!==key);
   state.journal.unshift(rec);
   if(typeof JN_PERSIST!=='undefined') JN_PERSIST.write('journal',rec); else save();
