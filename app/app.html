@@ -4968,6 +4968,8 @@ Midnight Open $______"></textarea>
             <input id="dm-dailydol" placeholder="$______" style="font-family:'JetBrains Mono',monospace"></div>
           <div class="form-row"><label class="form-label">Trade Plan</label>
             <textarea id="dm-tradeplan" rows="2" placeholder="Why I should take a trade?"></textarea></div>
+          <div class="form-row"><label class="form-label">Journal</label>
+            <textarea id="dm-journal" rows="3" readonly placeholder="This day's journal entry — write it in Today's session or the Journal page." style="opacity:.92"></textarea></div>
         </div>
       </div>
 
@@ -7628,8 +7630,8 @@ function loadDaily(){
   setChipsValues('pred',d.pred||'');
   setChipsValues('daystatus',d.daystatus||'');
   document.getElementById('ch-rth').value=d.rth||'';
-  // inline journal text + type (today's entry from Notes/Journal)
-  { const je=(state.notes||[]).find(n=>n.date===ds)||(state.journal||[]).find(n=>n.date===ds);
+  // inline journal text + type (today's entry — journal store first, legacy notes fallback)
+  { const je=(state.journal||[]).find(n=>n.date===ds)||(state.notes||[]).find(n=>n.date===ds);
     const jt=document.getElementById('ch-journal-text'); if(jt) jt.value=je?je.text||'':'';
     _todayJType = je ? (window.jNormType?jNormType(je.type):je.type||'Lesson') : 'Lesson';
     if(typeof renderTodayJournalTypes==='function') renderTodayJournalTypes(); }
@@ -7869,7 +7871,7 @@ function updateWeeklyDisplay(){
 function updateTodayJournalPreview(ds){
   const el = document.getElementById('today-journal-preview');
   if(!el) return;
-  const entry = (state.notes||[]).find(n=>n.date===ds) || (state.journal||[]).find(n=>n.date===ds);
+  const entry = (state.journal||[]).find(n=>n.date===ds) || (state.notes||[]).find(n=>n.date===ds);
   if(entry){
     const txt = entry.text || entry.content || '';   // consolidated entries may store body in `content` (text can be null)
     el.innerHTML=`<span style="color:var(--bull)">✓ Saved</span> · ${txt.slice(0,60)}${txt.length>60?'…':''}`;
@@ -7882,7 +7884,7 @@ function openTodayJournal(){
   const ds = todayStr();
   const dc = dayCountFor(ds) || getNextDayCount();
   // Find existing journal entry for today
-  const existing = [...state.notes, ...(state.journal||[])].find(n=>n.date===ds);
+  const existing = [...(state.journal||[]), ...state.notes].find(n=>n.date===ds);
 
   // Open journal modal pre-filled with today's date and day count
   const modal = document.createElement('div');
@@ -7946,25 +7948,19 @@ function saveTodayJournal(ds, dc){
   const type = document.getElementById('tj-type')?.value||'Lesson';
   if(!text){ flash('⚠ Add some text first'); return; }
 
-  const id = Date.now();
-  const note = { id, type, date:ds, dayCount:dc, title:`D${dc} · ${fmtDate(ds)}`, text, createdAt:new Date().toISOString() };
+  // Save into the JOURNAL store (not Notes) — stable per-day id so it updates in place and
+  // round-trips, without disturbing other same-day Journal entries.
+  const key='today-'+ds;
+  const existing=(state.journal||[]).find(n=>String(n.id)===key);
+  const rec = { id:key, type, date:ds, dayCount:dc, title:`D${dc} · ${fmtDate(ds)}`, text, imgKey:existing?.imgKey||null, createdAt:existing?.createdAt||new Date().toISOString() };
+  state.journal = (state.journal||[]).filter(n=>String(n.id)!==key);
+  state.journal.unshift(rec);
+  if(typeof JN_PERSIST!=='undefined') JN_PERSIST.write('journal',rec); else save();
 
-  // Remove existing entry for this date if any
-  state.notes = state.notes.filter(n=>n.date!==ds);
-  state.notes.unshift(note);
-  save();
-
-  // Sync to Supabase
-  if(_sbSyncEnabled&&_sbUserId&&_sb){
-    _sb.from('notes').upsert({
-      id:String(id), user_id:_sbUserId, title:note.title,
-      text:note.text, date:ds, created_at:note.createdAt
-    },{onConflict:'id'}).catch(()=>{});
-  }
-
-  // Update preview in Today chain
+  // Update preview in Today chain + Journal feed
   updateTodayJournalPreview(ds);
   closeTodayJournal();
+  if(window.renderJournalSection) window.renderJournalSection();
   flash('✓ Journal entry saved for D'+dc);
 }
 
@@ -8004,25 +8000,31 @@ function saveTodayJournalInline(){
   const dc=dayCountFor(ds)||getNextDayCount();
   const text=(document.getElementById('ch-journal-text')||{}).value?.trim()||'';
   if(!text){ flash('⚠ Add some text first'); return; }
-  const existing=(state.notes||[]).find(n=>n.date===ds);
-  const id=existing?existing.id:Date.now();
-  const note={ id, type:_todayJType||'Lesson', date:ds, dayCount:dc, title:`D${dc} · ${fmtDate(ds)}`, text, createdAt:existing?.createdAt||new Date().toISOString() };
-  state.notes=(state.notes||[]).filter(n=>n.date!==ds);
-  state.notes.unshift(note);
-  save();
-  if(_sbSyncEnabled&&_sbUserId&&_sb){
-    _sb.from('notes').upsert({ id:String(id), user_id:_sbUserId, title:note.title, text:note.text, date:ds, created_at:note.createdAt },{onConflict:'id'}).catch(()=>{});
-  }
+  // Save into the JOURNAL store (not Notes) so it shows on the Journal page, the Daily page and
+  // Today. Stable per-day id ('today-<date>') so re-saving updates the same entry, round-trips
+  // through the cloud, and never touches other same-day Journal entries (which use numeric ids).
+  const key='today-'+ds;
+  const existing=(state.journal||[]).find(n=>String(n.id)===key);
+  const rec={ id:key, type:_todayJType||'Lesson', date:ds, dayCount:dc, title:`D${dc} · ${fmtDate(ds)}`, text, imgKey:existing?.imgKey||null, createdAt:existing?.createdAt||new Date().toISOString() };
+  state.journal=(state.journal||[]).filter(n=>String(n.id)!==key);
+  state.journal.unshift(rec);
+  if(typeof JN_PERSIST!=='undefined') JN_PERSIST.write('journal',rec); else save();
   updateTodayJournalPreview(ds);
+  if(window.renderJournalSection) window.renderJournalSection();
   flash('✓ Journal saved for D'+dc);
 }
 function deleteTodayJournalEntry(id, ds){
   if(!confirm('Delete this journal entry?'))return;
-  state.notes = state.notes.filter(n=>String(n.id)!==String(id));
+  const sid=String(id);
+  const inJournal=(state.journal||[]).some(n=>String(n.id)===sid);
+  state.journal = (state.journal||[]).filter(n=>String(n.id)!==sid);
+  state.notes   = (state.notes||[]).filter(n=>String(n.id)!==sid); // legacy today-entries lived in notes
   save();
-  if(_sbSyncEnabled&&_sbUserId) sbDeleteRecord('notes',String(id));
+  if(typeof JN_PERSIST!=='undefined') JN_PERSIST.del(inJournal?'journal':'notes', sid);
+  else if(_sbSyncEnabled&&_sbUserId) sbDeleteRecord(inJournal?'journal':'notes',sid);
   updateTodayJournalPreview(ds);
   closeTodayJournal();
+  if(window.renderJournalSection) window.renderJournalSection();
   flash('✓ Journal entry deleted');
 }
 
@@ -13429,6 +13431,10 @@ function openDayModal(ds){
   { const r=document.getElementById('dm-dailyrol'); if(r) r.value=entry.dailyRol||entry.daily_rol||''; }
   { const o=document.getElementById('dm-dailydol'); if(o) o.value=entry.dailyDol||entry.daily_dol||''; }
   { const tp=document.getElementById('dm-tradeplan'); if(tp) tp.value=entry.tradePlan||entry.trade_plan||''; }
+  // Day's journal entry (journal store first, legacy notes as fallback) — read-only here
+  { const dj=document.getElementById('dm-journal');
+    if(dj){ const je=(state.journal||[]).find(n=>n.date===ds)||(state.notes||[]).find(n=>n.date===ds);
+      dj.value=je?(je.text||je.content||''):''; } }
   document.getElementById('dm-daystatus').value=entry.daystatus||'';
   document.getElementById('dm-pnl').textContent=dayPnL!==0?`${dayPnL>=0?'+':''}$${dayPnL.toFixed(2)}`:'$0';
   document.getElementById('dm-pnl').className=`mono ${dayPnL>0?'txt-pos':dayPnL<0?'txt-neg':''}`;
@@ -18109,7 +18115,17 @@ function paintCardImages(root){
 }
 
 function renderJournal(){
-  var rows = jFilter==='All' ? S.journal : S.journal.filter(function(r){return normType(r.type)===jFilter;});
+  // The Journal feed's module store (S) is seeded at parse time and is separate from the global
+  // `state`. Today-session journal entries are written to `state.journal`, so merge those in (by id)
+  // and show them here too — newest first.
+  var _src = (S.journal||[]).slice();
+  try{
+    if (typeof state!=='undefined' && state && Array.isArray(state.journal)) {
+      state.journal.forEach(function(j){ if(!_src.some(function(b){return String(b.id)===String(j.id);})) _src.push(j); });
+    }
+  }catch(e){}
+  _src.sort(function(a,b){ return String(b.date||'').localeCompare(String(a.date||'')) || (Number(b.id)||0)-(Number(a.id)||0); });
+  var rows = jFilter==='All' ? _src : _src.filter(function(r){return normType(r.type)===jFilter;});
   var feed = document.getElementById('jFeed');
   document.getElementById('jCount').textContent =
     rows.length + (rows.length===1?' entry':' entries') + (jFilter==='All'?'':' \u00b7 '+jFilter);
@@ -18154,6 +18170,12 @@ document.addEventListener('click', function(e){
     if (rec && rec.imgKey) JN_PERSIST.saveImg(rec.imgKey, null);
     if (kind==='journal') S.journal = S.journal.filter(function(r){return String(r.id)!==id;});
     else                  S.notes   = S.notes.filter(function(r){return String(r.id)!==id;});
+    // Also remove from the global state store (today-session journal entries live there).
+    try{ if (typeof state!=='undefined' && state) {
+      if (kind==='journal' && Array.isArray(state.journal)) state.journal = state.journal.filter(function(r){return String(r.id)!==id;});
+      if (kind==='notes'   && Array.isArray(state.notes))   state.notes   = state.notes.filter(function(r){return String(r.id)!==id;});
+      if (typeof save==='function') save();
+    } }catch(e){}
     JN_PERSIST.write(kind, null);
     JN_PERSIST.del(kind, id);
     if (kind==='journal') renderJournal(); else renderNotes();
