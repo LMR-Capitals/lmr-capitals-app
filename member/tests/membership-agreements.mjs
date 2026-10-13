@@ -4,6 +4,8 @@ import {PGlite} from '/Users/nirajghorsaine/.npm/_npx/da5c1b6ea715e8b4/node_modu
 const db=new PGlite();
 await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create table auth.users(id uuid primary key,email text);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('test.uid',true),'')::uuid$$;create function public.circle_is_admin() returns boolean language sql stable as $$select coalesce(current_setting('test.admin',true),'')='yes'$$;create table public.subscriptions(user_id uuid primary key,status text,price_id text,current_period_end timestamptz,cancel_at_period_end boolean,stripe_subscription_id text,updated_at timestamptz,paid_until timestamptz,stripe_event_created bigint,stripe_customer_id text);grant usage on schema auth to authenticated;grant execute on function auth.uid(),public.circle_is_admin() to authenticated;insert into auth.users values('00000000-0000-0000-0000-000000000001','one@example.com'),('00000000-0000-0000-0000-000000000002','two@example.com');`);
 await db.exec(await readFile(new URL('../../database/migrations/20261013120000_membership_agreements.sql',import.meta.url),'utf8'));
+await db.exec(`grant all on all tables in schema public to anon,authenticated;`);
+await db.exec(await readFile(new URL('../../database/migrations/20261013123000_membership_explicit_grants.sql',import.meta.url),'utf8'));
 await db.exec(`insert into circle_legal_documents(version,documents) values('v1','{"terms":"original"}');update circle_membership_launch set legal_version='v1';update circle_membership_plans set enabled=true;set test.uid='00000000-0000-0000-0000-000000000001';set role authenticated;`);
 const accept=()=>db.query(`select circle_accept_agreement('v1','{"terms":true,"privacy":true,"adult":true,"risk":true,"renewal":true}','monthly') id`);
 const a=(await accept()).rows[0].id;assert.equal((await accept()).rows[0].id,a,'retries reuse server consent');
@@ -11,6 +13,8 @@ let row=(await db.query('select * from circle_agreement_acceptances')).rows[0];a
 await assert.rejects(db.exec(`select circle_accept_agreement('v0','{}','monthly')`),/current agreement/);
 await assert.rejects(db.exec(`select circle_accept_agreement('v1','{}','monthly')`),/acknowledgements/);
 await assert.rejects(db.exec(`update circle_agreement_acceptances set amount=1`),/permission denied/);
+await assert.rejects(db.exec(`truncate circle_agreement_acceptances`),/permission denied/);
+await assert.rejects(db.exec(`truncate circle_membership_launch`),/permission denied/);
 await assert.rejects(db.exec(`select circle_admin_agreements('00000000-0000-0000-0000-000000000001')`),/administrator/);
 await db.exec(`set test.uid='00000000-0000-0000-0000-000000000002';`);assert.equal((await db.query('select * from circle_agreement_acceptances')).rows.length,0);
 await db.exec(`set test.admin='yes';`);assert.equal((await db.query(`select circle_admin_agreements('00000000-0000-0000-0000-000000000001') history`)).rows[0].history.length,1);
