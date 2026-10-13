@@ -18,11 +18,13 @@ const client = {
   },
 };
 assert.equal((await hubRpc(client, "admin_metrics"))[0].total_users, 3);
+for(const name of ["circle_admin_membership_subscribers","circle_admin_membership_revenue"]){ await hubRpc(client,name);assert.ok(rpcNames.includes(name));}
 assert.equal((await journalRecords(client, "trades", 2)).count, 229);
 for (const [role, assurance] of [[false, "aal2"], [true, "aal1"]]) {
   admin = role; level = assurance; queries = 0; rpcNames = [];
   await assert.rejects(journalRecords(client, "trades", 2), /verification/);
   await assert.rejects(hubRpc(client, "admin_list_users"), /verification/);
+  for(const name of ["circle_admin_membership_subscribers","circle_admin_membership_revenue"])await assert.rejects(hubRpc(client,name),/verification/);
   assert.equal(queries, 0); assert.ok(!rpcNames.includes("admin_list_users"));
 }
 await assert.rejects(hubRpc(client, "dump_all_data"), /Unsupported/);
