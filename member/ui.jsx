@@ -1,3 +1,4 @@
+import ObservationPreview from "./observation-preview";
 import Avatar from "./avatar";
 import {ObservationRecord} from "./journal-record";
 import {journalTitle} from "./journal-media.mjs";
@@ -286,6 +287,7 @@ export function Post({ post, saved, onSave, onImage, onQuestion }) {
       </div>
       <h3>{journalTitle(post)}</h3>
       <p style={{ whiteSpace: "pre-wrap" }}>{post.live_observation ? post.body?.slice(0,600) : post.body}</p>
+      {post.live_observation && post.chart_count>0 && <ObservationPreview record={post} onOpen={()=>onImage(post)}/>}
       {post.live_observation && <Button onClick={()=>onImage(post)}>Read observation{post.chart_count ? ` · ${post.chart_count} ${post.chart_count === 1 ? "chart" : "charts"}` : ""}</Button>}
       {post.source_content && <ObservationRecord record={post} onChart={src => onImage({...post, image_url:src, image_caption:"Journal observation chart", source_content:null})} />}
       {post.image_url && (

@@ -1,5 +1,9 @@
 # Current full-site deployment
 
+## Manual Studio publication — 13 October 2026
+
+[Explicit Studio publication](STUDIO-MANUAL-PUBLICATION-2026-10-13.md) supersedes the earlier automatic-sharing releases. Trades and observations must stay private until explicitly published in Studio. Both live feed/detail functions enforce the existing published source linkage. Do not reapply the older automatic-feed functions. Existing source records, publication states, images and RLS are preserved. Admin source lists/details load on demand, and published observation images are lazy-loaded.
+
 ## Live execution feed — 13 October 2026
 
 See [live execution release notes](LIVE-EXECUTIONS-2026-10-13.md). The owner has explicitly opted their own admin Journal into automatic paid-member execution sharing. Its additive read-only function is applied; source Journal records and RLS are unchanged. Use Git continuous deployment after review and merge. Preserve #78 and #79 Journal save/image fixes.

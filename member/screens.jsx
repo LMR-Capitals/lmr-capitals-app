@@ -335,7 +335,7 @@ export function Feed({ data, kind, search, onSave, onImage, onQuestion }) {
   );
   return (
     <div style={{ maxWidth: 850 }}>
-      {kind === "observation" && <p className="form-help" role="status">{data.observationsError ? "Observations could not refresh. Reopen this section to retry." : data.observationsLoading && !posts.length ? "Loading observations…" : `${posts.length} observations · Synced from LMR’s Journal · Updates every 15 seconds`}</p>}
+      {kind === "observation" && <p className="form-help" role="status">{data.observationsError ? "Observations could not refresh. Reopen this section to retry." : data.observationsLoading && !posts.length ? "Loading observations…" : `${posts.length} published observations · Updates from LMR’s Journal · Updates every 15 seconds`}</p>}
       {(kind === "observation" ? posts.slice(0,visible) : posts).map((p) => (
         <Post
           key={p.id}
@@ -394,7 +394,7 @@ export function Gallery({ data, kind, onImage, search }) {
         </label>
         {session !== 'all' && <Button small onClick={() => {setSession('all');setVisible(24);}}>Clear session filter</Button>}
       </div>}
-      {kind === "execution" && <p className="form-help" role="status">{data.executionsLoading && !executions.length ? "Loading LMR trades…" : data.executionsError ? "Live trades could not refresh. Reopen this section to retry." : `${items.length} ${items.length === 1 ? "trade" : "trades"} · Synced from LMR’s Journal · Updates every 15 seconds`}</p>}
+      {kind === "execution" && <p className="form-help" role="status">{data.executionsLoading && !executions.length ? "Loading LMR trades…" : data.executionsError ? "Live trades could not refresh. Reopen this section to retry." : `${items.length} ${items.length === 1 ? "trade" : "trades"} · Published from LMR’s Journal · Updates every 15 seconds`}</p>}
       {items.length ? (
         <><div className="gallery-grid">
           {items.slice(0,visible).map((p) => (
@@ -436,7 +436,7 @@ export function Gallery({ data, kind, onImage, search }) {
           body={
             kind === "execution" && (session !== "all" || search) ? "Choose another session or clear the search to see more trades." : preview
               ? "Actual trading records will appear when an admin publishes them. The preview does not invent executions, certificates or performance."
-              : kind === "execution" ? "Saved cloud trades appear here automatically. Charts appear when they are uploaded in LMR’s Journal." : "LMR has not published images in this section yet."
+              : kind === "execution" ? "Trades appear after LMR publishes them in Studio. Saved charts and details stay in sync after publication." : "LMR has not published images in this section yet."
           }
         />
       )}
