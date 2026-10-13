@@ -1,6 +1,6 @@
 export const studioSections = [
   { route: 'studio-live', label: 'Live sessions', icon: 'live', tab: 'session', description: 'Asia, London, NY AM and NY PM. Publish the room and notify paid members.' },
-  { route: 'studio-observations', label: 'LMR observations', icon: 'observations', tab: 'post', kind: 'observation', description: 'Create once in your Journal and Inner Circle, or publish a saved observation.' },
+  { route: 'studio-observations', label: 'LMR observations', icon: 'observations', tab: 'post', kind: 'observation', description: 'Your opted-in Journal observations, original notes and charts, automatically in sync.' },
   { route: 'studio-callouts', label: 'LMR Callouts', icon: 'callouts', tab: 'post', kind: 'callout', description: 'Publish the idea, its conditions and invalidation to paid members.' },
   { route: 'studio-trades', label: 'LMR Trade', icon: 'executions', tab: 'post', kind: 'execution', description: 'All LMR Journal trades, paired charts and saved details, automatically in sync.' },
   { route: 'studio-achievements', label: 'LMR achievements', icon: 'achievements', tab: 'post', kind: 'achievement', description: 'Publish the original achievement image and caption from your Journal.' },

@@ -336,7 +336,7 @@ export function Feed({ data, kind, search, onSave, onImage, onQuestion }) {
   return (
     <div style={{ maxWidth: 850 }}>
       {kind === "observation" && <p className="form-help" role="status">{data.observationsError ? "Observations could not refresh. Reopen this section to retry." : data.observationsLoading && !posts.length ? "Loading observations…" : `${posts.length} observations · Synced from LMR’s Journal · Updates every 15 seconds`}</p>}
-      {posts.slice(0,visible).map((p) => (
+      {(kind === "observation" ? posts.slice(0,visible) : posts).map((p) => (
         <Post
           key={p.id}
           post={p}
@@ -346,10 +346,10 @@ export function Feed({ data, kind, search, onSave, onImage, onQuestion }) {
           onQuestion={onQuestion}
         />
       ))}
-      {posts.length > visible && <Button onClick={()=>setVisible(n=>n+12)}>Show more observations</Button>}
+      {kind === "observation" && posts.length > visible && <Button onClick={()=>setVisible(n=>n+12)}>Show more observations</Button>}
       {!posts.length && (
         <Empty
-          title={kind === "observation" && data.observationsLoading ? "Loading observations…" : search ? "No observations match your search." : "No publications here yet."}
+          title={kind === "observation" && data.observationsLoading ? "Loading observations…" : kind === "observation" && search ? "No observations match your search." : "No publications here yet."}
           body={kind === "callout" ? "Paid-member callouts appear here with their conditions and context." : "Journal observations appear here when LMR publishes them."}
         />
       )}
