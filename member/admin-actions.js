@@ -142,7 +142,7 @@ export function useAdminActions({ user, data, setData, run, refresh, notify }) {
             throw error;
           }
         } else await checked(sb.rpc("circle_publish_journal", {p_source_kind:source.kind,p_source_id:source.id}));
-        await refresh();
+        await refresh(true);
       }
       notify(
         preview
@@ -175,7 +175,7 @@ export function useAdminActions({ user, data, setData, run, refresh, notify }) {
       }
       delete form.dataset.observationId;
       form.reset();
-      notify(published?"Observation saved to your Journal and published to paid members.":"Observation saved to your Journal. Its current sharing settings apply.");
+      notify(published?"Observation saved to your Journal and published to paid members.":"Observation saved privately to your Journal and Studio draft.");
     });
   };
   const onSession = (e) => {

@@ -1,3 +1,4 @@
+import StudioSources from "./studio-sources.jsx";
 import {newestJournalFirst} from "./journal-order.mjs";
 import React, { useState } from "react";
 import { Button, Empty, formatDate } from "./ui";
@@ -15,14 +16,7 @@ export default function JournalSources({ data, kind, busy, onPublish, onRefresh 
     data.adminPosts.find(
       (post) => post.source_kind === kind && post.source_id === source.id,
     );
-  if(kind === "observation") return <section className="panel form-panel journal-source-panel"><h2>Your observations, always in sync.</h2><p>All saved observations in LMR’s opted-in Journal appear automatically for paid members. Open an observation to read its original notes and charts. Edits and deletions follow the Journal.</p><a className="button gold" href="/inner-circle#observations">View synced observations</a></section>;
-  if(kind === "trade") return <section className="panel form-panel journal-source-panel">
-    <h2>Your trades, always in sync.</h2>
-    <p>All saved trades in LMR’s cloud Journal appear automatically in Trade Execution for paid members. The original Intraday / entry trigger and Entry / exit outcome charts update with your Journal. Trades without charts remain visible with their saved details.</p>
-    <p className="form-help">Edit trades and photos in Trading Journal. Account numbers and balances are never included.</p>
-    <a className="button gold" href="/inner-circle#executions">View synced trade executions</a>
-    {onRefresh && <Button small icon="refresh" disabled={busy} onClick={onRefresh}>Refresh from Journal</Button>}
-  </section>;
+  if(["trade","observation"].includes(kind)) return <StudioSources data={data} kind={kind} busy={busy} onPublish={onPublish}/>;
   return (
     <section className="panel form-panel journal-source-panel">
       <span className="tag">From your Journal Application</span>
