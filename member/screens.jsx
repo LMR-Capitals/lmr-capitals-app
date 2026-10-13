@@ -1,3 +1,4 @@
+import {newestCallouts} from './callouts.mjs';
 import ExecutionSessionFilter from './execution-session-filter';
 import {mergeObservations} from "./observations.mjs";
 import ExecutionRecord from "./execution-record";
@@ -326,7 +327,7 @@ export function FreeResources({ data, go, onSave, onImage, onQuestion }) {
 }
 export function Feed({ data, kind, search, onSave, onImage, onQuestion }) {
   const [visible,setVisible] = useState(12);
-  const all = kind === "observation" ? mergeObservations(data.posts,data.liveObservations) : data.posts;
+  const all = kind === "observation" ? mergeObservations(data.posts,data.liveObservations) : kind === 'callout' ? newestCallouts(data.posts) : data.posts;
   const posts = all.filter(
     (p) =>
       p.kind === kind &&

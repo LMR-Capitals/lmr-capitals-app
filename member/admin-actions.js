@@ -1,3 +1,4 @@
+import {calloutPayload,validateCalloutImage} from './callouts.mjs';
 import { journalPublication } from "./journal-media.mjs";
 import { preview, safeEmbed, safeHttps } from "./config";
 import { sb, checked, uploadMedia, copyJournalEntry } from "./api";
@@ -19,12 +20,15 @@ const previewNotice = (
 
 // Shared by the member studio and the dedicated Admin Terminal.
 export function useAdminActions({ user, data, setData, run, refresh, notify }) {
-  const onPublish = (e, kind) => {
+  const onPublish = (e, kind, attachment) => {
     e.preventDefault();
     const form = e.currentTarget,
       f = new FormData(form);
+    if(attachment)f.set("image",attachment);
     run(async () => {
       const file = f.get("image");
+      const callout=kind === "callout" ? calloutPayload(f) : null;
+      if(callout)validateCalloutImage(file);
       let image_path = null,
         image_url = null;
       if (file?.size) {
@@ -36,24 +40,20 @@ export function useAdminActions({ user, data, setData, run, refresh, notify }) {
         if (preview) image_url = URL.createObjectURL(file);
         else image_path = await uploadMedia(file, user);
       }
-      const status = String(f.get("status"));
+      const status = callout?.status || String(f.get("status"));
       const record = {
         author_id: user.id,
         kind,
         title: String(f.get("title")).trim(),
-        body: String(f.get("body")).trim(),
+        body: String(f.get("body") || "").trim(),
         status,
         image_path,
-        image_caption: String(f.get("image_caption")).trim(),
+        image_caption: String(f.get("image_caption") || "").trim(),
         pinned: f.get("pinned") === "on",
         published_at: status === "published" ? new Date().toISOString() : null,
       };
-      if (kind === "callout") {
-        const conditions = String(f.get("conditions") || "").trim(), invalidation = String(f.get("invalidation") || "").trim();
-        if (!conditions || !invalidation) throw new Error("Add the callout conditions and invalidation.");
-        record.body += `\n\nConditions\n${conditions}\n\nInvalidation\n${invalidation}`;
-      }
-      if (!record.title || !record.body)
+      if(callout)Object.assign(record,callout);
+      if (!record.title || (!callout && !record.body))
         throw new Error("A title and post body are required.");
       if (["execution", "achievement"].includes(kind) && !file?.size)
         throw new Error("Attach an image for this publication.");
@@ -89,7 +89,7 @@ export function useAdminActions({ user, data, setData, run, refresh, notify }) {
               ...d.notifications,
             ],
           }));
-        } else await refresh();
+        } else await refresh(kind === "callout");
       } else if (preview) {
         setData((d) => ({ ...d, adminPosts: [item, ...d.adminPosts] }));
       } else await refresh();

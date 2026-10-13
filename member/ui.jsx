@@ -301,10 +301,10 @@ export function Post({ post, saved, onSave, onImage, onQuestion }) {
             alt={post.image_caption || post.title}
             loading="lazy"
           />
-          <span className="media-caption">
+          {post.kind !== 'callout' && <span className="media-caption">
             {post.image_caption || "Published by LMR"}
             <Icon name="external" size={13} />
-          </span>
+          </span>}
         </button>
       )}
       {post.media_error && (
