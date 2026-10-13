@@ -2756,3 +2756,6 @@ dialog::backdrop {
  .studio-observation-item .journal-source-meta, .studio-observation-item .observation-record, .studio-observation-publish { padding: 16px; }
  .studio-observation-actions .button { width: 100%; }
 }
+
+.studio-observation-item > .execution-record { padding: 20px; }
+@media (max-width:560px) { .studio-observation-item > .execution-record { padding: 16px; } }

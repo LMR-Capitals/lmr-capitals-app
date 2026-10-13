@@ -34,7 +34,7 @@ export const executionSessionGroups = [
  ['NY PM',['NY PM','Final Hour']],
 ];
 export function executionSession(record) {
- const saved = record.source_details?.session ?? record.body?.match(/(?:^| · )Session: (.*?)(?: · |$)/)?.[1];
+ const saved = record.source_details?.session ?? record.session ?? record.body?.match(/(?:^| · )Session: (.*?)(?: · |$)/)?.[1];
  const value = typeof saved === 'string' ? saved.trim() : '';
  return ({AM:'NY AM',PM:'NY PM'})[value] || value;
 }
