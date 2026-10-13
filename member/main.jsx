@@ -1148,7 +1148,7 @@ function App() {
           />
         </div>
       </aside>
-      <div className={`app-main${(route === "application" && canOpenJournal(accessState) || route === "life-os" && accessState?.adminVerified) ? " journal-surface-active" : ""}`}>
+      <div className={`app-main${(route === "application" && canOpenJournal(accessState) || route === "life-os" && accessState?.adminVerified) ? " journal-surface-active" : ""}${route === "application" && canOpenJournal(accessState) ? " journal-application-active" : ""}`}>
         <header className="topbar">
           <a className="mobile-workspace-brand" href="/" aria-label="LMR Capitals home">
             <img src="/icons/lmr-icon-circle.png" alt="" />

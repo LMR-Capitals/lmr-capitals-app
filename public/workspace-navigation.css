@@ -34,3 +34,7 @@
 @media(max-width:760px){.sidebar.lmr-life-sidebar{position:static;width:100%;min-width:0;padding:12px 16px 0;border-right:0;border-bottom:1px solid var(--nav-line)}.is-embedded .lmr-life-sidebar>.lmr-workspace-brand{display:none}.lmr-life-sidebar .lmr-access-label{display:none}.lmr-life-sidebar nav{padding:0 0 8px}.lmr-life-sidebar nav button{min-height:44px;white-space:nowrap}.lmr-life-sidebar .lmr-settings-button{width:auto;margin:0 0 8px;min-height:44px}.lmr-life-sidebar~.main{margin:0;width:100%}.life-settings{padding:20px}}
 .lmr-account-context summary{padding:12px 4px;min-height:43px;font-size:11px;color:var(--nav-text);cursor:pointer}.lmr-account-context[open] .sb-head{margin-top:8px}
 .lmr-journal-sidebar .sb-payout.ready{background:#19332d;color:#8fceb2;border-color:#31564a;box-shadow:none}.lmr-journal-sidebar .sb-payout.ready:hover{background:#21453a;color:#b5ecd4}
+/* One full-height rail, rather than a short menu trapped between fixed panels. */
+.sidebar.lmr-journal-sidebar{overflow-y:auto;overflow-x:hidden}
+.lmr-journal-sidebar .sb-nav{flex:none;overflow:visible;min-height:0}
+@media(min-width:901px){.journal-embedded .main{padding-top:79px}}
