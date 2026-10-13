@@ -1,6 +1,7 @@
+import ExecutionSessionFilter from './execution-session-filter';
 import {mergeObservations} from "./observations.mjs";
 import ExecutionRecord from "./execution-record";
-import {mergeExecutions, executionSession, executionSessionGroups, filterExecutionSession} from "./executions.mjs";
+import {mergeExecutions, filterExecutionSession} from "./executions.mjs";
 import {AchievementDetails} from "./journal-record";
 import {journalTitle} from "./journal-media.mjs";
 import ProfilePhotoEditor from "./profile-photo.jsx";
@@ -360,9 +361,6 @@ export function Gallery({ data, kind, onImage, search }) {
   const [visible, setVisible] = useState(24);
   const [session, setSession] = useState('all');
   const executions = mergeExecutions(data.posts,data.liveExecutions);
-  const knownSessions = executionSessionGroups.flatMap(([,sessions]) => sessions);
-  const extraSessions = [...new Set(executions.map(executionSession))].filter(s => s && !knownSessions.includes(s)).sort();
-  const sessionCount = value => executions.filter(p => executionSession(p) === value).length;
   const items = (kind === "execution" ? filterExecutionSession(executions,session) : data.posts).filter(
     (p) =>
       p.kind === kind &&
@@ -381,19 +379,7 @@ export function Gallery({ data, kind, onImage, search }) {
           Past performance is not indicative of future results.
         </span>
       </div>
-      {kind === "execution" && <div className="execution-filters">
-        <label>Session traded
-          <select value={session} onChange={event => {setSession(event.target.value);setVisible(24);}}>
-            <option value="all">All sessions ({executions.length})</option>
-            {executionSessionGroups.map(([group,sessions]) => <optgroup key={group} label={group}>
-              {sessions.map(value => <option key={value} value={value}>{value} ({sessionCount(value)})</option>)}
-            </optgroup>)}
-            {extraSessions.length > 0 && <optgroup label="Other saved sessions">{extraSessions.map(value => <option key={value} value={value}>{value} ({sessionCount(value)})</option>)}</optgroup>}
-            {sessionCount('') > 0 && <option value="">Not recorded ({sessionCount('')})</option>}
-          </select>
-        </label>
-        {session !== 'all' && <Button small onClick={() => {setSession('all');setVisible(24);}}>Clear session filter</Button>}
-      </div>}
+      {kind === "execution" && <ExecutionSessionFilter records={executions} value={session} onChange={value=>{setSession(value);setVisible(24);}}/>}
       {kind === "execution" && <p className="form-help" role="status">{data.executionsLoading && !executions.length ? "Loading LMR trades…" : data.executionsError ? "Live trades could not refresh. Reopen this section to retry." : `${items.length} ${items.length === 1 ? "trade" : "trades"} · Published from LMR’s Journal · Updates every 15 seconds`}</p>}
       {items.length ? (
         <><div className="gallery-grid">

@@ -12,3 +12,18 @@ export async function fetchStudioDetail(client,kind,id,baseUrl) {
  const url=chart=>chart.path ? `${baseUrl}/storage/v1/object/public/app-images/${chart.path.split('/').map(encodeURIComponent).join('/')}?v=${encodeURIComponent(chart.version || '')}` : null;
  return {...data,charts:(data.charts || []).map(c=>({...c,url:url(c)}))};
 }
+
+// Read only session labels for the same owner-approved source IDs. No Journal writes.
+export async function fetchStudioTrades(client) {
+ const rows=await fetchStudioSources(client,'trade');
+ if(!rows.length)return rows;
+ const {data:identity,error:identityError}=await client.auth.getUser();
+ if(identityError || !identity?.user?.id)throw new Error(identityError?.message || 'Sign in again to load your trade sessions.');
+ const sessions=new Map();
+ for(let offset=0;offset<rows.length;offset+=100){
+  const {data,error}=await client.from('trades').select('id,session').eq('user_id',identity.user.id).in('id',rows.slice(offset,offset+100).map(row=>row.id));
+  if(error)throw new Error(error.message);
+  for(const row of data || [])sessions.set(row.id,row.session);
+ }
+ return rows.map(row=>({...row,source_details:{session:sessions.get(row.id) ?? null}}));
+}
