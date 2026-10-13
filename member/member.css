@@ -2786,3 +2786,12 @@ dialog::backdrop {
  .callout-publish-row .button { width: 100%; }
  .callout-post { padding: 16px; }
 }
+
+.discord-settings { border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; background: var(--panel); }
+.discord-settings summary { display: flex; justify-content: space-between; gap: 16px; cursor: pointer; color: var(--text); font-weight: 600; }
+.discord-settings summary span { font-size: 12px; color: var(--muted); font-weight: 400; }
+.discord-settings p, .discord-settings small { color: var(--muted); font-size: 13px; line-height: 1.6; }
+.discord-settings-form { display: grid; gap: 16px; margin: 20px 0 16px; }
+.discord-settings-form label { display: grid; gap: 8px; }
+.discord-settings-form > div { display: flex; flex-wrap: wrap; gap: 12px; }
+@media(max-width:560px) { .discord-settings { padding: 16px; } .discord-settings summary { flex-direction: column; gap: 6px; } }

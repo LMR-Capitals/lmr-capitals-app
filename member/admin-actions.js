@@ -1,3 +1,4 @@
+import {deliverDiscord} from './discord-api';
 import {calloutPayload,validateCalloutImage} from './callouts.mjs';
 import { journalPublication } from "./journal-media.mjs";
 import { preview, safeEmbed, safeHttps } from "./config";
@@ -93,11 +94,12 @@ export function useAdminActions({ user, data, setData, run, refresh, notify }) {
       } else if (preview) {
         setData((d) => ({ ...d, adminPosts: [item, ...d.adminPosts] }));
       } else await refresh();
+      const discordResult=kind === "callout" && status === "published" ? await deliverDiscord("callouts",item.id) : "";
       form.reset();
       notify(
         status === "published"
           ? "Post published to the member feed" +
-              (preview ? " in preview." : ".")
+              (preview ? " in preview." : ".") + discordResult
           : preview
             ? "Draft saved in this preview."
             : "Draft saved to the admin database.",
@@ -225,7 +227,8 @@ export function useAdminActions({ user, data, setData, run, refresh, notify }) {
         }));
       else await refresh();
       form.reset();
-      notify("Session published" + (preview ? " in preview." : "."));
+      const discordResult=await deliverDiscord("sessions",item.id);
+      notify("Session published" + (preview ? " in preview." : ".") + discordResult);
     });
   };
   const onPostStatus = (id, status) =>
@@ -271,7 +274,7 @@ export function useAdminActions({ user, data, setData, run, refresh, notify }) {
         await refresh();
       }
       notify(
-        status === "published" ? "Post published." : "Post moved to drafts.",
+        (status === "published" ? "Post published." : "Post moved to drafts.") + (status === "published" && (data.adminPosts.find(p=>p.id===id)||data.posts.find(p=>p.id===id))?.kind === "callout" ? await deliverDiscord("callouts",id) : ""),
       );
     });
   const onSessionStatus = (id, status) =>
@@ -302,7 +305,7 @@ export function useAdminActions({ user, data, setData, run, refresh, notify }) {
         );
         await refresh();
       }
-      notify("Session status updated.");
+      notify("Session status updated." + await deliverDiscord("sessions",id));
     });
   const onSessionBlock = (id, session_block) =>
     run(async () => {
@@ -338,7 +341,7 @@ export function useAdminActions({ user, data, setData, run, refresh, notify }) {
         );
         await refresh();
       }
-      notify("Session group updated" + (preview ? " in preview." : "."));
+      notify("Session group updated" + (preview ? " in preview." : ".") + await deliverDiscord("sessions",id));
     });
   const onAnnouncement = (e) => {
     e.preventDefault();
@@ -362,7 +365,7 @@ export function useAdminActions({ user, data, setData, run, refresh, notify }) {
           );
       setData((d) => ({ ...d, notifications: [item, ...d.notifications] }));
       form.reset();
-      notify("Announcement published" + (preview ? " in preview." : "."));
+      notify("Announcement published" + (preview ? " in preview." : ".") + await deliverDiscord("announcements",item.id));
     });
   };
   const answer = (e, id) => {
