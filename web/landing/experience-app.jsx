@@ -94,7 +94,7 @@ function Hero({ reduced }) {
   return <section ref={ref} id="top" className="hero" aria-labelledby="hero-title" data-od-id="stage">
     <style>{MARKET_CSS}</style><div className="market-art" data-active={active && !reduced} dangerouslySetInnerHTML={{ __html: MARKET_SVG }} /><div className="hero-shade" />
     <div className="shell hero-frame" data-od-id="chrome"><span>A DOCUMENTED TRADING PRACTICE</span><span>LMR CAPITALS / THE CHAIN</span></div>
-    <div className="shell hero-content"><p className="hero-role">Trader <i /> Mentor <i /> Fund Manager</p><h1 id="hero-title" data-od-id="headline">Trade With a System.<br />Master <em>The Chain.</em></h1><p className="hero-body">LMR Capitals is the professional trading practice and journal behind a structured Daily → Weekly → Monthly methodology. Every trade, every model, and every lesson is logged here in real time—and the same framework powers the mentorship and managed accounts I run for clients.</p><div className="hero-actions"><a className="button button-gold" href="/member/index.html">Sign In / Sign Up <Arrow /></a><a className="button button-outline" href="#about">Learn More <Arrow /></a></div></div>
+    <div className="shell hero-content"><p className="hero-role">Trader <i /> Mentor <i /> Educator</p><h1 id="hero-title" data-od-id="headline">Trade With a System.<br />Master <em>The Chain.</em></h1><p className="hero-body">LMR Capitals is the professional trading practice and journal behind a structured Daily → Weekly → Monthly methodology. The journal connects market context, execution and review. The same framework supports general educational market analysis and mentorship; it does not provide personalised financial advice or manage member funds.</p><div className="hero-actions"><a className="button button-gold" href="/member/index.html">Sign In / Sign Up <Arrow /></a><a className="button button-outline" href="#about">Learn More <Arrow /></a></div></div>
     <div className="shell hero-baseline"><span>Context. Execution. Review.</span><a href="#about">Follow the process <Arrow /></a><span>DAILY / WEEKLY / MONTHLY</span></div>
   </section>;
 }
@@ -106,7 +106,7 @@ function Who({ reduced }) {
 const PILLARS = [
   { word: 'Document', title: 'Trading Journal & Track Record', copy: 'Every trade—entry, exit, model, session, risk, and result—is logged in real time. Daily, weekly, and monthly reports turn that data into a transparent track record.', link: '#record', action: 'Explore the records' },
   { word: 'Learn', title: 'Education & Mentorship', copy: 'The MMBM/MMSM weekly models, session profiling, higher-timeframe bias, and the psychology of consistency—taught from the same playbook used in the live journal.', link: '#method', action: 'Follow The Chain' },
-  { word: 'Apply', title: 'Fund & Signal Management', copy: 'For clients seeking disciplined, rules-based exposure, managed accounts and trade signals are built on the process documented in the journal.', link: '#contact', action: 'Get in touch' },
+  { word: 'Observe', title: 'Live Market Education', copy: 'Study published market context, observations and execution examples with live educational guidance. Examples are for learning, not instructions to trade or promises of results.', link: '#contact', action: 'Get in touch' },
 ];
 function PillarArtwork({ index, progress, reduced }) {
   const layer = { progress, reduced };
@@ -128,7 +128,7 @@ function Pillar({ item, index, reduced }) {
   return <article ref={ref} className="pillar-chapter"><motion.div className="pillar-copy" style={reduced ? {} : { x: copyX, opacity: copyOpacity }}><span className="pillar-word">{item.word}</span><h3>{item.title}</h3><p>{item.copy}</p><a className="text-link" href={item.link}>{item.action}<Arrow diagonal /></a></motion.div><motion.div className="pillar-art-wrap" style={reduced ? {} : { scale, rotateX, rotateY, y }}><PillarArtwork index={index} progress={scrollYProgress} reduced={reduced} /></motion.div></article>;
 }
 function What({ reduced }) {
-  return <section id="what" className="what-section section-space shell"><div className="section-intro"><Reveal reduced={reduced}><h2>What We Do at<br /><em>LMR Capitals.</em></h2></Reveal><p>One methodology, applied across three connected pillars: my own trading, the traders I mentor, and the clients I work with.</p></div><div className="pillar-list">{PILLARS.map((item, index) => <Pillar key={item.word} item={item} index={index} reduced={reduced} />)}</div></section>;
+  return <section id="what" className="what-section section-space shell"><div className="section-intro"><Reveal reduced={reduced}><h2>What We Do at<br /><em>LMR Capitals.</em></h2></Reveal><p>One methodology, applied across three connected pillars: my own trading records, educational mentorship and live market analysis.</p></div><div className="pillar-list">{PILLARS.map((item, index) => <Pillar key={item.word} item={item} index={index} reduced={reduced} />)}</div></section>;
 }
 
 function RecordCard({ item, onOpen, duplicate = false }) {
