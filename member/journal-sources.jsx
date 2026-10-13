@@ -34,7 +34,7 @@ export default function JournalSources({ data, kind, busy, onPublish, onRefresh 
         {kind === "trade" ? "Choose a saved trade. Only the chart labelled ENTRY · exit / outcome and its market, direction, session and date are shared. ENTRY images are published as snapshots; refresh a publication to replace its chart. Journal detail edits stay in sync." : "Choose a saved Journal record. Its original notes and images are shared with paid members. Later edits update the linked copy and notify them."}
       </p>
       {onRefresh && <Button small icon="refresh" disabled={busy} onClick={onRefresh}>Refresh from Journal</Button>}
-      {data.journalError ? (
+      {data.journalLoading && !source ? <p role="status">Loading your Journal records…</p> : data.journalError ? (
         <div className="error" role="alert">
           Your Journal records could not load. Refresh the workspace and try again.
         </div>

@@ -1,3 +1,4 @@
+import {enrichPublicationMedia} from "../member/workspace-loading.mjs";
 import {fetchLiveExecutions} from "../member/executions.mjs";
 import {config} from "../member/config";
 import { journalImageUrl } from "../member/journal-media.mjs";
@@ -12,7 +13,7 @@ export const emptyDesk = {
   journalEntries: [],
 };
 // The admin desk deliberately has no dependency on subscriptions or learner progress.
-export async function fetchTerminalWorkspace() {
+export async function fetchTerminalWorkspace({includeExecutions=true, includeJournal=true} = {}) {
   const [posts, sessions, notifications, questions, mentorship] =
     await Promise.all([
       checked(
@@ -45,27 +46,14 @@ export async function fetchTerminalWorkspace() {
           .limit(50),
       ),
     ]);
-  const enriched = await Promise.all(
-    posts.map(async (post) => {
-      if (!post.image_path)
-        return { ...post, image_url: journalImageUrl(post.source_image) };
-      const { data, error } = await sb.storage
-        .from("circle-media")
-        .createSignedUrl(post.image_path, 300);
-      return {
-        ...post,
-        image_url: error ? null : data.signedUrl,
-        media_error: !!error,
-      };
-    }),
-  );
+  const enriched = await enrichPublicationMedia(sb,posts);
   let liveExecutions = [], executionsError = null;
-  try { liveExecutions = await fetchLiveExecutions(sb,config.supabaseUrl); }
+  try { if(includeExecutions) liveExecutions = await fetchLiveExecutions(sb,config.supabaseUrl); }
   catch(error) { executionsError = error.message; }
-  const journal = await fetchJournalSources();
+  const journal = includeJournal ? await fetchJournalSources() : {};
   return {
     ...journal,
-    liveExecutions, executionsError,
+    ...(includeExecutions ? {liveExecutions, executionsError} : {}),
     posts: enriched.filter((post) => post.status === "published"),
     adminPosts: enriched,
     sessions,

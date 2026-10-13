@@ -1,3 +1,4 @@
+import {enrichPublicationMedia} from "./workspace-loading.mjs";
 import {newestJournalFirst} from "./journal-order.mjs";
 import {fetchLiveExecutions} from "./executions.mjs";
 import {fetchPublications} from "./publications.mjs";
@@ -17,7 +18,7 @@ export async function checked(query) {
 export async function access(user) {
   return resolveWorkspaceAccess(sb, user);
 }
-export async function fetchWorkspace(user, isAdmin = false) {
+export async function fetchWorkspace(user, isAdmin = false, {includeExecutions=true, includeJournal=isAdmin} = {}) {
   const [
     posts,
     sessions,
@@ -84,27 +85,14 @@ export async function fetchWorkspace(user, isAdmin = false) {
         .order("chapter_no"),
     ),
   ]);
-  const enriched = await Promise.all(
-    posts.map(async (p) => {
-      if (!p.image_path)
-        return { ...p, image_url: journalImageUrl(p.source_image) };
-      const { data, error } = await sb.storage
-        .from("circle-media")
-        .createSignedUrl(p.image_path, 300);
-      return {
-        ...p,
-        image_url: error ? null : data.signedUrl,
-        media_error: !!error,
-      };
-    }),
-  );
+  const enriched = await enrichPublicationMedia(sb,posts);
   let liveExecutions = [], executionsError = null;
-  try { liveExecutions = await fetchLiveExecutions(sb,config.supabaseUrl); }
+  try { if(includeExecutions) liveExecutions = await fetchLiveExecutions(sb,config.supabaseUrl); }
   catch(error) { executionsError = error.message; }
-  const journal = isAdmin ? await fetchJournalSources() : {};
+  const journal = includeJournal && isAdmin ? await fetchJournalSources() : {};
   return {
     ...journal,
-    liveExecutions, executionsError,
+    ...(includeExecutions ? {liveExecutions, executionsError} : {}),
     posts: enriched.filter((p) => p.status === "published"),
     adminPosts: isAdmin ? enriched : [],
     sessions,
