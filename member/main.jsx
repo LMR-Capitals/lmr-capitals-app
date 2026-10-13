@@ -1,3 +1,5 @@
+import LiveObservation from "./live-observation";
+import {fetchLiveObservations} from "./observations.mjs";
 import {loadAdministratorCore,workspaceExtras} from "./workspace-loading.mjs";
 import {fetchLiveExecutions} from "./executions.mjs";
 import ExecutionRecord from "./execution-record";
@@ -395,23 +397,23 @@ function App() {
   useEffect(() => {
     if(preview || !user) return;
     const extras = workspaceExtras(route,accessState);
-    if(!extras.trades && !extras.journal) return;
+    if(!extras.trades && !extras.observations && !extras.journal) return;
     let active = true, pending = false;
     const sync = async () => {
       if(pending) return;
       pending = true;
-      setData(current => ({...current,...(extras.trades ? {executionsLoading:true} : {journalLoading:true})}));
+      setData(current => ({...current,...(extras.trades ? {executionsLoading:true} : extras.observations ? {observationsLoading:true} : {journalLoading:true})}));
       try {
-        const next = extras.trades ? {liveExecutions:await fetchLiveExecutions(sb,config.supabaseUrl),executionsError:null} : await fetchJournalSources();
-        if(active) setData(current => ({...current,...next,executionsLoading:false,journalLoading:false}));
+        const next = extras.trades ? {liveExecutions:await fetchLiveExecutions(sb,config.supabaseUrl),executionsError:null} : extras.observations ? {liveObservations:await fetchLiveObservations(sb),observationsError:null} : await fetchJournalSources();
+        if(active) setData(current => ({...current,...next,executionsLoading:false,observationsLoading:false,journalLoading:false}));
       } catch(error) {
-        if(active) setData(current => ({...current,...(extras.trades ? {executionsError:error.message,executionsLoading:false} : {journalError:error.message,journalLoading:false})}));
+        if(active) setData(current => ({...current,...(extras.trades ? {executionsError:error.message,executionsLoading:false} : extras.observations ? {observationsError:error.message,observationsLoading:false} : {journalError:error.message,journalLoading:false})}));
       } finally { pending = false; }
     };
     refreshExtras.current = sync;
     sync();
     const onVisible = () => { if(document.visibilityState === 'visible') sync(); };
-    const interval = setInterval(onVisible,extras.trades ? 15000 : 60000);
+    const interval = setInterval(onVisible,extras.trades || extras.observations ? 15000 : 60000);
     window.addEventListener('focus',onVisible);
     return () => {active=false;clearInterval(interval);window.removeEventListener('focus',onVisible);if(refreshExtras.current===sync)refreshExtras.current=async()=>{};};
   },[user?.id,route,accessState?.adminVerified,accessState?.entitled]);
@@ -745,6 +747,7 @@ function App() {
         </form>
       ) : (
         <>
+          {modal.post.live_observation && <LiveObservation key={modal.post.source_id} id={modal.post.source_id}/>}
           {modal.post.live && <ExecutionRecord record={data.liveExecutions?.find(p => p.id === modal.post.id) || {charts:[], source_details:{feedback:"This trade is no longer available. Close this view to return to the updated gallery."}}} />}
           {!modal.post.live && modal.post.image_url && (
             <img
@@ -753,7 +756,7 @@ function App() {
               alt={modal.post.image_caption || modal.post.title}
             />
           )}
-          {modal.post.kind === "achievement" ? <AchievementDetails record={modal.post} /> : <p className="content-note">{modal.post.body}</p>}
+          {!modal.post.live_observation && (modal.post.kind === "achievement" ? <AchievementDetails record={modal.post} /> : <p className="content-note">{modal.post.body}</p>)}
           {modal.post.source_content && <ObservationRecord record={modal.post} />}
         </>
       )}

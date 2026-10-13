@@ -1,0 +1,11 @@
+# Live observations — 13 October 2026
+
+The owner explicitly selected both automatic sharing of all existing/future admin Journal observations with paid members and faster loading. Only owner 05fac964-001e-49d3-bf50-bcf0f31eb96d is opted in; other Journal users and future admins are excluded. No mass notification, source changes or image uploads were performed.
+
+Applied additive reference: database/migrations/20261013072612_inner_circle_live_observations.sql. An unexposed private, read-only function behind a public invoker wrapper enforces paid membership or verified administrator MFA. Anonymous calls and private other-owner IDs are denied. The endpoint returns paginated lightweight note summaries or one original observation with full HTML/charts, never account data. Source rows, existing publication states, source RLS and image storage are unchanged.
+
+Verified production source: 31 observations, 3,899,600 bytes of original content. The summary response is 21,039 bytes with no inline image data; a detail lookup preserves the original content exactly. Feed and opened details refresh every 15 seconds while visible. Older published copies are deduplicated, original created dates control ordering, text search remains available, and 12 items are rendered initially with Show more. Full original notes/charts load only on opening. Ask the desk remains available; virtual feed IDs are not inserted into publication bookmarks.
+
+Studio now explains automatic synchronization and links to the member view. It no longer downloads the entire Journal source archive for observations. The observation composer clearly separates automatic owner sharing from its optional announcement/publication action; a Studio draft must not be presented as making the opted-in Journal record private. Achievement publication remains unchanged.
+
+Validation: PGlite owner/MFA/paid/anonymous/detail/pagination/source-preservation tests; client pagination/deduplication/detail/error tests; workspace source gating and role tests; existing Studio tests; complete root build; clean design detector; security advisor has no finding for the new functions. Deploy through reviewed Git PR/main; final receipt is recorded in chat.

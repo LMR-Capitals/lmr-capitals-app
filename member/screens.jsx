@@ -1,3 +1,4 @@
+import {mergeObservations} from "./observations.mjs";
 import ExecutionRecord from "./execution-record";
 import {mergeExecutions, executionSession, executionSessionGroups, filterExecutionSession} from "./executions.mjs";
 import {AchievementDetails} from "./journal-record";
@@ -323,7 +324,9 @@ export function FreeResources({ data, go, onSave, onImage, onQuestion }) {
   );
 }
 export function Feed({ data, kind, search, onSave, onImage, onQuestion }) {
-  const posts = data.posts.filter(
+  const [visible,setVisible] = useState(12);
+  const all = kind === "observation" ? mergeObservations(data.posts,data.liveObservations) : data.posts;
+  const posts = all.filter(
     (p) =>
       p.kind === kind &&
       `${p.title} ${p.body} ${p.source_content || ""} ${JSON.stringify(p.source_details || {})}`
@@ -332,7 +335,8 @@ export function Feed({ data, kind, search, onSave, onImage, onQuestion }) {
   );
   return (
     <div style={{ maxWidth: 850 }}>
-      {posts.map((p) => (
+      {kind === "observation" && <p className="form-help" role="status">{data.observationsError ? "Observations could not refresh. Reopen this section to retry." : data.observationsLoading && !posts.length ? "Loading observations…" : `${posts.length} observations · Synced from LMR’s Journal · Updates every 15 seconds`}</p>}
+      {posts.slice(0,visible).map((p) => (
         <Post
           key={p.id}
           post={p}
@@ -342,9 +346,10 @@ export function Feed({ data, kind, search, onSave, onImage, onQuestion }) {
           onQuestion={onQuestion}
         />
       ))}
+      {posts.length > visible && <Button onClick={()=>setVisible(n=>n+12)}>Show more observations</Button>}
       {!posts.length && (
         <Empty
-          title="No publications here yet."
+          title={kind === "observation" && data.observationsLoading ? "Loading observations…" : search ? "No observations match your search." : "No publications here yet."}
           body={kind === "callout" ? "Paid-member callouts appear here with their conditions and context." : "Journal observations appear here when LMR publishes them."}
         />
       )}
