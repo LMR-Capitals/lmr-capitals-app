@@ -25,3 +25,19 @@ export function executionDetails(record) {
   return text ? [{key,label,value:text}] : [];
  });
 }
+
+// Match Journal's SESSION_GROUPS without changing its saved session strings.
+export const executionSessionGroups = [
+ ['Asian',['Asian Killzone']],
+ ['London',['Midnight Open','London Open','London Kill Zone','London Close']],
+ ['NY AM',['Pre-NY Session','NY AM','NY Lunch']],
+ ['NY PM',['NY PM','Final Hour']],
+];
+export function executionSession(record) {
+ const saved = record.source_details?.session ?? record.body?.match(/(?:^| · )Session: (.*?)(?: · |$)/)?.[1];
+ const value = typeof saved === 'string' ? saved.trim() : '';
+ return ({AM:'NY AM',PM:'NY PM'})[value] || value;
+}
+export function filterExecutionSession(records, session) {
+ return records.filter(p => session === 'all' || executionSession(p) === session);
+}

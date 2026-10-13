@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {mergeExecutions,fetchLiveExecutions,executionDetails} from '../executions.mjs';
+import {mergeExecutions,fetchLiveExecutions,executionDetails,executionSession,filterExecutionSession} from '../executions.mjs';
 const live={id:'live:a',source_id:'a',source_owner_id:'owner',source_kind:'trade',kind:'execution',source_details:{date:'2026-10-13',pnl:0,feedback:'Saved review',account_no:'secret',risk:null}};
 assert.equal(mergeExecutions([{...live,id:'snapshot'},{...live,id:'older',source_id:'b'}, {id:'obs',kind:'observation'}],[live]).length,2);
 assert.deepEqual(executionDetails(live).map(d=>d.key),['date','pnl','feedback']);
@@ -8,3 +8,12 @@ const rows=await fetchLiveExecutions({rpc:async(name,args)=>{calls.push(args.p_o
 assert.equal(rows.length,101);assert.deepEqual(calls,[0,100]);assert.match(rows[0].charts?.[0]?.url || rows[1].charts[0].url,/app-images\/owner\/trade-a-entry\?v=2026-10-13/);
 await assert.rejects(fetchLiveExecutions({rpc:async()=>({error:{message:'Denied'}})},''),/Denied/);
 console.log('Execution pagination, zero values, private-field exclusion and snapshot deduplication passed.');
+
+const sessions=[{source_details:{session:'AM'}},{source_details:{session:'NY AM'}},{source_details:{session:'PM'}},{body:'Market: NQ · Session: London Open · Date: 2026-10-13'},{source_details:{session:null}}];
+assert.equal(executionSession(sessions[0]),'NY AM');
+assert.equal(filterExecutionSession(sessions,'NY AM').length,2);
+assert.equal(filterExecutionSession(sessions,'London Open').length,1);
+assert.equal(filterExecutionSession(sessions,'').length,1);
+assert.equal(filterExecutionSession(sessions,'all').length,5);
+assert.equal(filterExecutionSession(sessions,'Asian Killzone').length,0);
+console.log('PASS: grouped session filtering, legacy AM/PM aliases, snapshot sessions and unrecorded sessions.');
