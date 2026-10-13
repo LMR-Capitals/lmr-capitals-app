@@ -1303,7 +1303,7 @@ function App() {
             </div>
           </footer>
         </main>
-        {admin && accessState.adminVerified && <LifeOSWorkspace key={"life-os:"+user.id} active={route === "life-os"} preview={preview}/>}
+        {admin && accessState.adminVerified && <LifeOSWorkspace key={"life-os:"+user.id} active={route === "life-os"} preview={preview} onNavigate={go}/>}
         {canOpenJournal(accessState) && <JournalWorkspace key={user.id} active={route === "application"} preview={preview} administrator={admin} onNavigate={go} onAccessCheck={() => refresh(true)} onVerify={() => location.assign("/admin?next=journal")} />}
       </div>
       {modalView}
