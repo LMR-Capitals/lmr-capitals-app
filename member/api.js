@@ -1,4 +1,5 @@
 import {newestJournalFirst} from "./journal-order.mjs";
+import {fetchLiveExecutions} from "./executions.mjs";
 import {fetchPublications} from "./publications.mjs";
 import { createClient } from "@supabase/supabase-js";
 import { config, preview, safeHttps } from "./config";
@@ -97,9 +98,13 @@ export async function fetchWorkspace(user, isAdmin = false) {
       };
     }),
   );
+  let liveExecutions = [], executionsError = null;
+  try { liveExecutions = await fetchLiveExecutions(sb,config.supabaseUrl); }
+  catch(error) { executionsError = error.message; }
   const journal = isAdmin ? await fetchJournalSources() : {};
   return {
     ...journal,
+    liveExecutions, executionsError,
     posts: enriched.filter((p) => p.status === "published"),
     adminPosts: isAdmin ? enriched : [],
     sessions,

@@ -1,3 +1,5 @@
+import ExecutionRecord from "./execution-record";
+import {mergeExecutions} from "./executions.mjs";
 import {AchievementDetails} from "./journal-record";
 import {journalTitle} from "./journal-media.mjs";
 import ProfilePhotoEditor from "./profile-photo.jsx";
@@ -350,7 +352,8 @@ export function Feed({ data, kind, search, onSave, onImage, onQuestion }) {
   );
 }
 export function Gallery({ data, kind, onImage, search }) {
-  const items = data.posts.filter(
+  const [visible, setVisible] = useState(24);
+  const items = (kind === "execution" ? mergeExecutions(data.posts,data.liveExecutions) : data.posts).filter(
     (p) =>
       p.kind === kind &&
       `${p.title} ${p.body} ${p.source_content || ""} ${JSON.stringify(p.source_details || {})}`
@@ -368,15 +371,16 @@ export function Gallery({ data, kind, onImage, search }) {
           Past performance is not indicative of future results.
         </span>
       </div>
+      {kind === "execution" && <p className="form-help" role="status">{data.executionsError ? "Live trades could not refresh. Reopen this section to retry." : `${items.length} ${items.length === 1 ? "trade" : "trades"} · Synced from LMR’s Journal · Updates every 15 seconds`}</p>}
       {items.length ? (
-        <div className="gallery-grid">
-          {items.map((p) => (
+        <><div className="gallery-grid">
+          {items.slice(0,visible).map((p) => (
             <button
               className={`gallery-item panel ${kind === "achievement" ? "achievement-item" : ""}`}
               key={p.id}
               onClick={() => onImage(p)}
             >
-              {p.image_url ? (
+              {p.live ? <ExecutionRecord record={p} compact/> : p.image_url ? (
                 <img
                   src={p.image_url}
                   alt={p.image_caption || p.title}
@@ -390,14 +394,14 @@ export function Gallery({ data, kind, onImage, search }) {
               )}
               <div className="gallery-item-body">
                 {kind === "achievement" ? <AchievementDetails record={p} /> : <>
-                  <span className="tag">ENTRY · exit / outcome</span>
+                  {!p.live && <span className="tag">ENTRY · exit / outcome</span>}
                   <h3>{journalTitle(p)}</h3>
                   <p>{p.body}</p>
                 </>}
               </div>
             </button>
           ))}
-        </div>
+        </div>{items.length > visible && <Button onClick={() => setVisible(n => n+24)}>Show more trades</Button>}</>
       ) : (
         <Empty
           icon={kind === "execution" ? "executions" : "achievements"}
@@ -409,7 +413,7 @@ export function Gallery({ data, kind, onImage, search }) {
           body={
             preview
               ? "Actual trading records will appear when an admin publishes them. The preview does not invent executions, certificates or performance."
-              : "LMR has not published images in this section yet. New publications will appear here and in your notifications."
+              : kind === "execution" ? "Saved cloud trades appear here automatically. Charts appear when they are uploaded in LMR’s Journal." : "LMR has not published images in this section yet."
           }
         />
       )}

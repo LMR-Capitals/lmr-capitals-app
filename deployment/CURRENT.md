@@ -1,5 +1,9 @@
 # Current full-site deployment
 
+## Live execution feed — 13 October 2026
+
+See [live execution release notes](LIVE-EXECUTIONS-2026-10-13.md). The owner has explicitly opted their own admin Journal into automatic paid-member execution sharing. Its additive read-only function is applied; source Journal records and RLS are unchanged. Use Git continuous deployment after review and merge. Preserve #78 and #79 Journal save/image fixes.
+
 This file is the deployment entry point for Claude and other collaborators. Historical receipts remain in this directory; the latest verified production ID below takes precedence over draft URLs and older deploy notes.
 
 ## Mobile workspace update — 12 October 2026

@@ -2719,3 +2719,18 @@ dialog::backdrop {
 @media(max-width:760px){
  .is-preview .journal-workspace{height:calc(100dvh - var(--mobile-header-height) - 31px)}
 }
+
+/* Original Journal charts, with their original slot names and saved trade values. */
+.execution-record { width:100%; text-align:left; }
+.execution-charts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; padding:16px; }
+.execution-charts figure { margin:0; min-width:0; }
+.execution-charts figcaption { margin-bottom:8px; font-size:12px; color:var(--text); }
+.execution-charts img { width:100%; height:auto; aspect-ratio:4/3; object-fit:contain; background:var(--bg); }
+.execution-missing { display:grid; place-items:center; aspect-ratio:4/3; margin:0; font-size:12px; background:var(--bg); }
+.execution-details { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; padding:0 16px; margin:0 0 16px; }
+.execution-details div { min-width:0; }
+.execution-details dt { font-size:12px; color:var(--muted); margin-bottom:4px; }
+.execution-details dd { margin:0; font-size:14px; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; white-space:pre-wrap; }
+.modal .execution-charts { padding:0; }
+.modal .execution-charts img { aspect-ratio:auto; max-height:65vh; }
+@media(max-width:600px) { .execution-details { grid-template-columns:repeat(2,minmax(0,1fr)); } .modal .execution-charts { grid-template-columns:1fr; } }
