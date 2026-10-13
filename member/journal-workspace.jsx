@@ -3,7 +3,7 @@ import { journalWorkspaceMessage } from "./portal-flow.mjs";
 import Icon from "./icons";
 import { Button } from "./ui";
 
-export default function JournalWorkspace({ active, preview, administrator, onNavigate, onVerify, onAccessCheck }) {
+export default function JournalWorkspace({ active, preview, administrator, onNavigate, onVerify, onAccessCheck, onSessionContext }) {
   const [visited, setVisited] = useState(active);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -25,6 +25,22 @@ export default function JournalWorkspace({ active, preview, administrator, onNav
     const timeout = setTimeout(() => setFailed(true), 20000);
     return () => clearTimeout(timeout);
   }, [visited, ready, preview, attempt]);
+  useEffect(() => {
+    if (!active || preview) return;
+    // Read only visible clock labels from our same-origin Journal frame.
+    // The Journal remains the source of truth for its existing session logic.
+    const readContext = () => {
+      try {
+        const doc = frame.current?.contentDocument;
+        const time = doc?.getElementById("nyClockTime")?.textContent;
+        if (!/^\d{2}:\d{2}:\d{2}$/.test(time || "")) return;
+        onSessionContext({ time, date: (doc.getElementById("nyClockDate")?.textContent || "").slice(0, 60), quarters: (doc.getElementById("clock-q")?.textContent || "").slice(0, 120), macro: (doc.getElementById("clock-macro")?.textContent || "").slice(0, 120) });
+      } catch { /* Cross-origin redirects cannot provide Journal context. */ }
+    };
+    readContext();
+    const timer = setInterval(readContext, 1000);
+    return () => clearInterval(timer);
+  }, [active, preview, onSessionContext]);
   if (!visited && !active) return null;
   return <section className="journal-workspace" id="workspace-journal" tabIndex={-1} hidden={!active} aria-label="Trading Journal workspace">
     {preview ? <JournalPreview /> : <>
