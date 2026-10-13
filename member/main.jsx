@@ -151,7 +151,6 @@ const baseData = {
 };
 const legal = policies;
 function App() {
-  const [journalSession, setJournalSession] = useState(null);
   const [user, setUser] = useState(
       preview ? { id: initialAdministratorPreview ? "preview-admin" : "preview-member", email: initialAdministratorPreview ? "admin@lmrcapitals.com" : "member@example.com" } : null,
     ),
@@ -1171,10 +1170,6 @@ function App() {
             <button aria-pressed={route === "application"} onClick={() => go("application")}><Icon name="application" size={16} /><span>Trading Journal</span>{!canOpenJournal(accessState) && <Icon name="lock" size={12} />}</button>
             {admin && <button aria-pressed={route === "life-os"} onClick={() => go("life-os")}><Icon name="calendar" size={16}/><span>Life OS</span></button>}
           </div>
-          {route === "application" && journalSession && <div className="journal-session-clock" aria-label="New York session time">
-            <div><span>NEW YORK</span><time>{journalSession.time}</time><small>{journalSession.date}</small></div>
-            <small className="journal-session-quarters">{journalSession.quarters}{journalSession.macro && ` · ${journalSession.macro}`}</small>
-          </div>}
           <div className="top-actions">
             {!entitled && !admin && (
               <Button small gold onClick={() => go("billing")}>
@@ -1309,7 +1304,7 @@ function App() {
           </footer>
         </main>
         {admin && accessState.adminVerified && <LifeOSWorkspace key={"life-os:"+user.id} active={route === "life-os"} preview={preview} onNavigate={go}/>}
-        {canOpenJournal(accessState) && <JournalWorkspace onSessionContext={setJournalSession} key={user.id} active={route === "application"} preview={preview} administrator={admin} onNavigate={go} onAccessCheck={() => refresh(true)} onVerify={() => location.assign("/admin?next=journal")} />}
+        {canOpenJournal(accessState) && <JournalWorkspace key={user.id} active={route === "application"} preview={preview} administrator={admin} onNavigate={go} onAccessCheck={() => refresh(true)} onVerify={() => location.assign("/admin?next=journal")} />}
       </div>
       {modalView}
       {toast && (

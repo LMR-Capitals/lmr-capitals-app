@@ -2812,20 +2812,3 @@ dialog::backdrop {
  .is-preview .journal-application-active>#workspace-journal{height:calc(100dvh - 31px)}
  .journal-application-active .journal-preview-page{padding-top:100px}
 }
-
-/* Compact live Journal context in the shared workspace header. */
-.journal-session-clock{margin-left:auto;min-width:0;text-align:right;color:var(--muted);line-height:1.5}
-.journal-session-clock>div{display:flex;align-items:baseline;justify-content:flex-end;gap:10px;white-space:nowrap}
-.journal-session-clock span{font-size:9px;letter-spacing:.09em;color:#a5b4c6}
-.journal-session-clock time{font:600 17px/1.4 monospace;font-variant-numeric:tabular-nums;color:#edf2f7}
-.journal-session-clock small{font-size:10px}
-.journal-session-clock+.top-actions{margin-left:0;gap:8px}
-@media(min-width:761px) and (max-width:1150px){.journal-session-clock>div>small{display:none}.journal-session-clock time{font-size:14px}.journal-session-clock small{font-size:9px}.journal-application-active>.topbar{padding-inline:18px;gap:10px}}
-@media(max-width:760px){
- .journal-application-active:has(.journal-session-clock){--mobile-header-height:calc(164px + env(safe-area-inset-top,0px))}
- .journal-application-active>.topbar:has(.journal-session-clock){grid-template-rows:52px 44px 48px}
- .journal-session-clock{grid-column:1/-1;grid-row:3;text-align:left;margin:0;border-top:1px solid var(--line);padding-top:5px;overflow:hidden}
- .journal-session-clock>div{justify-content:flex-start;gap:10px}
- .journal-session-clock time{font-size:14px}
- .journal-session-quarters{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-}
