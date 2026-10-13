@@ -2759,3 +2759,30 @@ dialog::backdrop {
 
 .studio-observation-item > .execution-record { padding: 20px; }
 @media (max-width:560px) { .studio-observation-item > .execution-record { padding: 16px; } }
+
+.admin-editor.admin-editor-full { grid-template-columns: minmax(0,1fr); }
+.callout-workspace { max-width: 960px; margin: 0 auto; }
+.callout-composer h2 { margin: 0; }
+.callout-image-area { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--bg); }
+.callout-image-area > img { display: block; width: 100%; max-height: 500px; object-fit: contain; }
+.callout-image-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; min-height: 230px; padding: 24px; color: var(--muted); text-align: center; }
+.callout-image-empty strong { color: var(--text); }
+.callout-file-input { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); overflow: hidden; }
+.callout-image-actions { display: flex; gap: 10px; flex-wrap: wrap; padding: 16px; border-top: 1px solid var(--line); }
+.callout-publish-row { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding-top: 12px; }
+.callout-publish-row > span { color: var(--muted); font-size: 13px; }
+.callout-archive { margin-top: 40px; }
+.callout-post { margin-bottom: 20px; padding: 24px; }
+.callout-post header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
+.callout-post h3 { margin: 0 0 8px; overflow-wrap: anywhere; }
+.callout-post time { font-size: 12px; color: var(--muted); }
+.callout-notes { white-space: pre-wrap; }
+.callout-post .post-media img { max-height: 520px; object-fit: contain; }
+.callout-post footer { display: flex; justify-content: flex-end; padding-top: 16px; }
+.callout-expanded-image { display: block; max-width: 100%; max-height: 80vh; object-fit: contain; margin: auto; }
+@media(max-width:560px) {
+ .callout-image-actions .button { flex: 1 1 auto; }
+ .callout-publish-row, .callout-post header { align-items: stretch; flex-direction: column; }
+ .callout-publish-row .button { width: 100%; }
+ .callout-post { padding: 16px; }
+}

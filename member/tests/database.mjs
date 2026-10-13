@@ -704,7 +704,18 @@ assert.ok((await scalar('select source_details from circle_posts where id=$1',[s
 await as('free');
 await denied('select circle_journal_sources()');
 console.log('PASS: server Journal source order uses original dates, source-copy metadata stays chronological after editing and MFA guards remain enforced.');
+// Title + image callouts use the existing publication/storage fields unchanged.
+await as('admin','aal2');
+const chartCallout=await scalar('select row_to_json(p) from circle_publish_post($1::jsonb,true) p',[JSON.stringify({kind:'callout',title:'Title and chart',body:'',status:'published',image_path:`${ids.admin}/callout.png`,image_caption:''})]);
+assert.equal(chartCallout.body,'');assert.equal(chartCallout.image_caption,'');assert.equal(chartCallout.status,'published');
+await as('member');
+assert.equal(await scalar('select count(*)::int from circle_posts where id=$1',[chartCallout.id]),1);
+await as('free');
+assert.equal(await scalar('select count(*)::int from circle_posts where id=$1',[chartCallout.id]),0);
+console.log('PASS: title/image callout persists through existing publish RPC; paid members can read and free accounts cannot.');
+
 await db.close();
 console.log(
   "PASS: migration replay, free/paid/anonymous boundaries, sequential account learning, private checkpoints, application RLS, MFA publishing, mentorship, private media/replies, expiry and webhook ordering.",
 );
+

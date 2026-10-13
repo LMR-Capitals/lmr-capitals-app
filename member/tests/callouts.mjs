@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {calloutPayload,validateCalloutImage,newestCallouts} from '../callouts.mjs';
+const form=new FormData();form.set('title','  London chart  ');form.set('status','draft');form.set('image_caption','unused');
+assert.deepEqual(calloutPayload(form),{title:'London chart',body:'',status:'published',image_caption:'',pinned:false});
+form.set('title','');assert.throws(()=>calloutPayload(form),/post title/);
+for(const type of ['image/png','image/jpeg','image/webp'])assert.equal(validateCalloutImage({size:1024,type}).type,type);
+assert.throws(()=>validateCalloutImage(null),/image before publishing/);
+assert.throws(()=>validateCalloutImage({size:1024,type:'image/svg+xml'}),/PNG/);
+assert.throws(()=>validateCalloutImage({size:10*1024*1024+1,type:'image/png'}),/10 MB/);
+const records=[{id:'old',kind:'callout',created_at:'2026-10-01',published_at:'2026-10-13'},{id:'other',kind:'observation',created_at:'2026-10-13'},{id:'new',kind:'callout',created_at:'2026-10-12'}];
+assert.deepEqual(newestCallouts(records).map(p=>p.id),['new','old']);assert.equal(records[0].id,'old');
+console.log('PASS: title/image-only callouts, mandatory image validation, explicit member publication, empty captions and immutable newest-first archive.');
