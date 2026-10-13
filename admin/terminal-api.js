@@ -1,3 +1,5 @@
+import {fetchLiveExecutions} from "../member/executions.mjs";
+import {config} from "../member/config";
 import { journalImageUrl } from "../member/journal-media.mjs";
 import { sb, checked, fetchJournalSources, fetchQuestions } from "../member/api";
 export const emptyDesk = {
@@ -57,9 +59,13 @@ export async function fetchTerminalWorkspace() {
       };
     }),
   );
+  let liveExecutions = [], executionsError = null;
+  try { liveExecutions = await fetchLiveExecutions(sb,config.supabaseUrl); }
+  catch(error) { executionsError = error.message; }
   const journal = await fetchJournalSources();
   return {
     ...journal,
+    liveExecutions, executionsError,
     posts: enriched.filter((post) => post.status === "published"),
     adminPosts: enriched,
     sessions,

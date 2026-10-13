@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {mergeExecutions,fetchLiveExecutions,executionDetails} from '../executions.mjs';
+const live={id:'live:a',source_id:'a',source_owner_id:'owner',source_kind:'trade',kind:'execution',source_details:{date:'2026-10-13',pnl:0,feedback:'Saved review',account_no:'secret',risk:null}};
+assert.equal(mergeExecutions([{...live,id:'snapshot'},{...live,id:'older',source_id:'b'}, {id:'obs',kind:'observation'}],[live]).length,2);
+assert.deepEqual(executionDetails(live).map(d=>d.key),['date','pnl','feedback']);
+const calls=[];
+const rows=await fetchLiveExecutions({rpc:async(name,args)=>{calls.push(args.p_offset);return {data:args.p_offset===0 ? Array.from({length:100},(_,i)=>({...live,id:String(i),charts:[{path:'owner/trade-a-entry',version:'2026-10-13'}]})) : [live]};}},'https://example.supabase.co');
+assert.equal(rows.length,101);assert.deepEqual(calls,[0,100]);assert.match(rows[0].charts?.[0]?.url || rows[1].charts[0].url,/app-images\/owner\/trade-a-entry\?v=2026-10-13/);
+await assert.rejects(fetchLiveExecutions({rpc:async()=>({error:{message:'Denied'}})},''),/Denied/);
+console.log('Execution pagination, zero values, private-field exclusion and snapshot deduplication passed.');

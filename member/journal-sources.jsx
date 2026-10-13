@@ -15,6 +15,13 @@ export default function JournalSources({ data, kind, busy, onPublish, onRefresh 
     data.adminPosts.find(
       (post) => post.source_kind === kind && post.source_id === source.id,
     );
+  if(kind === "trade") return <section className="panel form-panel journal-source-panel">
+    <h2>Your trades, always in sync.</h2>
+    <p>All saved trades in LMR’s cloud Journal appear automatically in Trade Execution for paid members. The original Intraday / entry trigger and Entry / exit outcome charts update with your Journal. Trades without charts remain visible with their saved details.</p>
+    <p className="form-help">Edit trades and photos in Trading Journal. Account numbers and balances are never included.</p>
+    <a className="button gold" href="/inner-circle#executions">View synced trade executions</a>
+    {onRefresh && <Button small icon="refresh" disabled={busy} onClick={onRefresh}>Refresh from Journal</Button>}
+  </section>;
   return (
     <section className="panel form-panel journal-source-panel">
       <span className="tag">From your Journal Application</span>

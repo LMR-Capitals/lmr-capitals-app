@@ -1,3 +1,4 @@
+import ExecutionRecord from "./execution-record";
 import {newestJournalFirst} from "./journal-order.mjs";
 import { previewDeskChannel } from "./preview-sync";
 import { demoJournalEntries } from "./journal-demo";
@@ -377,13 +378,13 @@ function App() {
         refresh(true).finally(() => (pending = false));
       }
     };
-    const tick = setInterval(sync, 60000);
+    const tick = setInterval(sync, route === "executions" ? 15000 : 60000);
     window.addEventListener("focus", sync);
     return () => {
       clearInterval(tick);
       window.removeEventListener("focus", sync);
     };
-  }, [user, refresh]);
+  }, [user, refresh, route]);
   const run = async (fn) => {
     if (operation.current) return false;
     operation.current = true;
@@ -714,7 +715,8 @@ function App() {
         </form>
       ) : (
         <>
-          {modal.post.image_url && (
+          {modal.post.live && <ExecutionRecord record={data.liveExecutions?.find(p => p.id === modal.post.id) || {charts:[], source_details:{feedback:"This trade is no longer available. Close this view to return to the updated gallery."}}} />}
+          {!modal.post.live && modal.post.image_url && (
             <img
               className="modal-image"
               src={modal.post.image_url}
