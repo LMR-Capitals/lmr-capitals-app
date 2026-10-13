@@ -59,7 +59,7 @@ export default function Admin({
         <span>
           {preview
             ? "Admin workspace preview. Actions only update this browser session."
-            : "Live desk publications are for paid members. Free resources reach every signed-in account. Drafts remain private."}
+            : "Live desk publications are for paid members. Free resources reach every signed-in account. Studio publication drafts remain private; enabled Journal sharing still applies."}
         </span>
       </div>
       {!hideTabs && (
