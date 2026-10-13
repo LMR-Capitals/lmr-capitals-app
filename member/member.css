@@ -2739,3 +2739,17 @@ dialog::backdrop {
 .execution-filters label { display:grid; gap:8px; min-width:240px; max-width:100%; font-size:13px; }
 .execution-filters select { min-height:44px; width:100%; }
 @media(max-width:600px) { .execution-filters label { width:100%; } }
+
+/* Admin Journal archive: all summaries render immediately; originals load nearby. */
+.studio-observation-list { margin-top: 24px; }
+.studio-observation-item { padding: 28px 0; border-top: 1px solid var(--line); min-width: 0; }
+.studio-observation-item h3 { margin: 0; overflow-wrap: anywhere; }
+.studio-observation-item .journal-source-meta { align-items: flex-start; }
+.studio-observation-item .observation-record { margin-top: 16px; }
+.studio-observation-publish { margin-top: 20px; }
+.studio-observation-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+@media (max-width: 560px) {
+ .studio-observation-item { padding: 24px 0; }
+ .studio-observation-item .journal-source-meta { flex-direction: column; gap: 8px; }
+ .studio-observation-actions .button { width: 100%; }
+}
