@@ -175,7 +175,7 @@ export function useAdminActions({ user, data, setData, run, refresh, notify }) {
       }
       delete form.dataset.observationId;
       form.reset();
-      notify(published?"Observation saved to your Journal and published to paid members.":"Observation saved to your Journal and a private Studio draft.");
+      notify(published?"Observation saved to your Journal and published to paid members.":"Observation saved to your Journal. Its current sharing settings apply.");
     });
   };
   const onSession = (e) => {

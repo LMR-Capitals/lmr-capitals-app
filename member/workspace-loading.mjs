@@ -15,5 +15,6 @@ export async function loadAdministratorCore(account, desk) {
 }
 export function workspaceExtras(route, access) {
  return {trades:route==='executions' && access?.entitled===true,
- journal:access?.adminVerified===true && ['studio-observations','studio-achievements'].includes(route)};
+ observations:route==='observations' && access?.entitled===true,
+ journal:access?.adminVerified===true && ['studio-achievements'].includes(route)};
 }

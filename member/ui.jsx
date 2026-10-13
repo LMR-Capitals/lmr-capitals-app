@@ -285,7 +285,8 @@ export function Post({ post, saved, onSave, onImage, onQuestion }) {
         <span className="tag">{kindLabels[post.kind] || post.kind}</span>
       </div>
       <h3>{journalTitle(post)}</h3>
-      <p style={{ whiteSpace: "pre-wrap" }}>{post.body}</p>
+      <p style={{ whiteSpace: "pre-wrap" }}>{post.live_observation ? post.body?.slice(0,600) : post.body}</p>
+      {post.live_observation && <Button onClick={()=>onImage(post)}>Read observation{post.chart_count ? ` · ${post.chart_count} ${post.chart_count === 1 ? "chart" : "charts"}` : ""}</Button>}
       {post.source_content && <ObservationRecord record={post} onChart={src => onImage({...post, image_url:src, image_caption:"Journal observation chart", source_content:null})} />}
       {post.image_url && (
         <button
@@ -317,14 +318,14 @@ export function Post({ post, saved, onSave, onImage, onQuestion }) {
         <small>
           {post.preview ? "Illustrative post" : "Member publication"}
         </small>
-        <button
+        {!post.live_observation && <button
           className={saved ? "active" : ""}
           aria-pressed={saved}
           onClick={() => onSave(post.id)}
         >
           <Icon name="save" size={15} />
           {saved ? "Saved" : "Save"}
-        </button>
+        </button>}
       </div>
     </article>
   );

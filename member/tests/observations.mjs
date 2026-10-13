@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {mergeObservations,fetchLiveObservations,fetchObservationDetail} from '../observations.mjs';
+const record={id:'live:o',source_id:'o',source_owner_id:'owner',kind:'observation',source_kind:'observation',source_details:{created_at:'2026-10-13'}};
+assert.equal(mergeObservations([{...record,id:'copy'},{...record,id:'other-owner',source_owner_id:'other'},{id:'trade',kind:'execution'}],[record]).length,2);
+const calls=[];
+const rows=await fetchLiveObservations({rpc:async(name,args)=>{assert.equal(name,'circle_live_observations');calls.push(args.p_offset);return {data:args.p_offset===0 ? Array.from({length:100},(_,i)=>({...record,id:String(i)})) : [record]};}});
+assert.equal(rows.length,101);assert.deepEqual(calls,[0,100]);
+assert.deepEqual(await fetchObservationDetail({rpc:async(name,args)=>{assert.deepEqual(args,{p_source_id:'o'});return {data:{source_content:'<p>Original</p>'}};}},'o'),{source_content:'<p>Original</p>'});
+await assert.rejects(fetchObservationDetail({rpc:async()=>({error:{message:'Denied'}})},'o'),/Denied/);
+console.log('PASS: observation chronology, duplicate suppression, all-page loading and on-demand original detail errors.');

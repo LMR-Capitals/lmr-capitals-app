@@ -8,9 +8,11 @@ const posts=[{id:1,image_path:'a'},{id:2,image_path:'a'},{id:3,image_path:'b'},{
 const enriched=await enrichPublicationMedia(client,posts);assert.equal(calls,1);assert.equal(enriched[1].image_url,'https://example.com/a');assert.equal(enriched[3].image_url,'/term/lmrkb-0.png');assert.ok(!('image_url' in posts[0]));
 await enrichPublicationMedia(client,[]);assert.equal(calls,1);
 const denied=await enrichPublicationMedia({storage:{from:()=>({createSignedUrls:async()=>({error:{message:'Denied'}})})}},[{image_path:'private'}]);assert.equal(denied[0].image_url,null);assert.equal(denied[0].media_error,true);
-assert.deepEqual(workspaceExtras('executions',{entitled:true,adminVerified:true}),{trades:true,journal:false});
-assert.deepEqual(workspaceExtras('application',{entitled:true,adminVerified:true}),{trades:false,journal:false});
-assert.deepEqual(workspaceExtras('studio-observations',{adminVerified:true}),{trades:false,journal:true});
-assert.deepEqual(workspaceExtras('studio-achievements',{adminVerified:false}),{trades:false,journal:false});
-assert.deepEqual(workspaceExtras('executions',{entitled:false}),{trades:false,journal:false});
+assert.deepEqual(workspaceExtras('executions',{entitled:true,adminVerified:true}),{trades:true,observations:false,journal:false});
+assert.deepEqual(workspaceExtras('application',{entitled:true,adminVerified:true}),{trades:false,observations:false,journal:false});
+assert.deepEqual(workspaceExtras('studio-observations',{adminVerified:true}),{trades:false,observations:false,journal:false});
+assert.deepEqual(workspaceExtras('studio-achievements',{adminVerified:false}),{trades:false,observations:false,journal:false});
+assert.deepEqual(workspaceExtras('executions',{entitled:false}),{trades:false,observations:false,journal:false});
 console.log('PASS: parallel admin bootstrap, one batched media request, signed-media failure handling and authorized route-only heavy records.');
+
+assert.deepEqual(workspaceExtras('observations',{entitled:true}),{trades:false,observations:true,journal:false});
