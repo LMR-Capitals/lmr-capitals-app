@@ -2740,16 +2740,19 @@ dialog::backdrop {
 .execution-filters select { min-height:44px; width:100%; }
 @media(max-width:600px) { .execution-filters label { width:100%; } }
 
-/* Admin Journal archive: all summaries render immediately; originals load nearby. */
-.studio-observation-list { margin-top: 24px; }
-.studio-observation-item { padding: 28px 0; border-top: 1px solid var(--line); min-width: 0; }
-.studio-observation-item h3 { margin: 0; overflow-wrap: anywhere; }
-.studio-observation-item .journal-source-meta { align-items: flex-start; }
-.studio-observation-item .observation-record { margin-top: 16px; }
-.studio-observation-publish { margin-top: 20px; }
-.studio-observation-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+/* Studio mirrors the Journal post hierarchy without changing source content. */
+.studio-observation-list { display: flex; flex-direction: column; gap: 20px; margin-top: 24px; }
+.studio-observation-item { border: 1px solid var(--line); border-radius: 12px; background: var(--bg); min-width: 0; overflow: hidden; }
+.studio-observation-item h3 { margin: 0; font-size: 16px; line-height: 1.5; overflow-wrap: anywhere; }
+.studio-observation-item .journal-source-meta { margin: 0; padding: 16px 20px; align-items: flex-start; border-bottom: 1px solid var(--line); background: var(--raised); }
+.studio-observation-item .observation-record { padding: 18px 20px; }
+.studio-observation-item .observation-record .journal-content { grid-template-columns: minmax(0,1fr); line-height: 1.7; }
+.studio-observation-item .journal-content img { max-height: none; width: 100%; object-fit: contain; border-radius: 8px; }
+.studio-observation-item > .form-help, .studio-observation-item > [role="alert"] { margin: 20px; }
+.studio-observation-publish { padding: 16px 20px; border-top: 1px solid var(--line); }
+.studio-observation-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 @media (max-width: 560px) {
- .studio-observation-item { padding: 24px 0; }
  .studio-observation-item .journal-source-meta { flex-direction: column; gap: 8px; }
+ .studio-observation-item .journal-source-meta, .studio-observation-item .observation-record, .studio-observation-publish { padding: 16px; }
  .studio-observation-actions .button { width: 100%; }
 }
