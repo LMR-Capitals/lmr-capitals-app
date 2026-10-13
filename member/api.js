@@ -127,7 +127,7 @@ export async function billing(action, plan) {
   const data = await invoke(
     action === "checkout" ? "create-checkout" : "create-billing-portal",
     action === "checkout"
-      ? { plan, return_surface: "members", legal_version: config.legalVersion }
+      ? { plan, return_surface: "members", legal_version: config.legalVersion, agreement_id: await checked(sb.rpc("circle_accept_agreement",{p_version:config.legalVersion,p_acknowledgement:{terms:true,privacy:true,risk:true,adult:true,renewal:true},p_plan:plan})) }
       : { return_surface: "members" },
   );
   const url = safeHttps(data.url);

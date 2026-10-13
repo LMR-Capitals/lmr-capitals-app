@@ -1,3 +1,4 @@
+import {membershipPlans,membershipPrice,membershipInterval,membershipTaxNotice} from './membership.mjs';
 import {newestCallouts} from './callouts.mjs';
 import ExecutionSessionFilter from './execution-session-filter';
 import {mergeObservations} from "./observations.mjs";
@@ -1087,10 +1088,7 @@ export function Billing({
         </div>
       )}
       <div className="billing-grid">
-        {[
-          ["monthly", "Monthly membership", "Billed monthly"],
-          ["yearly", "Annual membership", "Billed annually"],
-        ].map(([plan, title, label]) => (
+        {membershipPlans.map(option => {const plan=option.id,title=`${option.title} membership`,label=`${membershipPrice(option)} USD / ${membershipInterval(option)}`;return (
           <section
             className={`plan-card panel ${plan === "yearly" ? "featured" : ""}`}
             key={plan}
@@ -1099,8 +1097,7 @@ export function Billing({
             <h2>{title}</h2>
             <div className="plan-price">{label}</div>
             <p>
-              Your exact price, currency, taxes and renewal terms are shown in
-              Stripe before you confirm.
+              {option.discount?`${option.discount}% off the 52-week weekly-price equivalent, rounded to cents. `:''}{membershipTaxNotice}
             </p>
             <ul>
               {[
@@ -1136,9 +1133,9 @@ export function Billing({
               <Icon name="arrow" size={15} />
             </Button>
           </section>
-        ))}
+        );})}
       </div>
-      {!entitled && <section className="membership-expectations"><h2>Know what you are joining.</h2><p>Membership is recurring. Review the total and renewal details in Stripe before confirming. Paid access starts after payment verification. Administrator permissions are separate from membership.</p><p>Refund requests are reviewed case by case, with Australian Consumer Law rights preserved. For cancellation or billing support, use Profile → Membership or contact <a href={`mailto:${provider.contact}`}>{provider.contact}</a>.</p></section>}
+      {!entitled && <section className="membership-expectations"><h2>Know what you are joining.</h2><p>Membership is recurring. Review the total and renewal details in Stripe before confirming. Paid access starts after payment verification. Administrator permissions are separate from membership.</p><p>Cancel before renewal and retain access until the paid period ends. No change-of-mind or unused-time refunds; legally required consumer remedies remain available. For cancellation or billing support, use Profile → Membership or contact <a href={`mailto:${provider.contact}`}>{provider.contact}</a>.</p></section>}
       {!entitled && !existingSubscription && (
         <label className="check-label spaced">
           <input
@@ -1159,7 +1156,7 @@ export function Billing({
             <button className="text-button" onClick={() => onLegal("risk")}>
               risk disclosure
             </button>
-            , including renewal and cancellation terms.
+            , including renewal and cancellation terms. I am at least 18. I authorize recurring charges for my selected interval until I cancel.
           </span>
         </label>
       )}

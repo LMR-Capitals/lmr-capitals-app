@@ -2795,3 +2795,11 @@ dialog::backdrop {
 .discord-settings-form label { display: grid; gap: 8px; }
 .discord-settings-form > div { display: flex; flex-wrap: wrap; gap: 12px; }
 @media(max-width:560px) { .discord-settings { padding: 16px; } .discord-settings summary { flex-direction: column; gap: 6px; } }
+
+.member-agreement { max-width: 760px; margin: 40px auto; padding: 20px; }
+.member-agreement > .panel { margin-top: 24px; }
+.agreement-exit { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; margin-top: 28px; }
+.agreement-history { padding: 20px 0; border-bottom: 1px solid var(--line); }
+.agreement-history pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 420px; overflow: auto; font-size: 12px; }
+.billing-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+@media(max-width:700px) { .billing-grid { grid-template-columns: minmax(0,1fr); } }

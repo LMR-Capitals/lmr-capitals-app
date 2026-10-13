@@ -1,3 +1,4 @@
+import MemberAgreement from './member-agreement';
 import LiveObservation from "./live-observation";
 import {fetchLiveObservations} from "./observations.mjs";
 import {loadAdministratorCore,workspaceExtras} from "./workspace-loading.mjs";
@@ -1003,6 +1004,7 @@ function App() {
         screen = <Dashboard {...props} />;
     }
   return (
+    <MemberAgreement userId={user.id} administrator={admin} route={route} onSignout={signout}>
     <div className={preview && !comparisonPreview ? "is-preview" : ""}>
       <a className="skip" href={(route === "application" && canOpenJournal(accessState) || route === "life-os" && accessState?.adminVerified) ? (route === "life-os" ? "#workspace-life-os" : "#workspace-journal") : "#workspace-content"} onClick={(event) => {
         event.preventDefault();
@@ -1311,6 +1313,7 @@ function App() {
         </div>
       )}
     </div>
+    </MemberAgreement>
   );
 }
 class Boundary extends React.Component {

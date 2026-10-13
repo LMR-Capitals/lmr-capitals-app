@@ -1,0 +1,3 @@
+begin;
+alter table public.circle_checkout_receipts add column acceptance_source text not null default 'lmr_before_checkout' check(acceptance_source in ('lmr_before_checkout','stripe_checkout'));
+commit;
