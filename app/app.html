@@ -2411,7 +2411,7 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
 </style>
 <link rel="stylesheet" href="/mobile-journal.css">
 <script src="/mobile-journal.js" defer></script>
-<link rel="stylesheet" href="/workspace-navigation.css?v=20261013-footer-live">
+<link rel="stylesheet" href="/workspace-navigation.css?v=20261013-gold-day-clock">
 </head>
 <body>
 
@@ -2715,7 +2715,7 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
     <div class="tb-actions">
       <div class="lmr-header-clock"><span id="dayCount" hidden>—</span>
   <div class="ny-clock">
-    <div class="ny-clock-label">🕐 New York Time</div>
+    <div class="ny-clock-label" id="nyClockZone">NY</div>
     <div class="ny-clock-time" id="nyClockTime">--:--:--</div>
     <div class="ny-clock-date" id="nyClockDate">--- NY</div>
     <div class="ny-clock-q" id="clock-q">—</div>
@@ -6496,6 +6496,11 @@ function updateNyClock(){
   const del=document.getElementById('nyClockDate');
   if(el)el.textContent=timeStr;
   if(del)del.textContent=dateStr+' · NY';
+  const zoneLabel=document.getElementById('nyClockZone');
+  if(zoneLabel){
+    const zone=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',timeZoneName:'short'}).formatToParts(now).find(part=>part.type==='timeZoneName')?.value||'ET';
+    zoneLabel.textContent='NY-'+zone;
+  }
 
   // NY time parts
   const nyStr=now.toLocaleString('en-US',{timeZone:'America/New_York'});
