@@ -389,7 +389,7 @@ export function Gallery({ data, kind, onImage, search }) {
         </label>
         {session !== 'all' && <Button small onClick={() => {setSession('all');setVisible(24);}}>Clear session filter</Button>}
       </div>}
-      {kind === "execution" && <p className="form-help" role="status">{data.executionsError ? "Live trades could not refresh. Reopen this section to retry." : `${items.length} ${items.length === 1 ? "trade" : "trades"} · Synced from LMR’s Journal · Updates every 15 seconds`}</p>}
+      {kind === "execution" && <p className="form-help" role="status">{data.executionsLoading && !executions.length ? "Loading LMR trades…" : data.executionsError ? "Live trades could not refresh. Reopen this section to retry." : `${items.length} ${items.length === 1 ? "trade" : "trades"} · Synced from LMR’s Journal · Updates every 15 seconds`}</p>}
       {items.length ? (
         <><div className="gallery-grid">
           {items.slice(0,visible).map((p) => (
@@ -425,7 +425,7 @@ export function Gallery({ data, kind, onImage, search }) {
           icon={kind === "execution" ? "executions" : "achievements"}
           title={
             kind === "execution"
-              ? session !== "all" || search ? "No trades match your filters." : "The execution gallery is ready."
+              ? data.executionsLoading ? "Loading your trades…" : session !== "all" || search ? "No trades match your filters." : "The execution gallery is ready."
               : "Every milestone has a story."
           }
           body={

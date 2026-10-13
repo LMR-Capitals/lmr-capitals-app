@@ -1,3 +1,5 @@
+import {loadAdministratorCore,workspaceExtras} from "./workspace-loading.mjs";
+import {fetchLiveExecutions} from "./executions.mjs";
 import ExecutionRecord from "./execution-record";
 import {newestJournalFirst} from "./journal-order.mjs";
 import { previewDeskChannel } from "./preview-sync";
@@ -40,7 +42,7 @@ import {
 } from "./screens";
 import { Logo, Button, Empty, Modal, AccountMenu, formatDate } from "./ui";
 import { preview, config, safeEmbed, safeHttps, accountRegistrationReady } from "./config";
-import { sb, checked, access, fetchWorkspace, fetchAccount, billing, uploadAvatar } from "./api";
+import { sb, checked, access, fetchWorkspace, fetchAccount, billing, uploadAvatar, fetchJournalSources } from "./api";
 import {
   demoPosts,
   demoSessions,
@@ -196,6 +198,7 @@ function App() {
     sidebar = useRef(null),
     requestGeneration = useRef(0),
     operation = useRef(false),
+    refreshExtras = useRef(async () => {}),
     lastCircleRoute = useRef(initialAdministratorPreview ? "admin" : "dashboard");
   const notify = (message) => {
     setToast(message);
@@ -321,10 +324,10 @@ function App() {
         setAccess(a);
         if (a.admin && !a.adminVerified) { setData(baseData); return; }
         const next = a.admin
-          ? { ...baseData, ...await fetchAccount(user), ...await fetchTerminalWorkspace() }
-          : await fetchWorkspace(user, false);
+          ? await loadAdministratorCore(() => fetchAccount(user), () => fetchTerminalWorkspace({includeExecutions:false,includeJournal:false}))
+          : await fetchWorkspace(user, false, {includeExecutions:false,includeJournal:false});
         if (generation !== requestGeneration.current) return;
-        setData(next);
+        setData(current => ({...current,...next}));
       } catch (e) {
         if (generation === requestGeneration.current) {
           setError(`The ${a?.admin ? "administrator" : "member"} workspace could not load. ${e.message}`);
@@ -332,7 +335,10 @@ function App() {
           setData(baseData);
         }
       } finally {
-        if (generation === requestGeneration.current) setLoading(false);
+        if (generation === requestGeneration.current) {
+          setLoading(false);
+          if(quiet && (a?.adminVerified || a?.entitled)) refreshExtras.current();
+        }
       }
     },
     [user],
@@ -378,13 +384,37 @@ function App() {
         refresh(true).finally(() => (pending = false));
       }
     };
-    const tick = setInterval(sync, route === "executions" ? 15000 : 60000);
+    const tick = setInterval(sync, 60000);
     window.addEventListener("focus", sync);
     return () => {
       clearInterval(tick);
       window.removeEventListener("focus", sync);
     };
   }, [user, refresh, route]);
+  // Heavy route-specific records never hold the authenticated app shell closed.
+  useEffect(() => {
+    if(preview || !user) return;
+    const extras = workspaceExtras(route,accessState);
+    if(!extras.trades && !extras.journal) return;
+    let active = true, pending = false;
+    const sync = async () => {
+      if(pending) return;
+      pending = true;
+      setData(current => ({...current,...(extras.trades ? {executionsLoading:true} : {journalLoading:true})}));
+      try {
+        const next = extras.trades ? {liveExecutions:await fetchLiveExecutions(sb,config.supabaseUrl),executionsError:null} : await fetchJournalSources();
+        if(active) setData(current => ({...current,...next,executionsLoading:false,journalLoading:false}));
+      } catch(error) {
+        if(active) setData(current => ({...current,...(extras.trades ? {executionsError:error.message,executionsLoading:false} : {journalError:error.message,journalLoading:false})}));
+      } finally { pending = false; }
+    };
+    refreshExtras.current = sync;
+    sync();
+    const onVisible = () => { if(document.visibilityState === 'visible') sync(); };
+    const interval = setInterval(onVisible,extras.trades ? 15000 : 60000);
+    window.addEventListener('focus',onVisible);
+    return () => {active=false;clearInterval(interval);window.removeEventListener('focus',onVisible);if(refreshExtras.current===sync)refreshExtras.current=async()=>{};};
+  },[user?.id,route,accessState?.adminVerified,accessState?.entitled]);
   const run = async (fn) => {
     if (operation.current) return false;
     operation.current = true;
@@ -828,7 +858,7 @@ function App() {
     );
   else if (admin && studioSection(route)) {
     const section = studioSection(route);
-    screen = <Admin key={route} data={data} onPublish={onPublish} onJournalPublish={onJournalPublish} onCreateObservation={onCreateObservation} onRefreshJournal={() => refresh(true)}
+    screen = <Admin key={route} data={data} onPublish={onPublish} onJournalPublish={onJournalPublish} onCreateObservation={onCreateObservation} onRefreshJournal={() => Promise.all([refresh(true),refreshExtras.current()])}
       onSession={onSession} onAnnouncement={onAnnouncement} onAnswer={answer} onMentorshipReply={replyMentorship}
       onPostStatus={onPostStatus} onSessionStatus={onSessionStatus} onSessionBlock={onSessionBlock}
       busy={busy} verified={accessState.adminVerified} activeTab={section.tab} initialKind={section.kind} hideTabs />;
@@ -945,7 +975,7 @@ function App() {
             onPublish={onPublish}
             onJournalPublish={onJournalPublish}
             onCreateObservation={onCreateObservation}
-            onRefreshJournal={() => refresh(true)}
+            onRefreshJournal={() => Promise.all([refresh(true),refreshExtras.current()])}
             onSession={onSession}
             onAnnouncement={onAnnouncement}
             onAnswer={answer}
