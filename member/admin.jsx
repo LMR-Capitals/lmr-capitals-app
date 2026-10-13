@@ -1,3 +1,4 @@
+import DiscordSettings from './discord-settings';
 import CalloutComposer from './callout-composer';
 import {newestJournalFirst} from "./journal-order.mjs";
 import React, { useState } from "react";
@@ -83,6 +84,7 @@ export default function Admin({
           ))}
         </div>
       )}
+      {(tab === "session" || tab === "announcement" || (tab === "post" && kind === "callout")) && <DiscordSettings category={tab === "session"?"sessions":tab === "announcement"?"announcements":"callouts"} />}
       {tab === "post" && (
         <div className="admin-editor admin-editor-full">
           <section className="panel form-panel">
