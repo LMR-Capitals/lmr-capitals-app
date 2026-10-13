@@ -2734,3 +2734,8 @@ dialog::backdrop {
 .modal .execution-charts { padding:0; }
 .modal .execution-charts img { aspect-ratio:auto; max-height:65vh; }
 @media(max-width:600px) { .execution-details { grid-template-columns:repeat(2,minmax(0,1fr)); } .modal .execution-charts { grid-template-columns:1fr; } }
+
+.execution-filters { display:flex; align-items:end; gap:16px; flex-wrap:wrap; margin:24px 0 12px; }
+.execution-filters label { display:grid; gap:8px; min-width:240px; max-width:100%; font-size:13px; }
+.execution-filters select { min-height:44px; width:100%; }
+@media(max-width:600px) { .execution-filters label { width:100%; } }
