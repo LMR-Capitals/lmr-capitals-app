@@ -70,9 +70,12 @@
 @media(max-width:600px){
  .main>.topbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px}
  .main>.topbar>.tb-actions{display:contents}
- .main>.topbar #rt-indicator{grid-column:2;grid-row:1;justify-self:end}
  .main>.topbar .lmr-header-clock{grid-column:1/-1;grid-row:2;border-top:1px solid var(--border);padding-top:6px}
  .lmr-header-clock .ny-clock{justify-content:start;text-align:left;gap:3px 10px}
  .lmr-header-clock .ny-clock-time{font-size:16px}
  .main>.topbar #tbAction{grid-column:1/-1}
 }
+
+.lmr-footer-connection{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-top:8px}
+.lmr-journal-sidebar .sb-foot .lmr-footer-connection .sb-status{margin:0}
+.lmr-footer-connection #rt-indicator{flex:none}
