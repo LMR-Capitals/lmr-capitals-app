@@ -61,3 +61,7 @@ assert.deepEqual(enrollmentReadiness({...publicPolicies,legalVersion:policyDraft
 assert.deepEqual(enrollmentReadiness({...publicPolicies,termsUrl:'javascript:alert(1)'}),{account:false,paid:false});
 assert.deepEqual(enrollmentReadiness({...publicPolicies,legalApproved:true}),{account:true,paid:true});
 console.log('Enrollment acknowledgement, policy gates, account isolation and actual registration/sign-in rendering passed.');
+
+const journalSource=await fs.readFile(new URL('../../app/app.html',import.meta.url),'utf8');
+assert.doesNotMatch(journalSource,/_sb\.auth\.signUp\(/,'All Journal signup entry points use reviewed LMR registration');
+assert.match(journalSource,/inner-circle\?signup=1&next=journal/);

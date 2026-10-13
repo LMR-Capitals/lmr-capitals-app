@@ -13828,15 +13828,7 @@ async function sbDoSignIn() {
 }
 
 async function sbDoSignUp() {
-  if (!sbInit()) return;
-  const email = document.getElementById('sb-email').value.trim();
-  const pass = document.getElementById('sb-pass').value;
-  const err = document.getElementById('sb-auth-err');
-  err.style.display = 'none';
-  if (pass.length < 6) { err.textContent = 'Password must be 6+ characters'; err.style.display = ''; return; }
-  const { error } = await _sb.auth.signUp({ email, password: pass });
-  if (error) { err.textContent = error.message; err.style.display = ''; return; }
-  err.style.color = 'var(--bull)'; err.textContent = '✓ Account created. Now sign in.'; err.style.display = '';
+  location.assign('/inner-circle?signup=1&next=journal');
 }
 
 async function sbDoSignOut() {
@@ -14538,6 +14530,7 @@ async function checkScheduledWeeklyReport(){
 
 // ── LOGIN GATE FORM SWITCHER: sign in · create account · forgot password ──
 function lgSwitchTab(tab){
+  if(tab==='signup'){ location.assign('/inner-circle?signup=1&next=journal');return; }
   if(_lgRecoveryMode && tab!=='forgot'){ _lgRecoveryMode=false; if(_sb) _sb.auth.signOut().catch(()=>{}); _lgRecoveryUI(false); }
   const forms={signin:'lg-signin-form',signup:'lg-signup-form',forgot:'lg-forgot-form'};
   Object.entries(forms).forEach(([k,id])=>{
@@ -14637,31 +14630,7 @@ async function lgForgotReset(){
 }
 
 async function lgSignUp(){
-  if(!sbInit()){alert('Auth service unavailable');return;}
-  const email=document.getElementById('lg-signup-email').value.trim();
-  const pass=document.getElementById('lg-signup-password').value;
-  const confirm=document.getElementById('lg-signup-confirm').value;
-  const err=document.getElementById('lg-err');
-  const suc=document.getElementById('lg-success');
-  const btn=document.getElementById('lg-signup-submit');
-  err.style.display='none';suc.style.display='none';
-  if(!email||!pass){err.textContent='Email and password are required.';err.style.display='';return;}
-  if(pass.length<6){err.textContent='Password must be at least 6 characters.';err.style.display='';return;}
-  if(pass!==confirm){err.textContent='Passwords do not match.';err.style.display='';return;}
-  btn.disabled=true;btn.textContent='Creating account…';
-  try{
-    const{error}=await _sb.auth.signUp({email,password:pass});
-    if(error)throw error;
-    suc.textContent='✓ Account created! Check your email to confirm, then sign in.';
-    suc.style.display='';
-    btn.disabled=false;btn.textContent='Create Account →';
-    // Switch to sign-in tab after short delay
-    setTimeout(()=>lgSwitchTab('signin'),2000);
-  }catch(e){
-    err.textContent=e.message||'Sign-up failed.';
-    err.style.display='';
-    btn.disabled=false;btn.textContent='Create Account →';
-  }
+  location.assign('/inner-circle?signup=1&next=journal');
 }
 
 // Allow Enter key on login form + clear any browser-autofilled values on load
