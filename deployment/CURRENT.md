@@ -1,5 +1,7 @@
 # Current full-site deployment
 
+Lead Claude session for the website: see [WEBSITE-SESSION-HANDOFF.md](WEBSITE-SESSION-HANDOFF.md).
+
 ## Latest verified production — 14 October 2026
 
 **Published deploy:** `6acedeb7d3db9fd950f11e7f`, published `2026-10-14T01:45:45.217Z` via Git CD from `main` commit `ecf02ba30bfa28631df3d356807e27aedacefe48` (#104). [Live LMR](https://lmrcapitals.com) · [Netlify permalink](https://6acedeb7d3db9fd950f11e7f--lmrcapitalsapp.netlify.app). It includes all merged work through #104 (Journal sidebar footer, header session clock and live status #98–#102; Pine indicator consolidation #103–#104). The deploy shipped the `studio-discord` function, with no edge functions and no database migrations. Netlify's secret scan found nothing. A local `npm run build` of the same commit produced every required output in the build map below (only the existing ThreeUI export warnings appeared). No database, storage or Supabase function operations were performed.
