@@ -10853,7 +10853,7 @@ function _lmrbNewBlock(type,html,indent){
 }
 // Old contentEditable HTML → blocks (backward compatibility with the previous editor)
 function _lmrbFromHtml(html){
-  const wrap=document.createElement('div'); wrap.innerHTML=html||''; const out=[];
+  const wrap=document.createElement('div'); wrap.innerHTML=lmrSanitizeRichHtml(html); const out=[];
   const push=(t,h)=>out.push(_lmrbNewBlock(t,h,0));
   wrap.childNodes.forEach(n=>{
     if(n.nodeType===3){ const t=n.textContent.trim(); if(t)push('text',t); return; }
@@ -11285,7 +11285,7 @@ function _obsComposeContent(){
   const head=[market,tf].filter(Boolean).join(' · ');
   if(head) html+='<p class="o-meta"><strong>'+_obsEsc(head)+'</strong></p>';
   if(notes) html+=notes.split(/\n{2,}/).map(pp=>'<p>'+_obsEsc(pp).replace(/\n/g,'<br>')+'</p>').join('');
-  html+=_obsImgs.map(src=>'<p><img src="'+src+'"></p>').join('');
+  html+=_obsImgs.map(src=>'<p><img src="'+_obsEsc(src)+'"></p>').join('');
   return html;
 }
 // Parse an entry's `content` back into editor fields. New posts carry an obsmeta comment; old
@@ -11296,7 +11296,7 @@ function _obsParseContent(content){
   const meta=content.match(/<!--obsmeta\s*(\{[\s\S]*?\})-->/);
   if(meta){ try{ const j=JSON.parse(meta[1]); m=j.m||''; tf=j.tf||''; }catch(e){} }
   const tmp=document.createElement('div');
-  tmp.innerHTML=content.replace(/<!--obsmeta[\s\S]*?-->/,'');
+  tmp.innerHTML=lmrSanitizeRichHtml(content.replace(/<!--obsmeta[\s\S]*?-->/,''));
   const imgs=[...tmp.querySelectorAll('img')].map(im=>im.getAttribute('src')).filter(Boolean);
   tmp.querySelectorAll('img').forEach(im=>(im.closest('p')||im).remove());
   tmp.querySelectorAll('.o-meta').forEach(el=>el.remove());

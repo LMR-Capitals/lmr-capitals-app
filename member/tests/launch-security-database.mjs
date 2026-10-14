@@ -4,7 +4,7 @@ const {PGlite}=await import('/private/tmp/lmr-circle-tests/node_modules/@electri
 const db=new PGlite();
 await db.exec(`
 create role authenticated;create role anon;
-create schema auth;create schema storage;
+create schema auth;create schema storage;create schema circle_private;grant usage on schema circle_private to authenticated;
 create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('test.uid',true),'')::uuid$$;
 create function public.circle_can_access() returns boolean language sql stable as $$select current_setting('test.paid',true)='yes'$$;
 create function storage.foldername(text) returns text[] language sql immutable as $$select string_to_array($1,'/')$$;
@@ -32,9 +32,9 @@ await db.exec(await readFile(new URL('../../database/patches/launch-private-medi
 assert.equal((await db.query('select count(*)::int as n from storage.buckets where public')).rows[0].n,0);
 async function asUser(id,paid){await db.exec(`reset role;set role authenticated;select set_config('test.uid','${id}',false),set_config('test.paid','${paid}',false);`);}
 async function count(table){return (await db.query('select count(*)::int as n from '+table)).rows[0].n;}
-await asUser('00000000-0000-0000-0000-000000000001','no');assert.equal(await count('trades'),0);assert.equal(await count('storage.objects'),0);
+await asUser('00000000-0000-0000-0000-000000000001','no');assert.equal(await count('trades'),0);assert.equal(await count('storage.objects'),3);
 await asUser('00000000-0000-0000-0000-000000000001','yes');assert.equal(await count('trades'),1);assert.equal(await count('storage.objects'),3);
 await asUser('00000000-0000-0000-0000-000000000002','yes');assert.equal(await count('trades'),0);assert.equal(await count('journal'),0);assert.equal(await count('storage.objects'),1);
 await db.exec(`reset role;update circle_posts set status='draft';set role authenticated;`);assert.equal(await count('storage.objects'),0);
 await db.exec('reset role;set role anon');assert.equal(await count('storage.objects'),0);
-await db.close();console.log('PASS: private buckets, owner isolation, free/expired denial, paid published image access, draft denial, imported-image ownership, anonymous denial.');
+await db.close();console.log('PASS: private buckets, owner isolation, free/expired Journal denial with own-image recovery, paid published image access, draft denial, imported-image ownership, anonymous denial.');

@@ -1,10 +1,12 @@
+> Launch security migrations `20261014095808` and `20261014100031` are already applied. Their files mirror the server history; they must not run again under new versions.
+
 # supabase/
 
 Directory read by the Supabase GitHub integration (Project Settings → Integrations,
 working directory `.`).
 
 - `migrations/` is an exact copy of the live project's migration history
-  (`supabase_migrations.schema_migrations`): the same 35 versions, names and SQL. It was
+  (`supabase_migrations.schema_migrations`): the recorded versions, names and SQL. It was
   verified file by file against the live statements on 14 Oct 2026. The one exception is
   `20261013225551_create_lmr_automation_tokens.sql`, whose token hash is redacted
   because this repository is public. `20261014120000_security_hardening.sql` was

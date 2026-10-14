@@ -1,3 +1,7 @@
+## Security release — 14 October 2026
+
+[Launch security audit](SECURITY-LAUNCH-AUDIT.md) records PR #113, the verified production receipt, deployed cancellation MFA fix, enabled leaked-password protection and approved and verified database/storage hardening. Remaining launch concerns are recorded in the audit. The two security migrations are already applied and mirrored by their server-generated versions; do not reapply them as part of a website deploy.
+
 # Current full-site deployment
 
 Lead Claude session for the website: see [WEBSITE-SESSION-HANDOFF.md](WEBSITE-SESSION-HANDOFF.md).
