@@ -1,3 +1,7 @@
+## Membership launch continuation — 14 October 2026
+
+Read [remaining launch checks](deployment/MEMBERSHIP-LAUNCH-CHECKS-2026-10-14.md). Billing review migration is already applied, webhook v16 deployed. Do not reapply migrations or switch production Stripe keys to sandbox. Public promotion still requires actual signup confirmation and real webhook delivery.
+
 ## Active launch security review
 
 Read [deployment/SECURITY-LAUNCH-AUDIT.md](deployment/SECURITY-LAUNCH-AUDIT.md) for findings, tested fixes, remaining launch blockers and Claude group routing. Local changes are not proof of production deployment. Coordinate database changes with security PR #107; preserve all member data and manual publication states.

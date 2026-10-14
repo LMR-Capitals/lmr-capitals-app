@@ -1,36 +1,32 @@
-# LMR Capitals — Supabase Edge Functions (Stripe paywall)
+# Membership functions
 
-Two functions power the subscription paywall:
+Production keeps live Stripe keys separate from sandbox testing. Never replace production secrets with sandbox keys.
 
-| Function | Purpose | JWT |
-|----------|---------|-----|
-| `create-checkout` | Signed-in user taps "Subscribe" → creates a Stripe Checkout Session (7-day trial) and returns the URL to redirect to. | required (default) |
-| `stripe-webhook` | Stripe calls this when a subscription changes → writes the authoritative status into `public.subscriptions` (service role). **Deploy with `--no-verify-jwt`.** | disabled |
+- `create-checkout`: JWT required, verifies owner consent and server-owned USD price before creating a recurring subscription; no trial.
+- `stripe-webhook`: JWT disabled, mandatory Stripe signature verification. Re-reads authoritative Stripe subscription/invoice data; redirect success alone cannot activate access.
+- `create-billing-portal`: JWT required; owner customer mapping only. Cancellation stops renewal, access lasts through the paid period.
+- `admin-cancel-subscription`: verified administrator MFA required; explicit immediate cancellation action.
 
-## Secrets to set (Supabase → Edge Functions → Secrets)
+Current USD prices: $28/week, $112.84/month, $327.60/quarter, $1,164.80/year. Tax configuration remains disabled while the business has no tax registrations.
+
+Signing secret `STRIPE_WEBHOOK_SECRET` must match the single active production webhook endpoint. Keep secrets in Supabase only; never commit or paste them in chat.
+
+Subscribe that endpoint to:
 
 ```
-STRIPE_SECRET_KEY      sk_test_…  (use test keys first; swap to sk_live_… at launch)
-STRIPE_WEBHOOK_SECRET  whsec_…    (from the Stripe webhook endpoint, step 3 below)
-STRIPE_PRICE_MONTHLY   price_…    ($25 / month)
-STRIPE_PRICE_YEARLY    price_…    ($270 / year)
+checkout.session.completed
+checkout.session.async_payment_succeeded
+checkout.session.async_payment_failed
+customer.subscription.created
+customer.subscription.updated
+customer.subscription.deleted
+invoice.paid
+invoice.payment_failed
+charge.refunded
+charge.dispute.created
+radar.early_fraud_warning.created
 ```
-`SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are provided automatically — do **not** add them.
 
-## Deploy (from the repo root, with the Supabase CLI logged in)
+Apply `launch-billing-reviews.sql` before deploying the handler. Risk events add a deduplicated, MFA-protected admin review entry, without automatically issuing refunds or changing access. Ambiguous invoice allocation remains unmapped for manual review. No full event payload or card data is stored in the review queue.
 
-```bash
-supabase functions deploy create-checkout
-supabase functions deploy stripe-webhook --no-verify-jwt
-```
-
-## Wire the Stripe webhook (step 3)
-
-1. After deploying, the webhook URL is:
-   `https://agrvylclhvxyevsmmexf.functions.supabase.co/stripe-webhook`
-2. Stripe Dashboard → Developers → Webhooks → **Add endpoint** → paste that URL.
-3. Select events: `checkout.session.completed`, `customer.subscription.created`,
-   `customer.subscription.updated`, `customer.subscription.deleted`.
-4. Copy the endpoint's **Signing secret** (`whsec_…`) into `STRIPE_WEBHOOK_SECRET`.
-
-Test with Stripe test cards (e.g. `4242 4242 4242 4242`) before switching to live keys.
+Regression suite: install root dependencies, then `npm ci --prefix database/tests` and `npm test --prefix database/tests`. Uses synthetic signed Stripe events and an isolated PostgreSQL engine; no cloud writes. Real Stripe network delivery and signup confirmation must be verified separately before public promotion.
