@@ -1,3 +1,7 @@
+## Final technical launch verification — 14 October 2026
+
+[Completed launch checks](MEMBERSHIP-LAUNCH-CHECKS-2026-10-14.md) supersede the historical SMTP/signup/quota/webhook blockers below. Test scope and remaining general limitations are explicit. Do not re-run applied migrations or claim zero vulnerabilities. Existing business data and publication decisions remain protected.
+
 # Launch security audit — 14 October 2026
 
 **Status: frontend/function fixes released; approved database access/storage hardening applied and verified. This is not final launch clearance.** The production site is already live. A successful build or dependency scan does not prove absence of vulnerabilities.
