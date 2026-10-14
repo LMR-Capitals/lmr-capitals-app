@@ -8,6 +8,7 @@ database/
   migrations/       Ordered, timestamped migrations — the canonical change history.
   functions/        Supabase Edge Functions (Deno): Stripe checkout, webhook, admin cancel.
   patches/          Historical one-off SQL scripts applied ad hoc during development.
+  LIFE-OS-DATA.md   Life OS tables, save RPC, access rules and live state.
 ```
 
 ## How the database is managed
