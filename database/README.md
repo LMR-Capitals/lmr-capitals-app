@@ -8,6 +8,7 @@ database/
   migrations/       Ordered, timestamped migrations — the canonical change history.
   functions/        Supabase Edge Functions (Deno): Stripe checkout, webhook, admin cancel.
   patches/          Historical one-off SQL scripts applied ad hoc during development.
+  SECURITY.md       Security & access rules: who can read/write what, and open findings.
 ```
 
 ## How the database is managed
