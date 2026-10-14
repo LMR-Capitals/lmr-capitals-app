@@ -1,0 +1,223 @@
+//@version=6
+indicator("LMR HTF Levels", overlay = true, scale = scale.right, max_lines_count = 60, max_labels_count = 60)
+
+// =====================================================================
+// LMR HTF LEVELS
+// ---------------------------------------------------------------------
+// Three modes, each drawn as clean lines only (no tables):
+//   * Quarterly (red)   - previous quarter O/H/L/C + Settlement Open/Close
+//   * Monthly   (blue)  - previous month   O/H/L/C + Settlement Open/Close
+//   * Weekly    (green) - previous week    O/H/L/C + Settlement Open/Close
+//
+// Quarters follow the futures cycle by default: Dec-Feb, Mar-May,
+// Jun-Aug, Sep-Nov. Switch to calendar quarters (Jan-Mar ...) in settings.
+//
+// Each line is anchored on the candle that made the level and extends right
+// to the last bar plus the padding (default 1 candle). Labels sit at the
+// right end (labels that would overlap are stacked apart):
+//   Open / Settle Open   -> first candle of the previous period
+//   High / Low           -> candle that printed the high / low
+//   Close / Settle Close -> last candle of the previous period
+//
+// Settlement prices come from the settlement-as-close ticker:
+//   Settlement Close = final settlement of the previous period
+//   Settlement Open  = final settlement of the period before it
+// When a settlement price equals the regular Open/Close, the two are merged
+// into one line. On non-futures symbols settlement equals the regular close.
+// =====================================================================
+
+// ---------- Inputs ----------
+grpQ = "Quarterly"
+showQ    = input.bool(true, "Show Quarterly", group = grpQ)
+qCycle   = input.string("Dec / Mar / Jun / Sep", "Quarter starts", options = ["Dec / Mar / Jun / Sep", "Jan / Apr / Jul / Oct"], group = grpQ)
+colQ     = input.color(color.red, "Colour", group = grpQ)
+
+grpM = "Monthly"
+showM    = input.bool(true, "Show Monthly", group = grpM)
+colM     = input.color(color.blue, "Colour", group = grpM)
+
+grpW = "Weekly"
+showW    = input.bool(true, "Show Weekly", group = grpW)
+colW     = input.color(color.green, "Colour", group = grpW)
+
+grpS = "Style"
+showOHLC   = input.bool(true, "Show OHLC", group = grpS)
+showSettle = input.bool(true, "Show Settlement Open / Close", group = grpS)
+padBars    = input.int(1, "Right padding (candles)", minval = 0, maxval = 50, group = grpS)
+lineW      = input.int(1, "Line width", minval = 1, maxval = 4, group = grpS)
+showPrice  = input.bool(true, "Show price in label", group = grpS)
+lblSize    = input.string(size.small, "Label size", options = [size.tiny, size.small, size.normal], group = grpS)
+lblGapPct  = input.float(2.5, "Label spacing (% of visible range)", minval = 0, maxval = 10, step = 0.5, group = grpS, tooltip = "Labels closer than this are stacked so they don't overlap. Lines stay on their exact price.")
+
+// ---------- Data ----------
+rawT    = ticker.modify(syminfo.tickerid, settlement_as_close = settlement_as_close.off)
+settleT = ticker.modify(syminfo.tickerid, settlement_as_close = settlement_as_close.on)
+
+qStartMonth = qCycle == "Dec / Mar / Jun / Sep" ? 12 : 1
+DAY_MS = 86400000
+
+// Quarter id of a monthly bar. +7 days because futures months open on the
+// evening before the 1st, which would otherwise read as the prior month.
+qIdOf(int t) =>
+    tt = t + 7 * DAY_MS
+    int(math.floor((year(tt) * 12 + month(tt) - qStartMonth) / 3))
+
+// Built from monthly bars so quarters can start in any month.
+// Returns the previous completed quarter (fixed once the quarter starts).
+customQ() =>
+    id = qIdOf(time)
+    var float cO = na
+    var float cH = na
+    var float cL = na
+    var float cC = na
+    var float pO = na
+    var float pH = na
+    var float pL = na
+    var float pC = na
+    if id != id[1]
+        pO := cO, pH := cH, pL := cL, pC := cC
+        cO := open, cH := high, cL := low
+    else
+        cH := math.max(cH, high)
+        cL := math.min(cL, low)
+    cC := close
+    [pO, pH, pL, pC, id]
+
+customQSettle() =>
+    id = qIdOf(time)
+    var float pS = na
+    var float ppS = na
+    if id != id[1]
+        ppS := pS
+        pS  := close[1]
+    [ppS, pS]
+
+// Previous completed period, non-repainting ([1] with lookahead on).
+htfOHLC(tf) =>
+    request.security(rawT, tf, [open[1], high[1], low[1], close[1]], lookahead = barmerge.lookahead_on)
+
+htfSettle(tf) =>
+    request.security(settleT, tf, [close[2], close[1]], lookahead = barmerge.lookahead_on)
+
+[qO, qH, qL, qC, qId] = request.security(rawT, "1M", customQ(), lookahead = barmerge.lookahead_on)
+[qSO, qSC]            = request.security(settleT, "1M", customQSettle(), lookahead = barmerge.lookahead_on)
+[mO, mH, mL, mC]      = htfOHLC("1M")
+[wO, wH, wL, wC]      = htfOHLC("1W")
+[mSO, mSC]            = htfSettle("1M")
+[wSO, wSC]            = htfSettle("1W")
+
+// ---------- Anchor candles on the chart ----------
+// Tracks where each period started/ended and which candle printed its
+// high/low, so lines sit on the actual price instead of floating.
+trackPeriod(bool isNew) =>
+    var int curStart = na
+    var int curHiIdx = na
+    var int curLoIdx = na
+    var float curHi = na
+    var float curLo = na
+    var int pStart = na
+    var int pEnd = na
+    var int pHiIdx = na
+    var int pLoIdx = na
+    if isNew or na(curStart)
+        if not na(curStart)
+            pStart := curStart
+            pEnd   := bar_index - 1
+            pHiIdx := curHiIdx
+            pLoIdx := curLoIdx
+        curStart := bar_index
+        curHi    := high, curHiIdx := bar_index
+        curLo    := low,  curLoIdx := bar_index
+    else
+        if high > curHi
+            curHi := high, curHiIdx := bar_index
+        if low < curLo
+            curLo := low, curLoIdx := bar_index
+    // If the chart history doesn't reach the previous period, fall back
+    // to the start of the current one.
+    fb = curStart
+    [nz(pStart, fb), nz(pEnd, fb), nz(pHiIdx, fb), nz(pLoIdx, fb)]
+
+[qS, qE, qHi, qLo] = trackPeriod(qId != qId[1])
+[mS, mE, mHi, mLo] = trackPeriod(timeframe.change("1M"))
+[wS, wE, wHi, wLo] = trackPeriod(timeframe.change("1W"))
+
+// ---------- Label spacing ----------
+// High/low of the candles on screen, used to turn the spacing % into price.
+var float visHi = na
+var float visLo = na
+if time >= chart.left_visible_bar_time and time <= chart.right_visible_bar_time
+    visHi := na(visHi) ? high : math.max(visHi, high)
+    visLo := na(visLo) ? low  : math.min(visLo, low)
+atrGap = ta.atr(14)
+
+// ---------- Drawing ----------
+var array<line>  lines  = array.new<line>()
+var array<label> labels = array.new<label>()
+// Pending labels, placed together once every level is known.
+var array<float>  lblY   = array.new<float>()
+var array<string> lblTxt = array.new<string>()
+var array<color>  lblCol = array.new<color>()
+
+drawLevel(int x1, float price, color c, string prefix, string name, bool dashed) =>
+    if not na(price)
+        x2 = bar_index + padBars
+        lines.push(line.new(x1, price, x2, price, xloc.bar_index, extend.none, c, dashed ? line.style_dashed : line.style_solid, lineW))
+        lblY.push(price)
+        lblTxt.push(prefix + " " + name + (showPrice ? "  " + str.tostring(price, format.mintick) : ""))
+        lblCol.push(c)
+
+samePrice(float a, float b) =>
+    not na(a) and not na(b) and math.abs(a - b) < syminfo.mintick / 2
+
+drawSet(bool show, color c, string prefix, float o, float h, float l, float cl, float so, float sc, int xS, int xE, int xHi, int xLo) =>
+    if show
+        mergeO = showOHLC and showSettle and samePrice(o, so)
+        mergeC = showOHLC and showSettle and samePrice(cl, sc)
+        if showOHLC
+            drawLevel(xS,  o,  c, prefix, mergeO ? "Open / Settle Open" : "Open", false)
+            drawLevel(xHi, h,  c, prefix, "High", false)
+            drawLevel(xLo, l,  c, prefix, "Low",  false)
+            drawLevel(xE,  cl, c, prefix, mergeC ? "Close / Settle Close" : "Close", false)
+        if showSettle
+            if not mergeO
+                drawLevel(xS, so, c, prefix, "Settle Open", true)
+            if not mergeC
+                drawLevel(xE, sc, c, prefix, "Settle Close", true)
+
+// Sort labels by price and push any that are too close upward, so each one
+// keeps its own colour and stays readable.
+placeLabels() =>
+    n = lblY.size()
+    if n > 0
+        span  = na(visHi) or visHi <= visLo ? atrGap * 10 : visHi - visLo
+        gap   = span * lblGapPct / 100
+        x2    = bar_index + padBars
+        idx   = lblY.sort_indices(order.ascending)
+        float prevY = na
+        for i = 0 to n - 1
+            k = idx.get(i)
+            y = lblY.get(k)
+            if not na(prevY) and y < prevY + gap
+                y := prevY + gap
+            prevY := y
+            labels.push(label.new(x2, y, lblTxt.get(k), xloc.bar_index, yloc.price, color(na), label.style_label_left, lblCol.get(k), lblSize))
+
+// Hidden anchor on price: gives the compiler an output and keeps the
+// indicator on the same price scale as the candles.
+plot(close, "anchor", color = color(na), display = display.none, editable = false)
+
+if barstate.islast
+    for ln in lines
+        ln.delete()
+    for lb in labels
+        lb.delete()
+    lines.clear()
+    labels.clear()
+    lblY.clear()
+    lblTxt.clear()
+    lblCol.clear()
+    drawSet(showQ, colQ, "Q", qO, qH, qL, qC, qSO, qSC, qS, qE, qHi, qLo)
+    drawSet(showM, colM, "M", mO, mH, mL, mC, mSO, mSC, mS, mE, mHi, mLo)
+    drawSet(showW, colW, "W", wO, wH, wL, wC, wSO, wSC, wS, wE, wHi, wLo)
+    placeLabels()
