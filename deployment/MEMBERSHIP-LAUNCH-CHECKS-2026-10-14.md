@@ -18,7 +18,7 @@ Public promotion is not cleared yet. This release fixes webhook gaps and adds an
 1. Owner saves the canonical endpoint signing secret directly in Supabase. Do not read, export or commit the secret. The other enabled endpoint `we_1UEPUyBgi40jMsdmMUsgeTMt` must remain until the canonical secret is confirmed, then disable it and verify real event delivery.
 2. Complete new account signup/confirmation using an owner-controlled test inbox. Owner must enter the password and accept terms. Password-reset delivery is verified; actual password change is intentionally not tested on the admin account.
 3. Prove real Stripe-to-handler network delivery and membership activation in an isolated sandbox deployment. The completed sandbox purchase + isolated event replay are separate evidence; production keys must not be swapped to test mode.
-4. Verify frontend deployment receipt and admin Billing reviews screen.
+4. Frontend deploy verified: `6ad00b69071723e19c019490`, main commit `4c89c63ecc86e55ed5af5fec9fb180c614fd89a3` (#117), published 2026-10-14T23:08:48.305Z. Live administrator screen verification recorded in PR #117.
 
 ## Preservation evidence
 

@@ -1,6 +1,6 @@
 ## Membership billing review release — 14 October 2026
 
-See [launch checks](MEMBERSHIP-LAUNCH-CHECKS-2026-10-14.md) for deployed backend fixes, preservation scope and remaining signup/network checks. The new audit migration is applied; website publication receipt is pending. This is not public paid launch clearance.
+See [launch checks](MEMBERSHIP-LAUNCH-CHECKS-2026-10-14.md) for deployed backend fixes, preservation scope and remaining signup/network checks. The new audit migration is applied. Website deploy `6ad00b69071723e19c019490` published main commit `4c89c63ecc86e55ed5af5fec9fb180c614fd89a3` (#117) at 2026-10-14T23:08:48.305Z. This is not public paid launch clearance.
 
 ## Security release — 14 October 2026
 
