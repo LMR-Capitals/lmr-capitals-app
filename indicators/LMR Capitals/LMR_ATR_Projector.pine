@@ -1,0 +1,271 @@
+//@version=6
+indicator("LMR ATR Projector", shorttitle = "LMR ATR Projector", overlay = true, max_lines_count = 500, max_labels_count = 100)
+
+// =====================================================================
+// LMR ATR PROJECTOR  (futures)
+// ---------------------------------------------------------------------
+// Average range of the last 5 / 10 / 20 / 30 / 60 / 90 COMPLETED days.
+//
+// Day runs from (pick one, the table shows the other for comparison):
+//   00:00 NY  - ICT true day, midnight -> midnight
+//               (Sunday 18:00 open is merged into Monday)
+//   18:00 NY  - CME futures session, 18:00 -> 18:00
+//
+// Range type:
+//   ATR (True Range) - Wilder RMA of each day's true range
+//   ADR (High - Low) - simple average of each day's high minus low
+//
+// Levels: one straight dotted line pair per period for each day,
+// day open +/- the average (full or half). The current day's lines
+// run 10+ bars past price with the level price at the end.
+//
+// Days are rebuilt from 60-minute data so it works on every timeframe.
+// Averages use completed days only - no repaint.
+// =====================================================================
+
+tz        = "America/New_York"
+ENGINE_TF = "60"
+
+// ---------------------------------------------------------------------
+// INPUTS
+// ---------------------------------------------------------------------
+grpCalc = "Calculation"
+dayStart  = input.string("00:00 NY (ICT true day)", "Day runs from", options = ["00:00 NY (ICT true day)", "18:00 NY (futures session)"], group = grpCalc, display = display.none)
+rangeMode = input.string("ATR (True Range)", "Range type", options = ["ATR (True Range)", "ADR (High - Low)"], group = grpCalc, display = display.none)
+levelMode = input.string("Open +/- full", "Level distance", options = ["Open +/- full", "Open +/- half"], group = grpCalc, display = display.none)
+
+grpLvl = "Levels"
+show5  = input.bool(true, "5D",  inline = "l1", group = grpLvl, display = display.none)
+col5   = input.color(color.new(#00BCD4, 0), "", inline = "l1", group = grpLvl, display = display.none)
+show10 = input.bool(true, "10D", inline = "l1", group = grpLvl, display = display.none)
+col10  = input.color(color.new(#26A69A, 0), "", inline = "l1", group = grpLvl, display = display.none)
+show20 = input.bool(true, "20D", inline = "l2", group = grpLvl, display = display.none)
+col20  = input.color(color.new(#FF9800, 0), "", inline = "l2", group = grpLvl, display = display.none)
+show30 = input.bool(true, "30D", inline = "l2", group = grpLvl, display = display.none)
+col30  = input.color(color.new(#FBC02D, 0), "", inline = "l2", group = grpLvl, display = display.none)
+show60 = input.bool(true, "60D", inline = "l3", group = grpLvl, display = display.none)
+col60  = input.color(color.new(#E040FB, 0), "", inline = "l3", group = grpLvl, display = display.none)
+show90 = input.bool(true, "90D", inline = "l3", group = grpLvl, display = display.none)
+col90  = input.color(color.new(#7E57C2, 0), "", inline = "l3", group = grpLvl, display = display.none)
+daysBack  = input.int(5, "Days of levels to keep", minval = 1, maxval = 35, group = grpLvl, display = display.none)
+padBars   = input.int(10, "Extend past price (bars)", minval = 10, maxval = 200, group = grpLvl, display = display.none)
+lineWidth = input.int(1, "Line width", minval = 1, maxval = 3, group = grpLvl, display = display.none)
+showOpen  = input.bool(true, "Day open line", group = grpLvl, display = display.none)
+showLbl   = input.bool(true, "Price labels at line end", group = grpLvl, display = display.none)
+
+grpTbl = "Table"
+showTable   = input.bool(true, "Show table", group = grpTbl, display = display.none)
+tblPos      = input.string(position.top_right, "Position", options = [position.top_right, position.top_left, position.bottom_right, position.bottom_left, position.middle_right], group = grpTbl, display = display.none)
+showCompare = input.bool(true, "Compare with the other day start", group = grpTbl, display = display.none)
+warnPct     = input.int(70, "Warn when % used >=", minval = 10, maxval = 100, group = grpTbl, display = display.none)
+
+use18  = dayStart == "18:00 NY (futures session)"
+useATR = rangeMode == "ATR (True Range)"
+tag    = useATR ? "ATR" : "ADR"
+mult   = levelMode == "Open +/- full" ? 1.0 : 0.5
+
+// ---------------------------------------------------------------------
+// DAY KEY  (yyyymmdd of the trading day)
+//   18:00 mode: shift +6h so 18:00 NY rolls into the next date
+//   00:00 mode: Sunday evening rolls into Monday
+// ---------------------------------------------------------------------
+f_dayKey(bool s18) =>
+    t = s18 ? time + 6 * 3600000 : dayofweek(time, tz) == dayofweek.sunday ? time + 86400000 : time
+    year(t, tz) * 10000 + month(t, tz) * 100 + dayofmonth(t, tz)
+
+// ---------------------------------------------------------------------
+// ENGINE  (runs on 60m data: builds days + their averages)
+// ---------------------------------------------------------------------
+f_engine(bool s18) =>
+    var lens  = array.from(5, 10, 20, 30, 60, 90)
+    var trs   = array.new_float()
+    var hls   = array.new_float()
+    var rmas  = array.new_float(6, na)
+    var avgs  = array.new_float(6, na)
+    var float dO    = na
+    var float dH    = na
+    var float dL    = na
+    var float dC    = na
+    var float prevC = na
+    var bool  clean = false
+
+    key  = f_dayKey(s18)
+    newD = na(key[1]) or key != key[1]
+
+    if newD
+        // close out the completed day (skip a partial first day of data)
+        if clean and not na(dH)
+            tr = na(prevC) ? dH - dL : math.max(dH, prevC) - math.min(dL, prevC)
+            array.unshift(trs, tr)
+            array.unshift(hls, dH - dL)
+            if array.size(trs) > 90
+                array.pop(trs)
+                array.pop(hls)
+            for i = 0 to 5
+                len = array.get(lens, i)
+                r   = array.get(rmas, i)
+                if na(r)
+                    if array.size(trs) >= len
+                        array.set(rmas, i, array.avg(array.slice(trs, 0, len)))
+                else
+                    array.set(rmas, i, (r * (len - 1) + tr) / len)
+                adr = array.size(hls) >= len ? array.avg(array.slice(hls, 0, len)) : na
+                array.set(avgs, i, useATR ? array.get(rmas, i) : adr)
+        prevC := dC
+        clean := not na(key[1])
+        dO := open
+        dH := high
+        dL := low
+    else
+        dH := math.max(dH, high)
+        dL := math.min(dL, low)
+    dC := close
+
+    [array.get(avgs, 0), array.get(avgs, 1), array.get(avgs, 2), array.get(avgs, 3), array.get(avgs, 4), array.get(avgs, 5), dO, dH, dL]
+
+// Charts <= 60m: averages only change on the day's first bar and depend on
+// completed days, so lookahead_on just aligns them to the day open (no leak).
+// Charts > 60m: lookahead_off returns the last 60m bar inside each chart bar.
+lowTF = timeframe.in_seconds() <= 3600
+[a5, a10, a20, a30, a60, a90, eO, eH, eL] = request.security(syminfo.tickerid, ENGINE_TF, f_engine(use18), lookahead = lowTF ? barmerge.lookahead_on : barmerge.lookahead_off)
+[b5, b10, b20, b30, b60, b90, xO, xH, xL] = request.security(syminfo.tickerid, ENGINE_TF, f_engine(not use18), lookahead = lowTF ? barmerge.lookahead_on : barmerge.lookahead_off)
+
+// ---------------------------------------------------------------------
+// TODAY'S RANGE
+// ---------------------------------------------------------------------
+chartKey = f_dayKey(use18)
+newDay   = na(chartKey[1]) or chartKey != chartKey[1]
+
+var float lO = na
+var float lH = na
+var float lL = na
+if newDay or na(lO)
+    lO := open
+    lH := high
+    lL := low
+else
+    lH := math.max(lH, high)
+    lL := math.min(lL, low)
+
+dOpen  = lowTF ? lO : eO
+dHigh  = lowTF ? lH : eH
+dLow   = lowTF ? lL : eL
+dRange = dHigh - dLow
+
+f_pct(float a) =>
+    a > 0 ? dRange / a * 100 : na
+
+f_px(float v) =>
+    na(v) ? "-" : str.tostring(v, format.mintick)
+
+names = array.from("5D", "10D", "20D", "30D", "60D", "90D")
+vals  = array.from(a5, a10, a20, a30, a60, a90)
+cmps  = array.from(b5, b10, b20, b30, b60, b90)
+shows = array.from(show5, show10, show20, show30, show60, show90)
+cols  = array.from(col5, col10, col20, col30, col60, col90)
+openCol = color.new(chart.fg_color, 55)
+
+// ---------------------------------------------------------------------
+// DAILY DOTTED LEVELS
+// ---------------------------------------------------------------------
+dwm = timeframe.isdwm
+
+var line[]  allLines = array.new<line>()
+var line[]  curLines = array.new<line>()
+var label[] lbls     = array.new<label>()
+
+f_line(int x1, float y, color c) =>
+    line.new(x1, y, x1, y, color = c, style = line.style_dotted, width = lineWidth)
+
+f_drawDay(int x1) =>
+    if showOpen
+        array.push(curLines, f_line(x1, dOpen, openCol))
+    for i = 0 to 5
+        a = array.get(vals, i)
+        if array.get(shows, i) and not na(a)
+            c = array.get(cols, i)
+            array.push(curLines, f_line(x1, dOpen + a * mult, c))
+            array.push(curLines, f_line(x1, dOpen - a * mult, c))
+
+// Intraday: a fresh set of lines each day, kept for N days
+if not dwm and newDay
+    array.clear(curLines)
+    f_drawDay(bar_index)
+    for ln in curLines
+        array.push(allLines, ln)
+    while array.size(allLines) > daysBack * 13
+        line.delete(array.shift(allLines))
+
+// Daily / Weekly / Monthly: only today's lines, from the last bar
+if dwm and barstate.islast
+    for ln in curLines
+        line.delete(ln)
+    array.clear(curLines)
+    f_drawDay(bar_index - 3)
+
+// Lines follow price, ending padBars to the right on the live bar
+if array.size(curLines) > 0
+    x2 = barstate.islast ? bar_index + padBars : bar_index
+    for ln in curLines
+        line.set_x2(ln, x2)
+
+// Price label at the end of each of today's lines
+if barstate.islast
+    for l in lbls
+        label.delete(l)
+    array.clear(lbls)
+    if showLbl
+        for i = 0 to 5
+            a = array.get(vals, i)
+            if array.get(shows, i) and not na(a)
+                c  = array.get(cols, i)
+                n  = array.get(names, i) + " " + tag + "  "
+                hi = dOpen + a * mult
+                lo = dOpen - a * mult
+                array.push(lbls, label.new(bar_index + padBars, hi, n + f_px(hi), style = label.style_label_left, color = color.new(c, 100), textcolor = c, size = size.small))
+                array.push(lbls, label.new(bar_index + padBars, lo, n + f_px(lo), style = label.style_label_left, color = color.new(c, 100), textcolor = c, size = size.small))
+        if showOpen
+            array.push(lbls, label.new(bar_index + padBars, dOpen, "Open  " + f_px(dOpen), style = label.style_label_left, color = color.new(openCol, 100), textcolor = openCol, size = size.small))
+
+// ---------------------------------------------------------------------
+// TABLE  (light, see-through)
+// ---------------------------------------------------------------------
+f_pctCol(float p) =>
+    na(p) ? color.new(chart.fg_color, 60) : p >= 100 ? color.red : p >= warnPct ? color.orange : color.teal
+
+if barstate.islast and showTable
+    var table t = table.new(tblPos, 4, 8, bgcolor = color.new(chart.bg_color, 30), frame_color = color.new(chart.fg_color, 85), frame_width = 1)
+    fg  = chart.fg_color
+    dim = color.new(chart.fg_color, 50)
+    thisLbl  = use18 ? "18:00" : "00:00"
+    otherLbl = use18 ? "00:00" : "18:00"
+    table.cell(t, 0, 0, "LMR " + tag, text_color = fg,  text_size = size.small, text_halign = text.align_left)
+    table.cell(t, 1, 0, thisLbl,      text_color = dim, text_size = size.small)
+    table.cell(t, 2, 0, "Used",       text_color = dim, text_size = size.small)
+    if showCompare
+        table.cell(t, 3, 0, otherLbl, text_color = dim, text_size = size.small)
+    for i = 0 to 5
+        a = array.get(vals, i)
+        p = f_pct(a)
+        r = i + 1
+        table.cell(t, 0, r, array.get(names, i), text_color = array.get(cols, i), text_size = size.small, text_halign = text.align_left)
+        table.cell(t, 1, r, f_px(a), text_color = fg, text_size = size.small, text_halign = text.align_right)
+        table.cell(t, 2, r, na(p) ? "-" : str.tostring(p, "#") + "%", text_color = f_pctCol(p), text_size = size.small, text_halign = text.align_right)
+        if showCompare
+            table.cell(t, 3, r, f_px(array.get(cmps, i)), text_color = dim, text_size = size.small, text_halign = text.align_right)
+    table.cell(t, 0, 7, "Today", text_color = dim, text_size = size.small, text_halign = text.align_left)
+    table.cell(t, 1, 7, f_px(dRange), text_color = fg, text_size = size.small, text_halign = text.align_right)
+
+// ---------------------------------------------------------------------
+// ALERTS - today's range reaches 100% of an average
+// ---------------------------------------------------------------------
+f_hit(float a) =>
+    p = f_pct(a)
+    not newDay and p >= 100 and nz(p[1]) < 100
+
+alertcondition(f_hit(a5),  "Range hit 5D ATR",  "LMR ATR Projector: today's range reached the 5-day average")
+alertcondition(f_hit(a10), "Range hit 10D ATR", "LMR ATR Projector: today's range reached the 10-day average")
+alertcondition(f_hit(a20), "Range hit 20D ATR", "LMR ATR Projector: today's range reached the 20-day average")
+alertcondition(f_hit(a30), "Range hit 30D ATR", "LMR ATR Projector: today's range reached the 30-day average")
+alertcondition(f_hit(a60), "Range hit 60D ATR", "LMR ATR Projector: today's range reached the 60-day average")
+alertcondition(f_hit(a90), "Range hit 90D ATR", "LMR ATR Projector: today's range reached the 90-day average")

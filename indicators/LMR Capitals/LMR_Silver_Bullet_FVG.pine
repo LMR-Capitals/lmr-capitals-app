@@ -1,0 +1,125 @@
+//@version=6
+indicator("LMR Silver Bullet ", shorttitle = "LMR Silver-Bullet FVG", overlay = true, max_boxes_count = 500, max_lines_count = 500, max_bars_back = 5000)
+
+// ─────────────────────────────────────────────────────────────
+// LMR Silver Bullet — first FVG of each Silver Bullet hour
+//   London SB : 02:00–03:00 NY time
+//   NY AM SB  : 10:00–11:00 NY time
+//   NY PM SB  : 14:00–15:00 NY time
+// Boxes are anchored to price & time (xloc.bar_time) and extend
+// forward to the current bar. No tables, nothing floats.
+// ─────────────────────────────────────────────────────────────
+
+TZ = "America/New_York"
+
+// ── Inputs ───────────────────────────────────────────────────
+grpS     = "Silver Bullet Sessions (NY time)"
+useLon   = input.bool(true, "London SB", inline = "lon", group = grpS)
+sessLon  = input.session("0200-0300", "", inline = "lon", group = grpS)
+useAM    = input.bool(true, "NY AM SB", inline = "am", group = grpS)
+sessAM   = input.session("1000-1100", "", inline = "am", group = grpS)
+usePM    = input.bool(true, "NY PM SB", inline = "pm", group = grpS)
+sessPM   = input.session("1400-1500", "", inline = "pm", group = grpS)
+
+grpF        = "Filter"
+lookback    = input.string("1 Month", "Show FVGs from last", options = ["3 Days", "1 Week", "1 Month", "3 Months"], group = grpF)
+showBull    = input.bool(true, "Bullish FVGs", inline = "dir", group = grpF)
+showBear    = input.bool(true, "Bearish FVGs", inline = "dir", group = grpF)
+minGapTicks = input.int(0, "Min gap size (ticks)", minval = 0, group = grpF)
+
+grpC   = "Day Colours"
+fillTr = input.int(80, "Box transparency", minval = 0, maxval = 100, group = grpC)
+cMon   = input.color(color.green,  "Monday",    group = grpC)
+cTue   = input.color(color.blue,   "Tuesday",   group = grpC)
+cWed   = input.color(color.yellow, "Wednesday", group = grpC)
+cThu   = input.color(color.purple, "Thursday",  group = grpC)
+cFri   = input.color(color.red,    "Friday",    group = grpC)
+
+grpM      = "Middle Line"
+showMid   = input.bool(true, "Show middle line", group = grpM)
+midStyleS = input.string("Dashed", "Style", options = ["Solid", "Dashed", "Dotted"], group = grpM)
+midWidth  = input.int(1, "Width", minval = 1, maxval = 4, group = grpM)
+
+grpL      = "Label (inside box, right, middle)"
+showLbl   = input.bool(true, "Show label", group = grpL)
+showTime  = input.bool(true, "Include FVG time", group = grpL)
+lblSizeS  = input.string("Small", "Size", options = ["Tiny", "Small", "Normal", "Large"], group = grpL)
+lblDayCol = input.bool(true, "Use day colour for text", group = grpL)
+lblCol    = input.color(color.gray, "Text colour (if not day colour)", group = grpL)
+
+// ── Helpers ──────────────────────────────────────────────────
+lookbackMs() =>
+    day = 86400000
+    switch lookback
+        "3 Days"  => 3 * day
+        "1 Week"  => 7 * day
+        "1 Month" => 31 * day
+        => 92 * day
+
+dayColour(int t) =>
+    d = dayofweek(t, TZ)
+    d == dayofweek.monday ? cMon : d == dayofweek.tuesday ? cTue : d == dayofweek.wednesday ? cWed : d == dayofweek.thursday ? cThu : cFri
+
+midStyle = midStyleS == "Solid" ? line.style_solid : midStyleS == "Dotted" ? line.style_dotted : line.style_dashed
+lblSize  = lblSizeS == "Tiny" ? size.tiny : lblSizeS == "Normal" ? size.normal : lblSizeS == "Large" ? size.large : size.small
+
+if timeframe.in_seconds() > 900
+    runtime.error("LMR SB FVG: use a 15-minute chart or lower.")
+
+// ── Storage ──────────────────────────────────────────────────
+var array<box>  fvgBoxes = array.new<box>()
+var array<line> fvgMids  = array.new<line>()
+var array<int>  fvgTimes = array.new<int>()
+
+removeAt(int i) =>
+    box.delete(fvgBoxes.remove(i))
+    line.delete(fvgMids.remove(i))
+    fvgTimes.remove(i)
+
+// ── FVG on this bar ─────────────────────────────────────────
+cutoff  = last_bar_time - lookbackMs()
+minGap  = minGapTicks * syminfo.mintick
+bullFvg = showBull and low > high[2] and (low - high[2]) >= minGap
+bearFvg = showBear and high < low[2] and (low[2] - high) >= minGap
+
+drawFvg(string name) =>
+    top    = bullFvg ? low     : low[2]
+    bottom = bullFvg ? high[2] : high
+    mid    = (top + bottom) / 2
+    leftT  = time[2]
+    base   = dayColour(time)
+    txt    = name + " SB " + (showTime ? str.format_time(time, "HH:mm", TZ) + " " : "") + str.format_time(time, "dd/MM/yy", TZ)
+
+    if fvgBoxes.size() >= 500
+        removeAt(0)
+
+    fvgBoxes.push(box.new(leftT, top, time, bottom, xloc = xloc.bar_time, bgcolor = color.new(base, fillTr), border_color = color(na), border_width = 0, text = showLbl ? txt : "", text_size = lblSize, text_color = lblDayCol ? base : lblCol, text_halign = text.align_right, text_valign = text.align_center, text_wrap = text.wrap_none))
+    fvgMids.push(showMid ? line.new(leftT, mid, time, mid, xloc = xloc.bar_time, color = base, style = midStyle, width = midWidth) : na)
+    fvgTimes.push(time)
+
+// Only the FIRST FVG of each session/day is drawn.
+// Displacement candle and confirming candle must both be inside the window.
+runSession(bool enabled, string sess, string name) =>
+    inWin = not na(time(timeframe.period, sess, TZ))
+    var bool taken = false
+    if inWin and not inWin[1]
+        taken := false
+    if enabled and not taken and inWin and inWin[1] and time >= cutoff and (bullFvg or bearFvg)
+        taken := true
+        drawFvg(name)
+
+runSession(useLon, sessLon, "London")
+runSession(useAM,  sessAM,  "NY AM")
+runSession(usePM,  sessPM,  "NY PM")
+
+// ── Play forward with current time + prune old ones ─────────
+if barstate.islast and fvgBoxes.size() > 0
+    nowCutoff = time - lookbackMs()
+    for i = fvgBoxes.size() - 1 to 0
+        if fvgTimes.get(i) < nowCutoff
+            removeAt(i)
+        else
+            box.set_right(fvgBoxes.get(i), time)
+            ln = fvgMids.get(i)
+            if not na(ln)
+                line.set_x2(ln, time)
