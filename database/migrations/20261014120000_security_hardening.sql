@@ -1,13 +1,12 @@
--- Security hardening from database/SECURITY.md §6.
--- Policy and function changes only. No data is read, changed or removed.
+-- Security hardening from database/SECURITY.md §6, part 1.
+-- APPLIED to the live project on 2026-10-14. Changes functions and grants only; no data touched.
 --
--- 1. Legacy admin RPCs now require a verified administrator with MFA (aal2),
---    matching circle_is_admin(). The admin portal and the Journal admin panel
---    already force an aal2 session before calling them. is_admin() is left as
---    is, because the portal calls it before the MFA step.
--- 2. is_entitled(uid) is no longer executable by anon.
--- 3. Drop the duplicate "own rows …" policies. Each one is identical to the
---    "own …" policy that stays on the same table.
+-- Legacy admin RPCs now require a verified administrator with MFA (aal2),
+-- matching circle_is_admin(). The admin portal and the Journal admin panel
+-- already force an aal2 session before calling them. is_admin() is left as
+-- is, because the portal calls it before the MFA step.
+-- is_entitled(uid) is no longer executable by anon.
+-- admin_remove_admin and admin_revoke_comp are in part 2.
 
 create or replace function public.admin_add_admin(target_email text)
 returns text language plpgsql security definer set search_path to 'public'
@@ -23,22 +22,6 @@ begin
   end if;
   insert into public.admins(user_id) values (tid) on conflict (user_id) do nothing;
   return tid::text;
-end; $$;
-
-create or replace function public.admin_remove_admin(target uuid)
-returns void language plpgsql security definer set search_path to 'public'
-as $$
-begin
-  if not public.circle_is_admin() then
-    raise exception 'not authorized';
-  end if;
-  if target = auth.uid() then
-    raise exception 'You cannot remove your own admin access.';
-  end if;
-  if (select count(*) from public.admins) <= 1 then
-    raise exception 'Cannot remove the last remaining admin.';
-  end if;
-  delete from public.admins where user_id = target;
 end; $$;
 
 create or replace function public.admin_list_admins()
@@ -134,16 +117,6 @@ begin
   on conflict (user_id) do update set granted_by = excluded.granted_by, note = excluded.note, granted_at = now();
 end; $$;
 
-create or replace function public.admin_revoke_comp(target uuid)
-returns void language plpgsql security definer set search_path to 'public'
-as $$
-begin
-  if not public.circle_is_admin() then
-    raise exception 'not authorized';
-  end if;
-  delete from public.comp_access where user_id = target;
-end; $$;
-
 create or replace function public.dump_all_data()
 returns jsonb language plpgsql security definer set search_path to 'public'
 as $$
@@ -161,11 +134,3 @@ end $$;
 
 revoke execute on function public.is_entitled(uuid) from public, anon;
 grant  execute on function public.is_entitled(uuid) to authenticated;
-
-drop policy if exists "own rows accounts"     on public.accounts;
-drop policy if exists "own rows daily"        on public.daily;
-drop policy if exists "own rows monthly"      on public.monthly;
-drop policy if exists "own rows notes"        on public.notes;
-drop policy if exists "own rows trades"       on public.trades;
-drop policy if exists "own rows transactions" on public.transactions;
-drop policy if exists "own rows weekly"       on public.weekly;

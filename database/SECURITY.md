@@ -152,15 +152,17 @@ Path rule: user-owned objects live under `<auth.uid()>/…` and policies compare
 
 ## 6. Open findings (not yet fixed)
 
-Ranked by impact. **None of these have been applied.** Each needs the owner's
-sign-off and a new migration.
+Ranked by impact. As of 2026-10-14, #2 is mostly fixed and #6 is fixed by
+`migrations/20261014120000_security_hardening.sql`. The rest of #2 and all of #7 are in
+`migrations/20261014120100_security_hardening_pending.sql`, which is **not yet applied**.
+#1, #3, #4 and #5 are open.
 
 | # | Finding | Risk | Suggested fix |
 |---|---|---|---|
 | 1 | `app-images` has a `SELECT` policy for role `public` on `storage.objects`. | Anyone with the anon key can **list** every member's trade chart files across all folders, not only fetch a known URL. | Drop the `SELECT` policy (public URLs keep working for a public bucket), or replace it with an owner-folder policy. Check the Studio/member flows first, because they read `storage.objects` metadata through RPCs. |
-| 2 | Legacy admin RPCs (`admin_add_admin`, `admin_grant_comp`, `dump_all_data`, …) check `admins` membership but **not MFA**. | A stolen admin password alone can add admins, grant free access or export the whole database. Inner Circle admin already requires `aal2`. | Add `and coalesce(auth.jwt()->>'aal','') = 'aal2'` to the guard, after confirming the admin portal does an MFA step-up. |
+| 2 | *(7 of 9 fixed; `admin_remove_admin` and `admin_revoke_comp` are pending)* Legacy admin RPCs (`admin_add_admin`, `admin_grant_comp`, `dump_all_data`, …) check `admins` membership but **not MFA**. | A stolen admin password alone can add admins, grant free access or export the whole database. Inner Circle admin already requires `aal2`. | Add `and coalesce(auth.jwt()->>'aal','') = 'aal2'` to the guard, after confirming the admin portal does an MFA step-up. |
 | 3 | Leaked-password protection is disabled in Supabase Auth. | Members can sign up with known-breached passwords. | Enable it in Auth → Password security ([docs](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection)). |
 | 4 | `journal-images` is a public bucket. | Imported journal charts can be read by anyone who has the object path. | Make it private and serve it via signed URLs or an owner-folder policy if the content is sensitive. |
 | 5 | `admins` has `admins_read` `using (true)` for role `public`. | Anon callers can list admin user UUIDs (no emails). Needed today for the `lmr_achievements` public-read subquery. | Restrict to `authenticated`, or move the subquery into a `SECURITY DEFINER` helper. |
-| 6 | `is_entitled(uid)` is executable by `anon` for any `uid`. | Low: as anon, RLS hides `comp_access`/`subscriptions`, so it only reveals admin status. | `revoke execute … from anon`. |
-| 7 | Duplicate identical policies ("own X" + "own rows X") on `accounts`, `daily`, `monthly`, `notes`, `trades`, `transactions`, `weekly`. | None to security. Postgres evaluates both (small performance cost). | Drop one of each pair. |
+| 6 | *(Fixed)* `is_entitled(uid)` is executable by `anon` for any `uid`. | Low: as anon, RLS hides `comp_access`/`subscriptions`, so it only reveals admin status. | `revoke execute … from anon`. |
+| 7 | *(Pending)* Duplicate identical policies ("own X" + "own rows X") on `accounts`, `daily`, `monthly`, `notes`, `trades`, `transactions`, `weekly`. | None to security. Postgres evaluates both (small performance cost). | Drop one of each pair. |
