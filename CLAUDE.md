@@ -1,3 +1,7 @@
+## Active launch security review
+
+Read [deployment/SECURITY-LAUNCH-AUDIT.md](deployment/SECURITY-LAUNCH-AUDIT.md) for findings, tested fixes, remaining launch blockers and Claude group routing. Local changes are not proof of production deployment. Coordinate database changes with security PR #107; preserve all member data and manual publication states.
+
 ## Current production website and deployment — read first
 
 This source originated in `/Users/nirajghorsaine/LMR-Capitals`; the Life OS source branch is `codex/life-os-week-plan`. Read [deployment/GITHUB-LIFE-OS-HANDOFF.md](deployment/GITHUB-LIFE-OS-HANDOFF.md) for the current source handoff. The earlier Inner Circle integration was merged in #72. The website is a root-level Vite multi-page build, including landing, Inner Circle, LMR Studio and the full embedded Journal. Read [deployment/CURRENT.md](deployment/CURRENT.md) before deploying or diagnosing a missing portal; it contains the current release receipt, source/build map and database-preservation constraints.

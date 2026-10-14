@@ -29,7 +29,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/vendor/dompurify-3.4.17.min.js"></script>
+<script src="/journal-content-security.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"></script>
 <!-- Editor.js loaded LAZILY — only when LMR sections are opened (prevents CSS conflicts) -->
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -5601,18 +5603,19 @@ function getEventsForRange(from,to,minImpact=1){
 let DB_NAME='lmr_v3';
 const STORE='images';
 const SB_IMG_BUCKET='app-images';
-const SB_IMG_URL='https://agrvylclhvxyevsmmexf.supabase.co/storage/v1/object/public/'+SB_IMG_BUCKET+'/';
+
 // Negative cache: keys whose Storage object is confirmed missing — never re-fetch them (stops 400 spam).
 const _imgMissCache=new Set();
 // Image-key index: the set of keys that actually HAVE an uploaded image. Lets getImg() skip the cloud
 // fetch for empty zones — Supabase Storage returns 400 for a missing public object, so blind fetches
 // spam the console with 400s. Synced from the cloud file list on login; updated on save/delete.
 let _imgIdx=null, _imgIdxSynced=false;
-function _imgIdxGet(){ if(_imgIdx) return _imgIdx; try{ _imgIdx=new Set(JSON.parse(localStorage.getItem('lmr_img_idx')||'[]')); }catch(e){ _imgIdx=new Set(); } _imgIdxSynced=localStorage.getItem('lmr_img_idx_ok')==='1'; return _imgIdx; }
-function _imgIdxPersist(){ try{ localStorage.setItem('lmr_img_idx',JSON.stringify([..._imgIdxGet()])); }catch(e){} }
+function _imgIndexStorageKey(suffix=''){return 'lmr_img_idx'+suffix+'__'+(_sbUserId || 'signed-out');}
+function _imgIdxGet(){ if(_imgIdx) return _imgIdx; try{ _imgIdx=new Set(JSON.parse(localStorage.getItem(_imgIndexStorageKey())||'[]')); }catch(e){ _imgIdx=new Set(); } _imgIdxSynced=localStorage.getItem(_imgIndexStorageKey('_ok'))==='1'; return _imgIdx; }
+function _imgIdxPersist(){ try{ localStorage.setItem(_imgIndexStorageKey(),JSON.stringify([..._imgIdxGet()])); }catch(e){} }
 function _imgIdxAdd(k){ _imgIdxGet().add(k); _imgIdxPersist(); }
 function _imgIdxDel(k){ _imgIdxGet().delete(k); _imgIdxPersist(); }
-function _imgIdxSetAll(keys){ _imgIdx=new Set(keys); _imgIdxSynced=true; try{ localStorage.setItem('lmr_img_idx',JSON.stringify([...new Set(keys)])); localStorage.setItem('lmr_img_idx_ok','1'); }catch(e){} }
+function _imgIdxSetAll(keys){ _imgIdx=new Set(keys); _imgIdxSynced=true; try{ localStorage.setItem(_imgIndexStorageKey(),JSON.stringify([...new Set(keys)])); localStorage.setItem(_imgIndexStorageKey('_ok'),'1'); }catch(e){} }
 // lmr_imageIndex is a one-time Notion-import helper; namespaced the same way.
 let IMG_INDEX_KEY='lmr_imageIndex';
 let db;
@@ -5693,6 +5696,7 @@ async function _switchUserImageStore(uid,mode){
   }
   DB_NAME=nsDb;
   IMG_INDEX_KEY=nsIdx;
+  _imgIdx=null; _imgIdxSynced=false; _imgMissCache.clear();
 }
 
 // Save to IndexedDB AND upload to Supabase Storage
@@ -5723,24 +5727,26 @@ async function sbUploadImage(key,blob){
       contentType:mime, upsert:true
     });
     if(error) return null;
-    return SB_IMG_URL+fileName;
+    return fileName; // Upload success marker; private objects have no permanent public URL.
   }catch(e){ return null; }
 }
 
 // Get image: IndexedDB first, then Supabase Storage
 async function getImg(k){
+  const imageOwner=_sbUserId;
   await openDB();
+  if(imageOwner!==_sbUserId)return null;
   const local=await new Promise(res=>{const t=db.transaction(STORE,'readonly');const r=t.objectStore(STORE).get(k);r.onsuccess=()=>res(r.result)});
+  if(imageOwner!==_sbUserId)return null;
   if(local) return local;
   // Only hit the cloud for keys we KNOW have an uploaded image (or before the index is synced).
   // This stops the 400-Bad-Request spam from fetching missing objects for empty image zones.
   if(_sbUserId && !_imgMissCache.has(k) && (_imgIdxGet().has(k) || !_imgIdxSynced)){
     try{
       const fileName=`${_sbUserId}/${encodeURIComponent(k)}`;
-      const publicUrl=SB_IMG_URL+fileName;
-      const resp=await fetch(publicUrl);
-      if(resp.ok){
-        const blob=await resp.blob();
+      const {data:blob,error}=await _sb.storage.from(SB_IMG_BUCKET).download(fileName);
+      if(imageOwner!==_sbUserId)return null;
+      if(!error && blob){
         if(blob.size>0){
           await new Promise(res=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(blob,k);t.oncomplete=res;t.onerror=res});
           _imgIdxAdd(k);   // confirmed it exists
@@ -5806,6 +5812,7 @@ async function syncAllImagesToCloud(){
 // ── RESTORE ALL IMAGES FROM CLOUD ──────────────────────────────
 // Downloads all images from Supabase Storage back to IndexedDB
 async function restoreAllImagesFromCloud(){
+  const imageOwner=_sbUserId;
   if(!_sbUserId){flash('⚠ Sign in first');return;}
   flash('⟳ Restoring images from cloud…');
   try{
@@ -5815,20 +5822,21 @@ async function restoreAllImagesFromCloud(){
 
     let done=0;
     let skipped=0;
+    if(imageOwner!==_sbUserId)return;
     await openDB();
 
     for(const file of files){
+      if(imageOwner!==_sbUserId)return;
       const key=decodeURIComponent(file.name);
       // Check if already in local IndexedDB
       const existing=await new Promise(res=>{try{const t=db.transaction(STORE,'readonly');const r=t.objectStore(STORE).get(key);r.onsuccess=()=>res(r.result);r.onerror=()=>res(null);}catch(e){res(null);}});
       if(existing){skipped++;continue;}
 
-      // Download via direct public URL (more reliable)
+      // Download with the current authenticated session and Storage RLS.
       try{
-        const publicUrl=SB_IMG_URL+`${_sbUserId}/${file.name}`;
-        const resp=await fetch(publicUrl);
-        if(resp.ok){
-          const blob=await resp.blob();
+        const {data:blob,error}=await _sb.storage.from(SB_IMG_BUCKET).download(`${_sbUserId}/${file.name}`);
+        if(imageOwner!==_sbUserId)return;
+        if(!error && blob){
           if(blob.size>0){
             await new Promise(res=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(blob,key);t.oncomplete=res;t.onerror=res});
             done++;
@@ -5847,6 +5855,7 @@ async function restoreAllImagesFromCloud(){
 // ── AUTO-RESTORE IMAGES ON LOGIN (new device) ──────────────────
 // Called after login — silently downloads all cloud images to IndexedDB
 async function autoRestoreImagesOnLogin(){
+  const imageOwner=_sbUserId;
   if(!_sbUserId) return;
   try{
     const localKeys=await allImgKeys();
@@ -5860,14 +5869,16 @@ async function autoRestoreImagesOnLogin(){
     if(!missing.length) return;
 
     console.log(`[LMR] Auto-restoring ${missing.length} images from cloud...`);
+    if(imageOwner!==_sbUserId)return;
     await openDB();
     let done=0;
     for(const file of missing){
+      if(imageOwner!==_sbUserId)return;
       const key=decodeURIComponent(file.name);
       try{
-        const resp=await fetch(SB_IMG_URL+`${_sbUserId}/${file.name}`);
-        if(resp.ok){
-          const blob=await resp.blob();
+        const {data:blob,error}=await _sb.storage.from(SB_IMG_BUCKET).download(`${_sbUserId}/${file.name}`);
+        if(imageOwner!==_sbUserId)return;
+        if(!error && blob){
           if(blob.size>0){
             await new Promise(res=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(blob,key);t.oncomplete=res;t.onerror=res});
             done++;
@@ -10739,7 +10750,7 @@ async function lmrSimpleLoad(section){
 
   // Initialize the block editor (prefers the new block format; otherwise converts the legacy HTML).
   if(typeof lmrbInit==='function'){ lmrbInit(section, (lmrbBlocks&&lmrbBlocks.length)?lmrbBlocks:html, ()=>lmrSimpleAutoSave(section)); }
-  else { el.innerHTML = html || ''; }
+  else { el.innerHTML = lmrSanitizeRichHtml(html); }
   if(statusEl) statusEl.textContent = (html||lmrbBlocks) ? '✓ Loaded' : 'Start typing…';
   setTimeout(()=>{ if(statusEl) statusEl.textContent='Auto-saves'; }, 1500);
 }
@@ -10928,7 +10939,7 @@ function _lmrbRow(b,i){
   else if(_lmrbIsToggle(b.type)){ const tg=document.createElement('button'); tg.type='button'; tg.className='lmrb-tog'; tg.textContent=c.open?'▾':'▸'; tg.onclick=e=>{ e.stopPropagation(); c.open=!c.open; _lmrbRender(); _lmrbChanged(); }; row.appendChild(tg); }
   const ce=document.createElement('div'); ce.className='lmrb-ce lmrb-'+b.type+(b.type==='todo'&&c.checked?' done':''); ce.contentEditable='true'; ce.spellcheck=false; ce.dataset.id=b.id;
   ce.dataset.ph=(b.type==='text'?'Type text, or / for commands':(_lmrbIsToggle(b.type)?'Toggle':(b.type[0]==='h'?'Heading':(b.type==='code'?'Code':(b.type==='quote'?'Quote':(b.type==='callout'?'Callout':''))))));
-  ce.innerHTML=c.html||''; _lmrbBindCE(ce,b); row.appendChild(ce); return row;
+  ce.innerHTML=lmrSanitizeRichHtml(c.html); _lmrbBindCE(ce,b); row.appendChild(ce); return row;
 }
 // Media (image/video/audio/file): blob stored in the app's IndexedDB image layer (no base64 in state).
 function _lmrbMedia(b){
@@ -10967,7 +10978,7 @@ function _lmrbTable(b){
 function _lmrbPage(b){
   const wrap=document.createElement('div'); wrap.className='lmrb-page';
   const ic=document.createElement('span'); ic.className='lmrb-pico'; ic.textContent=b.type==='linktopage'?'🔗':'📄'; wrap.appendChild(ic);
-  const ce=document.createElement('div'); ce.className='lmrb-ce lmrb-pagece'; ce.contentEditable='true'; ce.spellcheck=false; ce.dataset.id=b.id; ce.dataset.ph='Untitled'; ce.innerHTML=(b.content&&b.content.title)||''; _lmrbBindCE(ce,b,'title'); wrap.appendChild(ce); return wrap;
+  const ce=document.createElement('div'); ce.className='lmrb-ce lmrb-pagece'; ce.contentEditable='true'; ce.spellcheck=false; ce.dataset.id=b.id; ce.dataset.ph='Untitled'; ce.innerHTML=lmrSanitizeRichHtml(b.content&&b.content.title); _lmrbBindCE(ce,b,'title'); wrap.appendChild(ce); return wrap;
 }
 // Bookmark: plain URL text (no unfurl/favicon — would need a server fetch).
 function _lmrbBookmark(b){
@@ -13657,7 +13668,7 @@ async function loadLmrPage(pageId){
     }catch(e){}
   }
 
-  el.innerHTML=content;
+  el.innerHTML=lmrSanitizeRichHtml(content);
   if(!content) el.setAttribute('placeholder','Start writing…');
   const lbl=document.getElementById(pageId+'-saved');
   if(lbl) lbl.textContent=content?'Loaded':'Not saved';
@@ -13775,7 +13786,19 @@ function sbInit() {
   if (_sb) return _sb;
   try { _sb = window.supabase.createClient(SB_URL, SB_KEY); }
   catch (e) { setSbStatus('Init failed', 'var(--bear)'); return null; }
-  _sb.auth.onAuthStateChange(ev => { if (ev === 'PASSWORD_RECOVERY') lgStartRecovery(); });
+  _sb.auth.onAuthStateChange((ev, session) => {
+    if (ev === 'PASSWORD_RECOVERY') lgStartRecovery();
+    if (!lmrAccountChanged(ev, _sbUserId, session?.user?.id)) return;
+    // Preserve pending edits only in the old account's local namespace.
+    // Never submit the old account's state with a newly changed auth session.
+    try { if(STORE_KEY.endsWith('__'+_sbUserId)) localStorage.setItem(STORE_KEY,JSON.stringify(state)); } catch(e) {}
+    _sbSyncEnabled=false; clearTimeout(_sbSyncTimer); _sbUserId=null;
+    const main=document.getElementById('mainApp'); if(main)main.style.display='none';
+    document.querySelectorAll('.modal.show').forEach(el=>el.classList.remove('show'));
+    document.body.classList.remove('is-admin');
+    // Outside the auth callback lock; startup revalidates entitlement and ownership.
+    setTimeout(()=>location.reload(),0);
+  });
   return _sb;
 }
 
@@ -15179,7 +15202,7 @@ function clearAIChat(){
 }
 
 function formatAIResponse(text){
-  return text
+  return lmrEscapeText(text)
     .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
     .replace(/\*(.*?)\*/g,'<em>$1</em>')
     .replace(/^### (.*)/gm,'<h4 style="color:var(--gold);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin:10px 0 4px">$1</h4>')
@@ -15200,7 +15223,7 @@ function appendAIMessage(role, content, isThinking=false){
     <div class="ai-msg-avatar">${role==='user'?'You':icon('sparkles',14)}</div>
     <div class="ai-msg-bubble">${isThinking
       ? '<div class="ai-thinking"><span></span><span></span><span></span></div>'
-      : (role==='assistant' ? `<p>${formatAIResponse(content)}</p>` : `<p>${content}</p>`)
+      : (role==='assistant' ? `<p>${formatAIResponse(content)}</p>` : `<p>${lmrEscapeText(content)}</p>`)
     }</div>`;
   el.appendChild(div);
   el.scrollTop = el.scrollHeight;

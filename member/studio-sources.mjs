@@ -1,3 +1,4 @@
+import {signJournalCharts} from './private-journal-media.mjs';
 export async function fetchStudioSources(client,kind) {
  const rows=[];
  for(let offset=0;;offset+=100) {
@@ -9,8 +10,7 @@ export async function fetchStudioSources(client,kind) {
 export async function fetchStudioDetail(client,kind,id,baseUrl) {
  const {data,error}=await client.rpc('circle_studio_sources',{p_kind:kind,p_source_id:id});
  if(error) throw new Error(error.message);
- const url=chart=>chart.path ? `${baseUrl}/storage/v1/object/public/app-images/${chart.path.split('/').map(encodeURIComponent).join('/')}?v=${encodeURIComponent(chart.version || '')}` : null;
- return {...data,charts:(data.charts || []).map(c=>({...c,url:url(c)}))};
+ return (await signJournalCharts(client, [data]))[0];
 }
 
 // Read only session labels for the same owner-approved source IDs. No Journal writes.

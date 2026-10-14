@@ -4,8 +4,8 @@ const live={id:'live:a',source_id:'a',source_owner_id:'owner',source_kind:'trade
 assert.equal(mergeExecutions([{...live,id:'snapshot'},{...live,id:'older',source_id:'b'}, {id:'obs',kind:'observation'}],[live]).length,2);
 assert.deepEqual(executionDetails(live).map(d=>d.key),['date','pnl','feedback']);
 const calls=[];
-const rows=await fetchLiveExecutions({rpc:async(name,args)=>{calls.push(args.p_offset);return {data:args.p_offset===0 ? Array.from({length:100},(_,i)=>({...live,id:String(i),charts:[{path:'owner/trade-a-entry',version:'2026-10-13'}]})) : [live]};}},'https://example.supabase.co');
-assert.equal(rows.length,101);assert.deepEqual(calls,[0,100]);assert.match(rows[0].charts?.[0]?.url || rows[1].charts[0].url,/app-images\/owner\/trade-a-entry\?v=2026-10-13/);
+const rows=await fetchLiveExecutions({storage:{from:()=>({createSignedUrls:async paths=>({data:paths.map(path=>({path,signedUrl:'https://example.supabase.co/storage/v1/object/sign/app-images/'+path+'?token=short-lived'}))})})},rpc:async(name,args)=>{calls.push(args.p_offset);return {data:args.p_offset===0 ? Array.from({length:100},(_,i)=>({...live,id:String(i),charts:[{path:'owner/trade-a-entry',version:'2026-10-13'}]})) : [live]};}},'https://example.supabase.co');
+assert.equal(rows.length,101);assert.deepEqual(calls,[0,100]);assert.match(rows[0].charts?.[0]?.url || rows[1].charts[0].url,/object\/sign\/app-images\/owner\/trade-a-entry\?token=short-lived/);
 await assert.rejects(fetchLiveExecutions({rpc:async()=>({error:{message:'Denied'}})},''),/Denied/);
 console.log('Execution pagination, zero values, private-field exclusion and snapshot deduplication passed.');
 
