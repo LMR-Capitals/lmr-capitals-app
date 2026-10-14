@@ -1,7 +1,5 @@
 -- Security hardening from database/SECURITY.md §6, part 2.
--- NOT YET APPLIED. Supabase asks for approval on statements containing
--- delete/drop, and that prompt timed out during the 2026-10-14 session.
--- Apply it from the Supabase SQL editor. It changes policies and functions only.
+-- APPLIED to the live project on 2026-10-14. Changes functions only; no data touched.
 --
 -- Same MFA guard for the two admin RPCs whose bodies delete rows.
 -- The duplicate journal-table policies are handled by
