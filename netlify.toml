@@ -200,5 +200,7 @@
 [[headers]]
   for = "/life-os/*"
   [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    Content-Security-Policy = "frame-ancestors 'self'; object-src 'none'; base-uri 'self'"
     Cache-Control = "no-cache, no-store, must-revalidate"
     X-Robots-Tag = "noindex, nofollow"

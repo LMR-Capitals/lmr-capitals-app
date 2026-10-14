@@ -1,3 +1,4 @@
+import {signJournalCharts} from './private-journal-media.mjs';
 import {newestJournalFirst} from './journal-order.mjs';
 export function mergeExecutions(posts = [], live = []) {
  const keys = new Set(live.map(p => `${p.source_owner_id}:${p.source_id}`));
@@ -9,10 +10,8 @@ export async function fetchLiveExecutions(client, baseUrl) {
   const {data,error} = await client.rpc('circle_live_executions',{p_offset:offset});
   if(error) throw new Error(error.message);
   const page = data || [];
-  rows.push(...page.map(p => ({...p, charts:(p.charts || []).map(chart => ({...chart,
-   url:chart.path ? `${baseUrl}/storage/v1/object/public/app-images/${chart.path.split('/').map(encodeURIComponent).join('/')}?v=${encodeURIComponent(chart.version || '')}` : null
-  }))})));
-  if(page.length < 100) return newestJournalFirst(rows);
+  rows.push(...page);
+  if(page.length < 100) return newestJournalFirst(await signJournalCharts(client, rows));
  }
 }
 const labels = [['date','Date'],['market','Market'],['position','Direction'],['session','Session'],['open_time','Open'],['close_time','Close'],['models','Models'],['trade_models','Trade models'],['pnl','P&L'],['risk','Risk'],['rr','R:R'],['lots','Lots'],['htf','HTF'],['rth','RTH'],['pd_array','PD array'],['plan_followed','Plan followed'],['grade','Grade'],['confirmations','Confirmations'],['emotions','Emotions'],['phases','Phases'],['mmm','MMM'],['movement','Movement'],['tframes','Timeframes'],['draws','Draws'],['feedback','Review']];
