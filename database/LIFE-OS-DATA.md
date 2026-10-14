@@ -1,14 +1,16 @@
 # Life OS data (LMR Supabase)
 
 Life OS stores its data in the existing LMR Supabase project (`agrvylclhvxyevsmmexf`), not a
-separate project. Two tables, both already live. Their migrations are recorded in
-`migrations/` under the same versions as the live `supabase_migrations.schema_migrations` rows,
-so they are a reference — do not re-apply them.
+separate project. Two tables, both live. Their migrations are recorded in `migrations/` under the same versions
+as the live `supabase_migrations.schema_migrations` rows, so they are a reference — do not
+re-apply them.
 
 | Migration | Object | Purpose |
 |---|---|---|
 | `20261012011215_life_os_admin_workspace.sql` | `public.life_os_workspaces`, `public.life_os_save_workspace(integer, jsonb)` | The whole Life OS workspace for one user, as one JSON document |
 | `20261012013907_create_lmr_week_plans.sql` | `public.lmr_week_plans` | Weekly trading plan history, one row per week |
+| `20261014024650_harden_lmr_week_plans_grants.sql` | `lmr_week_plans` grants | No `anon` access; `authenticated` limited to select/insert/update |
+| `20261014024738_harden_lmr_week_plans_policies.sql` | `lmr_week_plans` policies | Same owner + admin + `aal2` rule as the workspace |
 
 `patches/life-os-admin-workspace.sql` is the original copy of the first migration.
 
@@ -37,23 +39,21 @@ Index `(user_id, week_start desc)`. The Sunday Week Plan automation writes a row
 review fills `outcome`/`outcome_md`. Life OS reads the newest rows and falls back to
 `payload.weekPlan` for the current week.
 
-- **Access:** RLS owner-only select/insert/update (`auth.uid() = user_id`). No delete policy.
+- **Access:** same rule as the workspace: RLS select/insert/update only for the owner, when
+  `is_admin()` is true and the session is `aal2`. No delete policy. `anon` has no grants;
+  `authenticated` has select/insert/update only. The Week Plan automation must write with the
+  service role (or database owner), which bypasses RLS.
 
 ## Live state (checked 2026-10-14, read-only)
 
 - `life_os_workspaces`: 1 row, version 15, ~9 KB, last saved 2026-10-13. 7 goals, 8 tasks,
   5 roadmap items, 4 deadlines, 1 reminder, 6 financial reference entries, 0 habits/reviews/achievements.
 - `lmr_week_plans`: 1 row (`2026-10-W2`).
-- Live table, policy and function definitions match the migration files.
+- Live table, policy and function definitions match the migration files (re-checked after hardening).
 
-## Open hardening items (not applied)
+## Hardening applied 2026-10-14
 
-1. `lmr_week_plans` still has Supabase's default table grants to `anon` (and `TRUNCATE` etc. to
-   `authenticated`). RLS blocks anon today because every policy targets `authenticated`, but
-   matching `life_os_workspaces` would be tighter:
-   `revoke all on public.lmr_week_plans from anon; revoke delete, truncate, references, trigger on public.lmr_week_plans from authenticated;`
-   Check first that the Week Plan automation does not write with the anon key.
-2. `lmr_week_plans` policies only check ownership, while `life_os_workspaces` also requires
-   `is_admin()` and `aal2`. Only the owner can see their rows either way, but adding the same
-   checks would keep week plans behind MFA like the rest of Life OS. Only do this if the automation
-   writes with the service role (which bypasses RLS).
+`lmr_week_plans` previously allowed any signed-in owner (no admin or MFA check) and kept
+Supabase's default `anon` grants. Both were tightened by the two 2026-10-14 migrations above.
+Verified with rolled-back role simulations: the admin with `aal2` sees the week; the same admin at
+`aal1`, another user and `anon` see nothing. Existing rows were not changed.
