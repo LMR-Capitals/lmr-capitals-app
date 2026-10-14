@@ -9,6 +9,7 @@ database/
   functions/        Supabase Edge Functions (Deno): Stripe checkout, webhook, admin cancel.
   patches/          Historical one-off SQL scripts applied ad hoc during development.
   LIFE-OS-DATA.md   Life OS tables, save RPC, access rules and live state.
+  SECURITY.md       Security & access rules: who can read/write what, and open findings.
 ```
 
 ## How the database is managed
