@@ -353,8 +353,7 @@ alter table public.weekly_reports enable row level security;
 -- duplicates that both exist in the live DB) — reproduced faithfully here.
 -- ─────────────────────────────────────────────────────────────────────────
 
-create policy "own accounts"          on public.accounts      for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy "own rows accounts"     on public.accounts      for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own rows accounts"     on public.accounts      for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
 
 create policy "admins_read"           on public.admins        for select using (true);
 
@@ -364,8 +363,7 @@ create policy "own_comp_read"         on public.comp_access    for select using 
 
 create policy "own copier_config"     on public.copier_config for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
-create policy "own daily"             on public.daily         for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy "own rows daily"        on public.daily         for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own rows daily"        on public.daily         for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
 
 create policy "own journal"           on public.journal       for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -385,11 +383,9 @@ create policy "own lmr_psychology"    on public.lmr_psychology  for all using (a
 
 create policy "own lmr_terminology"   on public.lmr_terminology for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
-create policy "own monthly"           on public.monthly       for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy "own rows monthly"      on public.monthly       for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own rows monthly"      on public.monthly       for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
 
-create policy "own notes"             on public.notes         for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy "own rows notes"        on public.notes         for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own rows notes"        on public.notes         for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
 
 create policy "own profile"           on public.profiles      for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -401,14 +397,11 @@ create policy "own target events"     on public.target_events for all
 
 create policy "own targets"           on public.targets       for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
-create policy "own trades"            on public.trades        for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy "own rows trades"       on public.trades        for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own rows trades"       on public.trades        for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
 
-create policy "own transactions"      on public.transactions  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy "own rows transactions" on public.transactions  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own rows transactions" on public.transactions  for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
 
-create policy "own weekly"            on public.weekly        for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy "own rows weekly"       on public.weekly        for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own rows weekly"       on public.weekly        for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
 
 create policy "own weekly_reports"    on public.weekly_reports for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
