@@ -8,8 +8,8 @@ import JournalContent from "./journal-content";
 import { hubRpc, journalCollections, journalRecords, verifiedAdmin } from "../admin/hub-api.mjs";
 import "./admin-hub.css";
 
-const tabs = [["users", "Users & access"], ["subs", "Subscribers"], ["admins", "Administrators"], ["journal", "Journal database"]];
-const listRpc = { users: "admin_list_users", subs: "circle_admin_membership_subscribers", admins: "admin_list_admins" };
+const tabs = [["users", "Users & access"], ["subs", "Subscribers"], ["reviews", "Billing reviews"], ["admins", "Administrators"], ["journal", "Journal database"]];
+const listRpc = { reviews: "circle_admin_billing_reviews", users: "admin_list_users", subs: "circle_admin_membership_subscribers", admins: "admin_list_admins" };
 export default function AdminHub({ verified, user, onNavigate }) {
   if (!verified) return <Empty icon="shield" title="Verify your administrator account" body="Complete two-factor verification to open the Admin Hub and your private journal data.">
     <a className="button gold" href="/admin?next=circle">Verify administrator access <Icon name="arrow" size={15} /></a>
@@ -92,14 +92,20 @@ function ConnectedHub({ user, onNavigate }) {
     <section className="panel hub-records" aria-busy={loading}>
       <div className="hub-tools">
         {tab === "journal" ? <><label>Journal collection<select value={collection} onChange={(e) => { setCollection(e.target.value); setPage(0); }}>{journalCollections.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label><span>Your account’s cloud records. Changes stay in the Journal Application.</span></>
-          : tab === "admins" ? <form onSubmit={(e) => { e.preventDefault(); if (!email.trim()) return; if (!confirm(`Give administrator access to ${email.trim()}?`)) return; action(async () => { await hubRpc(sb, "admin_add_admin", { target_email: email.trim() }); setEmail(""); }, "Administrator added."); }}><label>Existing account email<input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email address" autoComplete="off" /></label><Button gold disabled={busy || preview} type="submit">Add administrator</Button></form>
+          : tab === "reviews" ? <label>Search member email<input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Find a billing review…" /></label> : tab === "admins" ? <form onSubmit={(e) => { e.preventDefault(); if (!email.trim()) return; if (!confirm(`Give administrator access to ${email.trim()}?`)) return; action(async () => { await hubRpc(sb, "admin_add_admin", { target_email: email.trim() }); setEmail(""); }, "Administrator added."); }}><label>Existing account email<input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email address" autoComplete="off" /></label><Button gold disabled={busy || preview} type="submit">Add administrator</Button></form>
           : <label>Search by email<input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={tab === "users" ? "Find an LMR account…" : "Find a subscriber…"} /></label>}
       </div>
+      {tab === "reviews" && <p className="hub-explanation">Refunds, disputes, fraud warnings and delayed payment failures require your review. Marking reviewed does not change billing or member access. Newest 100 events.</p>}
       {tab === "users" && <p className="hub-explanation">Complimentary access records belong to the existing journal access system. They do not create a subscription or mark an invoice as paid.</p>}
       {loading ? <div className="loading"><span className="spinner" />Loading {tabs.find(([id]) => id === tab)[1].toLowerCase()}…</div>
         : !rows.length ? <Empty icon={tab === "journal" ? "application" : "profile"} title={preview ? "Connect your real administrator account" : "No records found"} body={preview ? "Preview does not load your private database." : "Try another search or collection, or refresh the cloud records."} />
         : rows.map((row, index) => tab === "journal" ? <JournalRecord key={row.id || row.key || row.week_key || index} row={row} />
-          : <div className="hub-row" key={row.user_id}>
+          : tab === "reviews" ? <div className="hub-row" key={row.stripe_event_id}>
+            <div><strong>{row.email || "Unmapped Stripe customer"}</strong><small>{row.event_type.replaceAll("_", " ")} · {formatDate(row.event_created)} · {row.reason}</small><small>{row.stripe_event_id}</small></div>
+            <span className="tag">{row.reviewed_at ? "Reviewed" : "Needs review"}</span>
+            <a className="button small" href={`https://dashboard.stripe.com/${row.stripe_charge_id ? "payments/" + row.stripe_charge_id : "events/" + row.stripe_event_id}`} target="_blank" rel="noopener noreferrer">Open Stripe</a>
+            {!row.reviewed_at && <Button small disabled={busy || preview} onClick={() => action(() => hubRpc(sb, "circle_admin_review_billing_event", {event_id: row.stripe_event_id}), "Marked reviewed. Billing and access unchanged.")}>Mark reviewed</Button>}
+          </div> : <div className="hub-row" key={row.user_id}>
             <div><strong>{row.email}</strong><small>{tab === "subs" ? `${row.plan || "Subscription"} · ${row.cancel_at_period_end ? "Ends" : "Current period ends"} ${formatDate(row.current_period_end)}` : tab === "admins" ? `Administrator since ${formatDate(row.added_at)}` : `Subscription: ${row.sub_status || "none"}`}</small></div>
             {tab !== "admins" && <span className="tag">{tab === "users" ? row.comp ? "Legacy comp" : row.sub_status || "Free account" : row.status || "Unknown"}</span>}
             {tab === "users" && <Button small disabled={busy || preview} onClick={() => comp(row)}>{row.comp ? "Revoke comp" : "Grant comp"}</Button>}

@@ -65,6 +65,43 @@ async function sync(
   });
   if (error) throw error;
 }
+// Risk events create an administrator review item. They never refund or revoke access.
+async function recordBillingReview(event: Stripe.Event) {
+  const object = event.data.object as any;
+  const chargeId = event.type === "charge.refunded" ? object.id : id(object.charge);
+  const charge = chargeId ? (event.type === "charge.refunded" ? object : await stripe.charges.retrieve(chargeId)) : null;
+  const customerId = id(charge?.customer) || id(object.customer);
+  let subscriptionId = id(object.subscription);
+  let invoiceId = id(charge?.invoice);
+  const paymentIntent = id(charge?.payment_intent) || id(object.payment_intent);
+  if (!invoiceId && paymentIntent) {
+    // Current Stripe invoices link payments through InvoicePayment, not Charge.invoice.
+    const payments = await stripe.invoicePayments.list({payment: {type: "payment_intent", payment_intent: paymentIntent}, status: "paid", limit: 2});
+    const invoiceIds = [...new Set(payments.data.map(payment => id(payment.invoice)).filter(Boolean))];
+    // Do not guess when one payment is allocated to multiple invoices.
+    if (invoiceIds.length === 1 && !payments.has_more) invoiceId = invoiceIds[0];
+  }
+  if (invoiceId) {
+    const invoice = await stripe.invoices.retrieve(invoiceId);
+    subscriptionId = id((invoice as any).subscription) || id(invoice.parent?.subscription_details?.subscription);
+  }
+  let userId: string | null = null;
+  if (customerId) {
+    const {data, error} = await admin.from("subscriptions").select("user_id").eq("stripe_customer_id", customerId).maybeSingle();
+    if (error) throw error;
+    userId = data?.user_id || null;
+  }
+  const {error} = await admin.from("circle_billing_reviews").upsert({
+    stripe_event_id: event.id, event_type: event.type, stripe_object_id: object.id,
+    stripe_charge_id: chargeId || null, stripe_customer_id: customerId || null,
+    stripe_subscription_id: subscriptionId || null, user_id: userId,
+    amount: event.type === "charge.refunded" ? object.amount_refunded : object.amount ?? null,
+    currency: object.currency || charge?.currency || null,
+    reason: String(object.reason || object.fraud_type || "Review in Stripe").slice(0, 200),
+    event_created: new Date(event.created * 1000).toISOString(),
+  }, {onConflict: "stripe_event_id", ignoreDuplicates: true});
+  if (error) throw error;
+}
 Deno.serve(async (req) => {
   if (req.method !== "POST")
     return new Response("Method not allowed", { status: 405 });
@@ -83,7 +120,7 @@ Deno.serve(async (req) => {
     return new Response("Invalid signature", { status: 400 });
   }
   try {
-    if (event.type === "checkout.session.completed") {
+    if (["checkout.session.completed", "checkout.session.async_payment_succeeded"].includes(event.type)) {
       const session = event.data.object as Stripe.Checkout.Session;
       if(session.metadata?.agreement_id){
         const {data:acceptance,error}=await admin.from('circle_agreement_acceptances').select('user_id,legal_version,content_hash,acknowledgement').eq('id',session.metadata.agreement_id).single();
@@ -113,6 +150,9 @@ Deno.serve(async (req) => {
         id((invoice as any).subscription) ||
         id((invoice as any).parent?.subscription_details?.subscription);
       if (subscriptionId) await sync(subscriptionId, event.created);
+    }
+    if (["charge.refunded", "charge.dispute.created", "radar.early_fraud_warning.created", "checkout.session.async_payment_failed"].includes(event.type)) {
+      await recordBillingReview(event);
     }
     return new Response("ok", { status: 200 });
   } catch (e) {

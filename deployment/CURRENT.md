@@ -1,3 +1,7 @@
+## Membership billing review release — 14 October 2026
+
+See [launch checks](MEMBERSHIP-LAUNCH-CHECKS-2026-10-14.md) for deployed backend fixes, preservation scope and remaining signup/network checks. The new audit migration is applied; website publication receipt is pending. This is not public paid launch clearance.
+
 ## Security release — 14 October 2026
 
 [Launch security audit](SECURITY-LAUNCH-AUDIT.md) records PR #113, the verified production receipt, deployed cancellation MFA fix, enabled leaked-password protection and approved and verified database/storage hardening. Remaining launch concerns are recorded in the audit. The two security migrations are already applied and mirrored by their server-generated versions; do not reapply them as part of a website deploy.

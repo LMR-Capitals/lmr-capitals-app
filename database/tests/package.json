@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node webhook-activation.test.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.9",
+    "stripe": "22.4.0"
+  }
+}
