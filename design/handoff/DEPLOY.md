@@ -1,3 +1,9 @@
+# Current deployment process — October 7, 2026
+
+Read [the current deployment entry point](../../deployment/CURRENT.md) first. The full Vite build runs from the repository root and uploads only `dist/`, including `member/` (Inner Circle and LMR Studio) and the generated embedded Journal. Git continuous deployment is connected: a later `main` build can replace a manual release. Older static-folder memory is obsolete. A website redeploy must not run database migrations, imports or storage writes. The instructions below are historical design-migration notes, not the current deployment process.
+
+---
+
 # LMR Capitals — deploy guide
 
 Written against the real repo: `LMR-Capitals/lmr-capitals-app@main`.

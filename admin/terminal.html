@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#080d15" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Admin Terminal · LMR Capitals</title>
+    <link rel="icon" href="/icons/favicon-32.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div
+      id="root"
+      style="
+        min-height: 100vh;
+        background: #080d15;
+        color: #eaf0f7;
+        padding: 48px;
+        font-family: Arial, sans-serif;
+      "
+    >
+      <h1>LMR Admin Terminal</h1>
+      <p id="terminal-boot-message">Loading your admin workspace…</p>
+      <p id="terminal-file-help" hidden>
+        This React application runs through the development server.
+        <a
+          style="color: #f2bf59"
+          href="http://127.0.0.1:5174/admin/terminal.html?preview=1"
+          >Open the running Admin Terminal preview</a
+        >.
+      </p>
+    </div>
+    <script>
+      if (location.protocol === "file:") {
+        document.getElementById("terminal-boot-message").textContent =
+          "Open the Admin Terminal through the local website.";
+        document.getElementById("terminal-file-help").hidden = false;
+      }
+    </script>
+    <script type="module" src="/admin/terminal.jsx"></script>
+  </body>
+</html>

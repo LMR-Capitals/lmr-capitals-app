@@ -1,0 +1,14 @@
+{
+  "appId": "com.lmrcapitals.app",
+  "appName": "LMR Capitals",
+  "webDir": "ios-www",
+  "backgroundColor": "#0F0F15",
+  "ios": {
+    "backgroundColor": "#0F0F15",
+    "contentInset": "always",
+    "scrollEnabled": true
+  },
+  "server": {
+    "iosScheme": "capacitor"
+  }
+}

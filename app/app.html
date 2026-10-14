@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -24,8 +24,8 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png">
 <link rel="shortcut icon" href="/icons/favicon-32.png">
 <!-- iOS / Android home screen icon -->
-<link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png">
-<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="/chart.umd.min.js"></script>
@@ -2403,37 +2403,74 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
 /* Chart sits directly beneath the text, inside the same card. */
 #p-journal .jn-kimg, #p-notes .jn-kimg{margin:0 14px 14px;border:1px solid var(--jn-line);border-radius:8px;overflow:hidden;background:var(--jn-inset)}
 #p-journal .jn-kimg img, #p-notes .jn-kimg img{width:100%;display:block}
+#p-journal .jn-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:10px;margin:0 14px 14px}
+#p-journal .jn-gallery .jn-kimg{margin:0;min-height:120px}
+#p-journal .jn-gallery img{width:100%;height:auto;display:block;cursor:zoom-in}
+#p-journal .jn-source{display:block;margin-top:12px;padding-top:10px;border-top:1px solid var(--jn-line);color:var(--jn-dim);font-size:12px}
 #p-journal .jn-none, #p-notes .jn-none{border:1px dashed var(--jn-line);padding:26px 16px;text-align:center;font-size:13px;color:var(--jn-dim)}
 </style>
 </head>
 <body>
 
-<!-- ── LOGIN GATE (first screen; marketing landing is the site root /) ── -->
+<!-- ── LOGIN GATE = APP LANDING (LMR Capitals · The Chain + sign in / create account / forgot password) ── -->
+<style>
+#loginGate{position:fixed;inset:0;z-index:10000;background:radial-gradient(ellipse at 50% 0%,rgba(217,139,10,.16),transparent 62%),#060B14;
+  color:#EDF2FF;font-family:'Plus Jakarta Sans',sans-serif;display:flex;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:calc(28px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));box-sizing:border-box;text-align:center}
+#loginGate.hidden{display:none}
+#loginGate::before{display:none}
+#loginGate .lg-card{width:min(380px,100%);margin-top:30px;text-align:left;animation:asRise .7s .45s ease-out both}
+#loginGate .lg-title{font-size:18px}
+#loginGate .lg-sub{margin-bottom:18px}
+#loginGate .lg-links{display:flex;justify-content:space-between;gap:12px;margin-top:14px;font-size:13px;color:#8A94A6}
+#loginGate .lg-links.center{justify-content:center}
+#loginGate .lg-link{background:none;border:0;padding:0;font:inherit;font-weight:600;color:var(--gold2);cursor:pointer}
+#loginGate .lg-link:hover{text-decoration:underline}
+#loginGate .lg-step-note{font-size:12px;color:#8A94A6;margin:-6px 0 14px;line-height:1.5}
+#loginGate #lg-forgot-code{font-family:'JetBrains Mono',monospace;letter-spacing:.3em;text-align:center;font-size:18px}
+#loginGate .as-inner{margin:auto;padding-top:56px;width:100%;max-width:720px;display:flex;flex-direction:column;align-items:center}
+#loginGate .as-corner{position:absolute;top:calc(16px + env(safe-area-inset-top));left:20px;display:flex;align-items:center;gap:10px;animation:asRise .7s ease-out both}
+#loginGate .as-corner img{width:44px;height:44px;border-radius:50%}
+#loginGate .as-corner span{font-size:17px;font-weight:700;letter-spacing:.06em;color:var(--gold2)}
+#loginGate .as-mark{margin-top:40px;display:flex;flex-direction:column;align-items:center;animation:asRise .7s .2s ease-out both}
+#loginGate h1{margin:0;font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;font-size:clamp(46px,13vw,84px);font-weight:700;letter-spacing:-.02em;line-height:.95;
+  text-transform:uppercase;color:#EDF2FF;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+#loginGate h1 b{font-weight:700;color:var(--gold2);text-shadow:0 0 36px rgba(217,139,10,.4)}
+#loginGate .as-chain{width:min(300px,78%);height:auto;margin:14px 0 0}
+#loginGate .as-link{fill:none;stroke:#2A3140;stroke-width:5;animation:asLight 5.6s ease-in-out infinite}
+#loginGate .as-link.v{stroke-width:7}
+#loginGate .as-pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;margin-top:34px;animation:asRise .7s .35s ease-out both}
+#loginGate .as-pillar{padding:18px 12px;border:1px solid rgba(217,139,10,.22);border-radius:14px;text-align:center;
+  background:linear-gradient(180deg,#10131B 0%,#0C0E14 100%)}
+#loginGate .as-pillar h2{margin:0;font-family:'Space Grotesk','Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:600;color:#EDF2FF}
+#loginGate .as-foot{margin-top:22px;font-size:11px;color:#4E5666}
+@media (max-width:640px){#loginGate .as-pillars{gap:8px;margin-top:28px}#loginGate .as-pillar{padding:14px 6px}#loginGate .as-pillar h2{font-size:14px}}
+@keyframes asRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes asLight{0%,8%{stroke:#2A3140}16%,70%{stroke:var(--gold2)}85%,100%{stroke:#2A3140}}
+@media (prefers-reduced-motion:reduce){#loginGate *{animation:none!important}#loginGate .as-link{stroke:var(--gold2)}}
+</style>
 <div id="loginGate">
-  <button class="lg-back-home" onclick="showLanding()">← Home</button>
-
-  <!-- Left branding panel -->
-  <div class="lg-left">
-    <img src="/icons/lmr-icon.png" class="lg-brand-logo" alt="LMR">
-    <div class="lg-brand-capitals">Capitals</div>
-    <div class="lg-brand-tagline">Professional Trading Journal</div>
-    <div class="lg-features">
-      <div class="lg-feature"><div class="lg-feature-dot"></div>Real-time Cloud Sync</div>
-      <div class="lg-feature"><div class="lg-feature-dot"></div>Advanced Analytics</div>
-      <div class="lg-feature"><div class="lg-feature-dot"></div>Daily Chain Tracking</div>
-    </div>
-    <div class="lg-version">v3.1 · modernist · LMR Capitals © 2026</div>
+<div class="as-corner"><img src="/icons/lmr-icon-circle.png" alt="LMR"><span>Capitals</span></div>
+<div class="as-inner">
+  <div class="as-mark">
+  <h1>The <b>Chain</b></h1>
+  <svg class="as-chain" viewBox="0 0 300 60" role="img" aria-label="The Chain">
+    <!-- 7 interlocking links: flat (h) links alternate with edge-on (v) links; each lights up in turn -->
+    <rect class="as-link h" x="4"   y="14" width="64" height="32" rx="16" style="animation-delay:0s"/>
+    <rect class="as-link v" x="52"  y="24" width="44" height="12" rx="6"  style="animation-delay:.35s"/>
+    <rect class="as-link h" x="80"  y="14" width="64" height="32" rx="16" style="animation-delay:.7s"/>
+    <rect class="as-link v" x="128" y="24" width="44" height="12" rx="6"  style="animation-delay:1.05s"/>
+    <rect class="as-link h" x="156" y="14" width="64" height="32" rx="16" style="animation-delay:1.4s"/>
+    <rect class="as-link v" x="204" y="24" width="44" height="12" rx="6"  style="animation-delay:1.75s"/>
+    <rect class="as-link h" x="232" y="14" width="64" height="32" rx="16" style="animation-delay:2.1s"/>
+  </svg>
   </div>
-
-  <!-- Right form panel -->
-  <div class="lg-right">
+  <div class="as-pillars">
+    <div class="as-pillar"><h2>Methodology</h2></div>
+    <div class="as-pillar"><h2>Psychology</h2></div>
+    <div class="as-pillar"><h2>Observation</h2></div>
+  </div>
     <div class="lg-card">
-
-      <!-- Sign In / Sign Up tabs -->
-      <div class="lg-tabs">
-        <button class="lg-tab active" id="lg-tab-signin" onclick="lgSwitchTab('signin')">Sign In</button>
-        <button class="lg-tab" id="lg-tab-signup" onclick="lgSwitchTab('signup')">Sign Up</button>
-      </div>
 
       <!-- Sign In form -->
       <div id="lg-signin-form">
@@ -2448,6 +2485,10 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
           <input type="password" id="lg-password" placeholder="Enter your password" autocomplete="new-password">
         </div>
         <button class="lg-btn" id="lg-submit" onclick="lgSignIn()">Sign In →</button>
+        <div class="lg-links">
+          <button class="lg-link" onclick="lgSwitchTab('forgot')">Forgot password?</button>
+          <span>New here? <button class="lg-link" onclick="lgSwitchTab('signup')">Create account</button></span>
+        </div>
       </div>
 
       <!-- Sign Up form -->
@@ -2467,6 +2508,42 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
           <input type="password" id="lg-signup-confirm" placeholder="repeat password">
         </div>
         <button class="lg-btn-out" id="lg-signup-submit" onclick="lgSignUp()">Create Account →</button>
+        <div class="lg-links center">
+          <span>Already have an account? <button class="lg-link" onclick="lgSwitchTab('signin')">Sign in</button></span>
+        </div>
+      </div>
+
+      <!-- Forgot password: email → one-time code → new password (existing accounts only) -->
+      <div id="lg-forgot-form" style="display:none">
+        <div class="lg-title">Reset password</div>
+        <div id="lg-forgot-step1">
+          <div class="lg-sub">Enter the email of your LMR Capitals account. We'll email you a one-time code.</div>
+          <div class="lg-field">
+            <label>Email</label>
+            <input type="email" id="lg-forgot-email" placeholder="you@example.com" autocomplete="email" spellcheck="false">
+          </div>
+          <button class="lg-btn" id="lg-forgot-send" onclick="lgForgotSend()">Send code →</button>
+        </div>
+        <div id="lg-forgot-step2" style="display:none">
+          <div class="lg-sub" id="lg-forgot-step2-sub">If an account exists for <b id="lg-forgot-sent-to"></b>, an email is on its way. Enter the one-time code from it with your new password, or tap the link in the email.</div>
+          <div class="lg-field" id="lg-forgot-code-field">
+            <label>One-time code</label>
+            <input type="text" id="lg-forgot-code" placeholder="000000" maxlength="10" inputmode="numeric" autocomplete="one-time-code">
+          </div>
+          <div class="lg-field">
+            <label>New password</label>
+            <input type="password" id="lg-forgot-pass" placeholder="min 8 characters" autocomplete="new-password">
+          </div>
+          <div class="lg-field">
+            <label>Confirm new password</label>
+            <input type="password" id="lg-forgot-confirm" placeholder="repeat password" autocomplete="new-password">
+          </div>
+          <button class="lg-btn" id="lg-forgot-reset" onclick="lgForgotReset()">Set new password →</button>
+          <div class="lg-links center" id="lg-forgot-resend"><button class="lg-link" onclick="lgForgotSend(true)">Resend code</button></div>
+        </div>
+        <div class="lg-links center">
+          <button class="lg-link" onclick="lgSwitchTab('signin')">← Back to sign in</button>
+        </div>
       </div>
 
       <!-- Session expired message -->
@@ -2494,35 +2571,21 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
       </div>
 
       <div class="lg-footer">Secured by <span>Supabase Auth</span> · LMR Capitals © 2026</div>
-    </div>
   </div>
-
+</div>
 </div>
 
 <!-- ── SUBSCRIBE GATE (shown after login when the account is not entitled) ── -->
 <div id="subscribeGate" style="position:fixed;inset:0;z-index:9997;display:none;overflow-y:auto;background:var(--bg,#05080F);color:var(--text,#EDF2FF);font-family:'Plus Jakarta Sans',system-ui,sans-serif">
-  <div style="max-width:820px;margin:0 auto;padding:56px 20px 80px;text-align:center">
-    <img src="/icons/lmr-icon.png" alt="" style="width:44px;height:44px;margin-bottom:18px">
-    <h1 style="font-size:30px;font-weight:800;margin:0 0 10px;letter-spacing:-.02em">Unlock LMR Capitals</h1>
-    <p style="color:var(--text3,#8b93a7);font-size:15px;margin:0 0 6px">Start with a <b style="color:var(--gold,#E9B44C)">7-day free trial</b> — cancel anytime.</p>
-    <div id="subscribe-email" style="color:var(--text3,#8b93a7);font-size:12px;margin-bottom:30px"></div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;max-width:620px;margin:0 auto 24px">
-      <div style="background:var(--bg2,#0e131d);border:1px solid var(--border,#20283a);border-radius:16px;padding:26px 22px;text-align:left">
-        <div style="font-size:12px;font-weight:700;color:var(--text3,#8b93a7);text-transform:uppercase;letter-spacing:.05em">Monthly</div>
-        <div style="font-size:34px;font-weight:800;margin:6px 0 2px">$25<span style="font-size:14px;color:var(--text3,#8b93a7);font-weight:600">/mo</span></div>
-        <div style="font-size:12px;color:var(--text3,#8b93a7);margin-bottom:18px">Billed monthly after your trial.</div>
-        <button onclick="startCheckout('monthly')" style="width:100%;background:var(--gold,#E9B44C);color:#0a0b0f;font-weight:800;border:none;padding:12px;border-radius:10px;cursor:pointer;font-size:14px">Start free trial</button>
-      </div>
-      <div style="background:var(--bg2,#0e131d);border:1px solid var(--gold-border,rgba(233,180,76,.35));border-radius:16px;padding:26px 22px;text-align:left;position:relative">
-        <div style="position:absolute;top:-11px;right:16px;background:var(--gold,#E9B44C);color:#0a0b0f;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px">SAVE 10%</div>
-        <div style="font-size:12px;font-weight:700;color:var(--text3,#8b93a7);text-transform:uppercase;letter-spacing:.05em">Yearly</div>
-        <div style="font-size:34px;font-weight:800;margin:6px 0 2px">$270<span style="font-size:14px;color:var(--text3,#8b93a7);font-weight:600">/yr</span></div>
-        <div style="font-size:12px;color:var(--text3,#8b93a7);margin-bottom:18px">Just $22.50/mo — 2 months free.</div>
-        <button onclick="startCheckout('yearly')" style="width:100%;background:var(--gold,#E9B44C);color:#0a0b0f;font-weight:800;border:none;padding:12px;border-radius:10px;cursor:pointer;font-size:14px">Start free trial</button>
-      </div>
-    </div>
-    <div id="subscribe-msg" style="color:var(--bear,#ef5350);font-size:13px;min-height:18px;margin-bottom:8px"></div>
-    <a onclick="sbDoSignOut()" style="color:var(--text3,#8b93a7);font-size:13px;cursor:pointer;text-decoration:underline">Sign out</a>
+  <div style="max-width:620px;margin:0 auto;padding:56px 20px 80px;text-align:center">
+    <img src="/icons/High-Resolution-Color-Logo-on-Transparent-Background.png" alt="LMR Capitals" style="width:120px;height:120px;object-fit:contain">
+    <h1 style="font-size:30px;font-weight:800;margin:0 0 12px">The trading application is for paid members.</h1>
+    <p style="color:var(--text3,#8b93a7);font-size:15px;line-height:1.7">Your free LMR Inner Circle account includes the chapter library, learning progress and resources. Paid membership unlocks this application, live analysis, observations and private mentorship requests.</p>
+    <div id="subscribe-email" style="color:var(--text3,#8b93a7);font-size:12px;margin:20px 0"></div>
+    <button onclick="startCheckout()" style="background:var(--gold,#E9B44C);color:#0a0b0f;font-weight:800;border:none;padding:14px 24px;border-radius:10px;cursor:pointer;font-size:14px">Explore membership</button>
+    <p><a href="/member/index.html" style="color:var(--gold,#E9B44C)">Continue to your free Inner Circle</a></p>
+    <div id="subscribe-msg" style="color:var(--bear,#ef5350);font-size:13px;min-height:18px;margin:16px 0"></div>
+    <button onclick="sbDoSignOut()" style="background:none;border:none;color:var(--text3,#8b93a7);font-size:13px;cursor:pointer;text-decoration:underline">Sign out</button>
   </div>
 </div>
 
@@ -2582,9 +2645,11 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
   </div>
 
   <nav class="sb-nav">
+    <a class="sb-item" href="/inner-circle"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></span> Inner Circle</a>
     <div class="sb-sec">Session</div>
     <button class="sb-item active" data-panel="dash"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg></span> Dashboard</button>
     <button class="sb-item" data-panel="today"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="m9 16 2 2 4-4"/></svg></span> Today</button>
+    <button class="sb-item" data-panel="live"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49M7.76 16.24a6 6 0 0 1 0-8.49M19.07 4.93a10 10 0 0 1 0 14.14M4.93 19.07a10 10 0 0 1 0-14.14"/></svg></span> Live Session</button>
     <button class="sb-item" data-panel="cal"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span> Calendar</button>
     <button class="sb-item" data-panel="perf"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg></span> Performance</button>
     <div class="sb-sec">Analysis</div>
@@ -2665,27 +2730,9 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
     </div>
   </div>
 
-<!-- ── ADAPTIVE ALERT BANNER ── Fixed between topbar and panels ── -->
-<div id="alert-banner" class="alert-banner" style="display:none">
-  <span id="ab-label" class="ab-label">FOCUS</span>
-  <span id="ab-msg" class="ab-msg">Loading…</span>
-  <div class="ab-right">
-    <div id="ab-dots" class="ab-dots"></div>
-    <button class="ab-ai-btn" onclick="alertAIDeepDive()" title="✦ AI deep analysis (uses Claude API)">✦</button>
-    <button class="ab-min-btn" onclick="toggleAlertMin()" id="ab-min-btn" title="Minimise">—</button>
-  </div>
-</div>
-
 <!-- DASHBOARD -->
 <div class="panel active" id="p-dash">
 <div class="panel-inner">
-
-  <!-- Journal reminder ticker -->
-  <div class="ticker-bar" id="journalTicker" onclick="navTo('notes')">
-    <span class="ticker-alert-label">⚠ JOURNAL ALERT</span>
-    <span class="ticker-content" id="tickerText">Loading journal reminder…</span>
-    <span class="ticker-badge">JOURNAL</span>
-  </div>
 
   <!-- KEY STATS — 5-tile row (design v2) -->
   <div class="m-card" style="margin-bottom:14px">
@@ -2814,9 +2861,6 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
       </div>
     </div>
     <div class="card-body" style="padding:0">
-
-      <!-- ⚡ THE CHAIN HEADER -->
-      <div class="chain-sec-header" style="margin:0;padding:12px 16px 6px">⚡ THE CHAIN — Fill Before Opening TradingView</div>
 
       <div class="chain-props">
 
@@ -3030,6 +3074,13 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
     </div>
   </div><!-- /card -->
 
+  <!-- LMR SESSION CHAIN — schedule + session-wise read-out (auto-filled 17:20 NY) -->
+  <div class="card" id="lsc-today">
+    <div class="card-head"><span class="card-tag t-g">LMR Schedule</span><div class="card-title">Session Chain</div>
+      <div id="lsc-head" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto"></div></div>
+    <div class="card-body" id="lsc-body"><div class="lsc-empty">Loading session chain…</div></div>
+  </div>
+
   <!-- Today's Events -->
   <div class="card">
     <div class="card-head"><span class="card-tag t-m">Today's Events</span><div class="card-title">USA Economic Calendar</div></div>
@@ -3079,6 +3130,18 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
 </div>
 
 <!-- CALENDAR -->
+<div class="panel" id="p-live">
+<div class="panel-inner">
+  <!-- LMR SESSION CHAIN — schedule + session-wise read-out (auto-filled 17:20 NY) -->
+  <div class="card" id="lsc-today">
+    <div class="card-head"><span class="card-tag t-g">● Live</span><div class="card-title">Session Chain</div>
+      <div id="lsc-head" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto"></div></div>
+    <div class="card-body" id="lsc-body"><div class="lsc-empty">Loading session chain…</div></div>
+  </div>
+
+</div>
+</div>
+
 <div class="panel" id="p-cal">
 <div class="panel-inner">
 
@@ -3919,55 +3982,92 @@ Midnight Open $______"></textarea>
 
 <!-- Settings moved to side panel -->
 <!-- ── LMR OBSERVATION (journal — newest first) ── -->
-<div class="panel" id="p-observation"><div class="o-wrap">
+<div class="panel" id="p-observation">
+<div style="height:100%;overflow-y:auto;padding:20px 24px 60px">
 
-  <div class="o-comp">
-    <div class="o-chead">
-      <span class="o-eyebrow">New observation</span>
-      <span class="o-sub" id="oDayHint"></span>
-      <span class="o-count" id="oChars" style="margin-left:auto">0</span>
+  <style>
+   #p-observation .obs-drop{border:1.5px dashed var(--border3,#2E2E3A);border-radius:12px;min-height:340px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--text2);cursor:pointer;padding:16px;transition:border-color .15s,background .15s}
+   #p-observation .obs-drop.is-over{border-color:var(--gold);background:rgba(245,166,35,.06)}
+   #p-observation .obs-drop.has-img{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:start;cursor:default}
+   #p-observation .obs-drop-empty{max-width:280px}
+   #p-observation .obs-drop-empty svg{color:var(--text3)}
+   #p-observation .obs-thumb{position:relative;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--bg2,#111)}
+   #p-observation .obs-thumb img{width:100%;display:block}
+   #p-observation .obs-thumb-x{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:6px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.6);color:#fff;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center}
+   #p-observation .obs-tf{display:flex;gap:8px;flex-wrap:wrap}
+   #p-observation .obs-tf-btn{background:var(--bg2,#16161c);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-weight:700;font-size:13px;padding:8px 14px;cursor:pointer}
+   #p-observation .obs-tf-btn[aria-pressed="true"]{background:var(--bear);border-color:var(--bear);color:#fff}
+   #p-observation .o-meta{color:var(--gold);margin:0 0 6px}
+   #p-observation .canvas-status.saved{color:var(--bull)}
+   @media(max-width:820px){#p-observation .obs-editor{grid-template-columns:1fr!important}}
+  </style>
+
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+    <div style="font-size:18px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:6px">
+      LMR Observation
+      <span style="display:inline-flex;width:15px;height:15px;border-radius:50%;border:1px solid var(--border3);color:var(--text3);font-size:10px;font-weight:700;align-items:center;justify-content:center;cursor:help;flex-shrink:0" title="A running journal of market observations — market, timeframe, what you saw, notes and the marked-up chart. Each saved entry becomes a post below, newest first. Use Discord / Share to post an entry to Discord or X.">i</span>
     </div>
-    <div class="o-cbody">
-      <div class="o-chips" id="oKinds"></div>
-      <div class="o-row">
-        <span class="o-lab">Date</span>
-        <input class="o-in" type="date" id="oDate">
-        <span class="o-lab">Market</span>
-        <input class="o-in" type="text" id="oMarket" placeholder="NQ, ES, GC …">
-        <span class="o-lab">Headline</span>
-        <input class="o-in" type="text" id="oTitle" placeholder="What you are calling — one line">
-      </div>
-      <textarea class="o-ta" id="oText" placeholder="The read: where price is in the delivery, which array is in play, and what invalidates it."></textarea>
-      <div>
-        <span class="o-lab" style="display:block;margin-bottom:7px">Concepts</span>
-        <div class="o-chips" id="oTags"></div>
-      </div>
-      <div class="o-drop" id="oDrop">
-        <span class="o-dph">Click, drop or paste the chart<br>It posts with the observation and shows inside the card</span>
-      </div>
-    </div>
-    <div class="o-cfoot">
-      <button class="o-btn" id="oShot">Screenshot</button>
-      <button class="o-btn" id="oClear">Clear</button>
-      <button class="o-post" id="oPost" disabled>Post observation</button>
-    </div>
+    <button class="btn btn-primary btn-sm" onclick="obsNewEntry()" style="margin-left:auto">+ New</button>
   </div>
 
-  <div class="o-hook">
-    <span class="o-dot" id="oHookDot"></span>
-    <span class="o-lab">Discord webhook</span>
-    <input class="o-in" type="text" id="oHook" placeholder="https://discord.com/api/webhooks/…">
-    <button class="o-btn" id="oHookSave">Save</button>
-    <button class="o-btn" id="oHookTest">Test</button>
-  </div>
+  <!-- Current entry editor -->
+  <div class="card">
+    <div class="card-body">
+      <div class="obs-editor" style="display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:20px">
 
-  <div class="o-feedhead">
-    <span class="o-eyebrow">Posted</span>
-    <span class="o-sub" id="oCount"></span>
-    <div class="o-filters" id="oFilters"></div>
+        <!-- LEFT: marked-up chart (paste / drop / browse) -->
+        <div id="obs-drop" class="obs-drop" onclick="obsPickFile()" ondragover="obsDragOver(event)" ondragleave="obsDragLeave(event)" ondrop="obsDropFile(event)"></div>
+
+        <!-- RIGHT: structured fields -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="canvas-status" id="observation-status" style="font-size:11px;font-weight:700">Unsaved</span>
+            <button class="btn btn-sm" onclick="obsCancelEntry()" title="Discard unsaved edits" style="margin-left:auto">✕</button>
+            <button class="btn btn-sm" onclick="obsDeleteEntry()" title="Delete this observation" style="color:var(--bear);border-color:rgba(255,64,96,.25)">🗑</button>
+          </div>
+
+          <div>
+            <label class="form-label">Market</label>
+            <input id="obs-market" class="form-input" placeholder="NQ" oninput="obsAutoSave()">
+          </div>
+
+          <div>
+            <label class="form-label">Timeframe</label>
+            <div id="obs-tf" class="obs-tf">
+              <button type="button" class="obs-tf-btn" data-tf="1m" aria-pressed="false" onclick="obsSetTf('1m')">1m</button>
+              <button type="button" class="obs-tf-btn" data-tf="5m" aria-pressed="false" onclick="obsSetTf('5m')">5m</button>
+              <button type="button" class="obs-tf-btn" data-tf="15m" aria-pressed="false" onclick="obsSetTf('15m')">15m</button>
+              <button type="button" class="obs-tf-btn" data-tf="1H" aria-pressed="false" onclick="obsSetTf('1H')">1H</button>
+              <button type="button" class="obs-tf-btn" data-tf="4H" aria-pressed="false" onclick="obsSetTf('4H')">4H</button>
+              <button type="button" class="obs-tf-btn" data-tf="D" aria-pressed="false" onclick="obsSetTf('D')">D</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label">What did you see</label>
+            <input id="obs-title-input" class="form-input" placeholder="NQ swept the old high before reversing" oninput="obsCountChars();obsAutoSave()">
+          </div>
+
+          <div>
+            <label class="form-label">Notes</label>
+            <textarea id="obs-notes" class="form-input" rows="4" placeholder="Arrays involved, DOL, what you expect next…" oninput="obsAutoSave()" style="resize:vertical;min-height:96px"></textarea>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px;margin-top:2px">
+            <button class="btn btn-primary btn-sm" onclick="obsSaveEntry()">Save</button>
+            <button class="btn btn-sm" onclick="shareObservation('discord')" title="Share to Discord">Discord</button>
+            <button class="btn btn-sm" onclick="shareObservation('x')" title="Share to X">Share</button>
+            <span id="obs-charcount" style="margin-left:auto;font-size:11px;color:var(--text3)">0 / 280</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Previous posts (newest first), embedded in the same card -->
+      <div id="obs-feed" style="margin-top:20px"></div>
+    </div>
   </div>
-  <div class="o-feed" id="oFeed"></div>
-</div></div>
+</div>
+</div>
 
 <!-- ==== 3. LOGIC ==== -->
 
@@ -4581,9 +4681,10 @@ Midnight Open $______"></textarea>
     <div class="modal-head"><div class="modal-title">+ Log Trade</div><span style="font-size:9px;color:var(--bull);margin-left:8px;font-weight:700">AUTO-SAVE</span><span id="tm-share-btns" style="margin-left:8px"></span><button class="close" style="margin-left:auto" onclick="saveTradeAndClose()">×</button></div>
     <div class="modal-body">
       <div class="cols2">
-        <div><label class="form-label">Date</label><input type="date" id="tm-date"></div>
+        <div><label class="form-label">Date</label><input type="date" id="tm-date" oninput="tmSyncDay()"></div>
         <div><label class="form-label">Market</label><select id="tm-market"><option>NQ</option><option>ES</option><option>YM</option><option>MNQ</option><option>MES</option></select></div>
       </div>
+      <div class="form-row" style="margin-top:8px"><label class="form-label">HTF Delivery <span style="color:var(--text3);font-weight:400">· where it delivered</span></label><input id="tm-htf" placeholder="e.g. delivered to Daily FVG / PWH $20,480"></div>
       <!-- Start / End time -->
       <div class="cols2" style="margin-top:8px">
         <div>
@@ -4597,20 +4698,22 @@ Midnight Open $______"></textarea>
       </div>
       <div class="cols2" style="margin-top:8px">
         <div><label class="form-label">Position</label><select id="tm-pos"><option>Long</option><option>Short</option></select></div>
-        <div><label class="form-label">Day</label><select id="tm-day"><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option></select></div>
+        <div><label class="form-label">Day <span style="color:var(--text3);font-weight:400">· from date</span></label><input id="tm-day" readonly style="background:var(--bg3);color:var(--text2);cursor:default"></div>
       </div>
       <div class="cols2" style="margin-top:8px">
-        <div><label class="form-label">Session</label><select id="tm-session"><option>Asian</option><option>London</option><option>NY AM</option><option>NY PM</option></select></div>
-        <div><label class="form-label">LMR Macro Time</label><select id="tm-tp"></select></div>
+        <div><label class="form-label">Session</label><select id="tm-session" onchange="tmSessionChanged()"></select></div>
+        <div><label class="form-label">LMR Macro Time</label><select id="tm-tp" onchange="tmMacroChanged()"></select></div>
       </div>
       <hr class="div">
-      <label class="form-label">Trade Entry Drill (Model)</label>
+      <label class="form-label">Trading Models</label>
+      <div class="chips" id="tradingModelChips" style="margin-bottom:8px"></div>
+      <label class="form-label">Trade Entry Drill</label>
       <div class="chips" id="modelChips" style="margin-bottom:8px"></div>
-      <label class="form-label">Confirmation</label>
+      <label class="form-label">Confirmation <span style="color:var(--text3);font-weight:400">· 4+ ⇒ A+ · Followed · disciplined</span></label>
       <div class="chips" id="confChips" style="margin-bottom:8px"></div>
       <label class="form-label">Emotions</label>
       <div class="chips" id="emoChips" style="margin-bottom:8px"></div>
-      <label class="form-label">Market Phase</label>
+      <label class="form-label">HTF Market Phase</label>
       <div class="chips" id="phaseChips" style="margin-bottom:8px"></div>
       <label class="form-label">Market Maker Model</label>
       <div class="chips" id="mmmChips" style="margin-bottom:8px"></div>
@@ -4619,9 +4722,8 @@ Midnight Open $______"></textarea>
       <label class="form-label">T Frame</label>
       <div class="chips" id="tfChips" style="margin-bottom:8px"></div>
       <hr class="div">
-      <div class="cols2">
-        <div><label class="form-label">RTH Profile</label><select id="tm-rth"></select></div>
-        <div><label class="form-label">HTF Delivery</label><select id="tm-htf"><option>Delivered</option><option>Undelivered</option></select></div>
+      <div id="tm-rth-wrap" class="form-row">
+        <label class="form-label">RTH Profile <span style="color:var(--text3);font-weight:400">· NY AM / PM only</span></label><select id="tm-rth"></select>
       </div>
       <!-- Trade quality (design v2): PD array committed, grade, plan adherence, refs -->
       <div class="cols3" style="margin-top:8px">
@@ -4863,7 +4965,21 @@ Midnight Open $______"></textarea>
             <input id="dm-price" placeholder="Premium, Discount, NWOG…"></div>
           <div class="form-row"><label class="form-label">Monthly Bias</label>
             <input id="dm-monthly-bias"></div>
+          <div class="form-row"><label class="form-label" style="color:var(--gold)">P/D Array</label>
+            <select id="dm-pdarray"><option value="">— Committed P/D array…</option></select></div>
+          <div class="form-row"><label class="form-label">Daily ROL</label>
+            <input id="dm-dailyrol" placeholder="$______" style="font-family:'JetBrains Mono',monospace"></div>
+          <div class="form-row"><label class="form-label">Daily DOL</label>
+            <input id="dm-dailydol" placeholder="$______" style="font-family:'JetBrains Mono',monospace"></div>
+          <div class="form-row"><label class="form-label">Trade Plan</label>
+            <textarea id="dm-tradeplan" rows="2" placeholder="Why I should take a trade?"></textarea></div>
         </div>
+      </div>
+
+      <!-- LMR Session Chain (auto-filled by the End-of-Day run) -->
+      <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+        <div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.09em;margin-bottom:8px">LMR Session Chain — session by session</div>
+        <div id="dm-lmr-chain"></div>
       </div>
 
       <!-- Images: 2x2 grid -->
@@ -4921,8 +5037,45 @@ Midnight Open $______"></textarea>
 <script>
 // ============= DATA CONSTANTS =============
 const TIME_PERIODS = ["9:31 - 10:00 AM","9:45-10:10 AM","8:50 to 9:10 AM","6:50-7:10 AM","AM Sliver Bullet 10:00 to 11:00 AM","10:50 to 11:10 AM","11:50 to 12:10 AM","12:50 to 13:00 PM","13:50 to 14:10 PM","14:50 to 15:10 AM","15:15 to 15:45 PM","PM Sliver Bullet 14:00 to 15:00","15:50 to 16:10Pm","PM FH 16:10 to 16:45"];
-const MODELS = ["Breaker Block","OB","OTE","CSID","IOFED","Sliver Bullet","Turtle Soup","IFVG","ICT 2022 Modle","Stupidity"];
-const CONFIRMATIONS = ["Macro Time","Liquidity Sweep","Displacement Candle","CSID","LTF OTE","OB","MSS","IDM","Breaker Block","SMT","Clean Draws","Prior To the Confirmation","HTF Delivery"];
+// Trade Entry Drill — the entry sequence (in order). Kept in the existing `models` column.
+const ENTRY_DRILL = ["Wick Rejection","Inducement","FVG","OB","CSID","IFVG","IOFED","Reclaimed FVG","Breaker Block","Suspension Block","Mitigation Block"];
+const MODELS = ENTRY_DRILL; // #modelChips renders the entry drill
+// Trading Models — higher-level setup type (new field → `trade_models` column).
+const TRADING_MODELS = ["Turtle Soup","Unicorn Models","Venom Model","AMD","OTE"];
+// Confirmation — exactly these five. ≥4 selected ⇒ auto A+, plan Followed, and a disciplined day.
+const CONFIRMATIONS = ["Macro Time","Liquidity Sweep","Displacement","SMT","Clean Draws"];
+// Session dropdown grouping (major → intraday sessions) + reverse map for RTH gating.
+// Clock bands (ET): Asian 18:00–23:59 · London 00:00–05:59 · NY AM 06:00–11:59 · NY PM 12:00–16:59.
+// Midnight Open (00:00) belongs to London.
+const SESSION_GROUPS = [
+  ["Asian",  ["Asian Killzone"]],
+  ["London", ["Midnight Open","London Open","London Kill Zone","London Close"]],
+  ["NY AM",  ["Pre-NY Session","NY AM","NY Lunch"]],
+  ["NY PM",  ["NY PM","Final Hour"]],
+];
+const SESSION_MAJOR = {}; SESSION_GROUPS.forEach(g=>g[1].forEach(s=>{ SESSION_MAJOR[s]=g[0]; }));
+// LMR macro windows grouped by major session (Asian + London added alongside NY).
+const LMR_MACRO_GROUPS = [
+  ["Asian",  ["ASIAN 1 · 20:50–21:10 ET","ASIAN 2 · 21:50–22:10 ET"]],
+  ["London", ["LONDON 1 · 01:30–02:00 ET","LONDON 2 · 02:50–03:10 ET","LONDON 3 · 04:30–05:00 ET"]],
+  ["NY AM",  ["NY AM · 08:50–09:10 ET","NY AM1 · 09:50–10:10 ET","NY AM2 · 10:50–11:10 ET","LUNCH · 11:50–12:10 ET"]],
+  ["NY PM",  ["PM · 13:50–14:10 ET","CLOSE · 15:15–15:45 ET","FINAL · 15:50–16:00 ET"]],
+];
+// Selecting a macro time auto-fills the matching intraday Session (time-accurate).
+const MACRO_TO_SESSION = {
+  "ASIAN 1 · 20:50–21:10 ET":"Asian Killzone",
+  "ASIAN 2 · 21:50–22:10 ET":"Asian Killzone",
+  "LONDON 1 · 01:30–02:00 ET":"London Open",
+  "LONDON 2 · 02:50–03:10 ET":"London Kill Zone",
+  "LONDON 3 · 04:30–05:00 ET":"London Kill Zone",
+  "NY AM · 08:50–09:10 ET":"Pre-NY Session",
+  "NY AM1 · 09:50–10:10 ET":"NY AM",
+  "NY AM2 · 10:50–11:10 ET":"NY AM",
+  "LUNCH · 11:50–12:10 ET":"NY Lunch",
+  "PM · 13:50–14:10 ET":"NY PM",
+  "CLOSE · 15:15–15:45 ET":"Final Hour",
+  "FINAL · 15:50–16:00 ET":"Final Hour",
+};
 const EMOTIONS = ["Emotional Decision","Revange Trading","FOMO","Neutral","Disciplined","Flow State"];
 const MARKET_PHASES = ["Accumulation","Retracement","Manipulation","Distribution","Reversal","Continuation"];
 const MMM_OPTS = ["MMBM","MMSM"];
@@ -5619,6 +5772,23 @@ async function delImg(k){
 
 async function allImgKeys(){await openDB();return new Promise(res=>{const t=db.transaction(STORE,'readonly');const r=t.objectStore(STORE).getAllKeys();r.onsuccess=()=>res(r.result||[])})}
 
+// List EVERY object under this user's folder, paging past Supabase Storage's per-request cap.
+// A single .list() returns at most ~1000 rows; with more images than that a lone call silently
+// truncates, so the image index (_imgIdxSetAll) misses keys and getImg() then skips the cloud
+// fetch for them → blank images. Paging with offset returns the complete set.
+async function _sbListAllUserImages(){
+  if(!_sb||!_sbUserId) return [];
+  const PAGE=1000; let offset=0; const all=[];
+  for(;;){
+    const {data,error}=await _sb.storage.from(SB_IMG_BUCKET).list(`${_sbUserId}/`,{limit:PAGE,offset});
+    if(error||!data||!data.length) break;
+    all.push(...data);
+    if(data.length<PAGE) break;
+    offset+=PAGE;
+  }
+  return all;
+}
+
 // ── SYNC ALL LOCAL IMAGES TO CLOUD ─────────────────────────────
 // Run once to back up all existing IndexedDB images to Supabase Storage
 async function syncAllImagesToCloud(){
@@ -5645,9 +5815,9 @@ async function restoreAllImagesFromCloud(){
   if(!_sbUserId){flash('⚠ Sign in first');return;}
   flash('⟳ Restoring images from cloud…');
   try{
-    // Use Supabase API to list files (still needs SDK for listing)
-    const{data:files,error}=await _sb.storage.from(SB_IMG_BUCKET).list(`${_sbUserId}/`,{limit:1000});
-    if(error||!files||!files.length){flash('No images found in cloud');return;}
+    // Use Supabase API to list files (still needs SDK for listing) — paged so >1000 images all come back
+    const files=await _sbListAllUserImages();
+    if(!files.length){flash('No images found in cloud');return;}
 
     let done=0;
     let skipped=0;
@@ -5686,8 +5856,8 @@ async function autoRestoreImagesOnLogin(){
   if(!_sbUserId) return;
   try{
     const localKeys=await allImgKeys();
-    const{data:files}=await _sb.storage.from(SB_IMG_BUCKET).list(`${_sbUserId}/`,{limit:1000});
-    if(!files||!files.length){ _imgIdxSetAll(localKeys); return; } // no cloud images → index = local only (still synced)
+    const files=await _sbListAllUserImages(); // paged: with >1000 images a single list() truncates and the index misses keys
+    if(!files.length){ _imgIdxSetAll(localKeys); return; } // no cloud images → index = local only (still synced)
 
     // Find images in cloud but not local
     const cloudKeys=new Set(files.map(f=>decodeURIComponent(f.name)));
@@ -5741,7 +5911,13 @@ let state=JSON.parse(JSON.stringify(DEFAULT_STATE));
 // Wipe in-memory state back to a clean slate (used when switching to an
 // account that has never used this device/browser before).
 function resetState(){
-  state=JSON.parse(JSON.stringify(DEFAULT_STATE));
+  // Mutate the existing `state` object IN PLACE — never reassign it. The journal/notes,
+  // terminology and psychology modules capture `state` once at parse time; reassigning here
+  // (this runs on every login via _switchUserStore) would detach those references, so those
+  // sections read/write a stale copy — journal entries "vanish" and new ones don't persist.
+  const fresh=JSON.parse(JSON.stringify(DEFAULT_STATE));
+  for(const k in state){ if(Object.prototype.hasOwnProperty.call(state,k)) delete state[k]; }
+  Object.assign(state,fresh);
   ensureState();
 }
 
@@ -5813,13 +5989,17 @@ function ensureState(){
 function load(){
   try{
     const r=localStorage.getItem(STORE_KEY);
-    if(r){const parsed=JSON.parse(r);state={...state,...parsed};}
+    // Merge IN PLACE (Object.assign) — never reassign `state` to a new object. Some modules
+    // (journal/notes/terminology/psychology) capture `state` once at parse time; reassigning
+    // it here detaches those references so they read/write a stale copy (journal entries then
+    // "vanish" and new ones don't persist locally). Mutating preserves the shared reference.
+    if(r){const parsed=JSON.parse(r);Object.assign(state,parsed);}
     ensureState();
     // If primary is empty, restore from backup
     const hasData=state.trades.length||state.accounts.length||Object.keys(state.daily).length;
     if(!hasData){
       const bk=localStorage.getItem(STORE_KEY+'_bk');
-      if(bk){const p=JSON.parse(bk);state={...state,...p};ensureState();console.log('[LMR] Restored from backup');}
+      if(bk){const p=JSON.parse(bk);Object.assign(state,p);ensureState();console.log('[LMR] Restored from backup');}
     }
   }catch(e){ensureState();console.error('[LMR] load error',e);}
 }
@@ -5866,14 +6046,12 @@ function save(){
   // localStorage is just a LIGHT local cache — base64 images (transaction receipts) are stripped out so
   // we never blow the ~5MB quota. The full images live in memory for the session + sync to Supabase.
   const light=_lightState();
-  try{localStorage.setItem(STORE_KEY,JSON.stringify(light));}
-  catch(e){
-    // Quota hit → drop the backup copy and retry once; never block the app or lose the cloud sync.
-    try{ localStorage.removeItem(STORE_KEY+'_bk'); localStorage.setItem(STORE_KEY,JSON.stringify(light)); }
-    catch(e2){ console.error('[LMR] localStorage quota exceeded',e2); try{flash('⚠ Local cache full — data still syncs to the cloud');}catch(_){} }
-  }
-  // Backup (also light) when we have meaningful data
-  if(tradeCount||dailyCount||acctCount||state.notes.length){
+  const _persisted=_persistState(JSON.stringify(light));
+  if(!_persisted){ console.error('[LMR] localStorage quota exceeded — could not persist state even after cleanup'); try{flash('⚠ Local cache full — data still syncs to the cloud');}catch(_){} }
+  // Backup (also light) only when the primary save succeeded AND we have meaningful data.
+  // Best-effort: if it doesn't fit, skip it — the cloud is the real backup, and never let a
+  // backup copy crowd out the primary save (that's what made logged trades vanish).
+  if(_persisted && (tradeCount||dailyCount||acctCount||state.notes.length)){
     try{localStorage.setItem(STORE_KEY+'_bk',JSON.stringify(light));}catch(e){}
   }
   _sbDirty=true;
@@ -5884,6 +6062,22 @@ function _lightState(){
   const s={...state};
   if(Array.isArray(s.transactions)) s.transactions=s.transactions.map(t=>{ if(t&&t.image){ const c={...t}; delete c.image; return c; } return t; });
   return s;
+}
+// Strip base64 image payloads from a serialized-state string, so the STRUCTURED data
+// (trades, accounts, daily…) always fits even when embedded images have filled the quota.
+// Images live in IndexedDB + Supabase Storage, so the local cache dropping them is recoverable.
+function _stripStateB64(json){ try{ return String(json).replace(/data:image\/[A-Za-z0-9.+-]+;base64,[^"\\]*/g,''); }catch(e){ return json; } }
+// Persist the light state, progressively freeing space so a full localStorage can NEVER
+// silently drop a save — which is exactly what made logged trades vanish (save() threw
+// QuotaExceededError, the trade never persisted, and the next pull/reload wiped it).
+// Order: (1) write as-is; (2) evict the auxiliary backup copies (cloud is the real backup)
+// and retry; (3) last resort, strip base64 images from the cache so the trades still land.
+function _persistState(payload){
+  try{ localStorage.setItem(STORE_KEY,payload); return true; }catch(e){}
+  ['_bk','_pre_pull','_autobak'].forEach(sfx=>{ try{ localStorage.removeItem(STORE_KEY+sfx); }catch(_){} });
+  try{ localStorage.setItem(STORE_KEY,payload); return true; }catch(e){}
+  try{ localStorage.setItem(STORE_KEY,_stripStateB64(payload)); return true; }catch(e){}
+  return false;
 }
 
 // ── SAFE CLOUD SYNC ──────────────────────────────────────────────
@@ -5982,7 +6176,7 @@ function _mapTrade(t,uid){
     account_id:t.accountId?String(t.accountId):null,
     date:t.date,day_count:t.dayCount||null,market:t.market||null,position:t.position||null,
     day:t.day||null,month:t.month||null,session:t.session||null,time_period:t.timePeriod||null,
-    models:Array.isArray(t.models)?t.models:[],confirmations:Array.isArray(t.confirmations)?t.confirmations:[],
+    models:Array.isArray(t.models)?t.models:[],trade_models:Array.isArray(t.tradeModels)?t.tradeModels:[],confirmations:Array.isArray(t.confirmations)?t.confirmations:[],
     emotions:Array.isArray(t.emotions)?t.emotions:[],phases:Array.isArray(t.phases)?t.phases:[],
     mmm:Array.isArray(t.mmm)?t.mmm:[],movement:Array.isArray(t.movement)?t.movement:[],
     tframes:Array.isArray(t.tframes)?t.tframes:[],
@@ -6013,6 +6207,7 @@ function _mapDaily(date,d,uid){
     premarket:d.htfpoi||null,
     daily_rol:d.dailyRol||d.daily_rol||null,
     daily_dol:d.dailyDol||d.daily_dol||null,
+    trade_plan:d.tradePlan||d.trade_plan||null,
     london_killzone:d.london||null,
     saved_at:d.savedAt||new Date().toISOString()};
 }
@@ -6042,9 +6237,34 @@ async function _sbUpsertAll(uid){
       state.notes.map(n=>({id:String(n.id),user_id:uid,notion_id:n.notionId||null,
         title:n.title||null,text:n.text||'',date:n.date||null,
         created_at:n.createdAt||new Date().toISOString()})),{onConflict:'id'}));
+  // A previous Notion import produced local copies of the same Journal notes.
+  // Read the owner's canonical source titles before a Force Push so stale tabs
+  // cannot re-create deleted copies or overwrite the curated headings.
+  if((state.journal||[]).length){
+    const imported = await _sb.from('journal').select('import_source_title')
+      .not('import_source_id','is',null);
+    _chk('journal import check', imported);
+    if(!imported.error){
+      const sourceTitles=new Set((imported.data||[])
+        .map(j=>String(j.import_source_title||'').trim().toLowerCase()));
+      const rows=state.journal.filter(j=>j.import_source_id ||
+        !sourceTitles.has(String(j.text||j.content||'').trim().toLowerCase()));
+      if(rows.length) _chk('journal', await _sb.from('journal').upsert(
+        rows.map(j=>({id:String(j.id),user_id:uid,date:j.date||null,
+          title:j.title||j.type||null,type:j.type||j.title||'Lesson',
+          text:j.text||j.content||'',content:j.text||j.content||'',
+          img_key:j.imgKey||j.img_key||null,
+          created_at:j.createdAt||j.created_at||new Date().toISOString()})),{onConflict:'id'}));
+    }
+  }
   const dailyRows=Object.entries(state.daily).map(([date,d])=>_mapDaily(date,d,uid));
   if(dailyRows.length)_chk('daily', await _sb.from('daily').upsert(dailyRows,{onConflict:'date,user_id'}));
-  const monthlyRows=Object.entries(state.monthly).map(([key,data])=>({key,data,user_id:uid}));
+  // Knowledge sections own their OWN tables (lmr_terminology / lmr_psychology). Never push them
+  // through the shared `monthly` store — a Force Push of an empty local copy used to clobber the
+  // real terminology/psychology content in the cloud.
+  const monthlyRows=Object.entries(state.monthly)
+    .filter(([key])=>key!=='lmr-terminology'&&key!=='lmr-psychology')
+    .map(([key,data])=>({key,data,user_id:uid}));
   if(monthlyRows.length)_chk('monthly', await _sb.from('monthly').upsert(monthlyRows,{onConflict:'key,user_id'}));
   const weeklyRows=Object.entries(state.weekly).map(([week_key,data])=>({week_key,data,user_id:uid}));
   if(weeklyRows.length)_chk('weekly', await _sb.from('weekly').upsert(weeklyRows,{onConflict:'week_key,user_id'}));
@@ -6162,17 +6382,30 @@ const currentMonthStr=()=>todayStr().slice(0,7);
 // ── AUTO-SAVE DEBOUNCE ───────────────────────────────────────────
 const _autoSaveTimers={};
 function autoSave(key,fn,ms=800){
-  clearTimeout(_autoSaveTimers[key]);
-  _autoSaveTimers[key]=setTimeout(()=>{
+  clearTimeout((_autoSaveTimers[key]||{}).t);
+  const run=()=>{
+    _autoSaveTimers[key]=null;
     fn();
     const el=document.getElementById('sb-save-status');
     if(el){el.textContent='Saved ✓';el.style.color='var(--bull)';setTimeout(()=>{el.textContent='Auto-saved';el.style.color='';},1800);}
-  },ms);
+  };
+  _autoSaveTimers[key]={t:setTimeout(run,ms),run};
 }
 // Alias for explicit debounce with configurable delay
 function debounceSave(key,fn,delay=600){
-  clearTimeout(_autoSaveTimers[key]);
-  _autoSaveTimers[key]=setTimeout(()=>fn(),delay);
+  clearTimeout((_autoSaveTimers[key]||{}).t);
+  const run=()=>{_autoSaveTimers[key]=null;fn();};
+  _autoSaveTimers[key]={t:setTimeout(run,delay),run};
+}
+// Run every pending debounced save immediately. Called on tab-hide / unload / pre-reload so the
+// just-typed form (which lives in the DOM until its 800ms debounce fires) is copied into `state`
+// BEFORE it is persisted — without this, a reload (e.g. the post-deploy auto-reload) tears down
+// the DOM and the in-progress Today-session chain is never recorded.
+function flushAutoSaves(){
+  Object.keys(_autoSaveTimers).forEach(k=>{
+    const e=_autoSaveTimers[k];
+    if(e&&e.t){ clearTimeout(e.t); _autoSaveTimers[k]=null; try{ e.run(); }catch(_){} }
+  });
 }
 // Chain completion meter — the 9 pre-9:30 fields: Bias, HTF POI, Week Draws, London, NY, Asian Range,
 // Price Refs, Session, RTH. Reads live UI state; fills gold, flips green when all 9 are done.
@@ -6610,10 +6843,11 @@ function filterReports(type, tabEl){
 }
 
 // ============= NAVIGATION =============
-const panels=['dash','today','cal','perf','monthly','weekly','daily','trades','accounts','cockpit','trans','journal','notes','terminology','psychology','observation','achievements','payout','ai-coach','reports'];
+const panels=['dash','today','live','cal','perf','monthly','weekly','daily','trades','accounts','cockpit','trans','journal','notes','terminology','psychology','observation','achievements','payout','ai-coach','reports'];
 const titles={
   dash:['Dashboard','Welcome back · Day '],
   today:['Today','Fill the chain · Day '],
+  live:['Live Session','Session chain · updates at each checkpoint (NY)'],
   cal:['Calendar','US Economic Calendar · All impact levels'],
   perf:['Performance','Live analytics from your trades'],
   monthly:['Monthly Analysis','LMR Monthly framework'],
@@ -7082,17 +7316,18 @@ function navTo(p){
   if(p==='trans'){renderTransTable();renderTransSummary();}
   if(p==='notes') setTimeout(()=>{ if(window.renderNotesSection)renderNotesSection(); },80);
   if(p==='today') loadDaily();
+  if(p==='live'&&window.lmrRenderToday) lmrRenderToday();
   if(p==='settings') renderSettings();
   if(p==='terminology') setTimeout(()=>{ if(window.loadKnowledgeCloud)loadKnowledgeCloud(); else if(window.renderKnowledge)renderKnowledge(); },100);
   if(p==='psychology')  setTimeout(()=>{ if(window.loadPsychologyCloud)loadPsychologyCloud(); else if(window.renderPsychologySection)renderPsychologySection(); },100);
-  if(p==='observation') setTimeout(()=>{ if(window.loadObservationsCloud)loadObservationsCloud(); else if(window.renderObservationSection)renderObservationSection(); },100);
+  if(p==='observation') setTimeout(()=>{ if(typeof loadObservations==='function')loadObservations(); },100);
   if(p==='achievements') setTimeout(loadAchievements,100);
   if(p==='payout') setTimeout(renderPayoutModule,60);
   if(p==='ai-coach') { setTimeout(loadAndRenderAIHistory, 300); }
   if(p==='reports') loadAndRenderReports();
 }
 
-document.querySelectorAll('.sb-item').forEach(b=>{
+document.querySelectorAll('.sb-item[data-panel]').forEach(b=>{
   b.onclick=()=>navTo(b.dataset.panel);
 });
 
@@ -7147,6 +7382,7 @@ async function uploadImage(zone,file){
 }
 function getImgKey(z){
   const base=z.dataset.imgkey;
+  if(!base) return '';   // zone with no data-imgkey → nothing to key (guards restore/re-render crashes)
   // FIX: use 'week' in z.dataset (not z.dataset.week) because data-week="" is falsy
   if('week' in z.dataset) return `${state.currentMonth}-W${state.currentWeek}-${base}`;
   if(base.startsWith('m-')) return `${state.currentMonth}-${base}`;
@@ -7155,7 +7391,9 @@ function getImgKey(z){
   return base;
 }
 async function renderImgZone(z){
-  const blob=await getImg(getImgKey(z));
+  const key=getImgKey(z);
+  if(!key){ z.classList.remove('has-img'); z.innerHTML='<div class="img-zone-text">📋 Paste or click to upload</div>'; return; }
+  const blob=await getImg(key);
   if(!blob){z.classList.remove('has-img');z.innerHTML='<div class="img-zone-text">📋 Paste or click to upload</div>';return}
   const url=URL.createObjectURL(blob);
   z.classList.add('has-img');
@@ -7239,6 +7477,8 @@ document.addEventListener('click',e=>{
     else { _priceRefOrder=_priceRefOrder.filter(x=>x!==val); }
     _renderPriceOrder();
   }
+  // Confirmations: ≥4 selected ⇒ auto A+ / Followed (reflected live in the modal).
+  if(grp==='confChips' && typeof tmApplyConfAuto==='function') tmApplyConfAuto();
   // Auto-save if chip is in Today panel
   if(document.getElementById('p-today').classList.contains('active'))autoSaveDaily();
 });
@@ -7448,6 +7688,12 @@ function saveDaily(){
     dailyRol:document.getElementById('ch-dailyrol')?document.getElementById('ch-dailyrol').value:'',
     dailyDol:document.getElementById('ch-dailydol')?document.getElementById('ch-dailydol').value:'',
     rth:document.getElementById('ch-rth').value,
+    monthlyBias:(() => {
+      // Auto-capture the month's directional context so the Daily page carries
+      // monthly + weekly automatically (no manual re-entry on the day modal).
+      const m = state.monthly[state.currentMonth] || {};
+      return m['m-qshift'] || m['m-profile'] || '';
+    })(),
     weekly_key:weeklyKey,
     dayCount,
     savedAt:new Date().toISOString()
@@ -7630,7 +7876,8 @@ function updateTodayJournalPreview(ds){
   if(!el) return;
   const entry = (state.notes||[]).find(n=>n.date===ds) || (state.journal||[]).find(n=>n.date===ds);
   if(entry){
-    el.innerHTML=`<span style="color:var(--bull)">✓ Saved</span> · ${entry.text.slice(0,60)}${entry.text.length>60?'…':''}`;
+    const txt = entry.text || entry.content || '';   // consolidated entries may store body in `content` (text can be null)
+    el.innerHTML=`<span style="color:var(--bull)">✓ Saved</span> · ${txt.slice(0,60)}${txt.length>60?'…':''}`;
   } else {
     el.textContent='Not saved yet';
   }
@@ -8078,6 +8325,78 @@ async function _migrateTradeImgKeys(oldPrefix,newId){
     }catch(e){}
   }
 }
+// ── Trade modal helpers (LMR overhaul) ──────────────────────────────────
+const _WEEKDAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+function tmSyncDay(){
+  const d=document.getElementById('tm-date'), dayEl=document.getElementById('tm-day');
+  if(!d||!dayEl) return;
+  if(d.value){ const dt=new Date(d.value+'T12:00'); dayEl.value=isNaN(dt)?'':_WEEKDAYS[dt.getDay()]; } else dayEl.value='';
+}
+function tmFillSession(val){
+  const sel=document.getElementById('tm-session'); if(!sel) return;
+  sel.innerHTML='<option value="">Select…</option>'+SESSION_GROUPS.map(g=>
+    '<optgroup label="'+g[0]+'">'+g[1].map(s=>`<option${val===s?' selected':''}>${s}</option>`).join('')+'</optgroup>').join('');
+  if(val) sel.value=val;
+  tmSessionChanged();
+}
+function tmFillMacro(val){
+  const sel=document.getElementById('tm-tp'); if(!sel) return;
+  sel.innerHTML='<option value="">Select…</option>'+LMR_MACRO_GROUPS.map(g=>
+    '<optgroup label="'+g[0]+'">'+g[1].map(s=>`<option${val===s?' selected':''}>${s}</option>`).join('')+'</optgroup>').join('');
+  if(val) sel.value=val;
+}
+// Picking a macro time auto-selects its matching Session (one-way; only on real user selection).
+function tmMacroChanged(){
+  const tp=document.getElementById('tm-tp'), sess=document.getElementById('tm-session');
+  if(!tp||!sess) return;
+  const s=MACRO_TO_SESSION[tp.value];
+  if(s){ sess.value=s; tmSessionChanged(); }
+}
+// RTH Profile shows only for NY sessions (NY AM / NY PM).
+function tmSessionChanged(){
+  const sel=document.getElementById('tm-session'), wrap=document.getElementById('tm-rth-wrap');
+  if(!sel||!wrap) return;
+  const major=SESSION_MAJOR[sel.value]||'';
+  const isNY=(major==='NY AM'||major==='NY PM');
+  wrap.style.display=isNY?'':'none';
+  if(!isNY){ const r=document.getElementById('tm-rth'); if(r) r.value=''; }
+}
+// ≥4 confirmations ⇒ auto Grade A+ and Plan Followed (only while still auto; user can override).
+function tmApplyConfAuto(){
+  const n=document.querySelectorAll('#confChips .chip.on').length;
+  const g=document.getElementById('tm-grade'), p=document.getElementById('tm-plan');
+  if(n>=4){
+    if(g&&(!g.value||g.dataset.auto==='1')){ g.value='A+'; g.dataset.auto='1'; }
+    if(p&&(!p.value||p.dataset.auto==='1')){ p.value='Followed'; p.dataset.auto='1'; }
+  } else {
+    if(g&&g.dataset.auto==='1'){ g.value=''; g.dataset.auto=''; }
+    if(p&&p.dataset.auto==='1'){ p.value=''; p.dataset.auto=''; }
+  }
+}
+// Resolve a P/D array id/name/short → its canonical name (chain stores an id; the trade select is name-keyed).
+function _pdResolveName(v){
+  if(!v) return '';
+  if(typeof LMR_PD_ARRAYS!=='undefined'){ const a=LMR_PD_ARRAYS.find(x=>x.id===v||x.name===v||x.short===v); if(a) return a.name; }
+  return v;
+}
+function _todayChain(){ const ds=todayStr(); return (state.daily&&state.daily[ds])||{}; }
+// Today's ordered price references, from the best available source: the saved `price` or `priceRefs`
+// keys, else the live in-memory order (_priceRefOrder) that holds them before the chain's debounced
+// autosave flushes to state.daily. This is why the field was coming up empty right after editing.
+function _todayPriceRefs(){
+  const ch=_todayChain();
+  if(Array.isArray(ch.price)&&ch.price.length) return ch.price.slice();
+  if(Array.isArray(ch.priceRefs)&&ch.priceRefs.length) return ch.priceRefs.slice();
+  if(typeof _priceRefOrder!=='undefined'&&Array.isArray(_priceRefOrder)&&_priceRefOrder.length) return _priceRefOrder.slice();
+  return [];
+}
+// Daily info → trade: prefill P/D array + ordered price references from today's committed session.
+function tmPrefillFromToday(){
+  const ch=_todayChain();
+  const pd=document.getElementById('tm-pdarray'); if(pd&&!pd.value){ const nm=_pdResolveName(ch.pdArray); if(nm) pd.value=nm; }
+  const refs=document.getElementById('tm-refs');
+  if(refs&&!refs.value){ const pr=_todayPriceRefs(); if(pr.length) refs.value=pr.join(', '); }
+}
 function openTradeModal(editId,presetAccId){
   _tmEditId=editId||null;
   // Manual add from an account view: remember the account (reopen after save) + don't mirror it.
@@ -8089,12 +8408,14 @@ function openTradeModal(editId,presetAccId){
   // Normalise to same type used when images were saved
   const ex=editId?state.trades.find(t=>String(t.id)===String(editId)):null;
   document.getElementById('tm-date').value=ex?ex.date:todayStr();
+  tmSyncDay(); // Day is derived from the date (not manual)
   // Open/close time: MANUAL only — never auto-fill with current time
   // For new trades: empty (user fills manually)
   // For edits: show saved value only (not current time)
   document.getElementById('tm-open-time').value=ex&&ex.openTime?ex.openTime:'';
   document.getElementById('tm-close-time').value=ex&&ex.closeTime?ex.closeTime:'';
   // build chips
+  buildChips('tradingModelChips',TRADING_MODELS,true,'tradingModelChips');
   buildChips('modelChips',MODELS,true,'modelChips');
   buildChips('confChips',CONFIRMATIONS,true,'confChips');
   buildChips('emoChips',EMOTIONS,true,'emoChips');
@@ -8102,8 +8423,9 @@ function openTradeModal(editId,presetAccId){
   buildChips('mmmChips',MMM_OPTS,true,'mmmChips');
   buildChips('movChips',MOVEMENT,true,'movChips');
   buildChips('tfChips',T_FRAMES,true,'tfChips');
-  // build selects
-  const tp=document.getElementById('tm-tp');tp.innerHTML='<option value="">Select...</option>'+TIME_PERIODS.map(t=>`<option>${t}</option>`).join('');
+  // build selects (grouped: session + LMR macro time)
+  tmFillSession(ex?ex.session:'');
+  tmFillMacro(ex?ex.timePeriod:'');
   const rth=document.getElementById('tm-rth');rth.innerHTML='<option value="">Select...</option>'+RTH_PROFILES.map(t=>`<option>${t}</option>`).join('');
   // Account picker = the wire into the Copier Cockpit. Show ACTIVE accounts only (Blown/Passed hidden),
   // newest→oldest, with the Leader (♛) and connected followers (↳) marked. When editing an old trade
@@ -8131,9 +8453,8 @@ function openTradeModal(editId,presetAccId){
     // Pre-fill from existing
     document.getElementById('tm-market').value=ex.market||'NQ';
     document.getElementById('tm-pos').value=ex.position||'Long';
-    document.getElementById('tm-day').value=ex.day||'';
-    document.getElementById('tm-session').value=ex.session||'';
-    if(ex.timePeriod)document.getElementById('tm-tp').value=ex.timePeriod;
+    tmSyncDay(); // derived from the date
+    setChipsValues('tradingModelChips',ex.tradeModels||ex.trade_models||[]);
     setChipsValues('modelChips',ex.models||[]);
     setChipsValues('confChips',ex.confirmations||[]);
     setChipsValues('emoChips',ex.emotions||[]);
@@ -8141,8 +8462,9 @@ function openTradeModal(editId,presetAccId){
     setChipsValues('mmmChips',ex.mmm||[]);
     setChipsValues('movChips',ex.movement||[]);
     setChipsValues('tfChips',ex.tframes||[]);
+    tmSessionChanged();
     if(ex.rth)document.getElementById('tm-rth').value=ex.rth;
-    document.getElementById('tm-htf').value=ex.htf||'Delivered';
+    document.getElementById('tm-htf').value=ex.htf||'';
     document.getElementById('tm-pnl').value=ex.pnl||'';
     document.getElementById('tm-risk').value=ex.risk||'';
     document.getElementById('tm-lots').value=ex.lots||'';
@@ -8157,7 +8479,9 @@ function openTradeModal(editId,presetAccId){
     // New trade: if adding from a specific account → that account; else the Copier LEADER; else active account.
     const _def=(presetAccId?String(presetAccId):'')||_lid||(state.currentAcc?String(state.currentAcc):'');
     if(_def) document.getElementById('tm-acc').value=_def;
-    ['tm-pnl','tm-risk','tm-lots','tm-draws','tm-fb','tm-pdarray','tm-grade','tm-plan','tm-refs'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+    ['tm-pnl','tm-risk','tm-lots','tm-draws','tm-fb','tm-htf','tm-pdarray','tm-grade','tm-plan','tm-refs'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+    { const g=document.getElementById('tm-grade'); if(g)g.dataset.auto=''; const p=document.getElementById('tm-plan'); if(p)p.dataset.auto=''; }
+    tmPrefillFromToday(); // daily info → trade: today's committed P/D array + ordered price references
   }
   // Set image keys — use existing trade ID for edits, pre-generate for new
   const imgId = editId || ('new-'+Date.now());
@@ -8177,10 +8501,11 @@ function saveTrade(){
     openTime:document.getElementById('tm-open-time').value,
     closeTime:document.getElementById('tm-close-time').value,
     position:document.getElementById('tm-pos').value,
-    day:document.getElementById('tm-day').value,
+    day:_WEEKDAYS[new Date(date+'T12:00').getDay()]||'',   // derived from the calendar date, not manual
     month:['Dec','Jan','Feb','March','April','May','June','July','Aug','Sep','Oct','Nov'][new Date(date+'T12:00').getMonth()],
     session:document.getElementById('tm-session').value,
     timePeriod:document.getElementById('tm-tp').value,
+    tradeModels:getChipsValues('tradingModelChips',true),
     models:getChipsValues('modelChips',true),
     confirmations:getChipsValues('confChips',true),
     emotions:getChipsValues('emoChips',true),
@@ -8204,6 +8529,14 @@ function saveTrade(){
   };
   t.rr=t.risk>0?(t.pnl/t.risk).toFixed(2):0;
   t.win=t.pnl>0;
+  // Daily info → trade (new trades only): carry today's committed P/D array + ordered price refs.
+  if(!_tmEditId){
+    const ch=_todayChain();
+    const pdNm=_pdResolveName(ch.pdArray); if(pdNm) t.pdArray=pdNm;
+    const pr=_todayPriceRefs(); if(pr.length) t.refs=pr.slice();
+  }
+  // ≥4 confirmations ⇒ A+ setup + plan Followed (discipline is credited in LMR Psychology).
+  if((t.confirmations||[]).length>=4){ t.grade='A+'; t.planFollowed='Followed'; }
   const _oldImgId=_tmCurrentImgId; // capture before reset, may be "new-<ts>"
   const _isNewTrade=!_tmEditId;
   if(_tmEditId){state.trades=state.trades.map(x=>x.id===_tmEditId?t:x);flash('✓ Trade updated');}
@@ -8383,8 +8716,13 @@ function saveTradeAndClose(){
   const pnl=document.getElementById('tm-pnl').value;
   const date=document.getElementById('tm-date').value;
   if(!date&&!pnl&&!_tmEditId){closeModal('tradeModal');return;}
-  // Design hard block: a new trade must be validated against today's committed P/D array.
-  if(!_tmEditId && window.PD && typeof PD.check==='function' && !PD.check(getChipsValues('modelChips',true))){ return; }
+  // Save rule (design): a new trade just needs TODAY's P/D array committed — it then inherits it.
+  // No model-match block (that was stopping valid saves). If nothing is committed, prompt to pick one.
+  if(!_tmEditId && !((_todayChain()||{}).pdArray)){
+    if(window.PD&&typeof PD.showBlock==='function') PD.showBlock('No P/D array committed','Commit today’s P/D array in the Today chain — the trade inherits it and then logs.');
+    try{ flash('⚠ Commit today’s P/D array in the Today chain first'); }catch(e){}
+    return;
+  }
   const editId=_tmEditId;
   saveTrade();
   // Auto AI analysis if enabled
@@ -9418,6 +9756,9 @@ async function openNoteDetail(id){
 
 function renderNotesList(){
   const w=document.getElementById('notesList');
+  if(!w) return; // #notesList was consolidated into the journal feed (#jFeed); nothing to render here.
+                 // Without this guard, renderNotesList() threw on null and blocked the whole
+                 // post-login render (mainApp never showed) — "app not opening after signing in".
   // Merge notes + journal entries — sort newest to oldest by date then id
   const allEntries=[...state.notes,...(state.journal||[])].sort((a,b)=>{
     const da=(a.date||'0000-00-00');const db=(b.date||'0000-00-00');
@@ -10319,25 +10660,10 @@ async function lmrSimpleLoad(section){
   let html = '';
   let lmrbBlocks = null; // new block-editor format (preferred when present)
 
-  // One-time: fully wipe the Terminology section to a clean slate (user requested it emptied).
-  // Overwrites the cloud row with EMPTY (more reliable than delete) and only marks itself done once the
-  // cloud write actually succeeds — so if Supabase wasn't ready yet, it retries on the next load instead
-  // of leaving the old content in the cloud.
-  if(section==='terminology' && !localStorage.getItem('lmr_term_clear_v2')){
-    const _empty={html:'',lmrbBlocks:[]};
-    state['terminologyPage']=JSON.stringify(_empty);
-    let cloudDone=true;
-    try{
-      if(_sb&&_sbUserId){ const {error}=await _sb.from('lmr_terminology').upsert({data:_empty,user_id:_sbUserId},{onConflict:'user_id'}); cloudDone=!error; }
-      else cloudDone=false; // cloud not ready → don't mark done, retry next load
-    }catch(e){ cloudDone=false; }
-    try{ save&&save(); }catch(e){}
-    if(cloudDone) localStorage.setItem('lmr_term_clear_v2','1');
-    html=''; lmrbBlocks=[]; // force blank for this render regardless of what was cached
-    if(typeof lmrbInit==='function'){ lmrbInit(section,[],()=>lmrSimpleAutoSave(section)); }
-    if(statusEl) statusEl.textContent='✓ Cleared'; setTimeout(()=>{ if(statusEl) statusEl.textContent='Auto-saves'; },1500);
-    return; // done — blank editor mounted
-  }
+  // NOTE: a one-time auto-wipe of Terminology used to run here (it blanked the section on load
+  // and overwrote the cloud row with EMPTY). It has been removed — a section must never be
+  // auto-cleared out from under the user. Clearing is available only via the explicit
+  // "Clear section" button (lmrClearSection), which confirms first.
 
   // Try Supabase first
   if(_sb && _sbUserId){
@@ -10852,6 +11178,8 @@ function deleteCanvasPage(id){
 let _obsEntries = [];
 let _obsCurrentId = null;
 let _obsSaveTimer = null;
+let _obsImgs = [];   // data-URL chart images for the entry currently in the editor
+let _obsTf = '';     // selected timeframe (1m/5m/15m/1H/4H/D) for the current entry
 
 function getObsEntriesCache(){ try{ return JSON.parse(localStorage.getItem('lmr_obs_entries_v2')||'[]'); }catch(e){ return []; } }
 // A "light" copy with base64 <img> data stripped — so the localStorage cache stays under quota.
@@ -10870,42 +11198,105 @@ function saveObsEntriesCache(entries){
   }
 }
 
-// Pasted screenshots arrive as raw clipboard image data — compress them and embed as a
-// self-contained data URL (like trade screenshots) instead of leaving an external image
-// URL, which the Discord/X share can't fetch due to cross-origin restrictions.
-function obsHandlePaste(e){
-  const items=e.clipboardData?.items;
-  if(!items) return;
-  const item=[...items].find(it=>it.type&&it.type.startsWith('image/'));
-  if(!item) return;
-  const file=item.getAsFile();
-  if(!file) return;
-  e.preventDefault();
-  const contentEl=document.getElementById('observation-content');
-  const sel=window.getSelection();
-  let range=null;
-  if(sel&&sel.rangeCount&&contentEl.contains(sel.getRangeAt(0).commonAncestorContainer)){
-    range=sel.getRangeAt(0).cloneRange();
-  }
+// ── EDITOR: chart images (paste / drop / browse files) ───────────────────────
+function _obsEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+// Compress an incoming image file to a self-contained data URL (like trade screenshots — so the
+// Discord/X share can attach it) and add it to the current entry's chart.
+function _obsAddImageFile(file){
+  if(!file||!file.type||!file.type.startsWith('image/')) return;
   compress(file,1600,0.85).then(blob=>{
     const reader=new FileReader();
-    reader.onload=()=>{
-      contentEl.focus();
-      const sel2=window.getSelection();
-      sel2.removeAllRanges();
-      if(range){
-        sel2.addRange(range);
-      }else{
-        const r=document.createRange();
-        r.selectNodeContents(contentEl);
-        r.collapse(false);
-        sel2.addRange(r);
-      }
-      document.execCommand('insertHTML',false,`<p><img src="${reader.result}"></p>`);
-      obsAutoSave();
-    };
+    reader.onload=()=>{ _obsImgs.push(reader.result); obsRenderDrop(); obsAutoSave(); };
     reader.readAsDataURL(blob);
   });
+}
+// Paste a chart into the editor (⌘V) — only while the Observation panel is visible.
+function obsHandlePaste(e){
+  const p=document.getElementById('p-observation');
+  if(!p||p.offsetParent===null) return;
+  const items=e.clipboardData?.items; if(!items) return;
+  const item=[...items].find(it=>it.type&&it.type.startsWith('image/'));
+  if(!item) return;
+  e.preventDefault();
+  const file=item.getAsFile(); if(file) _obsAddImageFile(file);
+}
+document.addEventListener('paste',obsHandlePaste);
+// Browse-files picker.
+function obsPickFile(){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*'; inp.multiple=true;
+  inp.onchange=()=>{ [...(inp.files||[])].forEach(_obsAddImageFile); };
+  inp.click();
+}
+function obsDragOver(e){ e.preventDefault(); document.getElementById('obs-drop')?.classList.add('is-over'); }
+function obsDragLeave(e){ document.getElementById('obs-drop')?.classList.remove('is-over'); }
+function obsDropFile(e){
+  e.preventDefault(); document.getElementById('obs-drop')?.classList.remove('is-over');
+  [...(e.dataTransfer?.files||[])].forEach(_obsAddImageFile);
+}
+// Render the chart drop zone: thumbnails with a remove button, or the empty prompt.
+function obsRenderDrop(){
+  const box=document.getElementById('obs-drop'); if(!box) return;
+  if(!_obsImgs.length){
+    box.classList.remove('has-img');
+    box.innerHTML='<div class="obs-drop-empty">'
+      +'<svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>'
+      +'<div style="margin-top:10px">Paste (⌘V) or drop the marked-up chart</div>'
+      +'<div style="margin-top:2px;color:var(--text3)">or <span onclick="event.stopPropagation();obsPickFile()" style="text-decoration:underline;cursor:pointer">browse files</span></div>'
+      +'</div>';
+    return;
+  }
+  box.classList.add('has-img');
+  box.innerHTML=_obsImgs.map((src,i)=>
+    '<div class="obs-thumb"><img src="'+src+'" alt=""><button type="button" class="obs-thumb-x" title="Remove" onclick="event.stopPropagation();obsRemoveImg('+i+')">×</button></div>'
+  ).join('');
+}
+function obsRemoveImg(i){ _obsImgs.splice(i,1); obsRenderDrop(); obsAutoSave(); }
+// Timeframe selector (toggle).
+function obsSetTf(tf){
+  _obsTf=(_obsTf===tf?'':tf);
+  document.querySelectorAll('#obs-tf .obs-tf-btn').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tf===_obsTf)));
+  obsAutoSave();
+}
+// Character counter for the shareable headline (X's limit).
+function obsCountChars(){
+  const n=(document.getElementById('obs-title-input')?.value||'').length;
+  const el=document.getElementById('obs-charcount');
+  if(el){ el.textContent=n+' / 280'; el.style.color=n>280?'var(--bear)':'var(--text3)'; }
+}
+// Serialize the editor fields into the entry's HTML `content`, with a hidden meta comment so
+// market/timeframe round-trip on the next open. No DB schema change — still title + content.
+function _obsComposeContent(){
+  const market=(document.getElementById('obs-market')?.value||'').trim();
+  const notes=(document.getElementById('obs-notes')?.value||'').trim();
+  const tf=_obsTf||'';
+  let html='<!--obsmeta '+JSON.stringify({m:market,tf:tf})+'-->';
+  const head=[market,tf].filter(Boolean).join(' · ');
+  if(head) html+='<p class="o-meta"><strong>'+_obsEsc(head)+'</strong></p>';
+  if(notes) html+=notes.split(/\n{2,}/).map(pp=>'<p>'+_obsEsc(pp).replace(/\n/g,'<br>')+'</p>').join('');
+  html+=_obsImgs.map(src=>'<p><img src="'+src+'"></p>').join('');
+  return html;
+}
+// Parse an entry's `content` back into editor fields. New posts carry an obsmeta comment; old
+// posts don't — for those, market/tf stay blank, all text becomes Notes, all <img> become charts.
+function _obsParseContent(content){
+  content=content||'';
+  let m='', tf='';
+  const meta=content.match(/<!--obsmeta\s*(\{[\s\S]*?\})-->/);
+  if(meta){ try{ const j=JSON.parse(meta[1]); m=j.m||''; tf=j.tf||''; }catch(e){} }
+  const tmp=document.createElement('div');
+  tmp.innerHTML=content.replace(/<!--obsmeta[\s\S]*?-->/,'');
+  const imgs=[...tmp.querySelectorAll('img')].map(im=>im.getAttribute('src')).filter(Boolean);
+  tmp.querySelectorAll('img').forEach(im=>(im.closest('p')||im).remove());
+  tmp.querySelectorAll('.o-meta').forEach(el=>el.remove());
+  // Rebuild notes from block boundaries + <br>. innerText needs layout, which a detached node
+  // lacks, so it would drop paragraph breaks — reconstruct them from leaf block elements instead.
+  const blockText=el=>{ const d=el.cloneNode(true); d.querySelectorAll('br').forEach(br=>br.replaceWith('\n')); return (d.textContent||'').trim(); };
+  const blocks=[...tmp.querySelectorAll('p,div,li')].filter(el=>!el.querySelector('p,div,li'));
+  let notes;
+  if(blocks.length){ notes=blocks.map(blockText).filter(Boolean).join('\n\n'); }
+  else { const d=tmp.cloneNode(true); d.querySelectorAll('br').forEach(br=>br.replaceWith('\n')); notes=(d.textContent||''); }
+  notes=notes.replace(/\n{3,}/g,'\n\n').trim();
+  return {market:m, tf, notes, imgs};
 }
 
 // Number of images in a post sets its column count (1, 2, 3, 4… capped at 4)
@@ -10949,7 +11340,7 @@ function renderObsFeed(){
   el.innerHTML=posts.map(e=>`
     <div class="obs-post" onclick="openObsEntry('${e.id}')" id="oeli-${e.id}">
       <div class="obs-post-head">
-        <div class="obs-post-title">${e.title||'Untitled Observation'}</div>
+        <div class="obs-post-title">${_obsEsc(e.title||'Untitled Observation')}</div>
         <div class="obs-post-date">${e.created_at?new Date(e.created_at).toLocaleString():''}</div>
       </div>
       <div class="obs-img-grid">${e.content||''}</div>
@@ -10966,33 +11357,41 @@ async function obsNewEntry(){
     try{ await _sb.from('lmr_observations').insert({id:entry.id,user_id:_sbUserId,title:'',content:'',created_at:now,updated_at:now}); }catch(e){}
   }
   openObsEntry(entry.id);
+  setStatus('observation-status','Unsaved','');
 }
 
 function openObsEntry(id){
   _obsCurrentId=id;
   const entry=_obsEntries.find(e=>e.id===id);
   if(!entry) return;
-  const titleEl=document.getElementById('obs-title-input');
-  const bodyEl=document.getElementById('observation-content');
-  if(titleEl) titleEl.value=entry.title||'';
-  if(bodyEl){ bodyEl.innerHTML=entry.content||''; applyObsGrid(bodyEl); }
+  const parsed=_obsParseContent(entry.content||'');
+  _obsImgs=parsed.imgs.slice();
+  _obsTf=parsed.tf||'';
+  const set=(elId,v)=>{ const el=document.getElementById(elId); if(el) el.value=v||''; };
+  set('obs-title-input', entry.title||'');
+  set('obs-market', parsed.market);
+  set('obs-notes', parsed.notes);
+  document.querySelectorAll('#obs-tf .obs-tf-btn').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tf===_obsTf)));
+  obsRenderDrop();
+  obsCountChars();
   renderObsFeed();
-  const shareEl=document.getElementById('obs-share-btns');
-  if(shareEl) shareEl.innerHTML=shareButtonsHTML('shareObservation');
-  setStatus('observation-status','Auto-saves','');
+  setStatus('observation-status','Saved','saved');
 }
 
+// The ✕ button: discard unsaved edits by reloading the current entry.
+function obsCancelEntry(){ if(_obsCurrentId) openObsEntry(_obsCurrentId); }
+
 function obsAutoSave(){
-  applyObsGrid(document.getElementById('observation-content'));
+  setStatus('observation-status','Unsaved','');
   clearTimeout(_obsSaveTimer);
-  _obsSaveTimer=setTimeout(obsSaveEntry,1500);
+  _obsSaveTimer=setTimeout(obsSaveEntry,1200);
 }
 
 async function obsSaveEntry(){
   if(!_obsCurrentId) return;
   setStatus('observation-status','Saving…','saving');
-  const title=document.getElementById('obs-title-input')?.value||'';
-  const content=document.getElementById('observation-content')?.innerHTML||'';
+  const title=(document.getElementById('obs-title-input')?.value||'').trim();
+  const content=_obsComposeContent();
   const updated_at=new Date().toISOString();
 
   const idx=_obsEntries.findIndex(e=>e.id===_obsCurrentId);
@@ -11008,10 +11407,9 @@ async function obsSaveEntry(){
     }catch(e){ cloudOk=false; }
   }
   saveObsEntriesCache(_obsEntries); // quota-safe — cannot throw
-  if(cloudOk===false) setStatus('observation-status','⚠ Cloud save failed — kept locally, will retry','');
-  else if(cloudOk) setStatus('observation-status','✓ Saved','saved');
-  else setStatus('observation-status','✓ Saved locally','saved');
-  setTimeout(()=>setStatus('observation-status','Auto-saves',''),2200);
+  renderObsFeed();
+  if(cloudOk===false) setStatus('observation-status','⚠ Saved locally — will retry','');
+  else setStatus('observation-status','Saved','saved');
 }
 
 async function obsDeleteEntry(){
@@ -11026,15 +11424,13 @@ async function obsDeleteEntry(){
   if(_obsEntries.length) openObsEntry(_obsEntries[0].id); else await obsNewEntry();
 }
 
-// Convert <img> tags inside an element to {blob,filename} pairs for Discord file attachments.
-async function _obsImagesToBlobs(el,max){
+// Convert the current entry's chart data-URLs to {blob,filename} pairs for Discord file attachments.
+async function _obsCurrentImageBlobs(max){
   max=max||3;
   const out=[];
-  if(!el) return out;
-  const imgs=el.querySelectorAll('img');
-  for(let i=0;i<imgs.length&&out.length<max;i++){
+  for(let i=0;i<_obsImgs.length&&out.length<max;i++){
     try{
-      const res=await fetch(imgs[i].src);
+      const res=await fetch(_obsImgs[i]);
       const blob=await res.blob();
       const ext=(blob.type||'').includes('png')?'png':'jpg';
       out.push({blob,filename:`observation${i+1}.${ext}`});
@@ -11045,10 +11441,12 @@ async function _obsImagesToBlobs(el,max){
 
 // Share an observation entry to Discord (Observations webhook, falls back to Main) or X (compose intent)
 async function shareObservation(platform){
-  const title=document.getElementById('obs-title-input')?.value||'Observation';
-  const contentEl=document.getElementById('observation-content');
-  const body=contentEl?.innerText||'';
-  const images=await _obsImagesToBlobs(contentEl,platform==='x'?1:3);
+  const title=(document.getElementById('obs-title-input')?.value||'Observation').trim();
+  const market=(document.getElementById('obs-market')?.value||'').trim();
+  const notes=(document.getElementById('obs-notes')?.value||'').trim();
+  const head=[market,_obsTf].filter(Boolean).join(' · ');
+  const body=[head,notes].filter(Boolean).join('\n\n');
+  const images=await _obsCurrentImageBlobs(platform==='x'?1:3);
   shareContent(platform,title,body,0xF5A623,{category:'observations',images});
 }
 
@@ -11740,6 +12138,11 @@ async function shareContent(platform,title,text,color,opts){
   }else if(platform==='x'){
     const full=title?`${title}\n\n${body}`:body;
     const tweet=full.length>270?full.slice(0,267)+'…':full;
+    // Open the compose window FIRST, while the click's user activation is still
+    // valid. navigator.clipboard.write() below consumes the activation, and a
+    // window.open() after that is treated as non-user-initiated — browsers then
+    // block it (or open a blank tab), which is why the X share looked broken.
+    window.open('https://x.com/intent/tweet?text='+encodeURIComponent(tweet),'_blank');
     // X's compose intent can't attach images via URL — copy the first image to the
     // clipboard instead so the user can paste it (Ctrl/Cmd+V) into the tweet box.
     if(opts.images&&opts.images.length&&navigator.clipboard&&window.ClipboardItem){
@@ -11748,7 +12151,6 @@ async function shareContent(platform,title,text,color,opts){
         flash('✓ Image copied — paste it (Ctrl/Cmd+V) into the tweet');
       }catch(e){}
     }
-    window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(tweet),'_blank');
   }
 }
 
@@ -12879,6 +13281,9 @@ function _cockpitCountOn(dateStr){
   return n;
 }
 function todayDailyMonth(){state.calMonth=todayStr().slice(0,7);save();renderDailyHeatmap();}
+// Compact label for a committed P/D array (calendar cell marker): the short code (e.g. "RB")
+// when known, else the name truncated. Full name goes in the cell's title tooltip.
+function _pdShort(name){ if(!name)return''; const a=(typeof LMR_PD_ARRAYS!=='undefined')?LMR_PD_ARRAYS.find(x=>x.name===name||x.short===name):null; return a?a.short:String(name).slice(0,18); }
 function renderDailyHeatmap(){
   const MK=state.calMonth;
   const[y,m]=MK.split('-').map(Number);
@@ -12964,6 +13369,7 @@ function renderDailyHeatmap(){
         </div>`:''}
         ${entry?.htfpoi?`<div class="mc-field" style="font-size:9px;color:var(--text3);margin-bottom:2px"><span style="color:var(--gold);font-weight:700">HTF:</span> ${entry.htfpoi.slice(0,35)}${entry.htfpoi.length>35?'…':''}</div>`:''}
         ${(entry?.london||entry?.ny)?`<div class="mc-field" style="font-size:9px;color:var(--text3);margin-bottom:2px"><span style="color:var(--blue);font-weight:700">L:</span>${entry.london||'—'} <span style="color:var(--bull);font-weight:700">NY:</span>${entry.ny||'—'}</div>`:''}
+        ${entry?.pdArray?`<div class="mc-field" title="${_pdEsc(entry.pdArray)}" style="font-size:9px;color:var(--text3);margin-bottom:2px"><span style="color:var(--gold);font-weight:700">P/D:</span> ${_pdEsc(_pdShort(entry.pdArray))}</div>`:''}
         ${dayTrades.length?`<div style="margin-top:4px;border-top:1px solid var(--border);padding-top:4px;font-size:8px;color:var(--text3)">${dayTrades.length} trade${dayTrades.length>1?'s':''} · ${Math.round(dCount)} acct${Math.round(dCount)>1?'s':''} · cockpit</div>`:''}
         ${dayPnL!==0?`<div style="margin-top:4px;font-size:11px;font-weight:800;color:${dayPnL>=0?'var(--bull)':'var(--bear)'};">${dayPnL>=0?'+':''}$${dayPnL.toFixed(2)}</div>`:''}
         ${!entry&&ds<=today?`<div style="margin-top:auto;font-size:9px;color:var(--text3);opacity:.45;text-align:center;padding-top:8px">+ Chain</div>`:''}
@@ -13019,6 +13425,15 @@ function openDayModal(ds){
   const priceData=entry.price||entry.priceRefs||[];
   document.getElementById('dm-price').value=Array.isArray(priceData)?priceData.join(', '):(priceData||'');
   document.getElementById('dm-monthly-bias').value=entry.monthlyBias||'';
+  // Today-chain fields on the Daily page: P/D array (populate options once, then select the committed one),
+  // Daily ROL/DOL and the Trade Plan — so each day carries its full Today-chain data.
+  { const pd=document.getElementById('dm-pdarray');
+    if(pd&&pd.options.length<=1&&typeof LMR_PD_ARRAYS!=='undefined')
+      pd.innerHTML='<option value="">— Committed P/D array…</option>'+LMR_PD_ARRAYS.map(a=>`<option value="${_pdEsc(a.name)}">${_pdEsc(a.short)} · ${_pdEsc(a.name)}</option>`).join('');
+    if(pd) pd.value=entry.pdArray||entry.pd_array||''; }
+  { const r=document.getElementById('dm-dailyrol'); if(r) r.value=entry.dailyRol||entry.daily_rol||''; }
+  { const o=document.getElementById('dm-dailydol'); if(o) o.value=entry.dailyDol||entry.daily_dol||''; }
+  { const tp=document.getElementById('dm-tradeplan'); if(tp) tp.value=entry.tradePlan||entry.trade_plan||''; }
   document.getElementById('dm-daystatus').value=entry.daystatus||'';
   document.getElementById('dm-pnl').textContent=dayPnL!==0?`${dayPnL>=0?'+':''}$${dayPnL.toFixed(2)}`:'$0';
   document.getElementById('dm-pnl').className=`mono ${dayPnL>0?'txt-pos':dayPnL<0?'txt-neg':''}`;
@@ -13048,6 +13463,7 @@ function openDayModal(ds){
   const dmShareEl=document.getElementById('dm-share-btns');
   if(dmShareEl) dmShareEl.innerHTML=shareButtonsHTML('shareDailyEntry',`'${ds}'`);
   document.getElementById('dayModal').classList.add('show');
+  if(window.lmrRenderDayChain) lmrRenderDayChain(ds);
 }
 function colorDailySelect(sel){
   const colorMap={
@@ -13082,6 +13498,10 @@ function saveDayModal(){
     price:document.getElementById('dm-price').value.split(',').map(s=>s.trim()).filter(Boolean),
     priceRefs:document.getElementById('dm-price').value.split(',').map(s=>s.trim()).filter(Boolean), // sync both keys
     monthlyBias:document.getElementById('dm-monthly-bias').value,
+    pdArray:(document.getElementById('dm-pdarray')||{}).value||'',
+    dailyRol:(document.getElementById('dm-dailyrol')||{}).value||'',
+    dailyDol:(document.getElementById('dm-dailydol')||{}).value||'',
+    tradePlan:(document.getElementById('dm-tradeplan')||{}).value||'',
     weekly_key:weeklyKey,
     savedAt:new Date().toISOString()
   };
@@ -13205,15 +13625,10 @@ function saveLmrPage(pageId){
   clone.querySelectorAll('img.lmr-inline-img').forEach(img=>{img.src='';});
   state[pageId+'Page']=clone.innerHTML;
   save();
-  // Immediate Supabase sync — store in monthly table with special key
-  if(_sbSyncEnabled&&_sbUserId&&_sb){
-    if(pageId==='terminology')
-      _sb.from('monthly').upsert({key:'lmr-terminology',data:{content:state.terminologyPage},user_id:_sbUserId},{onConflict:'key,user_id'})
-        .then(()=>setSbStatus('✓ Terminology saved to cloud','var(--bull)')).catch(()=>{});
-    if(pageId==='psychology')
-      _sb.from('monthly').upsert({key:'lmr-psychology',data:{content:state.psychologyPage},user_id:_sbUserId},{onConflict:'key,user_id'})
-        .then(()=>setSbStatus('✓ Psychology saved to cloud','var(--bull)')).catch(()=>{});
-  }
+  // Cloud sync for Terminology/Psychology is owned by their dedicated tables
+  // (lmr_terminology / lmr_psychology) via the Knowledge modules — do NOT also write the
+  // shared `monthly` store here (that duplicate write is what let an empty copy overwrite
+  // the real content). Local save above is enough for this legacy page path.
   const lbl=document.getElementById(pageId+'-saved');
   if(lbl)lbl.textContent='Saved '+new Date().toLocaleTimeString();
 }
@@ -13344,12 +13759,18 @@ if(typeof navTo==='function'){
 const SB_URL = 'https://agrvylclhvxyevsmmexf.supabase.co';
 const SB_KEY = 'sb_publishable_vUhBxc3efVrs41yc9WZmAA_SnhBIrDh';
 let _sb = null;
+// Password-reset email links land here as #...type=recovery (or #error_code=otp_expired
+// when stale). Read the URL before supabase-js consumes and clears it.
+const _lgRecoveryLink = /type=recovery/.test(location.hash + location.search);
+const _lgRecoveryLinkError = /error_code=/.test(location.hash);
+let _lgRecoveryMode = false;
 
 function sbInit() {
   if (!window.supabase) { setSbStatus('SDK loading…', 'var(--text3)'); return null; }
   if (_sb) return _sb;
   try { _sb = window.supabase.createClient(SB_URL, SB_KEY); }
   catch (e) { setSbStatus('Init failed', 'var(--bear)'); return null; }
+  _sb.auth.onAuthStateChange(ev => { if (ev === 'PASSWORD_RECOVERY') lgStartRecovery(); });
   return _sb;
 }
 
@@ -13420,6 +13841,7 @@ async function sbDoSignUp() {
 async function sbDoSignOut() {
   if (!_sb) return;
   if(!confirm('Sign out of LMR Capitals?\n\nYour data is saved locally and in the cloud.'))return;
+  sbStopRealtime();
   await _sb.auth.signOut();
   _sbSyncEnabled=false;_sbUserId=null;
   localStorage.removeItem(SESSION_KEY);
@@ -13514,6 +13936,7 @@ async function _sbDoPull() {
     pdArray:  t.pd_array||t.pdArray||'',           // design v2 trade-quality fields
     grade:    t.grade||'',
     planFollowed: t.plan_followed||t.planFollowed||'',
+    tradeModels: Array.isArray(t.trade_models)?t.trade_models:[],   // new Trading Models field
     refs:     Array.isArray(t.refs)?t.refs:(t.refs?[t.refs]:[])
   }));
   // ── SAFETY: never overwrite more local trades with fewer cloud trades ──
@@ -13522,8 +13945,16 @@ async function _sbDoPull() {
     console.warn('[LMR] Pull aborted — cloud has fewer trades ('+pulledTrades.length+') than local ('+state.trades.length+'). Use Force Push to send local data to cloud.');
     throw new Error('Cloud has fewer trades ('+pulledTrades.length+') than local ('+state.trades.length+'). Aborting pull to protect your data. Use Force Push to backup your data first.');
   }
+  // MERGE trades: keep local-only rows the cloud snapshot doesn't carry yet, same as
+  // notes/journal below. Without this, an echo/realtime pull that runs ~1.2s after you
+  // log a trade — before its upsert has committed or while the SELECT reads a lagging
+  // replica — replaces state.trades with a snapshot missing the new row, so the trade
+  // vanishes (the "fewer trades" guard above only trips when short by >2). Cloud wins for
+  // ids it has (edits sync across devices); local-only rows are preserved until they land.
+  const cloudTradeIds = new Set(pulledTrades.map(t=>String(t.id)));
+  const localOnlyTrades = (state.trades||[]).filter(t=>!cloudTradeIds.has(String(t.id)));
   // Sort newest → oldest after pull so array is always in correct order
-  state.trades = pulledTrades.sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
+  state.trades = [...pulledTrades, ...localOnlyTrades].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
   state.accounts = (ac.data||[]).map(a => ({ ...a, id: Number(a.id)||a.id, deposit:parseFloat(a.deposit)||0 }));
   // Preserve any in-memory receipt image if the cloud row doesn't carry one yet (so the cloud pull
   // never wipes a locally-uploaded image before it's synced — needs the transactions.image column).
@@ -13547,21 +13978,42 @@ async function _sbDoPull() {
     .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
 
   // MERGE journal: same approach
-  const cloudJournal = (ju.data||[]).map(j => ({ ...j, id: Number(j.id)||j.id }));
+  const cloudJournal = (ju.data||[]).map(j => ({
+    ...j, id: Number(j.id)||j.id,
+    type: j.type || j.title || 'Lesson',
+    text: j.text || j.content || '',
+    imgKey: j.img_key || j.imgKey || null,
+    imageKeys: Array.isArray(j.image_keys) ? j.image_keys : []
+  }));
   const cloudJournalIds = new Set(cloudJournal.map(j=>String(j.id)));
-  const localOnlyJournal = (state.journal||[]).filter(j=>!cloudJournalIds.has(String(j.id)));
-  state.journal = [...cloudJournal, ...localOnlyJournal];
-  // Daily: replace entirely — map Supabase snake_case columns to app camelCase
-  state.daily = {};
+  // Earlier Notion imports left undated local copies. Once a source note has a
+  // canonical cloud row, do not reintroduce those deleted copies from cache.
+  const importedSourceTitles = new Set(cloudJournal.filter(j=>j.import_source_id)
+    .map(j=>String(j.import_source_title||'').trim().toLowerCase()));
+  const localOnlyJournal = (state.journal||[]).filter(j=>
+    !cloudJournalIds.has(String(j.id)) &&
+    !importedSourceTitles.has(String(j.text||j.content||'').trim().toLowerCase()));
+  state.journal = [...cloudJournal, ...localOnlyJournal]
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
+  // Daily: MERGE cloud into local — never wipe locally-entered chain data.
+  // A full replace here erased today's just-typed bias/plan/sessions before they
+  // were safely synced (login, a realtime postgres change, or the post-deploy
+  // auto-reload all run this pull). Keep local-only dates, and for a date present
+  // in both keep whichever side has the newer savedAt so a stale-cloud pull can't
+  // clobber fresh local edits while a genuinely newer cross-device edit still wins.
+  const _ms = v => { const t = Date.parse(v||0); return isNaN(t) ? 0 : t; };
+  const cloudDaily = {};
   (da.data||[]).forEach(d => {
     if(!d.date) return;
-    state.daily[d.date] = {
+    cloudDaily[d.date] = {
       ...d,                                    // keep all raw fields
       dayCount:   d.day_count   || d.dayCount  || null,  // snake→camel
+      pdArray:    d.pd_array    || d.pdArray   || '',    // snake→camel — committed P/D array (design PD card reads chain().pdArray); without this a cloud/realtime pull wipes the day's committed array
       htfpoi:     d.htf_poi     || d.htfpoi    || '',
       weekdraws:  d.week_draws  || d.weekdraws || '',
       dailyRol:   d.daily_rol   || d.dailyRol  || '',
       dailyDol:   d.daily_dol   || d.dailyDol  || '',
+      tradePlan:  d.trade_plan  || d.tradePlan || '',   // snake→camel — Today-chain trade plan shown on the Daily page
       monthlyBias:d.monthly_bias|| d.monthlyBias||'',
       asianRange: d.asian_range || d.asianRange || [],
       daystatus:  d.day_status  || d.daystatus || '',
@@ -13569,6 +14021,12 @@ async function _sbDoPull() {
       savedAt:    d.saved_at    || d.savedAt   || ''
     };
   });
+  const mergedDaily = { ...state.daily };    // keep local-only dates
+  Object.keys(cloudDaily).forEach(date => {
+    const loc = state.daily[date], cl = cloudDaily[date];
+    mergedDaily[date] = (loc && _ms(loc.savedAt||loc.saved_at) > _ms(cl.savedAt||cl.saved_at)) ? loc : cl;
+  });
+  state.daily = mergedDaily;
 
   // Monthly: MERGE cloud into local — never wipe months that exist locally
   // Cloud wins for months it has, local wins for months cloud doesn't have
@@ -13576,14 +14034,9 @@ async function _sbDoPull() {
   (mo.data||[]).forEach(m => { if(m.key&&m.data) cloudMonthly[m.key] = m.data; });
   state.monthly = { ...state.monthly, ...cloudMonthly }; // local base + cloud overrides
 
-  // Extract LMR knowledge pages from monthly — cloud version always wins
-  // This ensures ICT content loaded from Notion always shows correctly
-  if(cloudMonthly['lmr-terminology']?.content){
-    state.terminologyPage = cloudMonthly['lmr-terminology'].content;
-  }
-  if(cloudMonthly['lmr-psychology']?.content){
-    state.psychologyPage = cloudMonthly['lmr-psychology'].content;
-  }
+  // Terminology & Psychology are NOT read from `monthly` anymore — they own their tables
+  // (lmr_terminology / lmr_psychology) and load via loadKnowledgeCloud / loadPsychologyCloud.
+  // Reading them from a shared/empty monthly copy here is what used to blank the section.
 
   // Weekly: same MERGE approach
   const cloudWeekly = {};
@@ -13597,8 +14050,45 @@ async function _sbDoPull() {
     state.copier = { ...(state.copier||{}), ...cloudCopier };
   }
 
-  try{localStorage.setItem(STORE_KEY, JSON.stringify(state));}catch(e){}
+  // SAFETY NET: a pull overwrites localStorage. If this pull carries FEWER trades than
+  // what's already stored (an echo pull that raced a not-yet-synced log, or a stale
+  // replica), stash the current, more-complete snapshot under _autobak BEFORE overwriting
+  // — so no pull can silently and permanently destroy trades. Recover with
+  // lmrRestoreAutoBackup(). (The realtime pull previously left no backup, which is why a
+  // pre-fix wipe was unrecoverable.)
+  try{
+    const prevRaw=localStorage.getItem(STORE_KEY);
+    if(prevRaw){
+      const prev=JSON.parse(prevRaw);
+      if(prev && Array.isArray(prev.trades) && prev.trades.length > (state.trades||[]).length){
+        // Store base64-stripped so the backup can't itself blow the quota; trades carry no base64.
+        localStorage.setItem(STORE_KEY+'_autobak', _stripStateB64(JSON.stringify({at:Date.now(), tradeCount:prev.trades.length, state:prev})));
+      }
+    }
+  }catch(e){}
+  // Persist the pulled state through the SAME quota-safe path as save() — a light copy with
+  // progressive eviction — instead of writing the full blob (which bypassed the strip and
+  // could re-blow the localStorage quota on every realtime pull).
+  _persistState(JSON.stringify(_lightState()));
 }
+
+// Recover trades from the last auto-backup written by _sbDoPull's safety net above.
+// Merges any backed-up trades missing from the current state, re-pushes them to the
+// cloud, and re-renders. Callable from the console: lmrRestoreAutoBackup()
+async function lmrRestoreAutoBackup(){
+  let bak; try{ bak=JSON.parse(localStorage.getItem(STORE_KEY+'_autobak')||'null'); }catch(e){}
+  if(!bak||!bak.state||!Array.isArray(bak.state.trades)){ try{flash('No auto-backup found');}catch(e){} return 0; }
+  const have=new Set((state.trades||[]).map(t=>String(t.id)));
+  const missing=bak.state.trades.filter(t=>!have.has(String(t.id)));
+  if(!missing.length){ try{flash('Auto-backup has nothing new to restore');}catch(e){} return 0; }
+  state.trades=[...(state.trades||[]), ...missing].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.id||0)-(a.id||0));
+  try{save();}catch(e){}
+  missing.forEach(t=>{ try{ sbSyncRecord('trades',_mapTrade(t,_sbUserId)); }catch(e){} });
+  try{ renderTradeTable(); updateAllStats(); if(typeof renderAccountCards==='function') renderAccountCards(); }catch(e){}
+  try{flash('✓ Recovered '+missing.length+' trade(s) from backup');}catch(e){}
+  return missing.length;
+}
+if(typeof window!=='undefined') window.lmrRestoreAutoBackup=lmrRestoreAutoBackup;
 
 async function sbPullNow() {
   if (!sbInit()) return;
@@ -13608,7 +14098,7 @@ async function sbPullNow() {
   setSbStatus('⟳ Pulling from cloud…', 'var(--gold)');
   try {
     // Before pull, backup current local state
-    try{localStorage.setItem(STORE_KEY+'_pre_pull',JSON.stringify(state));}catch(e){}
+    try{localStorage.setItem(STORE_KEY+'_pre_pull',_stripStateB64(JSON.stringify(_lightState())));}catch(e){}
     await _sbDoPull();
     ensureState();
     const gotData = state.trades.length > 0 || state.accounts.length > 0 || Object.keys(state.daily).length > 0;
@@ -13622,14 +14112,14 @@ async function sbPullNow() {
     } else {
       // Cloud was empty — restore the backup we just took
       const bk=localStorage.getItem(STORE_KEY+'_pre_pull');
-      if(bk){const p=JSON.parse(bk);state={...state,...p};ensureState();save();}
+      if(bk){const p=JSON.parse(bk);Object.assign(state,p);ensureState();save();}
       setSbStatus('Cloud is empty — your local data is unchanged', 'var(--warn)');
       flash('⚠ Cloud had no data — your local data was kept untouched');
     }
   } catch (e) {
     // Restore pre-pull backup if pull was aborted or failed
     const bk=localStorage.getItem(STORE_KEY+'_pre_pull');
-    if(bk){try{const p=JSON.parse(bk);state={...state,...p};ensureState();}catch(ex){}}
+    if(bk){try{const p=JSON.parse(bk);Object.assign(state,p);ensureState();}catch(ex){}}
     setSbStatus('Pull blocked — your local data is safe', 'var(--warn)');
     flash('⚠ '+e.message);
   }
@@ -13802,16 +14292,6 @@ function exportTradesCSV(){
 }
 
 // ── LANDING PAGE ↔ LOGIN GATE TOGGLES ──────────────────────────────
-function enterApp(){
-  const lp=document.getElementById('landingPage');
-  if(lp)lp.classList.add('hidden');
-  document.getElementById('loginGate').classList.remove('hidden');
-}
-function showLanding(){
-  // The marketing landing is the site root.
-  document.body.classList.remove('is-admin');
-  location.href='/';
-}
 
 // Admin detection: an account is admin iff it's listed in public.admins
 // (RLS-checked). Toggles body.is-admin, which reveals the publish controls
@@ -13825,22 +14305,20 @@ async function _checkAdmin(uid){
 }
 
 // ── PAYWALL: entitlement + subscribe gate ─────────────────────────────────
-// Entitled = admin OR active/trialing Stripe subscription OR admin-granted comp
-// access. This client check drives the UI; the real enforcement is the RLS
-// lockdown on the data tables (fail-closed on the server). So we fail OPEN here
-// on any error — never trap a user behind a broken check when the server guards.
+// Free accounts use /member/index.html for chapters and resources.
+// Verified Admin Hub users can operate before member setup is activated.
+// Member access is verified by the paid-membership RPC and restrictive RLS.
 async function _checkEntitled(uid){
   try{
-    if(!_sb) return true;
-    const [adm,comp,sub] = await Promise.all([
-      _sb.from('admins').select('user_id').eq('user_id',uid).maybeSingle(),
-      _sb.from('comp_access').select('user_id').eq('user_id',uid).maybeSingle(),
-      _sb.from('subscriptions').select('status').eq('user_id',uid).maybeSingle(),
-    ]);
-    if(adm.data || comp.data) return true;
-    const s=sub.data&&sub.data.status;
-    return s==='active' || s==='trialing';
-  }catch(e){ return true; }
+    if(!_sb || !uid) return false;
+    const admin=await _sb.rpc('is_admin');
+    if(!admin.error && admin.data===true){
+      const assurance=await _sb.auth.mfa.getAuthenticatorAssuranceLevel();
+      return !assurance.error && assurance.data?.currentLevel==='aal2';
+    }
+    const {data,error}=await _sb.rpc('circle_can_access');
+    return !error && data===true;
+  }catch(e){ return false; }
 }
 function _showSubscribeGate(user){
   document.getElementById('loginGate').classList.add('hidden');
@@ -13849,6 +14327,8 @@ function _showSubscribeGate(user){
   if(em) em.textContent='Signed in as '+((user&&user.email)||'');
   const g=document.getElementById('subscribeGate');
   if(g) g.style.display='block';
+  // One member workspace owns upgrades. Never unlock from a checkout URL alone.
+  location.replace('/inner-circle?next=journal#billing');
 }
 // Admin hub (chooser shown to admins after login)
 function _showAdminHub(user){
@@ -13859,7 +14339,7 @@ function _showAdminHub(user){
   if(em) em.textContent='Signed in as '+((user&&user.email)||'');
   const g=document.getElementById('adminHub'); if(g) g.style.display='block';
 }
-function adminOpenPortal(){ location.href='/admin'; }
+function adminOpenPortal(){ location.href='/inner-circle#admin-hub'; }
 function adminEnterApp(){
   sessionStorage.setItem('lmr_admin_surface','app'); // remember choice for this session
   const g=document.getElementById('adminHub'); if(g) g.style.display='none';
@@ -13867,13 +14347,8 @@ function adminEnterApp(){
   if(u) lgUnlock(u);
 }
 async function startCheckout(plan){
-  const msg=document.getElementById('subscribe-msg'); if(msg) msg.textContent='Opening secure checkout…';
-  try{
-    const {data,error}=await _sb.functions.invoke('create-checkout',{body:{plan:plan}});
-    if(error) throw error;
-    if(data&&data.url){ location.href=data.url; return; }
-    throw new Error((data&&data.error)||'Could not start checkout.');
-  }catch(e){ if(msg) msg.textContent='Could not start checkout: '+(e.message||e); }
+  // One membership flow owns reviewed policy acceptance and Stripe checkout.
+  location.href='/inner-circle?next=journal#billing';
 }
 
 // ── ADMIN: Users & Access (grant/revoke free access) ─────────────────────
@@ -13917,6 +14392,7 @@ async function adminRevoke(uid){
 }
 
 async function lgUnlock(user){
+  if(_lgRecoveryMode) return; // a reset-link session only allows setting a new password
   // Hide gate + landing page (mainApp stays hidden until re-rendered below
   // with THIS account's own data — see _switchUserStore)
   document.getElementById('loginGate').classList.add('hidden');
@@ -13934,7 +14410,9 @@ async function lgUnlock(user){
       try{ const {data:aal}=await _sb.auth.mfa.getAuthenticatorAssuranceLevel(); _aal2 = !!aal && aal.currentLevel==='aal2'; }catch(e){}
       const choseApp = (function(){ try{ return sessionStorage.getItem('lmr_admin_surface')==='app'; }catch(e){ return false; } })();
       // Not 2FA-verified, or hasn't chosen "Application" from the hub -> send to /admin.
-      if(!_aal2 || !choseApp){ location.href='/admin'; return; }
+      if(!_aal2){ location.href='/admin?next=journal'; return; }
+      // Verified administrators can follow a direct Journal link without a chooser.
+      if(!choseApp){ try{ sessionStorage.setItem('lmr_admin_surface','app'); }catch(e){} }
       // 2FA-verified admin who chose "Application" in the hub -> fall through into the app.
     }
   }
@@ -13969,7 +14447,10 @@ async function lgUnlock(user){
   _sbDirty=true;sbScheduleSync();
   // Run app init
   sbRefreshUI();
-  init().then(async()=>{
+  // Resilience: a throw inside init() (e.g. a render helper hitting bad/renamed data) must
+  // NEVER leave the user staring at a blank screen after sign-in. Swallow init's rejection so
+  // the app is always revealed and the cloud pull + re-render below still runs.
+  init().catch(e=>{ console.error('[LMR] init() error (revealing app anyway):', e); }).then(async()=>{
     // Now that init() has rendered THIS account's own data, it's safe to
     // reveal the app (avoids a flash of a previous account's cached UI).
     document.getElementById('mainApp').style.display='';
@@ -14006,6 +14487,8 @@ async function lgUnlock(user){
         _sbDirty=true; sbScheduleSync();
       }
     }
+    // Initial pull done — from here on, changes from other devices stream in live.
+    sbStartRealtime();
     // ── Load profile from Supabase (always — overrides localStorage if cloud is newer) ──
     await loadProfileFromCloud();
     // Load AI settings from saved profile (API key, model, etc.)
@@ -14052,27 +14535,104 @@ async function checkScheduledWeeklyReport(){
   }catch(e){ console.warn('[LMR] Scheduled weekly report skipped:',e); }
 }
 
-// ── LOGIN GATE TAB SWITCHER ──────────────────────────────
+// ── LOGIN GATE FORM SWITCHER: sign in · create account · forgot password ──
 function lgSwitchTab(tab){
-  const signInForm=document.getElementById('lg-signin-form');
-  const signUpForm=document.getElementById('lg-signup-form');
-  const tabSI=document.getElementById('lg-tab-signin');
-  const tabSU=document.getElementById('lg-tab-signup');
-  const err=document.getElementById('lg-err');
-  const suc=document.getElementById('lg-success');
-  if(err){err.style.display='none';}
-  if(suc){suc.style.display='none';}
-  if(tab==='signin'){
-    if(signInForm)signInForm.style.display='';
-    if(signUpForm)signUpForm.style.display='none';
-    if(tabSI)tabSI.classList.add('active');
-    if(tabSU)tabSU.classList.remove('active');
-  } else {
-    if(signInForm)signInForm.style.display='none';
-    if(signUpForm)signUpForm.style.display='';
-    if(tabSI)tabSI.classList.remove('active');
-    if(tabSU)tabSU.classList.add('active');
+  if(_lgRecoveryMode && tab!=='forgot'){ _lgRecoveryMode=false; if(_sb) _sb.auth.signOut().catch(()=>{}); _lgRecoveryUI(false); }
+  const forms={signin:'lg-signin-form',signup:'lg-signup-form',forgot:'lg-forgot-form'};
+  Object.entries(forms).forEach(([k,id])=>{
+    const el=document.getElementById(id); if(el) el.style.display=(k===tab)?'':'none';
+  });
+  const err=document.getElementById('lg-err'); if(err) err.style.display='none';
+  const suc=document.getElementById('lg-success'); if(suc) suc.style.display='none';
+  if(tab==='forgot'){
+    // Always start at step 1, prefilled with whatever was typed on the sign-in form.
+    document.getElementById('lg-forgot-step1').style.display='';
+    document.getElementById('lg-forgot-step2').style.display='none';
+    const fe=document.getElementById('lg-forgot-email'), le=document.getElementById('lg-email');
+    if(fe&&le&&!fe.value) fe.value=le.value.trim();
   }
+}
+
+// ── FORGOT PASSWORD (email one-time code → new password) ───────────────────
+// Supabase only emails a code when the address belongs to an existing
+// account, and the reply is identical either way, so this can't be used to
+// discover which emails are registered. The code proves ownership of the
+// inbox; after the password is changed the session is signed out, so the
+// user signs in again through the normal flow (including 2FA / admin gating).
+function _lgMsg(kind,text){
+  const err=document.getElementById('lg-err'), suc=document.getElementById('lg-success');
+  err.style.display='none'; suc.style.display='none';
+  const el=kind==='err'?err:suc; el.textContent=text; el.style.display='';
+}
+// Opened from the reset-password email link: the session is only good for
+// choosing a new password, then it is signed out (see lgForgotReset).
+function _lgRecoveryUI(on){
+  document.getElementById('lg-forgot-code-field').style.display=on?'none':'';
+  document.getElementById('lg-forgot-resend').style.display=on?'none':'';
+}
+async function lgStartRecovery(){
+  if(_lgRecoveryMode) return;
+  _lgRecoveryMode=true;
+  history.replaceState(null,'',location.pathname);
+  document.getElementById('loginGate').classList.remove('hidden');
+  const main=document.getElementById('mainApp'); if(main) main.style.display='none';
+  lgSwitchTab('forgot');
+  let email='';
+  try{ const {data:{user}}=await _sb.auth.getUser(); email=(user&&user.email)||''; }catch(e){}
+  document.getElementById('lg-forgot-email').value=email;
+  document.getElementById('lg-forgot-step1').style.display='none';
+  document.getElementById('lg-forgot-step2').style.display='';
+  _lgRecoveryUI(true);
+  document.getElementById('lg-forgot-step2-sub').textContent='Choose a new password for '+(email||'your account')+'.';
+  document.getElementById('lg-forgot-pass').focus();
+}
+async function lgForgotSend(resend){
+  if(!sbInit()){ _lgMsg('err','Auth service unavailable — check your connection.'); return; }
+  const email=document.getElementById('lg-forgot-email').value.trim();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ _lgMsg('err','Enter the email address of your account.'); return; }
+  const btn=document.getElementById(resend?'lg-forgot-reset':'lg-forgot-send');
+  btn.disabled=true;
+  try{
+    const { error } = await _sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + '/app' });
+    if(error) throw error;
+    document.getElementById('lg-forgot-step2-sub').innerHTML='If an account exists for <b id="lg-forgot-sent-to"></b>, an email is on its way. Enter the one-time code from it with your new password, or tap the link in the email.';
+    document.getElementById('lg-forgot-sent-to').textContent=email;
+    document.getElementById('lg-forgot-step1').style.display='none';
+    document.getElementById('lg-forgot-step2').style.display='';
+    _lgMsg('ok', resend ? 'A new code has been sent.' : 'Check your inbox for the one-time code.');
+    document.getElementById('lg-forgot-code').focus();
+  }catch(e){
+    const m=(e&&e.message)||'';
+    _lgMsg('err', /rate|seconds|too many/i.test(m) ? 'Please wait a minute before requesting another code.' : 'Could not send the code: '+m);
+  }finally{ btn.disabled=false; }
+}
+async function lgForgotReset(){
+  if(!sbInit()) return;
+  const viaLink=_lgRecoveryMode;
+  const email=document.getElementById('lg-forgot-email').value.trim();
+  const token=document.getElementById('lg-forgot-code').value.replace(/\s/g,'');
+  const pass=document.getElementById('lg-forgot-pass').value;
+  const confirm=document.getElementById('lg-forgot-confirm').value;
+  if(!viaLink && !/^\d{6,10}$/.test(token)){ _lgMsg('err','Enter the code from the email.'); return; }
+  if(pass.length<8){ _lgMsg('err','New password must be at least 8 characters.'); return; }
+  if(pass!==confirm){ _lgMsg('err','Passwords do not match.'); return; }
+  const btn=document.getElementById('lg-forgot-reset');
+  btn.disabled=true; btn.textContent='Updating…';
+  try{
+    const { error:vErr } = viaLink ? { error:null } : await _sb.auth.verifyOtp({ email, token, type:'recovery' });
+    if(vErr) throw new Error(/expired|invalid/i.test(vErr.message)?'That code is invalid or has expired — request a new one.':vErr.message);
+    const { error:uErr } = await _sb.auth.updateUser({ password: pass });
+    _lgRecoveryMode=false; _lgRecoveryUI(false);
+    await _sb.auth.signOut().catch(()=>{});
+    if(uErr) throw uErr;
+    ['lg-forgot-code','lg-forgot-pass','lg-forgot-confirm'].forEach(id=>{ document.getElementById(id).value=''; });
+    lgSwitchTab('signin');
+    document.getElementById('lg-email').value=email;
+    _lgMsg('ok','✓ Password updated. Sign in with your new password.');
+    document.getElementById('lg-password').focus();
+  }catch(e){
+    _lgMsg('err', (e&&e.message)||'Could not reset the password.');
+  }finally{ btn.disabled=false; btn.textContent='Set new password →'; }
 }
 
 async function lgSignUp(){
@@ -14138,10 +14698,17 @@ window.addEventListener('DOMContentLoaded', () => {
     try{
       const{data:{user}}=await _sb.auth.getUser();
       if(user){
+        // Opened from a password-reset link: set a new password first, never straight into the app.
+        if(_lgRecoveryLink||_lgRecoveryMode){ lgStartRecovery(); return; }
         // Already signed in — skip login screen, go straight to app
         lgUnlock(user);
+      } else if(_lgRecoveryLinkError){
+        lgSwitchTab('forgot');
+        _lgMsg('err','That reset link is invalid or has expired — request a new code below.');
+        history.replaceState(null,'',location.pathname);
+      } else {
+        location.replace('/inner-circle?next=journal');
       }
-      // else: login gate stays visible, user must sign in
     }catch(e){
       // Network error — still show login gate
     }
@@ -14151,6 +14718,8 @@ window.addEventListener('DOMContentLoaded', () => {
 // Sync when tab goes to background or page closes
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden'){
+    // Flush any pending debounced autosave so the in-progress form is in `state` first
+    try{flushAutoSaves();}catch(e){}
     // Tab hidden/closed — force immediate sync
     if(_sbDirty) sbDoSafeSync();
     // Also save current state to localStorage as final backup
@@ -14159,12 +14728,14 @@ document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible') checkSessionTimeout();
 });
 window.addEventListener('pagehide',()=>{
-  // Final save before page unloads
+  // Flush pending autosave, then final save before page unloads
+  try{flushAutoSaves();}catch(e){}
   try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){}
   if(_sbDirty) sbDoSafeSync();
 });
 window.addEventListener('beforeunload',()=>{
-  // Triple-safe: write to localStorage on every possible exit
+  // Triple-safe: flush the form, then write to localStorage on every possible exit
+  try{flushAutoSaves();}catch(e){}
   try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){}
 });
 
@@ -14173,24 +14744,10 @@ const SESSION_TIMEOUT_MS = 12 * 60 * 60 * 1000; // 12 hours (was 1 hour)
 const SESSION_KEY = 'lmr_session_ts';
 
 function checkSessionTimeout(){
-  const ts = parseInt(localStorage.getItem(SESSION_KEY)||'0');
-  if(!ts) return; // not logged in
-  if(Date.now() - ts > SESSION_TIMEOUT_MS){
-    // Session expired — force re-login
-    localStorage.removeItem(SESSION_KEY);
-    if(_sb) _sb.auth.signOut().catch(()=>{});
-    _sbSyncEnabled=false; _sbUserId=null;
-    document.getElementById('loginGate').classList.remove('hidden');
-    document.getElementById('mainApp').style.display='none';
-    document.getElementById('lg-email').value='';
-    document.getElementById('lg-password').value='';
-    document.getElementById('lg-err').style.display='none';
-    document.getElementById('lg-submit').disabled=false;
-    document.getElementById('lg-submit').textContent='Sign In →';
-    const expMsg=document.getElementById('lg-session-msg');
-    if(expMsg){expMsg.style.display='';expMsg.textContent='⏱ Session expired after 1 hour. Please sign in again.';}
-    flash('Session expired — please sign in again');
-  }
+  // Auto-logout DISABLED (user request): stay signed in until the explicit "Sign Off" button.
+  // Supabase already persists the session in localStorage and auto-refreshes the access token,
+  // so the login survives reloads and closing the tab indefinitely. Only sbSignOut() ends it.
+  return;
 }
 
 // Check every 5 minutes while app is open
@@ -14221,6 +14778,109 @@ function updateRTIndicator(status){
   lbl.style.color=s.color;
   lbl.textContent=s.label;
 }
+
+// ── LIVE CROSS-DEVICE SYNC (Supabase Realtime) ───────────────────
+// A save on one device (phone, Mac, browser) shows up on every other signed-in
+// device without a reload. Each device listens for row changes on this
+// account's tables; any change schedules a debounced pull that reuses
+// _sbDoPull (same mapping + safety guards as the login pull). Server-side RLS
+// scopes the stream to the signed-in user's own rows.
+// The pull never calls save() — save() marks the state dirty and pushes, which
+// would echo back as more change events and loop.
+const RT_TABLES=['trades','accounts','transactions','notes','journal','daily','monthly','weekly','copier_config'];
+let _rtChannel=null, _rtTimer=null, _rtPulling=false;
+
+function sbStartRealtime(){
+  if(!_sb||!_sbUserId) return;
+  sbStopRealtime();
+  const uid=_sbUserId;
+  const ch=_sb.channel('lmr-sync-'+uid);
+  RT_TABLES.forEach(table=>{
+    ch.on('postgres_changes',{event:'*',schema:'public',table,filter:'user_id=eq.'+uid},p=>_rtOnChange(table,p));
+  });
+  ch.subscribe(status=>{
+    if(status==='SUBSCRIBED') updateRTIndicator('live');
+    else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT') updateRTIndicator('offline');
+  });
+  _rtChannel=ch;
+}
+
+function sbStopRealtime(){
+  clearTimeout(_rtTimer); _rtTimer=null;
+  if(_rtChannel&&_sb){ try{ _sb.removeChannel(_rtChannel); }catch(e){} }
+  _rtChannel=null;
+}
+
+function _rtOnChange(table,p){
+  // DELETE events can't be filtered by user_id server-side and only carry the
+  // primary key, so ignore deletes that are clearly not ours / not on this device.
+  if(p&&p.eventType==='DELETE'){
+    const old=p.old||{};
+    if(old.user_id&&old.user_id!==_sbUserId) return;
+    const list={trades:state.trades,accounts:state.accounts,transactions:state.transactions,notes:state.notes,journal:state.journal}[table];
+    if(list&&old.id!=null&&!list.some(r=>String(r.id)===String(old.id))) return;
+  }
+  _rtSchedule(1200);
+}
+
+function _rtSchedule(ms){
+  if(!_sbSyncEnabled||!_sbUserId) return;
+  clearTimeout(_rtTimer);
+  _rtTimer=setTimeout(_rtPull,ms);
+}
+
+async function _rtPull(){
+  if(!_sb||!_sbSyncEnabled||!_sbUserId||_rtPulling) return;
+  // Local edits not yet pushed would be overwritten by the pull — push first;
+  // that push echoes back as a change event and we pull afterwards.
+  if(_sbDirty||_sbSyncing){ _rtSchedule(2500); return; }
+  // Don't re-render a form out from under someone who is typing in it.
+  const ae=document.activeElement;
+  if(ae&&(ae.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName))){ _rtSchedule(3000); return; }
+  _rtPulling=true;
+  updateRTIndicator('syncing');
+  try{
+    await _sbDoPull();
+    ensureState();
+    _rtRerender();
+    updateRTIndicator('live');
+  }catch(e){
+    // _sbDoPull refuses to shrink local data (e.g. several deletes elsewhere);
+    // keep local data as-is and stay live.
+    console.warn('[LMR] Live sync pull skipped:',e&&e.message);
+    updateRTIndicator('live');
+  }finally{ _rtPulling=false; }
+}
+
+// Re-render whatever panel is open with the freshly pulled state (no navTo —
+// it also toggles the mobile sidebar).
+function _rtRerender(){
+  try{ updateAllStats(); }catch(e){}
+  const p=panels.find(pn=>document.getElementById('p-'+pn)?.classList.contains('active'))||'';
+  const run={
+    dash:()=>renderDashboard(),
+    trades:()=>renderTradeTable(),
+    today:()=>loadDaily(),
+    monthly:()=>loadMonthly(),
+    weekly:()=>loadWeekly(),
+    daily:()=>renderDailyHeatmap(),
+    cal:()=>renderCal(),
+    perf:()=>renderPerfCharts(),
+    accounts:()=>{renderAccountCards();renderAccSummary();renderPayoutTracker();},
+    trans:()=>{renderTransTable();renderTransSummary();},
+    cockpit:()=>renderCopierCockpit(),
+    journal:()=>{ if(window.renderJournalSection)renderJournalSection(); },
+    notes:()=>{ if(window.renderNotesSection)renderNotesSection(); },
+    payout:()=>renderPayoutModule(),
+  }[p];
+  try{ if(run) run(); }catch(e){ console.warn('[LMR] Live sync re-render failed:',e); }
+}
+
+// Mobile/desktop apps drop the socket while backgrounded — catch up on resume.
+document.addEventListener('visibilitychange',()=>{
+  // supabase-js rejoins the channel by itself; this pulls what changed meanwhile.
+  if(document.visibilityState==='visible'&&_rtChannel) _rtSchedule(600);
+});
 
 // ── 2FA FUNCTIONS ────────────────────────────────────────────────
 let _mfaFactorId = null;
@@ -14315,8 +14975,52 @@ async function lgVerify2FA(){
 
 <script>
 if ('serviceWorker' in navigator) {
+  // Auto-update: when a new service worker takes control (new deploy), reload ONCE so the client
+  // always gets the latest app instead of a stale cached build. Only reload if the page was already
+  // controlled (a first-ever install must not reload). The SW uses skipWaiting + clients.claim, so a
+  // new version takes over open pages and fires controllerchange.
+  const _wasControlled = !!navigator.serviceWorker.controller;
+  let _swReloaded = false;
+  let _pendingSwReload = false;
+  // Is the user actively filling the Today-session chain? (a chain field focused, or a daily
+  // autosave still pending). If so, reloading now would discard in-progress work.
+  const _editingChain = () => {
+    const a = document.activeElement;
+    if (a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName) && a.closest && a.closest('#p-today')) return true;
+    return !!(_autoSaveTimers && _autoSaveTimers['daily'] && _autoSaveTimers['daily'].t);
+  };
+  const _doSwReload = () => {
+    if (_swReloaded) return;
+    _swReloaded = true;
+    // Capture the in-progress form + persist before the reload tears down the DOM.
+    try { flushAutoSaves(); } catch (e) {}
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+    location.reload();
+  };
+  const _maybeSwReload = () => {
+    if (_swReloaded) return;
+    if (_editingChain()) {           // defer: don't yank the page mid-edit
+      if (_pendingSwReload) return;
+      _pendingSwReload = true;
+      // Reload at the next safe moment: when the tab is backgrounded, or shortly after the
+      // user stops editing the chain (focus leaves + no pending autosave).
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') _doSwReload();
+      });
+      const poll = setInterval(() => {
+        if (_swReloaded) { clearInterval(poll); return; }
+        if (!_editingChain()) { clearInterval(poll); _doSwReload(); }
+      }, 1500);
+    } else {
+      _doSwReload();
+    }
+  };
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!_wasControlled || _swReloaded) return;
+    _maybeSwReload();
+  });
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    navigator.serviceWorker.register('/sw.js').then(reg => { try { reg.update(); } catch(e){} }).catch(() => {});
   });
 }
 </script>
@@ -14989,6 +15693,13 @@ function copierState(){
   if(!state.copier.masterSize) state.copier.masterSize=1;
   return state.copier;
 }
+// Futures contract value in $ per 1.0 point move. Micro = 1/10 of its E-mini. Used to scale a
+// follower's copied P&L by ITS instrument+qty vs the leader's — a real trade-copier, so each
+// account with its own size records a realistic (justifiable) result. Tune values here if needed.
+const _CONTRACT_PV={ES:50,MES:5,NQ:20,MNQ:2,GC:100,MGC:10,CL:1000,MCL:100,RTY:50,M2K:5,YM:5,MYM:0.5};
+function _instrPV(sym){ return _CONTRACT_PV[String(sym||'').toUpperCase()]||0; }
+// Instruments a follower can pick (micro + standard, grouped by underlying).
+const _COPIER_INSTRUMENTS=['MNQ','NQ','MES','ES','MGC','GC','MCL','CL','M2K','RTY','MYM','YM'];
 function copierLeader(){ const c=copierState(); return (state.accounts||[]).find(a=>String(a.id)===String(c.leaderId))||null; }
 // newest-first comparator (by created date, then id timestamp)
 function _accNewer(a,b){ return (new Date(b.date||0)-new Date(a.date||0)) || (Number(b.id)-Number(a.id)); }
@@ -15021,6 +15732,9 @@ function copierToggleFollower(id){ const c=copierState(); if(String(id)===String
 // trades. Falls back to the copier connected-since date, then the creation date.
 function _folSince(acc,cfg){ return ((acc&&acc.startDate)||'').slice(0,10) || (cfg&&cfg.connectedAt) || ((acc&&acc.date)||'').slice(0,10) || ''; }
 function copierSetMult(id,v){ const c=copierState(); if(!c.followers[id]) c.followers[id]={enabled:true,multiplier:1}; c.followers[id].multiplier=Math.max(.5,Math.min(3,parseFloat(v)||1)); save(); _copierUpdateCalc(); }
+// Per-account instrument + quantity — this account's copied P&L scales by its own contract value × qty.
+function copierSetFollowerInstrument(id,v){ const c=copierState(); if(!c.followers[id]) c.followers[id]={enabled:true,multiplier:1}; c.followers[id].instrument=v; if(!(parseFloat(c.followers[id].qty)>0)) c.followers[id].qty=c.masterSize||1; save(); renderCopierCockpit(); }
+function copierSetFollowerQty(id,v){ const c=copierState(); if(!c.followers[id]) c.followers[id]={enabled:true,multiplier:1}; c.followers[id].qty=Math.max(1,Math.min(100,parseInt(v)||1)); if(!c.followers[id].instrument) c.followers[id].instrument=c.instrument||'MNQ'; save(); renderCopierCockpit(); }
 function copierSetMaster(v){ const c=copierState(); c.masterSize=Math.max(1,Math.min(10,parseInt(v)||1)); save(); _copierUpdateCalc(); }
 function copierSetInstrument(v){ const c=copierState(); c.instrument=v; save(); _copierUpdateCalc(); }
 function copierToggleAuto(){ const c=copierState(); c.autoMirror=!c.autoMirror; save(); renderCopierCockpit(); }
@@ -15055,13 +15769,23 @@ function _copierFollowerView(accountId){
   if(!cfg||!cfg.enabled) return null;                                     // not a connected follower
   const acc=(state.accounts||[]).find(a=>String(a.id)===String(accountId));
   const since=_folSince(acc,cfg), m=cfg.multiplier||1;
+  const folPV=_instrPV(cfg.instrument), folQty=parseFloat(cfg.qty)||0;
+  // Contract-value scaling: if this follower has its own instrument+qty, its copied $ result scales
+  // from the leader trade by (its contract value × qty) ÷ (the leader trade's contract value × lots).
+  // Otherwise fall back to the legacy flat × multiplier so un-migrated followers are unchanged.
+  const useContracts = !!(cfg.instrument && folQty>0 && folPV>0);
   // Derive from ALL of the leader's REAL trades (its own, non-copy) on/after this follower's start date.
   // (No structural mirror-id filter here — that could wrongly drop a leader trade when a stray copy exists.)
   return (state.trades||[])
     .filter(t=>String(t.accountId)===String(c.leaderId) && !t.mirror && (!since || (t.date||'').slice(0,10)>=since))
-    .map(t=>{ const pnl=Math.round((parseFloat(t.pnl)||0)*m*100)/100, risk=Math.round((parseFloat(t.risk)||0)*m*100)/100;
-      return Object.assign({},t,{ id:'d-'+accountId+'-'+t.id, accountId:String(accountId), mirror:true, mirrorFrom:String(t.id), mirrorLeader:String(c.leaderId), mirrorMult:m,
-        pnl, risk, lots:Math.round((parseFloat(t.lots)||0)*m*100)/100, rr:risk>0?(pnl/risk).toFixed(2):(t.rr||0), win:pnl>0 }); });
+    .map(t=>{
+      let ratio=m;
+      if(useContracts){ const ldrPV=_instrPV(t.market), ldrQty=parseFloat(t.lots)||1;
+        ratio = (ldrPV>0 && ldrQty>0) ? (folPV*folQty)/(ldrPV*ldrQty) : m; }
+      const pnl=Math.round((parseFloat(t.pnl)||0)*ratio*100)/100, risk=Math.round((parseFloat(t.risk)||0)*ratio*100)/100;
+      return Object.assign({},t,{ id:'d-'+accountId+'-'+t.id, accountId:String(accountId), mirror:true, mirrorFrom:String(t.id), mirrorLeader:String(c.leaderId), mirrorMult:ratio,
+        market:useContracts?cfg.instrument:t.market,
+        pnl, risk, lots:useContracts?folQty:Math.round((parseFloat(t.lots)||0)*ratio*100)/100, rr:risk>0?(pnl/risk).toFixed(2):(t.rr||0), win:pnl>0 }); });
 }
 // Followers derive live, so mirroring stores NOTHING now — just refresh the views on a new leader trade.
 function copierMirrorLeaderTrade(t){
@@ -15299,12 +16023,15 @@ function renderCopierCockpit(){
     const st=_copierAcctStats(a), isLeader=!!st.leader;
     const cfg=c.followers[a.id]||{enabled:false,multiplier:1}, on=isLeader||cfg.enabled;
     const idTail=String(a.accountNo||a.id).slice(-8);
+    const folInstr=cfg.instrument||c.instrument||'MNQ';
+    const folQty=parseFloat(cfg.qty)>0?parseFloat(cfg.qty):(c.masterSize||1);
     const follow=isLeader
       ? `<span class="cks-crown" title="Leader">♛</span>`
       : `<span class="cks-tg ${cfg.enabled?'on':''}" onclick="copierToggleFollower('${a.id}')" title="${cfg.enabled?'Connected (following)':'Not following'}"></span>`;
+    const instrOpts=_COPIER_INSTRUMENTS.map(s=>`<option ${folInstr===s?'selected':''}>${s}</option>`).join('');
     const ratio=isLeader
       ? `<span class="cks-leadtag">LEADER</span>`
-      : `<input class="cks-ratio" type="number" min="0.5" max="10" step="0.1" value="${(cfg.multiplier||1)}" ${cfg.enabled?'':'disabled'} onchange="copierSetMult('${a.id}',this.value);renderCopierCockpit()"> ×`;
+      : `<span style="display:inline-flex;gap:5px;align-items:center"><select class="cks-sel" style="width:72px" ${cfg.enabled?'':'disabled'} title="Instrument this account trades" onchange="copierSetFollowerInstrument('${a.id}',this.value)">${instrOpts}</select><input class="cks-ratio" type="number" min="1" max="100" step="1" value="${folQty}" ${cfg.enabled?'':'disabled'} title="Contracts (quantity)" onchange="copierSetFollowerQty('${a.id}',this.value)"></span>`;
     const bal=st.bal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
     return `<tr class="cks-row ${isLeader?'lead':''} ${on?'':'off'}">
       <td><span class="cks-dot ${on?'on':''}"></span></td>
@@ -15312,7 +16039,7 @@ function renderCopierCockpit(){
       <td class="mono dim">…${_ckEsc(idTail)}</td>
       <td class="dim">${_ckEsc(a.firm||'Tradeify')} Account</td>
       <td class="cks-name">${_ckEsc(a.accountNo||a.name)}</td>
-      <td class="mono">${_ckEsc(c.instrument)}</td>
+      <td class="mono">${_ckEsc(isLeader?c.instrument:folInstr)}</td>
       <td class="dim">—</td>
       <td class="mono bal">$${bal}</td>
       <td>${ratio}</td>
@@ -15321,7 +16048,7 @@ function renderCopierCockpit(){
   }).join('');
 
   const table=`<div class="cks-tablewrap"><table class="cks-table">
-    <thead><tr><th>Status</th><th>Follow</th><th>ID</th><th>Connection</th><th>Account</th><th>Symbol</th><th>Position</th><th>Balance</th><th>Ratio</th><th>Day P&L</th></tr></thead>
+    <thead><tr><th>Status</th><th>Follow</th><th>ID</th><th>Connection</th><th>Account</th><th>Symbol</th><th>Position</th><th>Balance</th><th>Size</th><th>Day P&L</th></tr></thead>
     <tbody>${rows}</tbody></table></div>`;
 
   // Count leader trades not yet connected to each follower (since the follower's creation date).
@@ -15331,7 +16058,7 @@ function renderCopierCockpit(){
     const _lt=(state.trades||[]).filter(t=>!t.mirror&&String(t.accountId)===String(leader.id));
     fols.forEach(({acc})=>{ const created=(acc.date||'').slice(0,10); const have=new Set((state.trades||[]).filter(t=>String(t.accountId)===String(acc.id)).map(_sig)); _lt.forEach(t=>{ if((!created||(t.date||'').slice(0,10)>=created)&&!have.has(_sig(t))) _unsynced++; }); });
   }
-  const hint=`<div class="cks-hint">${_unsynced?`<div style="color:var(--bear);font-weight:700;margin-bottom:6px">⚠ ${_unsynced} trade-link${_unsynced>1?'s':''} not connected yet — some follower accounts are missing the leader's trades. Hit <b style="color:var(--blue)">⟳ Sync to followers</b> to connect them (with images).</div>`:''}When you log a trade on the <b style="color:var(--gold)">leader</b>, it syncs to each connected follower from that follower's <b>creation date</b> onward, carrying the chart images. Your Trade Log shows <b>one row</b> per trade; the Daily page & account views show it per-account.${leader&&accs.length>fols.length+1?` · <a onclick="copierEnableAllActive()" style="color:var(--blue);cursor:pointer">Connect all active</a>`:''}</div>`;
+  const hint=`<div class="cks-hint">${_unsynced?`<div style="color:var(--bear);font-weight:700;margin-bottom:6px">⚠ ${_unsynced} trade-link${_unsynced>1?'s':''} not connected yet — some follower accounts are missing the leader's trades. Hit <b style="color:var(--blue)">⟳ Sync to followers</b> to connect them (with images).</div>`:''}When you log a trade on the <b style="color:var(--gold)">leader</b>, it syncs to each connected follower from that follower's <b>creation date</b> onward, carrying the chart images. Each follower's <b>Size</b> (its own instrument + contracts) scales the copied P&L by contract value — micro vs mini/standard — so every account records a realistic result. Your Trade Log shows <b>one row</b> per trade; the Daily page & account views show it per-account.${leader&&accs.length>fols.length+1?` · <a onclick="copierEnableAllActive()" style="color:var(--blue);cursor:pointer">Connect all active</a>`:''}</div>`;
 
   root.innerHTML = _cksStyle + `<div class="cks">${bar}${stats}${table}${hint}</div>`;
   _copierStartLatency();
@@ -16715,6 +17442,14 @@ function minutes(hhmm){
 // that justifies the mark. 'na' means the day gave no chance to break
 // it — those are excluded from the score rather than counted as wins.
 var RULES = [
+  { id:'conf-clean', title:'Clean setup — 4+ confirmations',
+    why:'Macro time, liquidity sweep, displacement, SMT and clean draws — four or more is an A+, disciplined entry.',
+    test:function(ts){
+      var withConf=ts.filter(function(t){ return Array.isArray(t.confirmations)&&t.confirmations.length; });
+      if(!withConf.length) return ['na','No confirmation data'];
+      var clean=withConf.filter(function(t){ return t.confirmations.length>=4; });
+      return clean.length===withConf.length ? ['met', clean.length+' clean'] : ['miss',(withConf.length-clean.length)+' under 4'];
+    } },
   { id:'one-model', title:'One setup, one model, per session',
     why:'Switching models mid-session means the thesis changed after the entry, not before it.',
     test:function(ts){
@@ -17080,358 +17815,6 @@ render();
 })();
 </script>
 
-<script id="lmr-obs-js">
-(function(){
-'use strict';
-
-// Observation kinds. Colour is the card's left border and its tag.
-var KINDS = [
-  ['Setup',      'var(--o-gold)'],
-  ['Invalidated','var(--o-rose)'],
-  ['Playbook',   'var(--o-blue)'],
-  ['Review',     'var(--o-green)']
-];
-
-// LMR concept vocabulary — the tags a post can carry.
-var TAGS = ['Accumulation','Manipulation','Distribution','Judas Swing','OTE','FVG','BISI','SIBI',
-            'Order Block','Breaker','NWOG','NDOG','Liquidity Void','Equal Highs','Equal Lows',
-            'Turtle Soup','SMT','Silver Bullet','Macro','PD Array','Draw on Liquidity'];
-
-// ── PERSISTENCE ────────────────────────────────────────────────
-var OBS_PERSIST = {
-  read: function(){
-    if (typeof state === 'object' && state) return state;
-    try { return JSON.parse(localStorage.getItem('lmr_obs') || '{}'); }
-    catch(e){ return {}; }
-  },
-  write: function(rec){
-    if (typeof save === 'function') save();
-    else { try { localStorage.setItem('lmr_obs', JSON.stringify({observations:S.observations})); } catch(e){} }
-    try {
-      if (typeof _sb !== 'undefined' && _sb && typeof _sbUserId !== 'undefined' && _sbUserId) {
-        _sb.from('lmr_observations').upsert({ user_id:_sbUserId, data:{ observations:S.observations } }, { onConflict:'user_id' });
-      }
-    } catch(e){}
-  },
-  del: function(id){ if (typeof sbDeleteRecord==='function'){ try{ sbDeleteRecord('observations', id); }catch(e){} } },
-  // NEVER localStorage for images — base64 there throws QuotaExceededError.
-  saveImg: function(k,b){ return (typeof saveImg==='function') ? saveImg(k,b) : Promise.resolve(_mem[k]=b); },
-  getImg:  function(k){   return (typeof getImg ==='function') ? getImg(k)    : Promise.resolve(_mem[k]); }
-};
-var _mem = {};
-var HOOK_LS = 'lmr_discord_hook';
-
-var S = OBS_PERSIST.read();
-S.observations = S.observations || [];
-
-var draft = { kind:'Setup', img:null, tags:[] };
-var oFilter = 'All';
-
-function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
-  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
-function today(){ return new Date().toISOString().slice(0,10); }
-function fmtDate(iso){
-  if(!iso) return '';
-  var d=new Date(iso+'T00:00:00');
-  return isNaN(d) ? iso : d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-}
-function colourFor(k){
-  for(var i=0;i<KINDS.length;i++) if(KINDS[i][0]===k) return KINDS[i][1];
-  return 'var(--o-line)';
-}
-function dayCount(iso){
-  if (typeof dayCountFor === 'function'){ try { return dayCountFor(iso); } catch(e){} }
-  return null;
-}
-
-// ── CHIPS ─────────────────────────────────────────────────────
-function renderKinds(){
-  document.getElementById('oKinds').innerHTML = KINDS.map(function(k){
-    var on = draft.kind===k[0];
-    return '<button class="o-chip" data-kind="'+k[0]+'" aria-pressed="'+on+'"'
-         + (on ? ' style="background:'+k[1]+'"' : '') + '>'+k[0]+'</button>';
-  }).join('');
-}
-function renderTags(){
-  document.getElementById('oTags').innerHTML = TAGS.map(function(t){
-    var on = draft.tags.indexOf(t)>-1;
-    return '<button class="o-tagchip" data-tag="'+esc(t)+'" aria-pressed="'+on+'">'+esc(t)+'</button>';
-  }).join('');
-}
-function renderFilters(){
-  var opts = ['All'].concat(KINDS.map(function(k){return k[0];}));
-  document.getElementById('oFilters').innerHTML = opts.map(function(o){
-    return '<button class="o-tagchip" data-filter="'+o+'" aria-pressed="'+(oFilter===o)+'">'+o+'</button>';
-  }).join('');
-}
-
-// ── DROP ZONE ─────────────────────────────────────────────────
-function paintDrop(){
-  var box=document.getElementById('oDrop');
-  box.innerHTML = draft.img
-    ? '<img src="'+draft.img+'" alt=""><button class="o-x" data-clearimg="1" title="Remove image">\u00d7</button>'
-    : '<span class="o-dph">Click, drop or paste the chart<br>It posts with the observation and shows inside the card</span>';
-}
-function pickFile(){
-  var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
-  inp.onchange=function(){
-    var f=inp.files[0]; if(!f) return;
-    var r=new FileReader(); r.onload=function(){ draft.img=r.result; paintDrop(); };
-    r.readAsDataURL(f);
-  };
-  inp.click();
-}
-function screenshot(){
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){
-    alert('Screen capture is not available in this browser \u2014 paste or drop the chart instead.');
-    return;
-  }
-  navigator.mediaDevices.getDisplayMedia({video:true}).then(function(stream){
-    var track=stream.getVideoTracks()[0], video=document.createElement('video');
-    video.srcObject=stream; video.muted=true;
-    video.onloadedmetadata=function(){
-      video.play();
-      setTimeout(function(){
-        var c=document.createElement('canvas');
-        c.width=video.videoWidth; c.height=video.videoHeight;
-        c.getContext('2d').drawImage(video,0,0);
-        draft.img=c.toDataURL('image/png'); track.stop(); paintDrop();
-      },260);
-    };
-  }).catch(function(){});
-}
-
-// ── POST ──────────────────────────────────────────────────────
-function refreshPostState(){
-  var t=document.getElementById('oText').value;
-  document.getElementById('oChars').textContent = t.length;
-  document.getElementById('oPost').disabled = !t.trim();
-}
-
-function clearComposer(){
-  document.getElementById('oText').value='';
-  document.getElementById('oTitle').value='';
-  document.getElementById('oMarket').value='';
-  draft.img=null; draft.tags=[];
-  paintDrop(); renderTags(); refreshPostState();
-}
-
-function post(){
-  var text=document.getElementById('oText').value.trim();
-  if(!text) return;
-  var id=Date.now();
-  var rec={
-    id:id, kind:draft.kind,
-    title:document.getElementById('oTitle').value.trim(),
-    market:document.getElementById('oMarket').value.trim(),
-    date:document.getElementById('oDate').value || today(),
-    text:text, tags:draft.tags.slice(),
-    // The key lives ON the post, so the chart renders inside its card.
-    imgKey: draft.img ? ('obs-'+id) : null,
-    sentTo:[], createdAt:new Date().toISOString()
-  };
-  var done=function(){
-    S.observations.unshift(rec);          // newest first
-    OBS_PERSIST.write(rec);
-    clearComposer(); render();
-    if (typeof flash==='function') flash('\u2713 Observation posted');
-  };
-  if (rec.imgKey) OBS_PERSIST.saveImg(rec.imgKey, draft.img).then(done);
-  else done();
-}
-
-// ── SHARE ─────────────────────────────────────────────────────
-function postText(r){
-  var lines=[];
-  lines.push('**'+(r.title || r.kind)+'**'+(r.market ? ' \u00b7 '+r.market : ''));
-  lines.push(r.text);
-  if (r.tags && r.tags.length) lines.push(r.tags.map(function(t){return '#'+t.replace(/\s+/g,'');}).join(' '));
-  lines.push('\u2014 LMR Capitals \u00b7 '+fmtDate(r.date));
-  return lines.join('\n\n');
-}
-
-function sendDiscord(r){
-  var url=(localStorage.getItem(HOOK_LS)||'').trim();
-  if(!url){ alert('Add your Discord webhook URL first.'); return; }
-  fetch(url, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({username:'LMR Capitals', content:postText(r)})
-  }).then(function(res){
-    if(!res.ok) throw new Error(res.status);
-    if (r.sentTo.indexOf('Discord')<0) r.sentTo.push('Discord');
-    OBS_PERSIST.write(r); render();
-    if (typeof flash==='function') flash('\u2713 Sent to Discord');
-  }).catch(function(){ alert('Discord rejected the post \u2014 check the webhook URL.'); });
-}
-
-function sendTwitter(r){
-  var t = postText(r).replace(/\*\*/g,'');
-  window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(t.slice(0,270)), '_blank', 'noopener');
-  if (r.sentTo.indexOf('X')<0) r.sentTo.push('X');
-  OBS_PERSIST.write(r); render();
-}
-
-function copyPost(r){
-  var t = postText(r).replace(/\*\*/g,'');
-  if (navigator.clipboard) navigator.clipboard.writeText(t);
-  if (typeof flash==='function') flash('\u2713 Copied');
-}
-
-// ── WEBHOOK BAR ───────────────────────────────────────────────
-function paintHook(){
-  var url=(localStorage.getItem(HOOK_LS)||'');
-  document.getElementById('oHook').value=url;
-  document.getElementById('oHookDot').style.background = url ? 'var(--o-discord)' : 'var(--o-line)';
-}
-
-// ── FEED ──────────────────────────────────────────────────────
-function cardHTML(r){
-  var accent=colourFor(r.kind), dc=dayCount(r.date);
-  return '<article class="o-card" style="border-left-color:'+accent+'">'
-    + '<div class="o-khead">'
-      + '<span class="o-tag" style="background:'+accent+'26;color:'+accent+'">'+esc(r.kind)+'</span>'
-      + '<span class="o-ktitle">'+esc(r.title || r.kind)+(r.market ? ' \u00b7 '+esc(r.market) : '')+'</span>'
-      + '<span class="o-kdate">'+esc(fmtDate(r.date))+(dc!=null?' \u00b7 D'+dc:'')+'</span>'
-      + '<button class="o-kdel" data-del="'+r.id+'" title="Delete">\u00d7</button>'
-    + '</div>'
-    + '<p class="o-ktext">'+esc(r.text)+'</p>'
-    + (r.imgKey ? '<div class="o-kimg" data-slot="'+esc(r.imgKey)+'"></div>' : '')
-    + ((r.tags&&r.tags.length) ? '<div class="o-ktags">'+r.tags.map(function(t){
-        return '<span class="o-ktag">'+esc(t)+'</span>'; }).join('')+'</div>' : '')
-    + '<div class="o-kfoot">'
-      + '<button class="o-share" data-discord="'+r.id+'">Discord</button>'
-      + '<button class="o-share" data-x="'+r.id+'">Post to X</button>'
-      + '<button class="o-share" data-copy="'+r.id+'">Copy</button>'
-      + ((r.sentTo&&r.sentTo.length) ? '<span class="o-sent">\u2713 '+esc(r.sentTo.join(' \u00b7 '))+'</span>' : '')
-    + '</div>'
-  + '</article>';
-}
-
-function paintCardImages(root){
-  Array.prototype.forEach.call(root.querySelectorAll('[data-slot]'), function(box){
-    OBS_PERSIST.getImg(box.dataset.slot).then(function(src){
-      if (src) box.innerHTML='<img src="'+src+'" alt="">';
-      else box.remove();
-    });
-  });
-}
-
-function render(){
-  var rows = oFilter==='All' ? S.observations : S.observations.filter(function(r){return r.kind===oFilter;});
-  var feed=document.getElementById('oFeed');
-  document.getElementById('oCount').textContent =
-    rows.length + (rows.length===1?' post':' posts') + (oFilter==='All'?'':' \u00b7 '+oFilter);
-  feed.innerHTML = rows.length
-    ? rows.map(cardHTML).join('')
-    : '<div class="o-none">No observations yet \u2014 write the first read above.</div>';
-  paintCardImages(feed);
-  renderFilters();
-}
-
-function byId(id){
-  return S.observations.filter(function(r){return String(r.id)===String(id);})[0];
-}
-
-// ── EVENTS ────────────────────────────────────────────────────
-document.addEventListener('click', function(e){
-  var el=e.target.closest('[data-kind],[data-tag],[data-filter],[data-clearimg],[data-del],[data-discord],[data-x],[data-copy],#oDrop,#oPost,#oShot,#oClear,#oHookSave,#oHookTest');
-  if(!el) return;
-  var d=el.dataset;
-
-  if (d.kind){ draft.kind=d.kind; renderKinds(); return; }
-  if (d.tag){
-    var i=draft.tags.indexOf(d.tag);
-    if(i>-1) draft.tags.splice(i,1); else draft.tags.push(d.tag);
-    renderTags(); return;
-  }
-  if (d.filter){ oFilter=d.filter; render(); return; }
-  if (d.clearimg){ e.stopPropagation(); draft.img=null; paintDrop(); return; }
-  if (el.id==='oDrop'){ pickFile(); return; }
-  if (el.id==='oShot'){ screenshot(); return; }
-  if (el.id==='oClear'){ clearComposer(); return; }
-  if (el.id==='oPost'){ post(); return; }
-  if (el.id==='oHookSave'){
-    localStorage.setItem(HOOK_LS, document.getElementById('oHook').value.trim());
-    paintHook();
-    if (typeof flash==='function') flash('\u2713 Webhook saved');
-    return;
-  }
-  if (el.id==='oHookTest'){
-    var url=(document.getElementById('oHook').value||'').trim();
-    if(!url){ alert('Paste the webhook URL first.'); return; }
-    fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({username:'LMR Capitals',content:'LMR Capitals webhook connected.'})})
-      .then(function(res){ alert(res.ok ? 'Webhook works.' : 'Discord returned '+res.status+'.'); })
-      .catch(function(){ alert('Could not reach Discord.'); });
-    return;
-  }
-  if (d.discord){ sendDiscord(byId(d.discord)); return; }
-  if (d.x){ sendTwitter(byId(d.x)); return; }
-  if (d.copy){ copyPost(byId(d.copy)); return; }
-
-  if (d.del){
-    if(!window.confirm('Delete this observation?')) return;
-    var rec=byId(d.del);
-    if (rec && rec.imgKey) OBS_PERSIST.saveImg(rec.imgKey, null);
-    S.observations = S.observations.filter(function(r){return String(r.id)!==String(d.del);});
-    OBS_PERSIST.write(null); OBS_PERSIST.del(d.del); render();
-  }
-});
-
-document.addEventListener('input', function(e){
-  if (e.target.id==='oText') refreshPostState();
-});
-
-// Paste inside the panel lands in the drop zone.
-document.addEventListener('paste', function(e){
-  var p=document.getElementById('p-observation');
-  if(!p || !(p.contains(e.target) || p.contains(document.activeElement))) return;
-  var items=(e.clipboardData||{}).items||[];
-  for(var i=0;i<items.length;i++){
-    if(items[i].type.indexOf('image')!==0) continue;
-    e.preventDefault();
-    var r=new FileReader();
-    r.onload=function(){ draft.img=r.result; paintDrop(); };
-    r.readAsDataURL(items[i].getAsFile());
-    return;
-  }
-});
-
-(function(){
-  var box=document.getElementById('oDrop');
-  box.addEventListener('dragover',function(e){ e.preventDefault(); box.classList.add('is-over'); });
-  box.addEventListener('dragleave',function(){ box.classList.remove('is-over'); });
-  box.addEventListener('drop',function(e){
-    e.preventDefault(); box.classList.remove('is-over');
-    var f=(e.dataTransfer.files||[])[0];
-    if(!f || f.type.indexOf('image')!==0) return;
-    var r=new FileReader();
-    r.onload=function(){ draft.img=r.result; paintDrop(); };
-    r.readAsDataURL(f);
-  });
-})();
-
-// ── MOUNT ─────────────────────────────────────────────────────
-function mount(){
-  document.getElementById('oDate').value = today();
-  var dc=dayCount(today());
-  if (dc!=null) document.getElementById('oDayHint').textContent='Day D'+dc;
-  renderKinds(); renderTags(); paintDrop(); paintHook(); refreshPostState(); render();
-}
-window.renderObservationSection = render;
-window.loadObservationsCloud = async function(){
-  try{
-    if (typeof _sb !== 'undefined' && _sb && typeof _sbUserId !== 'undefined' && _sbUserId){
-      var row = await _sb.from('lmr_observations').select('data').eq('user_id',_sbUserId).single();
-      var d = row && row.data && row.data.data;
-      if (d && d.observations){ state.observations = d.observations; S = state; }
-    }
-  }catch(e){}
-  try{ render(); }catch(e){}
-};   // call from the panel switcher
-mount();
-})();
-</script>
 
 <script id="lmr-jn-js">
 (function(){
@@ -17470,7 +17853,9 @@ var JN_PERSIST = {
       try {
         if (kind === 'journal')
           sbSyncRecord('journal', {id:String(rec.id), user_id:_sbUserId, date:rec.date||null,
-            title:rec.type||null, content:rec.text||'', created_at:rec.createdAt});
+            title:rec.title||rec.type||null, type:rec.type||'Lesson',
+            text:rec.text||'', content:rec.text||'', img_key:rec.imgKey||null,
+            created_at:rec.createdAt});
         else
           sbSyncRecord('notes', {id:String(rec.id), user_id:_sbUserId, title:rec.title||null,
             text:rec.text||'', date:rec.date||null, created_at:rec.createdAt});
@@ -17481,7 +17866,13 @@ var JN_PERSIST = {
     if (typeof sbDeleteRecord === 'function') { try { sbDeleteRecord(kind, id); } catch(e){} }
   },
   // NEVER localStorage — base64 there throws QuotaExceededError at 5MB.
-  saveImg: function(k,b){ return (typeof saveImg==='function') ? saveImg(k,b) : Promise.resolve(_mem[k]=b); },
+  saveImg: function(k,b){
+    if (typeof b==='string' && b.indexOf('data:')===0)
+      return fetch(b).then(function(r){return r.blob();}).then(function(blob){
+        return (typeof saveImg==='function') ? saveImg(k,blob) : (_mem[k]=b);
+      });
+    return (typeof saveImg==='function') ? saveImg(k,b) : Promise.resolve(_mem[k]=b);
+  },
   getImg:  function(k){   return (typeof getImg ==='function') ? getImg(k)    : Promise.resolve(_mem[k]); }
 };
 var _mem = {};
@@ -17648,18 +18039,77 @@ function cardHTML(kind, r){
        +  '</div>';
   return '<article class="jn-card" style="border-left-color:'+accent+'">'
        + head
-       + '<p class="jn-ktext">'+esc(r.text)+'</p>'
+       + '<p class="jn-ktext">'+esc(r.text||r.content||'')
+       + (r.import_source_title ? '<span class="jn-source">Original note: '+esc(r.import_source_title)+'</span>' : '')
+       + '</p>'
        + (r.imgKey ? '<div class="jn-kimg" data-slot="'+esc(r.imgKey)+'"></div>' : '')
+       + (kind==='journal' && Array.isArray(r.imageKeys) && r.imageKeys.length
+          ? '<div class="jn-gallery">'+r.imageKeys.map(function(key,i){
+              return '<div class="jn-kimg" data-private-slot="'+esc(key)+'" data-image-number="'+(i+1)+'"></div>';
+            }).join('')+'</div>' : '')
        + '</article>';
 }
 
 // Images are fetched after the markup lands, then painted in place.
+var _jnObjectUrls=[];
+var _jnImageObserver=null;
+function releaseCardImages(){
+  if(_jnImageObserver){_jnImageObserver.disconnect();_jnImageObserver=null;}
+  _jnObjectUrls.forEach(function(url){URL.revokeObjectURL(url);});
+  _jnObjectUrls=[];
+}
 function paintCardImages(root){
   Array.prototype.forEach.call(root.querySelectorAll('[data-slot]'), function(box){
     JN_PERSIST.getImg(box.dataset.slot).then(function(src){
-      if (src) box.innerHTML = '<img src="'+src+'" alt="">';
+      if(!box.isConnected) return;
+      if (src){
+        var url=src instanceof Blob ? URL.createObjectURL(src) : src;
+        if(src instanceof Blob) _jnObjectUrls.push(url);
+        var img=document.createElement('img');img.src=url;img.alt='Journal chart';img.loading='lazy';
+        box.replaceChildren(img);
+      }
       else box.remove();
-    });
+    }).catch(function(){if(box.isConnected) box.remove();});
+  });
+  // The imported journal charts referenced by image_keys live in the PUBLIC `journal-images`
+  // bucket as `note_<hash>_<N>.png` — NOT in `lmr-images` (which is empty). Derive the real
+  // object name from the image_keys path `<uid>/journal-import/<hash>/chart-NN.png`
+  // (chart-01 → note_<hash>_0.png) and download it from journal-images.
+  function _jnImportObjectName(slot){
+    var parts=String(slot||'').split('/');
+    if(parts.length<3) return null;
+    var hash=parts[2];
+    var file=parts[parts.length-1]||'';
+    var m=file.match(/(\d+)/);
+    var idx=m?(parseInt(m[1],10)-1):0;
+    if(!hash||idx<0) return null;
+    return 'note_'+hash+'_'+idx+'.png';
+  }
+  function loadPrivateChart(box){
+    if(typeof _sb==='undefined' || !_sb){box.remove();return;}
+    var objName=_jnImportObjectName(box.dataset.privateSlot);
+    if(!objName){box.remove();return;}
+    _sb.storage.from('journal-images').download(objName).then(function(result){
+      if(!box.isConnected) return;
+      if(result.error || !result.data){box.remove();return;}
+      var url=URL.createObjectURL(result.data);_jnObjectUrls.push(url);
+      var img=document.createElement('img');img.src=url;img.loading='lazy';
+      img.alt='Journal chart '+box.dataset.imageNumber;box.replaceChildren(img);
+    }).catch(function(){if(box.isConnected) box.remove();});
+  }
+  if('IntersectionObserver' in window){
+    var observer=new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(!entry.isIntersecting) return;
+        observer.unobserve(entry.target);
+        loadPrivateChart(entry.target);
+      });
+    },{rootMargin:'450px'});
+    _jnImageObserver=observer;
+  }
+  Array.prototype.forEach.call(root.querySelectorAll('[data-private-slot]'), function(box){
+    if(_jnImageObserver) _jnImageObserver.observe(box);
+    else loadPrivateChart(box);
   });
 }
 
@@ -17671,7 +18121,7 @@ function renderJournal(){
   feed.innerHTML = rows.length
     ? rows.map(function(r){ return cardHTML('journal', r); }).join('')
     : '<div class="jn-none">No entries yet \u2014 write the first one above.</div>';
-  paintCardImages(feed);
+  releaseCardImages();paintCardImages(feed);
   renderFilters();
 }
 
@@ -17771,4 +18221,378 @@ mount();
 })();
 </script>
 
+<!-- ═══ LMR SESSION CHAIN — schedule + session-wise intraday / daily / weekly / monthly read-out ═══
+     Reads lmr_session_chain + lmr_profiles (filled by the 17:20 NY End-of-Day scheduled task).
+     Renders into #lsc-today (Live Session panel) and #dm-lmr-chain (Day modal). -->
+<style>
+.lsc-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.lsc-tab{font-size:10px;font-weight:700;padding:4px 10px;border-radius:99px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;text-transform:uppercase;letter-spacing:.06em}
+.lsc-tab.on{background:var(--gold);color:#0a0b0f;border-color:var(--gold)}
+.lsc-nav{display:flex;align-items:center;gap:6px;margin-left:auto}
+.lsc-nav button{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:11px}
+.lsc-nav .lsc-d{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;min-width:96px;text-align:center}
+.lsc-now{display:flex;gap:8px 14px;align-items:center;flex-wrap:wrap;font-size:11.5px;color:var(--text2);margin-bottom:8px}
+.lsc-now b{color:var(--text)}
+.lsc-live{color:var(--gold);font-weight:800}
+.lsc-note{font-size:11px;color:var(--text3);padding:8px 10px;border:1px dashed var(--border2);border-radius:8px;margin-bottom:10px}
+.lsc-bar{position:relative;height:22px;border-radius:6px;overflow:visible;display:flex;background:var(--bg3);margin:4px 0 26px}
+.lsc-seg{flex:1;height:100%;font-size:9px;font-weight:800;letter-spacing:.06em;display:flex;align-items:center;justify-content:center;color:var(--text3);border-right:1px solid var(--bg)}
+.lsc-seg:nth-child(1){background:rgba(139,111,212,.14)}.lsc-seg:nth-child(2){background:rgba(91,168,255,.12)}
+.lsc-seg:nth-child(3){background:rgba(217,139,10,.14)}.lsc-seg:nth-child(4){background:rgba(62,207,142,.10)}
+.lsc-tick{position:absolute;top:22px;height:5px;width:1px;background:var(--text3)}
+.lsc-tick span{position:absolute;top:5px;left:-14px;font-size:8px;font-family:'JetBrains Mono',monospace;color:var(--text3);width:28px;text-align:center}
+.lsc-nowm{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--gold);box-shadow:0 0 6px var(--gold);border-radius:2px}
+.lsc-seq{display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin:14px 0 10px;font-size:10px;color:var(--text3)}
+.lsc-list{display:flex;flex-direction:column;gap:6px}
+.lsc-row{display:grid;grid-template-columns:70px 1fr;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg2)}
+.lsc-row.live{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold-border) inset;background:var(--gold-bg)}
+.lsc-row.up{opacity:.62}
+.lsc-row.rev{background:transparent;border-style:dashed}
+.lsc-time{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:13px;color:var(--gold)}
+.lsc-row.rev .lsc-time{color:var(--text3);font-size:11px}
+.lsc-sub{font-size:9px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.lsc-title{font-weight:700;font-size:12px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.lsc-guide{font-size:11px;color:var(--text3);margin-top:2px;line-height:1.45}
+.lsc-story{font-size:12px;margin-top:5px;line-height:1.5;color:var(--text);padding:6px 9px;border-left:2px solid var(--gold);background:var(--gold-bg);border-radius:0 6px 6px 0}
+.lsc-stats{display:flex;flex-wrap:wrap;gap:3px 12px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text2);margin-top:5px}
+.lsc-ph{font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px;letter-spacing:.04em;white-space:nowrap}
+.lsc-ph.M{background:var(--bear-bg);color:var(--bear)}.lsc-ph.D{background:var(--blue-bg);color:var(--blue)}
+.lsc-ph.R{background:var(--pur-bg);color:var(--pur)}.lsc-ph.A{background:var(--bull-bg);color:var(--bull)}
+.lsc-ph.X{background:var(--bg4);color:var(--text3)}
+.lsc-st{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:2px 6px;border-radius:4px;background:var(--bg4);color:var(--text3)}
+.lsc-st.live{background:var(--gold);color:#0a0b0f}.lsc-st.done{background:var(--bull-bg);color:var(--bull)}
+.lsc-tag{font-size:9px;padding:1px 6px;border-radius:4px;background:var(--bg4);color:var(--text2)}
+.lsc-tag.hod{background:var(--bull-bg);color:var(--bull)}.lsc-tag.lod{background:var(--bear-bg);color:var(--bear)}
+.lsc-kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-bottom:12px}
+.lsc-kv div{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:7px 9px}
+.lsc-kv small{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3)}
+.lsc-kv b{font-family:'JetBrains Mono',monospace;font-size:12px}
+.lsc-q{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
+.lsc-q div{border:1px solid var(--border);border-radius:8px;padding:7px;text-align:center;font-size:10px;color:var(--text3)}
+.lsc-q div.on{border-color:var(--gold);color:var(--text);background:var(--gold-bg)}
+.lsc-q b{display:block;font-size:12px;color:var(--text)}
+.lsc-md{font-size:12px;line-height:1.55;color:var(--text2)}
+.lsc-md h4{font-size:13px;margin:4px 0 8px;color:var(--text)}
+.lsc-md h5{font-size:10px;margin:14px 0 6px;color:var(--gold);text-transform:uppercase;letter-spacing:.09em}
+.lsc-md ul{margin:0 0 6px 16px;padding:0}.lsc-md ul ul{margin-bottom:0}
+.lsc-md b{color:var(--text)}
+.lsc-md .lsc-tw{overflow-x:auto;margin:6px 0}
+.lsc-md table{border-collapse:collapse;font-size:10px;font-family:'JetBrains Mono',monospace;min-width:100%}
+.lsc-md th,.lsc-md td{border-bottom:1px solid var(--border);padding:4px 6px;text-align:left;white-space:nowrap}
+.lsc-md th{color:var(--text3);font-weight:700}
+.lsc-empty{font-size:11.5px;color:var(--text3);padding:14px;text-align:center}
+.lsc-kl{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 12px}
+.lsc-kl h6{margin:0 0 6px;font-size:9.5px;text-transform:uppercase;letter-spacing:.09em}
+.lsc-kl .bsl h6{color:var(--bull)}.lsc-kl .ssl h6{color:var(--bear)}
+.lsc-klr{display:grid;grid-template-columns:70px 1fr auto;gap:8px;align-items:center;padding:4px 8px;border-radius:6px;font-size:11px;border:1px solid var(--border);margin-bottom:4px;background:var(--bg2)}
+.lsc-klr b{font-family:'JetBrains Mono',monospace;font-size:11px}
+.lsc-klr .p{font-family:'JetBrains Mono',monospace;color:var(--text2)}
+.lsc-klr.rest{border-color:var(--gold-border)}
+.lsc-klr.gone{opacity:.5}.lsc-klr.gone .p{text-decoration:line-through}
+.lsc-kls{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:2px 6px;border-radius:4px;white-space:nowrap}
+.lsc-kls.rest{background:var(--gold);color:#0a0b0f}.lsc-kls.gone{background:var(--bg4);color:var(--text3)}
+.lsc-klast{grid-column:1/-1;font-size:10.5px;color:var(--text3);text-align:center;font-family:'JetBrains Mono',monospace}
+@media(max-width:600px){.lsc-kl{grid-template-columns:1fr}}
+.lsc-imgw{margin-top:8px;max-width:640px}.lsc-img{min-height:70px}
+#dm-lmr-chain details{margin-top:8px}#dm-lmr-chain summary{cursor:pointer;font-size:11px;color:var(--text2);font-weight:700}
+@media(max-width:600px){.lsc-row{grid-template-columns:1fr}.lsc-q{grid-template-columns:repeat(3,1fr)}}
+</style>
+<script>
+(function(){
+  // ── The LMR daily schedule: what each checkpoint reads (NY time) ─────────────
+  // Owner's LMR schedule (v3). cp = read time (DB key), id = chart image key, at = when it is read (NY)
+  const CP=[
+    {cp:'00:00',id:'0000',name:'Asia session',s:'18:00',e:'00:00',at:'00:00',tf:'5',guide:'Asia session review 18:00–00:00 — its range, which side it took, accumulation or expansion. This is the range London works against.'},
+    {cp:'01:30',id:'0130',name:'Midnight',s:'00:00',e:'01:30',at:'01:30',tf:'1',guide:'Midnight review from the 00:00 True Day Open — premium or discount, and did it start raiding the Asia high/low?'},
+    {cp:'02:00',id:'0200',name:'London Open',s:'01:30',e:'02:00',at:'02:00',tf:'1',guide:'London Open review 01:30–02:00 — did it sweep the Asia high or low (Judas swing)?'},
+    {cp:'05:30',id:'0530',name:'London Killzone',s:'02:00',e:'05:00',at:'05:30',tf:'5',guide:'London Killzone review 02:00–05:00 — distribution away from the raid or continuation; where the London high/low formed.'},
+    {cp:'09:00',id:'0900',name:'Pre-market (08:30 news)',s:'07:00',e:'09:00',at:'09:00',tf:'1',guide:'Pre-market review 07:00–09:00 — the 08:30 news is the driver: did it take the London high/low and set up the NY draw?'},
+    {cp:'10:00',id:'1000',name:'RTH Open',s:'09:30',e:'10:00',at:'10:00',tf:'1',guide:'RTH Open review 09:30–10:00 — which side was raided first, SMT at the open.'},
+    {cp:'11:10',id:'1110sb',name:'AM Silver Bullet',s:'10:00',e:'11:00',at:'11:10',tf:'1',guide:'AM Silver Bullet 10:00–11:00 — the delivery out of the opening range.'},
+    {cp:'11:10 AM',id:'1110am',name:'AM Session',s:'07:00',e:'11:00',at:'11:10',tf:'5',session:true,guide:'Whole AM session 07:00–11:00 — pre-market, open and Silver Bullet together.'},
+    {cp:'12:10',id:'1210',name:'London Close',s:'11:00',e:'12:10',at:'12:10',tf:'1',guide:'London Close 11:00–12:10 — retracement or continuation of the AM move.'},
+    {cp:'13:30',id:'1330',name:'Lunch',s:'12:00',e:'13:30',at:'13:30',tf:'1',guide:'Lunch 12:00–13:30 — consolidation, or a reversal of the AM move.'},
+    {cp:'14:10',id:'1410',name:'PM Open',s:'13:30',e:'14:00',at:'14:10',tf:'1',guide:'PM Open 13:30–14:00 — raid of the lunch range; sets PM direction.'},
+    {cp:'15:10',id:'1510',name:'PM Silver Bullet',s:'14:00',e:'15:00',at:'15:10',tf:'1',guide:'PM Silver Bullet 14:00–15:00 delivery.'},
+    {cp:'16:10',id:'1610',name:'PM Session',s:'13:30',e:'16:00',at:'16:10',tf:'5',session:true,guide:'Whole PM session 13:30–16:00.'},
+    {cp:'EOD',id:'eod',name:'Final Hour',s:'15:00',e:'16:00',at:'17:20',tf:'1',guide:'Final hour 15:00–16:00 — continuation or reversal into the close; read with the end of the day.'},
+  ];
+  const REV=[];
+  const RUNS=['00:02','01:32','02:02','05:32','09:02','10:02','11:12','12:12','13:32','14:12','15:12','16:12','17:20'];
+  const PH={M:'Manipulation',D:'Distribution',R:'Re-accum / Continuation',A:'Accumulation'};
+  const NEXT={M:'D',D:'R',R:'A',A:'M'};
+  const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const toMin=t=>{const a=String(t).split(':');return (+a[0])*60+(+a[1]||0);};
+  const off=t=>(toMin(t)-1080+1440)%1440;            // minutes since 18:00 (trade-day start)
+  const offEnd=t=>off(t)||1440;
+  const num=v=>v==null||v===''?null:+v;
+  const f2=v=>{v=num(v);return v==null?'—':(Math.round(v*100)/100).toLocaleString('en-US',{maximumFractionDigits:2});};
+
+  function addDays(ds,n){const d=new Date(ds+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);}
+  function dowOf(ds){return new Date(ds+'T12:00:00Z').getUTCDay();}
+  function nextTradingDay(ds,dir){do{ds=addDays(ds,dir);}while([0,6].includes(dowOf(ds)));return ds;}
+  function fmtD(ds){const d=new Date(ds+'T12:00:00Z');return `${DOW[d.getUTCDay()]} ${d.getUTCDate()} ${MON[d.getUTCMonth()]}`;}
+  function nyNow(){
+    const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).formatToParts(new Date()).map(x=>[x.type,x.value]));
+    const mins=(+p.hour%24)*60+(+p.minute);
+    return {ds:`${p.year}-${p.month}-${p.day}`,mins,hm:`${String(+p.hour%24).padStart(2,'0')}:${p.minute}`};
+  }
+  // Trade date: the day that the current 18:00→17:00 cycle belongs to (weekends roll to Monday)
+  function tradeInfo(){
+    const n=nyNow();
+    let cal=n.mins>=1080?addDays(n.ds,1):n.ds;
+    let td=cal; while([0,6].includes(dowOf(td))) td=addDays(td,1);
+    const nowOff=(cal===td)?off(n.hm):-1;
+    return {td,nowOff,hm:n.hm};
+  }
+  function statusFor(ds,w,ti){
+    if(ds<ti.td) return 'done';
+    if(ds>ti.td||ti.nowOff<0) return 'up';
+    if(ti.nowOff>=offEnd(w.e)) return 'done';
+    if(ti.nowOff>=off(w.s)) return 'live';
+    return 'up';
+  }
+
+  // ── Data ─────────────────────────────────────────────────────────────
+  const cache={}; const pcache={};
+  function client(){ try{ return (typeof sbInit==='function')?sbInit():null; }catch(e){ return null; } }
+  function uid(){ try{ return (typeof _sbUserId!=='undefined')?_sbUserId:null; }catch(e){ return null; } }
+  async function loadDay(ds,force){
+    if(cache[ds]&&!force) return cache[ds];
+    const sb=client(); if(!sb||!uid()) return {signedOut:true,rows:[],daily:null};
+    const [a,b]=await Promise.all([
+      sb.from('lmr_session_chain').select('*').eq('trade_date',ds).eq('symbol','NQ'),
+      sb.from('lmr_profiles').select('summary,report_md').eq('scope','daily').eq('period_key',ds).maybeSingle()
+    ]);
+    const res={rows:(a&&a.data)||[],daily:(b&&b.data)||null,err:(a&&a.error)||(b&&b.error)||null};
+    if(!res.err) cache[ds]=res;
+    return res;
+  }
+  async function loadProfile(scope,ds){
+    const k=scope+'|'+ds; if(pcache[k]) return pcache[k];
+    const sb=client(); if(!sb||!uid()) return null;
+    const {data}=await sb.from('lmr_profiles').select('period_key,period_start,period_end,report_md,summary')
+      .eq('scope',scope).lte('period_start',ds).order('period_start',{ascending:false}).limit(1);
+    const r=(data&&data[0])||null; pcache[k]=r; return r;
+  }
+
+  // ── Narrative for one window ────────────────────────────────────────────
+  // One line, ICT language: what this session did with liquidity, how it closed, where vs the True Day Open
+  function story(r,daily){
+    if(!r||r.o==null) return '';
+    const took=Array.isArray(r.took)?r.took:[];
+    const clean=t=>String(t).replace(/\s*[↑↓]\s*$/,'').replace(/^prev /,'prior window ');
+    const bsl=took.filter(t=>/↑/.test(t)).map(clean), ssl=took.filter(t=>/↓/.test(t)).map(clean);
+    const cl=num(r.close_loc), strong=cl!=null&&cl>=70, weak=cl!=null&&cl<=30;
+    const B=a=>`<b>${esc(a.join(', '))}</b>`;
+    let s;
+    if(bsl.length&&ssl.length) s=`Two-sided run — took BSL ${B(bsl)} and SSL ${B(ssl)}, ${strong?'closed at the highs: SSL raid was the Judas, bullish delivery':weak?'closed at the lows: BSL raid was the Judas, bearish delivery':'closed mid-range: no clean delivery yet'}`;
+    else if(bsl.length) s=weak?`Raided BSL ${B(bsl)} and rejected — Judas swing / turtle-soup high, bearish displacement`:strong?`Displaced through BSL ${B(bsl)} and held — bullish expansion, draw still higher`:`Ran BSL ${B(bsl)} then stalled — no displacement, watch for rejection`;
+    else if(ssl.length) s=strong?`Swept SSL ${B(ssl)} and reversed — stop hunt below lows, bullish displacement`:weak?`Displaced through SSL ${B(ssl)} and held — bearish expansion, draw still lower`:`Ran SSL ${B(ssl)} then stalled — no displacement, watch for reversal`;
+    else s=weak?`No fresh liquidity taken — ranged and closed at its low: bearish consolidation, SSL resting below`:strong?`No fresh liquidity taken — ranged and closed at its high: bullish consolidation, BSL resting above`:`No fresh liquidity taken — balanced consolidation, liquidity building both sides`;
+    const sm=daily&&daily.summary||{};
+    if(sm.day_h!=null&&num(r.h)===num(sm.day_h)&&!r.window_name?.includes('Session')) s+=`; set the day's high`;
+    if(sm.day_l!=null&&num(r.l)===num(sm.day_l)&&!r.window_name?.includes('Session')) s+=`; set the day's low`;
+    if(r.vs_true_open==='Premium') s+=`, trading in <b>premium</b> above the True Day Open`;
+    else if(r.vs_true_open==='Discount') s+=`, trading in <b>discount</b> below the True Day Open`;
+    if(r.smt) s+=` · <span style="color:var(--gold)">${esc(String(r.smt).split('; ').map(x=>x.replace(/^(High|Low): (.*)$/,(m,side,rest)=>`SMT at the ${side.toLowerCase()} (${rest})`)).join('; '))}</span>`;
+    return s+'.';
+  }
+  // LMR key levels: where the liquidity sits (resting) and what has been taken
+  function levelsHTML(daily){
+    const sm=daily&&daily.summary||{}; const lv=Array.isArray(sm.levels)?sm.levels:[];
+    if(!lv.length) return '';
+    const last=num(sm.last);
+    const row=l=>{const st=l.taken==='open'?'gone':l.taken?'gone':'rest';
+      const lab=l.taken==='open'?'through at open':l.taken?`taken ${esc(l.taken)}`:'resting';
+      const d=last!=null?` <span style="color:var(--text3)">${(l.price-last>=0?'+':'')+f2(l.price-last)}</span>`:'';
+      return `<div class="lsc-klr ${st}"><b>${esc(l.name)}</b><span class="p">${f2(l.price)}${st==='rest'?d:''}</span><span class="lsc-kls ${st}">${lab}</span></div>`;};
+    const hs=lv.filter(l=>l.side==='H').sort((a,b)=>b.price-a.price), ls=lv.filter(l=>l.side==='L').sort((a,b)=>b.price-a.price);
+    const rh=hs.filter(l=>!l.taken).length, rl=ls.filter(l=>!l.taken).length;
+    return `<div class="lsc-kl"><div class="bsl"><h6>Buy-side liquidity · highs (${rh} resting)</h6>${hs.map(row).join('')}</div>
+      <div class="ssl"><h6>Sell-side liquidity · lows (${rl} resting)</h6>${ls.map(row).join('')}</div>
+      ${last!=null?`<div class="lsc-klast">Last NQ ${f2(last)}${sm.live_asof?` · as of ${esc(sm.live_asof)} NY`:''} · distance shown for resting levels</div>`:''}</div>`;
+  }
+  function phChip(p){ return PH[p]?`<span class="lsc-ph ${p}">${p} · ${PH[p]}</span>`:''; }
+
+  function rowHTML(w,r,st,daily,isRev,ds){
+    const sm=daily&&daily.summary||{};
+    let tags='';
+    if(r&&sm.day_h!=null&&num(r.h)===num(sm.day_h)) tags+='<span class="lsc-tag hod">HOD</span>';
+    if(r&&sm.day_l!=null&&num(r.l)===num(sm.day_l)) tags+='<span class="lsc-tag lod">LOD</span>';
+    const stTxt=st==='live'?'Live':st==='done'?(r?'Read':'Closed'):'Upcoming';
+    const stats=r&&r.o!=null?`<div class="lsc-stats"><span>O ${f2(r.o)}</span><span>H ${f2(r.h)} <i>${esc(r.h_time||'')}</i></span><span>L ${f2(r.l)} <i>${esc(r.l_time||'')}</i></span><span>C ${f2(r.c)}</span><span>${f2(r.range_pts)} pts</span></div>`:'';
+    const img=(ds&&w.id&&st!=='up')?`<div class="img-zone-wrap lsc-imgw"><div class="img-zone lsc-img" data-imgkey="${ds}-lsc-${w.id}" onclick="pickImage(this)"><div class="img-zone-text">📋 Chart · ${esc(w.s)}–${esc(w.e)}</div></div></div>`:'';
+    return `<div class="lsc-row ${st}${isRev||w.session?' rev':''}">
+      <div><div class="lsc-time">${esc(w.cp==='11:10 AM'?'11:10':w.cp)}</div><div class="lsc-sub">${esc(w.s)}–${esc(w.e)}</div></div>
+      <div>
+        <div class="lsc-title">${esc(w.name)} <span class="lsc-st ${st}">${stTxt}</span>${w.session?'<span class="lsc-tag">session</span>':''}${w.legacy?'<span class="lsc-tag">earlier schedule</span>':''}${r?phChip(r.phase):''}${tags}</div>
+        <div class="lsc-guide">${esc(w.guide||'')}</div>
+        ${r?`<div class="lsc-story">${story(r,daily)}</div>`:''}
+        ${stats}
+        ${img}
+      </div></div>`;
+  }
+
+  function barHTML(ds,ti){
+    let h='<div class="lsc-bar"><div class="lsc-seg">ASI 18–00</div><div class="lsc-seg">LDN 00–06</div><div class="lsc-seg">NAM 06–12</div><div class="lsc-seg">NPM 12–18</div>';
+    CP.filter(w=>!w.session&&w.cp!=='EOD').forEach(w=>{const p=(offEnd(w.at)/1440*100).toFixed(2);h+=`<div class="lsc-tick" style="left:${p}%"><span>${w.at}</span></div>`;});
+    if(ds===ti.td&&ti.nowOff>=0) h+=`<div class="lsc-nowm" style="left:${(ti.nowOff/1440*100).toFixed(2)}%" title="Now ${ti.hm} NY"></div>`;
+    return h+'</div>';
+  }
+
+  // ── Mini markdown (headings, bullets, tables, bold) ───────────────────────
+  function md(src){
+    if(!src) return '';
+    const lines=String(src).split('\n'); let out='',i=0,depth=0;
+    const inl=t=>esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+    const closeLists=d=>{while(depth>d){out+='</ul>';depth--;}};
+    while(i<lines.length){
+      const ln=lines[i];
+      if(/^\s*\|/.test(ln)){
+        closeLists(0); const rows=[];
+        while(i<lines.length&&/^\s*\|/.test(lines[i])){ if(!/^\s*\|[\s\-|:]+\|\s*$/.test(lines[i])) rows.push(lines[i]); i++; }
+        out+='<div class="lsc-tw"><table>'+rows.map((r,ri)=>'<tr>'+r.trim().replace(/^\||\|$/g,'').split('|').map(c=>ri?`<td>${inl(c.trim())}</td>`:`<th>${inl(c.trim())}</th>`).join('')+'</tr>').join('')+'</table></div>';
+        continue;
+      }
+      const b=ln.match(/^(\s*)- (.*)$/);
+      if(b){ const d=Math.floor(b[1].length/2)+1; while(depth<d){out+='<ul>';depth++;} closeLists(d); out+=`<li>${inl(b[2])}</li>`; i++; continue; }
+      closeLists(0);
+      if(/^## /.test(ln)) out+=`<h5>${inl(ln.slice(3))}</h5>`;
+      else if(/^# /.test(ln)) out+=`<h4>${inl(ln.slice(2))}</h4>`;
+      else if(ln.trim()) out+=`<p style="margin:4px 0">${inl(ln)}</p>`;
+      i++;
+    }
+    closeLists(0); return out;
+  }
+  function mdSection(src,title){
+    if(!src) return '';
+    const m=String(src).split(/\n(?=## )/).find(s=>s.startsWith('## '+title));
+    return m||'';
+  }
+
+  // ── Views ───────────────────────────────────────────────────────────
+  function intradayHTML(ds,data,ti,compact){
+    const byCp={}; (data.rows||[]).forEach(r=>byCp[r.checkpoint]=r);
+    const known=new Set(CP.map(w=>w.cp));
+    const legacy=(data.rows||[]).filter(r=>!known.has(r.checkpoint)).map(r=>({cp:r.checkpoint,name:r.window_name,s:r.win_start,e:r.win_end,legacy:true,guide:''}));
+    const all=CP.map(w=>({w,rev:false})).concat(legacy.map(w=>({w,rev:true})))
+      .sort((a,b)=>(offEnd(a.w.e)-offEnd(b.w.e))||(offEnd(a.w.at||a.w.e)-offEnd(b.w.at||b.w.e))||((a.w.session?1:0)-(b.w.session?1:0)));
+    let h='';
+    if(!compact){
+      let live=null,next=null;
+      CP.forEach(w=>{const st=statusFor(ds,w,ti); if(st==='live'&&!live) live=w; if(st==='up'&&!next) next=w;});
+      h+=`<div class="lsc-now"><span>NY <b>${ti.hm}</b></span><span>Trade date <b>${fmtD(ds)}</b></span>`;
+      if(ds===ti.td){ if(live) h+=`<span class="lsc-live">● Live: ${esc(live.name)} (${live.s}–${live.e})</span>`; if(next) h+=`<span>Next read <b>${next.cp}</b> · ${esc(next.name)}</span>`;
+        const asof=data.daily&&data.daily.summary&&data.daily.summary.live_asof;
+        const nowM=toMin(ti.hm); const nr=(nowM>=1080||ti.nowOff<0)?RUNS[0]:(RUNS.find(r=>toMin(r)>nowM)||null);
+        h+=`<span>${asof?`Updated <b>${esc(asof)}</b> NY`:(data.rows.length?'Final (17:20 run)':'Not updated yet')}${nr?` · next update <b>${nr}</b>`:''}</span>`; }
+      h+='</div>';
+      h+=barHTML(ds,ti);
+      h+='<!--lsc-split-->';
+    }
+    if(data.signedOut) h+='<div class="lsc-note">Sign in to load the session chain for this day.</div>';
+    else if(!data.rows.length) h+=`<div class="lsc-note">${ds>=ti.td?'Each checkpoint fills in live a couple of minutes after its read time (00:02, 01:32, 02:02, 05:32, 09:02, 10:02, 11:12, 12:12, 13:32, 14:12, 15:12, 16:12 NY); the day and every window’s TradingView chart are finalised at 17:20 NY. The schedule below shows what each checkpoint reads.':'No session chain recorded for this day.'}</div>`;
+    const klv=levelsHTML(data.daily); if(klv) h+=`<div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.09em;margin:6px 0 6px">LMR key levels — PDH/PDL · 3-day · prior week · prior month · prior quarter · Asia · London KZ · NY AM · NY PM</div>`+klv;
+    const seq=CP.filter(w=>!w.session).map(w=>byCp[w.cp]).filter(r=>r&&PH[r.phase]);
+    if(seq.length) h+=`<div class="lsc-seq">Phase chain ${seq.map(r=>`<span class="lsc-ph ${r.phase}" title="${esc(r.window_name)}">${r.checkpoint==='EOD'?'EOD':r.checkpoint} ${r.phase}</span>`).join('<span>→</span>')}</div>`;
+    const shown=compact&&data.rows.length?all.filter(x=>byCp[x.w.cp]):all;
+    h+='<div class="lsc-list">'+shown.map(({w,rev})=>rowHTML(w,byCp[w.cp],statusFor(ds,w,ti),data.daily,rev,ds)).join('')+'</div>';
+    return h;
+  }
+  function dailyHTML(ds,data){
+    const d=data.daily; if(!d) return `<div class="lsc-empty">${data.signedOut?'Sign in to load the daily profile.':'Daily profile for '+fmtD(ds)+' is written at 17:20 NY.'}</div>`;
+    const s=d.summary||{};
+    const rng=(s.day_h!=null&&s.day_l!=null)?(s.day_h-s.day_l):null;
+    const kv=[['Open',f2(s.day_o)],['High',f2(s.day_h)],['Low',f2(s.day_l)],['Close',f2(s.day_c)],['Range',rng==null?'—':f2(rng)+' pts'],
+      ['True Open 00:00',f2(s.true_open)],['RTH Open',f2(s.rth_open)],['PDH',f2(s.pdh)],['PDL',f2(s.pdl)],
+      ['HOD',`${esc(s.hod_time||'—')} · ${esc(s.hod_session||'')}`],['LOD',`${esc(s.lod_time||'—')} · ${esc(s.lod_session||'')}`],['Formed first',esc(s.first||'—')]];
+    const dir=(s.day_c!=null&&s.true_open!=null)?(s.day_c>=s.true_open?'<span class="lsc-ph A">Close above True Open</span>':'<span class="lsc-ph M">Close below True Open</span>'):'';
+    return `<div style="margin-bottom:8px">${dir}</div><div class="lsc-kv">${kv.map(([k,v])=>`<div><small>${k}</small><b>${v}</b></div>`).join('')}</div>
+      <div class="lsc-md">${md(mdSection(d.report_md,'Daily profile'))}${md(mdSection(d.report_md,'Next-day map'))}</div>`;
+  }
+  function weekQuarters(ds){
+    const dw=dowOf(ds);
+    return '<div class="lsc-q">'+[['Q1','Mon',1],['Q2','Tue',2],['Q3','Wed',3],['Q4','Thu',4],['FRI','Fri',5]].map(([q,n,i])=>`<div class="${dw===i?'on':''}"><b>${q}</b>${n}</div>`).join('')+'</div>';
+  }
+  async function weekSoFar(ds){
+    const sb=client(); if(!sb||!uid()) return '';
+    const mon=addDays(ds,-((dowOf(ds)+6)%7)), fri=addDays(mon,4);
+    const {data}=await sb.from('lmr_profiles').select('period_key,summary').eq('scope','daily').gte('period_key',mon).lte('period_key',fri).order('period_key',{ascending:true});
+    const ds_=(data||[]).filter(d=>d.summary&&d.summary.day_h!=null);
+    if(!ds_.length) return '';
+    const wh=Math.max(...ds_.map(d=>+d.summary.day_h)), wl=Math.min(...ds_.map(d=>+d.summary.day_l));
+    const QN=['','Q1','Q2','Q3','Q4','FRI'];
+    const rows=ds_.map(d=>{const s=d.summary,dw=dowOf(d.period_key);
+      const tags=(+s.day_h===wh?' <span class="lsc-tag hod">week H</span>':'')+(+s.day_l===wl?' <span class="lsc-tag lod">week L</span>':'');
+      return `<tr><td>${QN[dw]||''} ${fmtD(d.period_key)}${tags}</td><td>${f2(s.day_h)} <i>${esc(s.hod_time||'')} ${esc(s.hod_session||'')}</i></td><td>${f2(s.day_l)} <i>${esc(s.lod_time||'')} ${esc(s.lod_session||'')}</i></td><td>${f2(s.day_h-s.day_l)}</td><td>${f2(s.day_o)} → ${f2(s.day_c)} ${+s.day_c>=+s.day_o?'▲':'▼'}</td><td>${esc(s.first||'')} first</td></tr>`;}).join('');
+    return `<h5 style="font-size:10px;margin:4px 0 6px;color:var(--gold);text-transform:uppercase;letter-spacing:.09em">This week so far — how each day builds the weekly profile</h5>
+      <div class="lsc-md"><div class="lsc-tw"><table><tr><th>Day</th><th>High (time · session)</th><th>Low (time · session)</th><th>Range</th><th>Open → Close</th><th>Formed</th></tr>${rows}</table></div></div>
+      <div class="lsc-sub" style="margin:6px 0 14px">Week so far: H ${f2(wh)} · L ${f2(wl)} · ${f2(wh-wl)} pts</div>`;
+  }
+  async function profileHTML(scope,ds){
+    const p=await loadProfile(scope,ds);
+    let head=scope==='weekly'?weekQuarters(ds):'';
+    if(scope==='weekly') head+=await weekSoFar(ds);
+    if(!p) return head+`<div class="lsc-empty">${scope==='weekly'?'Weekly profile is written every Friday at 17:20 NY.':'Monthly profile is written on the last trading day of the month at 17:20 NY.'}</div>`;
+    const stale=p.period_end&&p.period_end<ds;
+    return head+`<div class="lsc-sub" style="margin-bottom:6px">${scope==='weekly'?'Weekly':'Monthly'} profile · ${esc(p.period_start)} → ${esc(p.period_end)}${stale?' (latest completed '+(scope==='weekly'?'week':'month')+')':''}</div><div class="lsc-md">${md(p.report_md)}</div>`;
+  }
+
+  function loadImgs(root){ if(typeof renderImgZone!=='function') return; root.querySelectorAll('.img-zone[data-imgkey]').forEach(z=>{ try{ renderImgZone(z); }catch(e){} }); }
+
+  // ── Today panel card ───────────────────────────────────────────────────
+  const S={ds:null,tab:'intra'};
+  async function renderToday(force){
+    const host=document.getElementById('lsc-today'); if(!host) return;
+    const ti=tradeInfo(); if(!S.ds) S.ds=ti.td;
+    const ds=S.ds;
+    const tabs=[['intra','Intraday'],['daily','Daily'],['weekly','Weekly'],['monthly','Monthly']];
+    const head=document.getElementById('lsc-head');
+    if(head) head.innerHTML=`<div class="lsc-tabs">${tabs.map(([k,l])=>`<button class="lsc-tab ${S.tab===k?'on':''}" onclick="lmrChainTab('${k}')">${l}</button>`).join('')}</div>
+      <div class="lsc-nav"><button onclick="lmrChainNav(-1)">‹</button><span class="lsc-d">${fmtD(ds)}</span><button onclick="lmrChainNav(1)">›</button><button onclick="lmrChainNav(0)">Today</button><button onclick="lmrChainOpenDay()" title="Open this day in the journal">↗</button></div>`;
+    const body=document.getElementById('lsc-body'); if(!body) return;
+    try{
+      if(S.tab==='weekly'||S.tab==='monthly'){ body._lsc=null; body.innerHTML=await profileHTML(S.tab,ds); return; }
+      const data=await loadDay(ds,force);
+      if(S.ds!==ds) return;
+      const html=S.tab==='daily'?dailyHTML(ds,data):intradayHTML(ds,data,ti,false);
+      const k=html.indexOf('<!--lsc-split-->'); const top=k<0?'':html.slice(0,k), rest=k<0?html:html.slice(k);
+      if(body._lsc!==rest||!body.querySelector('#lsc-top')){ body.innerHTML='<div id="lsc-top"></div><div id="lsc-rest"></div>'; body.querySelector('#lsc-rest').innerHTML=rest; body._lsc=rest; loadImgs(body); }
+      body.querySelector('#lsc-top').innerHTML=top;
+    }catch(e){ body.innerHTML=`<div class="lsc-empty">Could not load the session chain (${esc(e.message||e)}).</div>`; }
+  }
+  window.lmrChainTab=k=>{S.tab=k;renderToday();};
+  window.lmrChainNav=dir=>{S.ds=dir?nextTradingDay(S.ds||tradeInfo().td,dir):tradeInfo().td;renderToday();};
+  window.lmrChainOpenDay=()=>{ if(typeof openDayModal==='function') openDayModal(S.ds); };
+  window.lmrRenderToday=renderToday;
+
+  // ── Day modal section ──────────────────────────────────────────────────
+  window.lmrRenderDayChain=async function(ds){
+    const host=document.getElementById('dm-lmr-chain'); if(!host) return;
+    host.innerHTML='<div class="lsc-empty">Loading session chain…</div>';
+    try{
+      const ti=tradeInfo(); const data=await loadDay(ds);
+      if(document.getElementById('dm-ds').value!==ds) return;
+      let h=intradayHTML(ds,data,ti,true);
+      if(data.daily) h+=`<details open><summary>Daily profile &amp; next-day map</summary><div style="margin-top:8px">${dailyHTML(ds,data)}</div></details>`;
+      if(dowOf(ds)===5) h+=`<details><summary>Weekly profile</summary><div style="margin-top:8px">${await profileHTML('weekly',ds)}</div></details>`;
+      host.innerHTML=h; loadImgs(host);
+    }catch(e){ host.innerHTML=`<div class="lsc-empty">Could not load the session chain.</div>`; }
+  };
+
+  // Live refresh while the Today panel is open: clock/now-marker every minute, data every 10 min
+  let tick=0;
+  setInterval(()=>{
+    const p=document.getElementById('p-live'); if(!p||!p.classList.contains('active')) return;
+    tick++; const today=S.ds===tradeInfo().td;
+    if(today&&tick%2===0){ delete cache[S.ds]; }
+    if(S.tab==='intra'||tick%2===0) renderToday();
+  },60000);
+  setTimeout(()=>renderToday(),2500);
+})();
+</script>
 </body></html>

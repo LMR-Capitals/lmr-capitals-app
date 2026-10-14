@@ -10,3 +10,6 @@ design/
 tasks/
 .claude/
 .DS_Store
+ios/
+native/
+capacitor.config.json

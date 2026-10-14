@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Import Journal charts · LMR Capitals</title>
+  <style>
+    :root{color-scheme:dark;font-family:Arial,sans-serif;background:#07111f;color:#edf2f7}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px}
+    main{width:min(680px,100%);padding:clamp(24px,5vw,44px);border:1px solid #3a4b60;background:#101e30;border-radius:16px}
+    .eyebrow{color:#e9bd66;letter-spacing:.16em;text-transform:uppercase;font-size:12px;font-weight:700}
+    h1{font-size:clamp(30px,5vw,46px);line-height:1.08;margin:14px 0}p,li{line-height:1.65;color:#b9c9d9}
+    input{display:block;max-width:100%;margin:24px 0;padding:14px;border:1px dashed #b0904e;border-radius:8px}
+    button{background:#e9bd66;color:#07111f;border:0;border-radius:8px;padding:13px 22px;font-size:15px;font-weight:700;cursor:pointer}
+    button:disabled{opacity:.45;cursor:not-allowed}a{color:#e9bd66}
+    progress{width:100%;height:12px;margin:20px 0 4px;accent-color:#e9bd66}
+    #status{min-height:2em}#details{font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">LMR Capitals / private Journal</div>
+    <h1>Finish importing your chart images.</h1>
+    <p>The 58 deduplicated Journal notes are stored in your account. Select the original <strong>Notes Journal.zip</strong> to attach all 68 charts. Images upload directly from this browser to your private Supabase Storage folder; they are never published as site files.</p>
+    <p><a href="/app">Back to Journal</a></p>
+    <label for="archive">Original Notion ZIP archive</label>
+    <input id="archive" type="file" accept=".zip,application/zip">
+    <button id="start" type="button" disabled>Check and upload charts</button>
+    <progress id="progress" value="0" max="68" hidden></progress>
+    <p id="status" role="status" aria-live="polite">Checking your sign-in…</p>
+    <p id="details"></p>
+  </main>
+  <script type="module">
+    import {openJournalArchive} from './journal-import.js';
+    const url='https://agrvylclhvxyevsmmexf.supabase.co';
+    const key='sb_publishable_vUhBxc3efVrs41yc9WZmAA_SnhBIrDh';
+    const sb=window.supabase.createClient(url,key);
+    const input=document.getElementById('archive');
+    const start=document.getElementById('start');
+    const status=document.getElementById('status');
+    const details=document.getElementById('details');
+    const progress=document.getElementById('progress');
+    let user=null;
+    try {
+      const result=await sb.auth.getUser();
+      if(result.error || !result.data.user) throw new Error('Please sign in to the app, then reopen this page.');
+      user=result.data.user;
+      status.textContent='Signed in. Select your original ZIP archive.';
+      input.addEventListener('change',()=>{start.disabled=!input.files.length;});
+    } catch(error) { status.textContent=error.message; input.disabled=true; }
+    start.addEventListener('click',async()=>{
+      start.disabled=true;details.textContent='';progress.hidden=true;
+      try {
+        if(!user || !input.files.length) throw new Error('Sign in and choose the ZIP first.');
+        status.textContent='Checking the archive and your private Journal…';
+        const archive=await openJournalArchive(input.files[0]);
+        const result=await sb.from('journal')
+          .select('id,import_source_id,import_image_paths,image_keys')
+          .eq('user_id',user.id).not('import_source_id','is',null);
+        if(result.error) throw result.error;
+        const rows=result.data||[];
+        if(rows.length!==58) throw new Error(`Expected 58 imported notes, found ${rows.length}. No charts were uploaded.`);
+        const jobs=rows.flatMap(row=>{
+          const paths=row.import_image_paths||[], keys=row.image_keys||[];
+          if(paths.length!==keys.length) throw new Error('An entry has incomplete image metadata.');
+          return paths.map((path,i)=>({path,key:keys[i]}));
+        });
+        if(jobs.length!==68) throw new Error(`Expected 68 chart images, found ${jobs.length}. No charts were uploaded.`);
+        const missing=jobs.filter(job=>!archive.hasImage(job.path));
+        if(missing.length) throw new Error(`${missing.length} expected charts are missing. Select the original Notes Journal.zip.`);
+        if(jobs.some(job=>!job.key.startsWith(user.id+'/journal-import/')))
+          throw new Error('The chart destination does not match this account.');
+        progress.max=jobs.length;progress.value=0;progress.hidden=false;
+        for(let i=0;i<jobs.length;i++){
+          const job=jobs[i];
+          const blob=await archive.image(job.path);
+          const uploaded=await sb.storage.from('lmr-images').upload(job.key,blob,{contentType:'image/png',upsert:true});
+          if(uploaded.error) throw new Error(`Chart ${i+1}: ${uploaded.error.message}`);
+          progress.value=i+1;status.textContent=`Uploaded ${i+1} of ${jobs.length} charts…`;
+        }
+        status.textContent='All 68 charts uploaded. Open the Journal to see them with their notes.';
+        details.innerHTML='<a href="/app">Return to the app</a>';
+      } catch(error){
+        status.textContent='Import stopped safely.';
+        details.textContent=error.message+' You can select the same ZIP and retry; already uploaded images will be replaced with their original copies.';
+      } finally { start.disabled=!user || !input.files.length; }
+    });
+  </script>
+</body>
+</html>

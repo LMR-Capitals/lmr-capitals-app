@@ -14,7 +14,7 @@ import { createChart } from './mini-charts.js';
 import { initPeripherals } from './peripherals.js';
 import { createHeroFocal } from './hero-focal.js';
 
-const goApp = () => { window.location.href = '/app'; };
+const goApp = () => { window.location.href = '/inner-circle'; };
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 const smooth = (e0, e1, x) => { const t = clamp01((x - e0) / (e1 - e0)); return t * t * (3 - 2 * t); };
 
@@ -429,7 +429,7 @@ function App() {
             <a href="#indicators" className={activeNav === 'indicators' ? 'on' : ''}>Indicators</a>
             <a href="#contact" className={activeNav === 'contact' ? 'on' : ''}>Contact</a>
           </div>
-          <button className="btn btn-ghost" onClick={goApp}>Sign In</button>
+          <button className="btn btn-ghost" onClick={goApp}>Inner Circle →</button>
         </nav>
 
         {/* HERO */}
@@ -439,7 +439,7 @@ function App() {
           <Reveal delay={0.05}><h1 className="h1">Trade With a System.<br />Master <span className="gold">The Chain</span>.</h1></Reveal>
           <Reveal delay={0.12}><p className="lead">A structured Daily → Weekly → Monthly methodology — every trade, every model, every lesson logged in real time, and organized end to end by one system.</p></Reveal>
           <Reveal delay={0.2}><div className="row">
-            <button className="btn btn-gold" onClick={goApp}>Start Free Trial →</button>
+            <button className="btn btn-gold" onClick={goApp}>Join Free Inner Circle →</button>
             <a className="btn btn-ghost" href="#about">Learn More</a>
           </div></Reveal>
           <div className="scrollhint">Scroll ↓</div>
@@ -634,9 +634,9 @@ function App() {
           <Reveal className="cta-band">
             <span className="cta-kick">Start Today</span>
             <h2>See the System in Action</h2>
-            <p>Sign in to view the live journal, methodology breakdowns, and performance reports — or start your free trial to get access.</p>
-            <button className="btn cta-btn" onClick={goApp}>Start Free Trial →</button>
-            <span className="cta-fine">7-day free trial · then $25/mo or $270/yr · cancel anytime</span>
+            <p>Sign in for free chapter learning and resources. Choose membership for the live desk, private support and trading application.</p>
+            <button className="btn cta-btn" onClick={goApp}>Join Free Inner Circle →</button>
+            <span className="cta-fine">Free chapter learning · premium access through membership</span>
           </Reveal>
         </section>
 
