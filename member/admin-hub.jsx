@@ -85,7 +85,7 @@ function ConnectedHub({ user, onNavigate }) {
       <div><dt>Estimated recurring revenue</dt><dd>{revenue ? revenue.length ? revenue.map(r=>`${new Intl.NumberFormat("en-US",{style:"currency",currency:r.currency}).format(r.mrr_cents/100)} ${r.currency.toUpperCase()}`).join(" · ") : "$0" : "—"}<small> / month</small></dd></div>
     </dl>
     <nav className="hub-tabs" aria-label="Admin Hub sections">{tabs.map(([id, label]) =>
-      <button key={id} aria-current={tab === id ? "page" : undefined} className={tab === id ? "active" : ""} onClick={() => { setTab(id); setQuery(""); setPage(0); setNotice(""); }}>{label}</button>)}</nav>
+      <button key={id} aria-current={tab === id ? "page" : undefined} className={tab === id ? "active" : ""} onClick={() => { setRows([]); setLoading(true); setTab(id); setQuery(""); setPage(0); setNotice(""); }}>{label}</button>)}</nav>
     {error && <div className="banner error" role="alert"><span>{error}</span><Button small onClick={() => setVersion((v) => v + 1)}>Try again</Button></div>}
     {notice && <div className="banner" role="status">{notice}</div>}
     {agreementMember&&<AgreementHistory userId={agreementMember.user_id} email={agreementMember.email} onClose={()=>setAgreementMember(null)}/>}
@@ -101,7 +101,7 @@ function ConnectedHub({ user, onNavigate }) {
         : !rows.length ? <Empty icon={tab === "journal" ? "application" : "profile"} title={preview ? "Connect your real administrator account" : "No records found"} body={preview ? "Preview does not load your private database." : "Try another search or collection, or refresh the cloud records."} />
         : rows.map((row, index) => tab === "journal" ? <JournalRecord key={row.id || row.key || row.week_key || index} row={row} />
           : tab === "reviews" ? <div className="hub-row" key={row.stripe_event_id}>
-            <div><strong>{row.email || "Unmapped Stripe customer"}</strong><small>{row.event_type.replaceAll("_", " ")} · {formatDate(row.event_created)} · {row.reason}</small><small>{row.stripe_event_id}</small></div>
+            <div><strong>{row.email || "Unmapped Stripe customer"}</strong><small>{String(row.event_type || "Billing event").replaceAll("_", " ")} · {formatDate(row.event_created)} · {row.reason}</small><small>{row.stripe_event_id}</small></div>
             <span className="tag">{row.reviewed_at ? "Reviewed" : "Needs review"}</span>
             <a className="button small" href={`https://dashboard.stripe.com/${row.stripe_charge_id ? "payments/" + row.stripe_charge_id : "events/" + row.stripe_event_id}`} target="_blank" rel="noopener noreferrer">Open Stripe</a>
             {!row.reviewed_at && <Button small disabled={busy || preview} onClick={() => action(() => hubRpc(sb, "circle_admin_review_billing_event", {event_id: row.stripe_event_id}), "Marked reviewed. Billing and access unchanged.")}>Mark reviewed</Button>}
