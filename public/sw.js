@@ -1,9 +1,6 @@
-// LMR Capitals — Service Worker v11
-// v11: bump cache to force all clients to update, clear stale caches, and pull the
-// modernist redesign (v10 was byte-identical so browsers never detected an update).
-// HTML navigations are always network-first; old caches are purged on activate.
+// LMR Capitals — public asset cache only. v14 removes previously cached API/HTML responses.
 
-const CACHE = 'lmr-v13';
+const CACHE = 'lmr-v14';
 const STATIC = [
   './chart.umd.min.js',
   './icons/icon-192.png',
@@ -25,45 +22,20 @@ self.addEventListener('activate', e => {
   );
 });
 
+// Only cache the explicitly public offline assets. Never persist authenticated
+// API responses or HTML in a device-wide cache shared between signed-in users.
+const PUBLIC_ASSETS = new Set(STATIC.map(path => new URL(path, self.location.href).href));
 self.addEventListener('fetch', e => {
-  const url = e.request.url;
-  if (e.request.method !== 'GET') return;
-
-  // ── HTML PAGE NAVIGATIONS → always NETWORK FIRST ──────────────────────────
-  // mode==='navigate' covers ALL of: lmrcapitals.com, lmrcapitals.com/,
-  // lmrcapitals.com/index.html, netlify preview URLs — no URL pattern needed
-  if (e.request.mode === 'navigate') {
-    e.respondWith(
-      fetch(e.request, {cache: 'no-store'}).then(res => {
-        if (res.ok) {
-          const clone = res.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
-        }
-        return res;
-      }).catch(() => caches.match(e.request))
-    );
-    return;
-  }
-
-  // ── External (CDN, Supabase, fonts) → network only ─────────────────────────
-  if (!url.startsWith(self.location.origin)) {
-    e.respondWith(
-      fetch(e.request).catch(() => new Response('', { status: 503 }))
-    );
-    return;
-  }
-
-  // ── Static assets (chart.js, icons) → cache first ──────────────────────────
+  if (e.request.method !== 'GET' || e.request.headers.has('Authorization') ||
+      !PUBLIC_ASSETS.has(e.request.url)) return;
   e.respondWith(
-    caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(res => {
-        if (res.ok) {
-          const clone = res.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
-        }
-        return res;
-      }).catch(() => new Response('Offline', { status: 503 }));
-    })
+    caches.match(e.request).then(cached => cached || fetch(e.request).then(async response => {
+      const policy = response.headers.get('Cache-Control') || '';
+      if (response.ok && !/no-store|private/i.test(policy)) {
+        const cache = await caches.open(CACHE);
+        await cache.put(e.request, response.clone());
+      }
+      return response;
+    }))
   );
 });

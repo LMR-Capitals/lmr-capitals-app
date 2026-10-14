@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {JSDOM} from '/private/tmp/lmr-circle-tests/node_modules/jsdom/lib/api.js';
+const window=new JSDOM('',{runScripts:'outside-only'}).window;
+window.eval(readFileSync('public/vendor/dompurify-3.4.17.min.js','utf8'));
+window.eval(readFileSync('public/journal-content-security.js','utf8'));
+const dangerous='<img src=x onerror="alert(1)"><script>alert(1)</script><a href="javascript:alert(1)">x</a><svg onload="alert(1)"></svg><iframe srcdoc="bad"></iframe>';
+const safe=window.lmrSanitizeRichHtml(dangerous);
+assert.doesNotMatch(safe,/onerror|script|javascript:|onload|iframe|svg/);
+assert.match(window.lmrSanitizeRichHtml('<p><b>Notes</b></p><img data-imgkey="chart-1" src="data:image/png;base64,AAAA">'),/data-imgkey="chart-1"/);
+assert.equal(window.lmrEscapeText('<img onerror="x">'),'&lt;img onerror=&quot;x&quot;&gt;');
+window.DOMPurify=null;assert.equal(window.lmrSanitizeRichHtml('<b>fail closed</b>'),'&lt;b&gt;fail closed&lt;/b&gt;');
+window.close();console.log('PASS: rich text strips active HTML, preserves image keys, and escapes text if sanitizer fails to load.');

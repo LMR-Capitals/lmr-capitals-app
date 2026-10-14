@@ -1,0 +1,40 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+const {PGlite}=await import('/private/tmp/lmr-circle-tests/node_modules/@electric-sql/pglite/dist/index.js');
+const db=new PGlite();
+await db.exec(`
+create role authenticated;create role anon;
+create schema auth;create schema storage;
+create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('test.uid',true),'')::uuid$$;
+create function public.circle_can_access() returns boolean language sql stable as $$select current_setting('test.paid',true)='yes'$$;
+create function storage.foldername(text) returns text[] language sql immutable as $$select string_to_array($1,'/')$$;
+create table storage.buckets(id text primary key,public boolean);
+create table storage.objects(bucket_id text,name text);
+create table public.journal(user_id uuid,image_keys text[]);
+create table public.trades(user_id uuid,note text);
+create table public.circle_posts(source_kind text,source_owner_id uuid,source_id text,status text,published_at timestamptz);
+grant usage on schema auth,storage to authenticated,anon;
+grant select on all tables in schema public,storage to authenticated,anon;
+alter table public.trades enable row level security;
+alter table public.journal enable row level security;
+alter table storage.objects enable row level security;
+create policy owner_trades on trades using(user_id=auth.uid());
+create policy owner_journal on journal using(user_id=auth.uid());
+create policy "app-images: public read" on storage.objects for select using(bucket_id='app-images');
+insert into storage.buckets values('app-images',true),('journal-images',true);
+insert into trades values('00000000-0000-0000-0000-000000000001','private');
+insert into journal values('00000000-0000-0000-0000-000000000001',array['00000000-0000-0000-0000-000000000001/journal-import/hash/chart-01.png']);
+insert into storage.objects values('app-images','00000000-0000-0000-0000-000000000001/trade-a-entry'),('app-images','00000000-0000-0000-0000-000000000001/trade-b-entry'),('journal-images','note_hash_0.png');
+insert into circle_posts values('trade','00000000-0000-0000-0000-000000000001','a','published',now());
+`);
+await db.exec(await readFile(new URL('../../database/patches/launch-journal-membership.sql',import.meta.url),'utf8'));
+await db.exec(await readFile(new URL('../../database/patches/launch-private-media.sql',import.meta.url),'utf8'));
+assert.equal((await db.query('select count(*)::int as n from storage.buckets where public')).rows[0].n,0);
+async function asUser(id,paid){await db.exec(`reset role;set role authenticated;select set_config('test.uid','${id}',false),set_config('test.paid','${paid}',false);`);}
+async function count(table){return (await db.query('select count(*)::int as n from '+table)).rows[0].n;}
+await asUser('00000000-0000-0000-0000-000000000001','no');assert.equal(await count('trades'),0);assert.equal(await count('storage.objects'),0);
+await asUser('00000000-0000-0000-0000-000000000001','yes');assert.equal(await count('trades'),1);assert.equal(await count('storage.objects'),3);
+await asUser('00000000-0000-0000-0000-000000000002','yes');assert.equal(await count('trades'),0);assert.equal(await count('journal'),0);assert.equal(await count('storage.objects'),1);
+await db.exec(`reset role;update circle_posts set status='draft';set role authenticated;`);assert.equal(await count('storage.objects'),0);
+await db.exec('reset role;set role anon');assert.equal(await count('storage.objects'),0);
+await db.close();console.log('PASS: private buckets, owner isolation, free/expired denial, paid published image access, draft denial, imported-image ownership, anonymous denial.');
