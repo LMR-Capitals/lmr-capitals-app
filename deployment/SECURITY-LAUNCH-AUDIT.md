@@ -1,6 +1,6 @@
 # Launch security audit — 14 October 2026
 
-**Status: frontend/function fixes released; database access/storage rollout awaits explicit approval. This is not final launch clearance.** The production site is already live. A successful build or dependency scan does not prove absence of vulnerabilities.
+**Status: frontend/function fixes released; approved database access/storage hardening applied and verified. This is not final launch clearance.** The production site is already live. A successful build or dependency scan does not prove absence of vulnerabilities.
 
 ## Coordination and ownership
 
@@ -12,8 +12,8 @@ Preserve records, images, existing publication states, Journal autosave fixes an
 
 | Priority | Finding | Status |
 |---|---|---|
-| High | `app-images` and `journal-images` are public; app-images also allows anonymous metadata listing | Authenticated downloads and short-lived chart URLs released in PR #113. `launch-private-media.sql` prepared and tested, **not applied**. Deploy frontend first. |
-| High | Production Journal tables lack restrictive paid-access policies present in the source patch | `launch-journal-membership.sql` prepared and tested, **not applied**. Retains owner policies; no record changes. |
+| High | `app-images` and `journal-images` are public; app-images also allows anonymous metadata listing | Authenticated downloads and short-lived chart URLs released in PR #113. **Applied** as `20261014100031_launch_private_journal_media`, after frontend deployment. Owners retain file access regardless of subscription; paid members can read only published trade charts. |
+| High | Production Journal tables lack restrictive paid-access policies present in the source patch | **Applied** as `20261014095808_launch_journal_membership`: 19 existing Journal tables now have an additional entitlement gate. Retains owner policies; no record changes. |
 | High | Legacy admin functions accept password-only admin sessions | Recheck on 14 October confirms all nine legacy functions now use `circle_is_admin()`, including Claude's final two guards. No duplicate patch is needed. |
 | High | Subscription-cancellation Edge Function checks admin registry without MFA | Released fix checks caller `circle_is_admin()` before privileged client/Stripe use, rejects non-POST and invalid IDs, masks errors, and binds update to the original subscription. **Deployed and verified as Edge Function version 2, with JWT verification enabled.** |
 | High | Saved rich editor HTML and AI output reach HTML sinks | Pinned DOMPurify added to known editor load sinks; AI/user message text escaped. Targeted malicious HTML tests pass. Full legacy DOM-sink audit remains incomplete. |
@@ -27,7 +27,7 @@ Preserve records, images, existing publication states, Journal autosave fixes an
 
 - Production metadata inspection: RLS enabled on exposed tables; no exposed public views observed. Subscriptions have own-read policies and no ordinary client write policy. Life OS requires owner + verified admin MFA.
 - Checkout verifies agreement ownership/version and server price; Stripe webhook validates signatures and syncs server-derived subscription state. No real charges or cancellations were performed.
-- All 68 imported `journal-images` objects match existing owner Journal `image_keys` exactly. No storage object or member record has been changed by this audit.
+- All 68 imported `journal-images` objects match existing owner Journal `image_keys` exactly. No storage object or member record has been changed by this audit; only access policies, security functions and bucket privacy settings changed.
 - Current tracked-file secret scan found no privileged key; the Discord match was a test fixture. Public Supabase publishable/anon keys are intentionally browser-visible. A history scan across all fetched refs also found no matches for common privileged-key/private-key patterns. This is pattern-based evidence, not proof that every possible secret is absent. Generated artifact coverage remains a follow-up.
 - Local PostgreSQL negative tests: anonymous, free/expired, other-owner, draft publication denied; paid published-chart access and owner's imported charts allowed. Existing database regression suite passes.
 - Local tests cover authenticated image signatures with no public fallback, shared-cache bypass, MFA before Stripe/service-role access, and HTML sanitizer behavior.
@@ -43,16 +43,20 @@ Preserve records, images, existing publication states, Journal autosave fixes an
 
 For rollback, preserve user data; do not restore public image exposure as a routine rollback. Correct a policy or frontend regression forward. Do not run unrelated historical migrations or imports.
 
-## Release receipt and approval status
+## Release receipt and production verification
 
 - PR #113 merged as `480c492bb047a95170af306a34f11934a142ebce`. Passing checks: web deploy preview, header/redirect checks and iOS build.
 - Verified published deployment `6acf202710ab6f37eb67df90`, commit `e27d23e4a1e7f8bd7a46bd48e0955b5fba523d9e`, published `2026-10-14T06:25:19.803Z`, includes that merge. Live `sw.js` and `journal-content-security.js` match the reviewed files byte-for-byte.
 - Edge Function `admin-cancel-subscription` version 2 is active; `verify_jwt=true`. No real cancellation was performed.
 - Password leak protection enabled and verified in the dashboard. Secure password change and requiring the current password are also enabled in the observed configuration. The owner made additional settings changes during this audit; preserve those settings.
-- The two chart buckets remain public; production still has zero restrictive Journal membership policies.
-- First migration attempt did not execute because automatic approval review hit a usage-limit error. A later review rejected broad Journal RLS changes because of possible free/expired user lockout and required explicit approval of that scope. Do not route these pending changes through another tool, agent or the SQL editor to bypass approval.
-- The pending patch lists 20 table names; 18 currently exist (`payouts` and `target_events` do not). The review message described 21 tables; the SQL file is the authoritative scope and skips absent tables. An explicit approval request was sent to the owner.
+- Both chart buckets are now private. Production has 19 restrictive Journal membership policies. Before/after counts match: 238 trades, 103 Journal entries, 49 accounts, 8 posts, 1 subscription, 1 Life OS workspace and 1,676 storage objects.
+- Approval review initially blocked the broad Journal access change. The owner explicitly approved both production security changes. A subsequent image-policy review rejected gating owners by subscription; the patch was narrowed to preserve personal file access, tested again, and approved/applied through the original migration tool. No workaround or indirect execution was used.
+- The patch lists 20 table names and skips absent tables; live verification confirms 19 policies were created. The initial review/request described 21 tables. The approved SQL and applied migration are the authoritative scope.
 - Dashboard launch concerns: built-in SMTP is in use (production email rate limits); organization exceeded quota and warns about project restrictions from 2 November 2026. No paid upgrade or billing change was performed.
 - Claude coordination: repository CLAUDE.md, design handoff, audit document and security PR #107 comment were updated. Posting into the native Claude chats remains unverified because macOS computer-use permissions were pending.
 
 Supabase advisor review: no leaked-password warning remains. Three no-policy tables are intentionally deny-by-default. Fourteen SECURITY DEFINER notices require in-body authorization checks; do not revoke legitimate application RPCs indiscriminately. [Advisor guidance](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable).
+
+- Production role simulations: anonymous users list zero private chart objects; an unentitled synthetic identity reads zero trades, Journal entries and private images. A verified administrator retains access to all 238 trades, 1,595 app-images objects and all 68 imported charts. These SQL role tests do not replace end-to-end testing of independent real member sessions.
+- Live signed-in Studio loads all 238 trades and the visible entry/exit charts successfully through signed URLs; newest unpublished trades remain private. No Publish button was pressed.
+- Residual work: production SMTP setup, organization quota, low-priority public admin UUID enumeration, development-only Capacitor advisories, and broader legacy DOM/independent member-session testing. No guarantee of zero vulnerabilities is made.
