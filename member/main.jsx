@@ -1,3 +1,9 @@
+import MemberAgreement from './member-agreement';
+import LiveObservation from "./live-observation";
+import {fetchLiveObservations} from "./observations.mjs";
+import {loadAdministratorCore,workspaceExtras} from "./workspace-loading.mjs";
+import {fetchLiveExecutions} from "./executions.mjs";
+import ExecutionRecord from "./execution-record";
 import {newestJournalFirst} from "./journal-order.mjs";
 import { previewDeskChannel } from "./preview-sync";
 import { demoJournalEntries } from "./journal-demo";
@@ -39,7 +45,7 @@ import {
 } from "./screens";
 import { Logo, Button, Empty, Modal, AccountMenu, formatDate } from "./ui";
 import { preview, config, safeEmbed, safeHttps, accountRegistrationReady } from "./config";
-import { sb, checked, access, fetchWorkspace, fetchAccount, billing, uploadAvatar } from "./api";
+import { sb, checked, access, fetchWorkspace, fetchAccount, billing, uploadAvatar, fetchJournalSources } from "./api";
 import {
   demoPosts,
   demoSessions,
@@ -195,6 +201,7 @@ function App() {
     sidebar = useRef(null),
     requestGeneration = useRef(0),
     operation = useRef(false),
+    refreshExtras = useRef(async () => {}),
     lastCircleRoute = useRef(initialAdministratorPreview ? "admin" : "dashboard");
   const notify = (message) => {
     setToast(message);
@@ -320,10 +327,10 @@ function App() {
         setAccess(a);
         if (a.admin && !a.adminVerified) { setData(baseData); return; }
         const next = a.admin
-          ? { ...baseData, ...await fetchAccount(user), ...await fetchTerminalWorkspace() }
-          : await fetchWorkspace(user, false);
+          ? await loadAdministratorCore(() => fetchAccount(user), () => fetchTerminalWorkspace({includeExecutions:false,includeJournal:false}))
+          : await fetchWorkspace(user, false, {includeExecutions:false,includeJournal:false});
         if (generation !== requestGeneration.current) return;
-        setData(next);
+        setData(current => ({...current,...next}));
       } catch (e) {
         if (generation === requestGeneration.current) {
           setError(`The ${a?.admin ? "administrator" : "member"} workspace could not load. ${e.message}`);
@@ -331,7 +338,10 @@ function App() {
           setData(baseData);
         }
       } finally {
-        if (generation === requestGeneration.current) setLoading(false);
+        if (generation === requestGeneration.current) {
+          setLoading(false);
+          if(quiet && (a?.adminVerified || a?.entitled)) refreshExtras.current();
+        }
       }
     },
     [user],
@@ -383,7 +393,31 @@ function App() {
       clearInterval(tick);
       window.removeEventListener("focus", sync);
     };
-  }, [user, refresh]);
+  }, [user, refresh, route]);
+  // Heavy route-specific records never hold the authenticated app shell closed.
+  useEffect(() => {
+    if(preview || !user) return;
+    const extras = workspaceExtras(route,accessState);
+    if(!extras.trades && !extras.observations && !extras.journal) return;
+    let active = true, pending = false;
+    const sync = async () => {
+      if(pending) return;
+      pending = true;
+      setData(current => ({...current,...(extras.trades ? {executionsLoading:true} : extras.observations ? {observationsLoading:true} : {journalLoading:true})}));
+      try {
+        const next = extras.trades ? {liveExecutions:await fetchLiveExecutions(sb,config.supabaseUrl),executionsError:null} : extras.observations ? {liveObservations:await fetchLiveObservations(sb),observationsError:null} : await fetchJournalSources();
+        if(active) setData(current => ({...current,...next,executionsLoading:false,observationsLoading:false,journalLoading:false}));
+      } catch(error) {
+        if(active) setData(current => ({...current,...(extras.trades ? {executionsError:error.message,executionsLoading:false} : extras.observations ? {observationsError:error.message,observationsLoading:false} : {journalError:error.message,journalLoading:false})}));
+      } finally { pending = false; }
+    };
+    refreshExtras.current = sync;
+    sync();
+    const onVisible = () => { if(document.visibilityState === 'visible') sync(); };
+    const interval = setInterval(onVisible,extras.trades || extras.observations ? 15000 : 60000);
+    window.addEventListener('focus',onVisible);
+    return () => {active=false;clearInterval(interval);window.removeEventListener('focus',onVisible);if(refreshExtras.current===sync)refreshExtras.current=async()=>{};};
+  },[user?.id,route,accessState?.adminVerified,accessState?.entitled]);
   const run = async (fn) => {
     if (operation.current) return false;
     operation.current = true;
@@ -714,14 +748,16 @@ function App() {
         </form>
       ) : (
         <>
-          {modal.post.image_url && (
+          {modal.post.live_observation && <LiveObservation key={modal.post.source_id} id={modal.post.source_id}/>}
+          {modal.post.live && <ExecutionRecord record={data.liveExecutions?.find(p => p.id === modal.post.id) || {charts:[], source_details:{feedback:"This trade is no longer available. Close this view to return to the updated gallery."}}} />}
+          {!modal.post.live && modal.post.image_url && (
             <img
               className="modal-image"
               src={modal.post.image_url}
               alt={modal.post.image_caption || modal.post.title}
             />
           )}
-          {modal.post.kind === "achievement" ? <AchievementDetails record={modal.post} /> : <p className="content-note">{modal.post.body}</p>}
+          {!modal.post.live_observation && (modal.post.kind === "achievement" ? <AchievementDetails record={modal.post} /> : <p className="content-note">{modal.post.body}</p>)}
           {modal.post.source_content && <ObservationRecord record={modal.post} />}
         </>
       )}
@@ -826,7 +862,7 @@ function App() {
     );
   else if (admin && studioSection(route)) {
     const section = studioSection(route);
-    screen = <Admin key={route} data={data} onPublish={onPublish} onJournalPublish={onJournalPublish} onCreateObservation={onCreateObservation} onRefreshJournal={() => refresh(true)}
+    screen = <Admin key={route} data={data} onPublish={onPublish} onJournalPublish={onJournalPublish} onCreateObservation={onCreateObservation} onRefreshJournal={() => Promise.all([refresh(true),refreshExtras.current()])}
       onSession={onSession} onAnnouncement={onAnnouncement} onAnswer={answer} onMentorshipReply={replyMentorship}
       onPostStatus={onPostStatus} onSessionStatus={onSessionStatus} onSessionBlock={onSessionBlock}
       busy={busy} verified={accessState.adminVerified} activeTab={section.tab} initialKind={section.kind} hideTabs />;
@@ -943,7 +979,7 @@ function App() {
             onPublish={onPublish}
             onJournalPublish={onJournalPublish}
             onCreateObservation={onCreateObservation}
-            onRefreshJournal={() => refresh(true)}
+            onRefreshJournal={() => Promise.all([refresh(true),refreshExtras.current()])}
             onSession={onSession}
             onAnnouncement={onAnnouncement}
             onAnswer={answer}
@@ -968,6 +1004,7 @@ function App() {
         screen = <Dashboard {...props} />;
     }
   return (
+    <MemberAgreement userId={user.id} administrator={admin} route={route} onSignout={signout}>
     <div className={preview && !comparisonPreview ? "is-preview" : ""}>
       <a className="skip" href={(route === "application" && canOpenJournal(accessState) || route === "life-os" && accessState?.adminVerified) ? (route === "life-os" ? "#workspace-life-os" : "#workspace-journal") : "#workspace-content"} onClick={(event) => {
         event.preventDefault();
@@ -1111,8 +1148,12 @@ function App() {
           />
         </div>
       </aside>
-      <div className={`app-main${(route === "application" && canOpenJournal(accessState) || route === "life-os" && accessState?.adminVerified) ? " journal-surface-active" : ""}`}>
+      <div className={`app-main${(route === "application" && canOpenJournal(accessState) || route === "life-os" && accessState?.adminVerified) ? " journal-surface-active" : ""}${route === "application" && canOpenJournal(accessState) ? " journal-application-active" : ""}`}>
         <header className="topbar">
+          <a className="mobile-workspace-brand" href="/" aria-label="LMR Capitals home">
+            <img src="/icons/lmr-icon-circle.png" alt="" />
+            <span><strong>LMR <b>CAPITALS</b></strong><small>{route === "application" ? "Trading Journal" : route === "life-os" ? "Life OS" : "Inner Circle"}</small></span>
+          </a>
           <button
             className="icon-button mobile-menu"
             hidden={(route === "application" && canOpenJournal(accessState) || route === "life-os" && accessState?.adminVerified)}
@@ -1178,6 +1219,9 @@ function App() {
             />
           </div>
         </header>
+        {!["application", "life-os"].includes(route) && <nav className="mobile-section-nav" aria-label="Inner Circle sections">
+          {(admin ? [["admin", "LMR Studio", "shield"], ...studioSections.map(s => [s.route, s.label, s.icon])] : navigation.filter(([id]) => !id.startsWith("studio-") && !["notifications", "profile", "settings", "billing", "admin", "admin-hub", "life-os", "application"].includes(id)).map(([id, label]) => [id, label, id])).map(([id, label, icon]) => <button key={id} aria-current={route === id ? "page" : undefined} onClick={() => go(id)}><Icon name={icon} size={17} />{label}{!admin && premiumRoutes.includes(id) && !entitled && <Icon name="lock" size={12} />}</button>)}
+        </nav>}
         <main className="page" id="workspace-content" tabIndex={-1} hidden={(route === "application" && canOpenJournal(accessState) || route === "life-os" && accessState?.adminVerified)}>
           <div className="page-head">
             <div>
@@ -1259,7 +1303,7 @@ function App() {
             </div>
           </footer>
         </main>
-        {admin && accessState.adminVerified && <LifeOSWorkspace key={"life-os:"+user.id} active={route === "life-os"} preview={preview}/>}
+        {admin && accessState.adminVerified && <LifeOSWorkspace key={"life-os:"+user.id} active={route === "life-os"} preview={preview} onNavigate={go}/>}
         {canOpenJournal(accessState) && <JournalWorkspace key={user.id} active={route === "application"} preview={preview} administrator={admin} onNavigate={go} onAccessCheck={() => refresh(true)} onVerify={() => location.assign("/admin?next=journal")} />}
       </div>
       {modalView}
@@ -1269,6 +1313,7 @@ function App() {
         </div>
       )}
     </div>
+    </MemberAgreement>
   );
 }
 class Boundary extends React.Component {

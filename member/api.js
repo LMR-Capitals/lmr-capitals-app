@@ -1,4 +1,7 @@
+import {signJournalCharts} from './private-journal-media.mjs';
+import {enrichPublicationMedia} from "./workspace-loading.mjs";
 import {newestJournalFirst} from "./journal-order.mjs";
+import {fetchLiveExecutions} from "./executions.mjs";
 import {fetchPublications} from "./publications.mjs";
 import { createClient } from "@supabase/supabase-js";
 import { config, preview, safeHttps } from "./config";
@@ -16,7 +19,7 @@ export async function checked(query) {
 export async function access(user) {
   return resolveWorkspaceAccess(sb, user);
 }
-export async function fetchWorkspace(user, isAdmin = false) {
+export async function fetchWorkspace(user, isAdmin = false, {includeExecutions=true, includeJournal=isAdmin} = {}) {
   const [
     posts,
     sessions,
@@ -83,23 +86,14 @@ export async function fetchWorkspace(user, isAdmin = false) {
         .order("chapter_no"),
     ),
   ]);
-  const enriched = await Promise.all(
-    posts.map(async (p) => {
-      if (!p.image_path)
-        return { ...p, image_url: journalImageUrl(p.source_image) };
-      const { data, error } = await sb.storage
-        .from("circle-media")
-        .createSignedUrl(p.image_path, 300);
-      return {
-        ...p,
-        image_url: error ? null : data.signedUrl,
-        media_error: !!error,
-      };
-    }),
-  );
-  const journal = isAdmin ? await fetchJournalSources() : {};
+  const enriched = await enrichPublicationMedia(sb,posts);
+  let liveExecutions = [], executionsError = null;
+  try { if(includeExecutions) liveExecutions = await fetchLiveExecutions(sb,config.supabaseUrl); }
+  catch(error) { executionsError = error.message; }
+  const journal = includeJournal && isAdmin ? await fetchJournalSources() : {};
   return {
     ...journal,
+    ...(includeExecutions ? {liveExecutions, executionsError} : {}),
     posts: enriched.filter((p) => p.status === "published"),
     adminPosts: isAdmin ? enriched : [],
     sessions,
@@ -134,7 +128,7 @@ export async function billing(action, plan) {
   const data = await invoke(
     action === "checkout" ? "create-checkout" : "create-billing-portal",
     action === "checkout"
-      ? { plan, return_surface: "members", legal_version: config.legalVersion }
+      ? { plan, return_surface: "members", legal_version: config.legalVersion, agreement_id: await checked(sb.rpc("circle_accept_agreement",{p_version:config.legalVersion,p_acknowledgement:{terms:true,privacy:true,risk:true,adult:true,renewal:true},p_plan:plan})) }
       : { return_surface: "members" },
   );
   const url = safeHttps(data.url);
@@ -202,9 +196,11 @@ export async function fetchAccount(user) {
 
 export async function fetchJournalSources() {
   const { data, error } = await sb.rpc("circle_journal_sources");
-  return error
-    ? { journalEntries: [], journalError: error.message }
-    : { journalEntries: newestJournalFirst(data || []).map(source => source.image_path ? {...source, image: `${config.supabaseUrl}/storage/v1/object/public/app-images/${source.image_path.split("/").map(encodeURIComponent).join("/")}`} : source), journalError: null };
+  if(error) return {journalEntries:[],journalError:error.message};
+  try {
+    const signed = await signJournalCharts(sb, (data || []).map(source => ({...source, charts:source.image_path ? [{path:source.image_path}] : []})));
+    return {journalEntries:newestJournalFirst(signed.map(({charts,...source}) => source.image_path ? {...source,image:charts[0]?.url || null} : source)),journalError:null};
+  } catch(error) {return {journalEntries:[],journalError:error.message};}
 }
 
 async function enrichProfile(profile) {

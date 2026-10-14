@@ -8,7 +8,6 @@ graphify-out/
 
 # Build output
 dist/
-ios-www/
 .netlify/
 
 # Dependencies
@@ -16,4 +15,7 @@ node_modules/
 
 # macOS
 .DS_Store
+
+# Private local preview output and agent review screenshots
 .local-preview/
+member/verification/

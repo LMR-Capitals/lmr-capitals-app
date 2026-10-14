@@ -28,11 +28,11 @@ form.set('password','short'); assert.throws(()=>registrationDetails(form,'approv
 assert.equal(authEmailReturn('https://lmrcapitals.com'), 'https://lmrcapitals.com/member/index.html');
 assert.notEqual(onboardingKey('user-a'), onboardingKey('user-b'));
 assert.equal(policyUrl('not-a-policy'), '/inner-circle/guide#start');
-assert.equal(provider.entity, 'Individual / sole trader');
-assert.match(JSON.stringify(policies.terms), /case by case/);
+assert.equal(provider.entity, 'Business operator');
+assert.match(JSON.stringify(policies.terms), /unused-time refunds/);
 assert.match(JSON.stringify(policies.terms), /Australian Consumer Law/);
-assert.equal(policies.terms.draft, true);
-assert.equal(policies.privacy.draft, true);
+assert.equal(policies.terms.draft, false);
+assert.equal(policies.privacy.draft, false);
 // Render the actual registration component, so undefined runtime variables cannot ship.
 let source = await fs.readFile(new URL('../auth.jsx', import.meta.url), 'utf8');
 source = source.replace(/^import .*;\n/gm,'').replace('export default function Auth','function Auth');
@@ -61,3 +61,7 @@ assert.deepEqual(enrollmentReadiness({...publicPolicies,legalVersion:policyDraft
 assert.deepEqual(enrollmentReadiness({...publicPolicies,termsUrl:'javascript:alert(1)'}),{account:false,paid:false});
 assert.deepEqual(enrollmentReadiness({...publicPolicies,legalApproved:true}),{account:true,paid:true});
 console.log('Enrollment acknowledgement, policy gates, account isolation and actual registration/sign-in rendering passed.');
+
+const journalSource=await fs.readFile(new URL('../../app/app.html',import.meta.url),'utf8');
+assert.doesNotMatch(journalSource,/_sb\.auth\.signUp\(/,'All Journal signup entry points use reviewed LMR registration');
+assert.match(journalSource,/inner-circle\?signup=1&next=journal/);

@@ -1,3 +1,5 @@
+import {membershipPlans,membershipPrice,membershipInterval} from '../../member/membership.mjs';
+import {policies} from '../../member/guidelines.mjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { motion, MotionConfig, useInView, useMotionValue, useScroll, useTransform } from 'motion/react';
@@ -92,7 +94,7 @@ function Hero({ reduced }) {
   return <section ref={ref} id="top" className="hero" aria-labelledby="hero-title" data-od-id="stage">
     <style>{MARKET_CSS}</style><div className="market-art" data-active={active && !reduced} dangerouslySetInnerHTML={{ __html: MARKET_SVG }} /><div className="hero-shade" />
     <div className="shell hero-frame" data-od-id="chrome"><span>A DOCUMENTED TRADING PRACTICE</span><span>LMR CAPITALS / THE CHAIN</span></div>
-    <div className="shell hero-content"><p className="hero-role">Trader <i /> Mentor <i /> Fund Manager</p><h1 id="hero-title" data-od-id="headline">Trade With a System.<br />Master <em>The Chain.</em></h1><p className="hero-body">LMR Capitals is the professional trading practice and journal behind a structured Daily → Weekly → Monthly methodology. Every trade, every model, and every lesson is logged here in real time—and the same framework powers the mentorship and managed accounts I run for clients.</p><div className="hero-actions"><a className="button button-gold" href="/member/index.html">Sign In / Sign Up <Arrow /></a><a className="button button-outline" href="#about">Learn More <Arrow /></a></div></div>
+    <div className="shell hero-content"><p className="hero-role">Trader <i /> Mentor <i /> Educator</p><h1 id="hero-title" data-od-id="headline">Trade With a System.<br />Master <em>The Chain.</em></h1><p className="hero-body">LMR Capitals is the professional trading practice and journal behind a structured Daily → Weekly → Monthly methodology. The journal connects market context, execution and review. The same framework supports general educational market analysis and mentorship; it does not provide personalised financial advice or manage member funds.</p><div className="hero-actions"><a className="button button-gold" href="/member/index.html">Sign In / Sign Up <Arrow /></a><a className="button button-outline" href="#about">Learn More <Arrow /></a></div></div>
     <div className="shell hero-baseline"><span>Context. Execution. Review.</span><a href="#about">Follow the process <Arrow /></a><span>DAILY / WEEKLY / MONTHLY</span></div>
   </section>;
 }
@@ -104,7 +106,7 @@ function Who({ reduced }) {
 const PILLARS = [
   { word: 'Document', title: 'Trading Journal & Track Record', copy: 'Every trade—entry, exit, model, session, risk, and result—is logged in real time. Daily, weekly, and monthly reports turn that data into a transparent track record.', link: '#record', action: 'Explore the records' },
   { word: 'Learn', title: 'Education & Mentorship', copy: 'The MMBM/MMSM weekly models, session profiling, higher-timeframe bias, and the psychology of consistency—taught from the same playbook used in the live journal.', link: '#method', action: 'Follow The Chain' },
-  { word: 'Apply', title: 'Fund & Signal Management', copy: 'For clients seeking disciplined, rules-based exposure, managed accounts and trade signals are built on the process documented in the journal.', link: '#contact', action: 'Get in touch' },
+  { word: 'Observe', title: 'Live Market Education', copy: 'Study published market context, observations and execution examples with live educational guidance. Examples are for learning, not instructions to trade or promises of results.', link: '#contact', action: 'Get in touch' },
 ];
 function PillarArtwork({ index, progress, reduced }) {
   const layer = { progress, reduced };
@@ -126,7 +128,7 @@ function Pillar({ item, index, reduced }) {
   return <article ref={ref} className="pillar-chapter"><motion.div className="pillar-copy" style={reduced ? {} : { x: copyX, opacity: copyOpacity }}><span className="pillar-word">{item.word}</span><h3>{item.title}</h3><p>{item.copy}</p><a className="text-link" href={item.link}>{item.action}<Arrow diagonal /></a></motion.div><motion.div className="pillar-art-wrap" style={reduced ? {} : { scale, rotateX, rotateY, y }}><PillarArtwork index={index} progress={scrollYProgress} reduced={reduced} /></motion.div></article>;
 }
 function What({ reduced }) {
-  return <section id="what" className="what-section section-space shell"><div className="section-intro"><Reveal reduced={reduced}><h2>What We Do at<br /><em>LMR Capitals.</em></h2></Reveal><p>One methodology, applied across three connected pillars: my own trading, the traders I mentor, and the clients I work with.</p></div><div className="pillar-list">{PILLARS.map((item, index) => <Pillar key={item.word} item={item} index={index} reduced={reduced} />)}</div></section>;
+  return <section id="what" className="what-section section-space shell"><div className="section-intro"><Reveal reduced={reduced}><h2>What We Do at<br /><em>LMR Capitals.</em></h2></Reveal><p>One methodology, applied across three connected pillars: my own trading records, educational mentorship and live market analysis.</p></div><div className="pillar-list">{PILLARS.map((item, index) => <Pillar key={item.word} item={item} index={index} reduced={reduced} />)}</div></section>;
 }
 
 function RecordCard({ item, onOpen, duplicate = false }) {
@@ -193,23 +195,18 @@ function Proof({ reduced }) {
   </div></section>;
 }
 
-const LEGAL = {
-  terms: { title: 'Terms of Service', paragraphs: ['The final Terms of Service must describe account access, subscriptions, indicator licensing, cancellations, and the obligations of LMR Capitals and its users.', 'This design preview does not create a trial, purchase, subscription, or agreement. Final terms must be reviewed and approved before publication.'] },
-  privacy: { title: 'Privacy Policy', paragraphs: ['This preview reads only achievements explicitly marked public in the LMR journal. The account application has separate sign-in and data features.', 'The final policy must explain what personal data the production app collects, why it is used, who processes it, retention, security, and how users can make privacy requests. It requires review before publication.'] },
-  risk: { title: 'Risk Disclosure', paragraphs: ['Futures trading involves substantial risk of loss and is not suitable for all investors. Past performance is not indicative of future results.', 'All content is general information only and does not constitute financial advice.'] },
-};
+const LEGAL=Object.fromEntries(['terms','privacy','risk'].map(key=>[key,{title:policies[key].title,paragraphs:[policies[key].introduction,...policies[key].sections.flatMap(section=>section.paragraphs)]}]));
 function LegalPreview({ kind, onClose }) {
   const ref = useRef(null);
   useEffect(() => { const previous = document.activeElement; ref.current?.showModal(); return () => previous?.focus(); }, []);
-  return <dialog ref={ref} className="legal-dialog" onCancel={onClose} onClose={onClose} aria-labelledby="legal-title"><button className="legal-close" type="button" aria-label="Close disclosure" onClick={onClose}>×</button><h2 id="legal-title">{LEGAL[kind].title}</h2>{LEGAL[kind].paragraphs.map(text => <p key={text}>{text}</p>)}{previewPage && kind !== 'risk' && <small>Design preview only. No final legal policy has been supplied for this project.</small>}</dialog>;
+  return <dialog ref={ref} className="legal-dialog" onCancel={onClose} onClose={onClose} aria-labelledby="legal-title"><button className="legal-close" type="button" aria-label="Close disclosure" onClick={onClose}>×</button><h2 id="legal-title">{LEGAL[kind].title}</h2>{LEGAL[kind].paragraphs.map(text => <p key={text}>{text}</p>)}</dialog>;
 }
 function Plans({ reduced }) {
   return <section id="plans" className="plans-section section-space" aria-labelledby="plans-title"><div className="shell plans-layout">
     <div className="plans-intro"><Reveal reduced={reduced}><h2 id="plans-title">The system stays <em>within reach.</em></h2></Reveal><p>Create a free Inner Circle account for chapter learning and resources. Membership unlocks live analysis, observations, private support and the trading application.</p><a className="button button-gold" href="/inner-circle?signup=1">Join free Inner Circle <Arrow /></a></div>
     <div className="plans-prices" aria-label="LMR Capitals app subscription options">
-      <div className="plans-price"><div><h3>Monthly</h3><p>Billed monthly with paid membership.</p></div><div className="plans-amount"><strong>$25</strong><span>/ month</span></div></div>
-      <div className="plans-price"><div><h3>Yearly</h3><p>Billed yearly with paid membership. Save $30 compared with 12 monthly payments.</p></div><div className="plans-amount"><strong>$270</strong><span>/ year</span></div></div>
-      <p className="plans-footnote">Your account starts free. Choose membership after sign-in; the final price, currency, taxes and renewal terms appear in Stripe before you confirm.</p>
+      {membershipPlans.map(plan=><div className="plans-price" key={plan.id}><div><h3>{plan.title}</h3><p>{plan.discount?`${plan.discount}% off the 52-week weekly-price equivalent.`:'Renews weekly. Cancel before renewal.'}</p></div><div className="plans-amount"><strong>{membershipPrice(plan)}</strong><span>USD / {membershipInterval(plan)}</span></div></div>)}
+      <p className="plans-footnote">Your account starts free. Membership includes the Trading Journal, Inner Circle and general educational live guidance. Prices are USD; no GST is currently charged. Review recurring billing and cancellation terms before confirming in Stripe.</p>
     </div>
   </div></section>;
 }
@@ -230,7 +227,7 @@ function App() {
     <main id="main"><Hero reduced={reduced} /><Who reduced={reduced} /><What reduced={reduced} /><TradingJourney reduced={reduced} /><Proof reduced={reduced} />
       <RecentTrades reduced={reduced} /><Plans reduced={reduced} /><Contact reduced={reduced} />
     </main>
-    <footer className="footer"><div className="shell footer-inner"><div className="footer-brand"><Mark /><p>Built on The Chain methodology.<br /><span className="footer-abn">ABN 24 168 533 274</span></p></div><nav className="footer-links" aria-label="Information"><span>Information</span><div><a href="/inner-circle/guide">Joining guide</a><a href="/inner-circle/guide#terms">Account terms</a><a href="/inner-circle/guide#privacy">Privacy notice</a>{Object.entries(LEGAL).filter(([key]) => previewPage || key === 'risk').map(([key, item]) => <button key={key} type="button" onClick={() => setLegalOpen(key)}>{item.title}</button>)}</div></nav></div><div className="shell footer-bottom"><span>LMR Capitals © {new Date().getFullYear()}</span>{previewPage && <span>Policy wording in this preview requires review before publication.</span>}</div></footer>
+    <footer className="footer"><div className="shell footer-inner"><div className="footer-brand"><Mark /><p>Built on The Chain methodology.<br /><span className="footer-abn">ABN 24 168 533 274</span></p></div><nav className="footer-links" aria-label="Information"><span>Information</span><div><a href="/inner-circle/guide">Joining guide</a><a href="/inner-circle/guide#terms">Account terms</a><a href="/inner-circle/guide#privacy">Privacy notice</a>{Object.entries(LEGAL).filter(([key]) => previewPage || key === 'risk').map(([key, item]) => <button key={key} type="button" onClick={() => setLegalOpen(key)}>{item.title}</button>)}</div></nav></div><div className="shell footer-bottom"><span>LMR Capitals © {new Date().getFullYear()}</span></div></footer>
     {legalOpen && <LegalPreview kind={legalOpen} onClose={() => setLegalOpen(null)} />}
   </MotionConfig>;
 }

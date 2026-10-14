@@ -1,3 +1,5 @@
+import DiscordSettings from './discord-settings';
+import CalloutComposer from './callout-composer';
 import {newestJournalFirst} from "./journal-order.mjs";
 import React, { useState } from "react";
 import Icon from "./icons";
@@ -59,7 +61,7 @@ export default function Admin({
         <span>
           {preview
             ? "Admin workspace preview. Actions only update this browser session."
-            : "Live desk publications are for paid members. Free resources reach every signed-in account. Drafts remain private."}
+            : "Live desk publications are for paid members. Free resources reach every signed-in account. Drafts remain private until you publish."}
         </span>
       </div>
       {!hideTabs && (
@@ -82,10 +84,11 @@ export default function Admin({
           ))}
         </div>
       )}
+      {(tab === "session" || tab === "announcement" || (tab === "post" && kind === "callout")) && <DiscordSettings category={tab === "session"?"sessions":tab === "announcement"?"announcements":"callouts"} />}
       {tab === "post" && (
-        <div className="admin-editor">
+        <div className="admin-editor admin-editor-full">
           <section className="panel form-panel">
-            {!["observation", "achievement", "execution"].includes(kind) && (
+            {!["observation", "achievement", "execution", "callout"].includes(kind) && (
               <>
                 <h2>From your desk to the circle.</h2>
                 <p>Share a desk update with members.</p>
@@ -103,7 +106,7 @@ export default function Admin({
               ))}
             </div>}
             {kind === "observation" && onCreateObservation && <ObservationComposer busy={busy} onCreate={onCreateObservation} open={creatingObservation} onToggle={setCreatingObservation} />}
-            {["observation", "achievement", "execution"].includes(kind) ? (creatingObservation ? null : (
+            {kind === "callout" ? <CalloutComposer data={data} busy={busy} onPublish={onPublish} onPostStatus={onPostStatus}/> : ["observation", "achievement", "execution"].includes(kind) ? (creatingObservation ? null : (
               <JournalSources
                 data={data}
                 key={kind}
@@ -197,35 +200,7 @@ export default function Admin({
               </>
             )}
           </section>
-          <aside>
-            <section className="panel form-panel">
-              <h2>Publishing checklist</h2>
-              <ol className="progress-list">
-                <li>
-                  <span>01</span>
-                  <div>
-                    <strong>Context before conclusions</strong>Identify the
-                    instrument, time frame, and the reasoning.
-                  </div>
-                </li>
-                <li>
-                  <span>02</span>
-                  <div>
-                    <strong>Label results honestly</strong>Distinguish actual,
-                    simulated and hypothetical activity.
-                  </div>
-                </li>
-                <li>
-                  <span>03</span>
-                  <div>
-                    <strong>Protect private information</strong>Remove
-                    credentials, account numbers and member information from
-                    images.
-                  </div>
-                </li>
-              </ol>
-            </section>
-          </aside>
+
         </div>
       )}
       {tab === "manage" && (

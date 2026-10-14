@@ -1,3 +1,9 @@
+import {membershipPlans,membershipPrice,membershipInterval,membershipTaxNotice} from './membership.mjs';
+import {newestCallouts} from './callouts.mjs';
+import ExecutionSessionFilter from './execution-session-filter';
+import {mergeObservations} from "./observations.mjs";
+import ExecutionRecord from "./execution-record";
+import {mergeExecutions, filterExecutionSession} from "./executions.mjs";
 import {AchievementDetails} from "./journal-record";
 import {journalTitle} from "./journal-media.mjs";
 import ProfilePhotoEditor from "./profile-photo.jsx";
@@ -321,7 +327,9 @@ export function FreeResources({ data, go, onSave, onImage, onQuestion }) {
   );
 }
 export function Feed({ data, kind, search, onSave, onImage, onQuestion }) {
-  const posts = data.posts.filter(
+  const [visible,setVisible] = useState(12);
+  const all = kind === "observation" ? mergeObservations(data.posts,data.liveObservations) : kind === 'callout' ? newestCallouts(data.posts) : data.posts;
+  const posts = all.filter(
     (p) =>
       p.kind === kind &&
       `${p.title} ${p.body} ${p.source_content || ""} ${JSON.stringify(p.source_details || {})}`
@@ -330,7 +338,8 @@ export function Feed({ data, kind, search, onSave, onImage, onQuestion }) {
   );
   return (
     <div style={{ maxWidth: 850 }}>
-      {posts.map((p) => (
+      {kind === "observation" && <p className="form-help" role="status">{data.observationsError ? "Observations could not refresh. Reopen this section to retry." : data.observationsLoading && !posts.length ? "Loading observations…" : `${posts.length} published observations · Updates from LMR’s Journal · Updates every 15 seconds`}</p>}
+      {(kind === "observation" ? posts.slice(0,visible) : posts).map((p) => (
         <Post
           key={p.id}
           post={p}
@@ -340,9 +349,10 @@ export function Feed({ data, kind, search, onSave, onImage, onQuestion }) {
           onQuestion={onQuestion}
         />
       ))}
+      {kind === "observation" && posts.length > visible && <Button onClick={()=>setVisible(n=>n+12)}>Show more observations</Button>}
       {!posts.length && (
         <Empty
-          title="No publications here yet."
+          title={kind === "observation" && data.observationsLoading ? "Loading observations…" : kind === "observation" && search ? "No observations match your search." : "No publications here yet."}
           body={kind === "callout" ? "Paid-member callouts appear here with their conditions and context." : "Journal observations appear here when LMR publishes them."}
         />
       )}
@@ -350,7 +360,10 @@ export function Feed({ data, kind, search, onSave, onImage, onQuestion }) {
   );
 }
 export function Gallery({ data, kind, onImage, search }) {
-  const items = data.posts.filter(
+  const [visible, setVisible] = useState(24);
+  const [session, setSession] = useState('all');
+  const executions = mergeExecutions(data.posts,data.liveExecutions);
+  const items = (kind === "execution" ? filterExecutionSession(executions,session) : data.posts).filter(
     (p) =>
       p.kind === kind &&
       `${p.title} ${p.body} ${p.source_content || ""} ${JSON.stringify(p.source_details || {})}`
@@ -368,15 +381,17 @@ export function Gallery({ data, kind, onImage, search }) {
           Past performance is not indicative of future results.
         </span>
       </div>
+      {kind === "execution" && <ExecutionSessionFilter records={executions} value={session} onChange={value=>{setSession(value);setVisible(24);}}/>}
+      {kind === "execution" && <p className="form-help" role="status">{data.executionsLoading && !executions.length ? "Loading LMR trades…" : data.executionsError ? "Live trades could not refresh. Reopen this section to retry." : `${items.length} ${items.length === 1 ? "trade" : "trades"} · Published from LMR’s Journal · Updates every 15 seconds`}</p>}
       {items.length ? (
-        <div className="gallery-grid">
-          {items.map((p) => (
+        <><div className="gallery-grid">
+          {items.slice(0,visible).map((p) => (
             <button
               className={`gallery-item panel ${kind === "achievement" ? "achievement-item" : ""}`}
               key={p.id}
               onClick={() => onImage(p)}
             >
-              {p.image_url ? (
+              {p.live ? <ExecutionRecord record={p} compact/> : p.image_url ? (
                 <img
                   src={p.image_url}
                   alt={p.image_caption || p.title}
@@ -390,26 +405,26 @@ export function Gallery({ data, kind, onImage, search }) {
               )}
               <div className="gallery-item-body">
                 {kind === "achievement" ? <AchievementDetails record={p} /> : <>
-                  <span className="tag">ENTRY · exit / outcome</span>
+                  {!p.live && <span className="tag">ENTRY · exit / outcome</span>}
                   <h3>{journalTitle(p)}</h3>
                   <p>{p.body}</p>
                 </>}
               </div>
             </button>
           ))}
-        </div>
+        </div>{items.length > visible && <Button onClick={() => setVisible(n => n+24)}>Show more trades</Button>}</>
       ) : (
         <Empty
           icon={kind === "execution" ? "executions" : "achievements"}
           title={
             kind === "execution"
-              ? "The execution gallery is ready."
+              ? data.executionsLoading ? "Loading your trades…" : session !== "all" || search ? "No trades match your filters." : "The execution gallery is ready."
               : "Every milestone has a story."
           }
           body={
-            preview
+            kind === "execution" && (session !== "all" || search) ? "Choose another session or clear the search to see more trades." : preview
               ? "Actual trading records will appear when an admin publishes them. The preview does not invent executions, certificates or performance."
-              : "LMR has not published images in this section yet. New publications will appear here and in your notifications."
+              : kind === "execution" ? "Trades appear after LMR publishes them in Studio. Saved charts and details stay in sync after publication." : "LMR has not published images in this section yet."
           }
         />
       )}
@@ -1073,10 +1088,7 @@ export function Billing({
         </div>
       )}
       <div className="billing-grid">
-        {[
-          ["monthly", "Monthly membership", "Billed monthly"],
-          ["yearly", "Annual membership", "Billed annually"],
-        ].map(([plan, title, label]) => (
+        {membershipPlans.map(option => {const plan=option.id,title=`${option.title} membership`,label=`${membershipPrice(option)} USD / ${membershipInterval(option)}`;return (
           <section
             className={`plan-card panel ${plan === "yearly" ? "featured" : ""}`}
             key={plan}
@@ -1085,8 +1097,7 @@ export function Billing({
             <h2>{title}</h2>
             <div className="plan-price">{label}</div>
             <p>
-              Your exact price, currency, taxes and renewal terms are shown in
-              Stripe before you confirm.
+              {option.discount?`${option.discount}% off the 52-week weekly-price equivalent, rounded to cents. `:''}{membershipTaxNotice}
             </p>
             <ul>
               {[
@@ -1122,9 +1133,9 @@ export function Billing({
               <Icon name="arrow" size={15} />
             </Button>
           </section>
-        ))}
+        );})}
       </div>
-      {!entitled && <section className="membership-expectations"><h2>Know what you are joining.</h2><p>Membership is recurring. Review the total and renewal details in Stripe before confirming. Paid access starts after payment verification. Administrator permissions are separate from membership.</p><p>Refund requests are reviewed case by case, with Australian Consumer Law rights preserved. For cancellation or billing support, use Profile → Membership or contact <a href={`mailto:${provider.contact}`}>{provider.contact}</a>.</p></section>}
+      {!entitled && <section className="membership-expectations"><h2>Know what you are joining.</h2><p>Membership is recurring. Review the total and renewal details in Stripe before confirming. Paid access starts after payment verification. Administrator permissions are separate from membership.</p><p>Cancel before renewal and retain access until the paid period ends. No change-of-mind or unused-time refunds; legally required consumer remedies remain available. For cancellation or billing support, use Profile → Membership or contact <a href={`mailto:${provider.contact}`}>{provider.contact}</a>.</p></section>}
       {!entitled && !existingSubscription && (
         <label className="check-label spaced">
           <input
@@ -1145,7 +1156,7 @@ export function Billing({
             <button className="text-button" onClick={() => onLegal("risk")}>
               risk disclosure
             </button>
-            , including renewal and cancellation terms.
+            , including renewal and cancellation terms. I am at least 18. I authorize recurring charges for my selected interval until I cancel.
           </span>
         </label>
       )}

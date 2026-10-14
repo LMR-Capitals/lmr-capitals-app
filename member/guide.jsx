@@ -1,3 +1,4 @@
+import {membershipVersion} from './membership.mjs';
 import React, { useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { Logo } from "./ui";
@@ -31,7 +32,7 @@ function Guide() {
       <main id="guide-content" tabIndex={-1} className="guide-main">
         {selected ? <>
           <a className="text-button" href={`${guideUrl}#start`}>← Back to the joining guide</a>
-          <h1>{selected.title}</h1>
+          <h1>{selected.title}</h1><p className="form-help">Version {membershipVersion}</p>
           {selected.draft && !accountRegistrationReady && <div className="banner"><Icon name="shield" size={18} /><span><strong>Draft for review · {policyDraftVersion}</strong><br />These policies are available to read. They have not yet been approved for new registration or payment.</span></div>}
           <p className="guide-introduction">{selected.draft && accountRegistrationReady ? selected.title === policies.terms.title ? "These terms describe your free account, the proposed membership service and your responsibilities in the Inner Circle." : "How your account and membership information is used, stored and handled." : selected.introduction}</p>
           <article className="policy-document">{selected.sections.map(item => <section key={item.title}><h2>{item.title}</h2>{item.paragraphs.map(p => <p key={p}>{p}</p>)}</section>)}</article>

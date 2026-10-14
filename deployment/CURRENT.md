@@ -1,8 +1,28 @@
 # Current full-site deployment
 
+Lead Claude session for the website: see [WEBSITE-SESSION-HANDOFF.md](WEBSITE-SESSION-HANDOFF.md).
+
+## Latest verified production — 14 October 2026
+
+**Published deploy:** `6acedeb7d3db9fd950f11e7f`, published `2026-10-14T01:45:45.217Z` via Git CD from `main` commit `ecf02ba30bfa28631df3d356807e27aedacefe48` (#104). [Live LMR](https://lmrcapitals.com) · [Netlify permalink](https://6acedeb7d3db9fd950f11e7f--lmrcapitalsapp.netlify.app). It includes all merged work through #104 (Journal sidebar footer, header session clock and live status #98–#102; Pine indicator consolidation #103–#104). The deploy shipped the `studio-discord` function, with no edge functions and no database migrations. Netlify's secret scan found nothing. A local `npm run build` of the same commit produced every required output in the build map below (only the existing ThreeUI export warnings appeared). No database, storage or Supabase function operations were performed.
+
+## Manual Studio publication — 13 October 2026
+
+[Explicit Studio publication](STUDIO-MANUAL-PUBLICATION-2026-10-13.md) supersedes the earlier automatic-sharing releases. Trades and observations must stay private until explicitly published in Studio. Both live feed/detail functions enforce the existing published source linkage. Do not reapply the older automatic-feed functions. Existing source records, publication states, images and RLS are preserved. Admin source lists/details load on demand, and published observation images are lazy-loaded.
+
+## Live execution feed — 13 October 2026
+
+See [live execution release notes](LIVE-EXECUTIONS-2026-10-13.md). The owner has explicitly opted their own admin Journal into automatic paid-member execution sharing. Its additive read-only function is applied; source Journal records and RLS are unchanged. Use Git continuous deployment after review and merge. Preserve #78 and #79 Journal save/image fixes.
+
 This file is the deployment entry point for Claude and other collaborators. Historical receipts remain in this directory; the latest verified production ID below takes precedence over draft URLs and older deploy notes.
 
-## Current release status
+## Mobile workspace update — 12 October 2026
+
+The latest verified production Git release before the mobile update is `6acc605fe0c1ac0008ea51b9`, commit `af9da91c7adb369146ef11732d9c52600e3250cb` (#74), published `2026-10-12T04:22:06.999Z`. It includes #73 Life OS and #74 single sign-on. Both must remain in all future builds.
+
+The mobile-only frontend update is tracked in `codex/mobile-workspace-navigation` and [its release notes](MOBILE-WORKSPACES-2026-10-12.md). Use Git continuous deployment after review and merge; preserve the complete root build. The verified production ID for that merge will be recorded in the pull request. No database or storage operations are part of this update.
+
+## Earlier release status
 
 **Latest verified production deploy:** `6acc35760f93dfd5ccc6982d`, published `2026-10-12T01:18:57.321Z` (11 October, New York). [Live LMR](https://lmrcapitals.com) · [Life OS admin entry](https://lmrcapitals.com/admin?next=life-os). Reviewed draft: `6acc3536fc7dc093edd5118f`. See [Life OS release receipt](LIFE-OS-2026-10-11.md).
 

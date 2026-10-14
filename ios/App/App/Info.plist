@@ -66,5 +66,13 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>LMR Capitals uses the camera so you can attach chart photos and receipts to your journal.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>LMR Capitals lets you attach chart screenshots and receipts from your photo library to your journal.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>LMR Capitals can save chart images and exports to your photo library.</string>
 </dict>
 </plist>

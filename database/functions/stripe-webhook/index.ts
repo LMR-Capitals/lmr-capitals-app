@@ -1,11 +1,10 @@
 // Apply inner-circle.sql before deploying this function. Signature verification is mandatory.
-import Stripe from "npm:stripe@17";
+import Stripe from "npm:stripe@22.4.0";
+import { paidSubscriptionState } from "../_shared/subscription-state.mjs";
+import { stripeClient } from "../_shared/stripe.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 const clean = (s: string | undefined) => (s ?? "").trim();
-const stripe = new Stripe(clean(Deno.env.get("STRIPE_SECRET_KEY")), {
-  httpClient: Stripe.createFetchHttpClient(),
-  apiVersion: "2024-12-18.acacia",
-});
+const stripe = stripeClient();
 const cryptoProvider = Stripe.createSubtleCryptoProvider();
 const admin = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -48,28 +47,19 @@ async function sync(
     );
     if (current.created > sub.created) return;
   }
-  const invoice =
-    typeof sub.latest_invoice === "object"
-      ? (sub.latest_invoice as Stripe.Invoice)
-      : null;
-  const paidUntil =
-    invoice?.status === "paid" &&
-    invoice.amount_paid > 0 &&
-    sub.current_period_end
-      ? new Date(sub.current_period_end * 1000).toISOString()
-      : null;
+  if(sub.metadata?.agreement_id){
+    const {data:acceptance,error}=await admin.from('circle_agreement_acceptances').select('user_id,legal_version').eq('id',sub.metadata.agreement_id).single();
+    if(error||!acceptance||acceptance.user_id!==userId||acceptance.legal_version!==sub.metadata.legal_version)throw new Error('Subscription agreement mapping mismatch');
+  }
+  const state = paidSubscriptionState(sub);
   const { error } = await admin.rpc("circle_sync_subscription", {
     payload: {
       user_id: userId,
       stripe_customer_id: id(sub.customer),
       stripe_subscription_id: sub.id,
       status: sub.status,
-      price_id: sub.items.data[0]?.price.id || null,
-      current_period_end: sub.current_period_end
-        ? new Date(sub.current_period_end * 1000).toISOString()
-        : null,
+      ...state,
       cancel_at_period_end: sub.cancel_at_period_end,
-      paid_until: paidUntil,
       stripe_event_created: eventCreated,
     },
   });
@@ -95,6 +85,12 @@ Deno.serve(async (req) => {
   try {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
+      if(session.metadata?.agreement_id){
+        const {data:acceptance,error}=await admin.from('circle_agreement_acceptances').select('user_id,legal_version,content_hash,acknowledgement').eq('id',session.metadata.agreement_id).single();
+        if(error||!acceptance||acceptance.user_id!==session.client_reference_id||acceptance.legal_version!==session.metadata.legal_version||acceptance.content_hash!==session.metadata.agreement_hash||acceptance.acknowledgement?.terms!==true)throw new Error('Checkout agreement verification failed');
+        const {error:receiptError}=await admin.from('circle_checkout_receipts').upsert({stripe_session_id:session.id,agreement_id:session.metadata.agreement_id,user_id:acceptance.user_id,stripe_subscription_id:id(session.subscription),terms_accepted:true,acceptance_source:'lmr_before_checkout',amount_total:session.amount_total,currency:session.currency},{onConflict:'stripe_session_id',ignoreDuplicates:true});
+        if(receiptError)throw receiptError;
+      }
       if (session.mode === "subscription" && session.subscription)
         await sync(
           id(session.subscription),
@@ -114,7 +110,7 @@ Deno.serve(async (req) => {
     ) {
       const invoice = event.data.object as Stripe.Invoice;
       const subscriptionId =
-        id(invoice.subscription) ||
+        id((invoice as any).subscription) ||
         id((invoice as any).parent?.subscription_details?.subscription);
       if (subscriptionId) await sync(subscriptionId, event.created);
     }

@@ -26,3 +26,35 @@
 .wp-md{white-space:pre-wrap;font:inherit;font-size:13px;line-height:1.5;margin:8px 0 0}
 .wp-past summary{cursor:pointer;font-weight:600}.wp-past-week{margin-top:10px;padding-top:10px;border-top:1px solid var(--line,rgba(255,255,255,.08))}
 .wp-past-week summary{font-weight:400}.wp-footer{font-size:12px;text-align:center}
+
+/* Compact mobile context; errors and saving feedback remain visible. */
+@media(max-width:760px){
+ .cloud-status{position:static;padding:7px 16px;min-height:30px;font-size:10px;line-height:1.5;gap:8px}
+ .cloud-status .private-records-label{display:none}
+ .cloud-status button{min-height:44px;font-size:12px;padding:8px}
+ .is-embedded .sidebar .brand{display:none}
+ .is-embedded .sidebar{padding:0 12px;background:#111118}
+ .sidebar nav{margin:0;padding:8px 0;gap:5px;scroll-padding-inline:12px}
+ .sidebar nav button{min-height:44px;font-size:12px;padding:11px 13px;border:1px solid transparent;gap:8px}
+ .sidebar nav button.active{border-color:#544127}
+ .main>.topbar{height:38px;padding:0 17px;font-size:11px}
+ .main>.topbar>div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .main>.topbar>.preview-label{display:none}
+ .is-embedded main{padding-top:20px}
+ .intro p{font-size:12px;max-width:32ch}
+ .intro .gold{min-height:44px;padding:11px 13px;font-size:12px}
+ .privacy{font-size:10px;gap:12px}
+ .privacy button{min-height:44px;flex:none;font-size:11px}
+ .task-title{font-size:13px;line-height:1.5}
+ .task-title small{font-size:11px}
+ .task input[type=checkbox]{width:22px;height:22px;flex:none}
+ .task-title{min-height:44px}
+ .compact-overview .goal-row strong{font-size:13px}
+ .compact-overview .goal-row small{font-size:11px}
+ .calendar-controls .outline,.calendar-controls input,.calendar-controls select{min-height:44px}
+ input:not([type=checkbox]),select,textarea{font-size:16px}
+ footer{padding-bottom:max(20px,env(safe-area-inset-bottom,0px))}
+}
+
+/* Routine success feedback stays quiet; saving and recovery alerts remain visible. */
+.cloud-status.is-saved{display:none}

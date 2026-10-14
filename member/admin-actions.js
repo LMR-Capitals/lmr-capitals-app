@@ -1,3 +1,5 @@
+import {deliverDiscord} from './discord-api';
+import {calloutPayload,validateCalloutImage} from './callouts.mjs';
 import { journalPublication } from "./journal-media.mjs";
 import { preview, safeEmbed, safeHttps } from "./config";
 import { sb, checked, uploadMedia, copyJournalEntry } from "./api";
@@ -19,12 +21,15 @@ const previewNotice = (
 
 // Shared by the member studio and the dedicated Admin Terminal.
 export function useAdminActions({ user, data, setData, run, refresh, notify }) {
-  const onPublish = (e, kind) => {
+  const onPublish = (e, kind, attachment) => {
     e.preventDefault();
     const form = e.currentTarget,
       f = new FormData(form);
+    if(attachment)f.set("image",attachment);
     run(async () => {
       const file = f.get("image");
+      const callout=kind === "callout" ? calloutPayload(f) : null;
+      if(callout)validateCalloutImage(file);
       let image_path = null,
         image_url = null;
       if (file?.size) {
@@ -36,24 +41,20 @@ export function useAdminActions({ user, data, setData, run, refresh, notify }) {
         if (preview) image_url = URL.createObjectURL(file);
         else image_path = await uploadMedia(file, user);
       }
-      const status = String(f.get("status"));
+      const status = callout?.status || String(f.get("status"));
       const record = {
         author_id: user.id,
         kind,
         title: String(f.get("title")).trim(),
-        body: String(f.get("body")).trim(),
+        body: String(f.get("body") || "").trim(),
         status,
         image_path,
-        image_caption: String(f.get("image_caption")).trim(),
+        image_caption: String(f.get("image_caption") || "").trim(),
         pinned: f.get("pinned") === "on",
         published_at: status === "published" ? new Date().toISOString() : null,
       };
-      if (kind === "callout") {
-        const conditions = String(f.get("conditions") || "").trim(), invalidation = String(f.get("invalidation") || "").trim();
-        if (!conditions || !invalidation) throw new Error("Add the callout conditions and invalidation.");
-        record.body += `\n\nConditions\n${conditions}\n\nInvalidation\n${invalidation}`;
-      }
-      if (!record.title || !record.body)
+      if(callout)Object.assign(record,callout);
+      if (!record.title || (!callout && !record.body))
         throw new Error("A title and post body are required.");
       if (["execution", "achievement"].includes(kind) && !file?.size)
         throw new Error("Attach an image for this publication.");
@@ -89,15 +90,16 @@ export function useAdminActions({ user, data, setData, run, refresh, notify }) {
               ...d.notifications,
             ],
           }));
-        } else await refresh();
+        } else await refresh(kind === "callout");
       } else if (preview) {
         setData((d) => ({ ...d, adminPosts: [item, ...d.adminPosts] }));
       } else await refresh();
+      const discordResult=kind === "callout" && status === "published" ? await deliverDiscord("callouts",item.id) : "";
       form.reset();
       notify(
         status === "published"
           ? "Post published to the member feed" +
-              (preview ? " in preview." : ".")
+              (preview ? " in preview." : ".") + discordResult
           : preview
             ? "Draft saved in this preview."
             : "Draft saved to the admin database.",
@@ -142,7 +144,7 @@ export function useAdminActions({ user, data, setData, run, refresh, notify }) {
             throw error;
           }
         } else await checked(sb.rpc("circle_publish_journal", {p_source_kind:source.kind,p_source_id:source.id}));
-        await refresh();
+        await refresh(true);
       }
       notify(
         preview
@@ -175,7 +177,7 @@ export function useAdminActions({ user, data, setData, run, refresh, notify }) {
       }
       delete form.dataset.observationId;
       form.reset();
-      notify(published?"Observation saved to your Journal and published to paid members.":"Observation saved to your Journal and a private Studio draft.");
+      notify(published?"Observation saved to your Journal and published to paid members.":"Observation saved privately to your Journal and Studio draft.");
     });
   };
   const onSession = (e) => {
@@ -225,7 +227,8 @@ export function useAdminActions({ user, data, setData, run, refresh, notify }) {
         }));
       else await refresh();
       form.reset();
-      notify("Session published" + (preview ? " in preview." : "."));
+      const discordResult=await deliverDiscord("sessions",item.id);
+      notify("Session published" + (preview ? " in preview." : ".") + discordResult);
     });
   };
   const onPostStatus = (id, status) =>
@@ -271,7 +274,7 @@ export function useAdminActions({ user, data, setData, run, refresh, notify }) {
         await refresh();
       }
       notify(
-        status === "published" ? "Post published." : "Post moved to drafts.",
+        (status === "published" ? "Post published." : "Post moved to drafts.") + (status === "published" && (data.adminPosts.find(p=>p.id===id)||data.posts.find(p=>p.id===id))?.kind === "callout" ? await deliverDiscord("callouts",id) : ""),
       );
     });
   const onSessionStatus = (id, status) =>
@@ -302,7 +305,7 @@ export function useAdminActions({ user, data, setData, run, refresh, notify }) {
         );
         await refresh();
       }
-      notify("Session status updated.");
+      notify("Session status updated." + await deliverDiscord("sessions",id));
     });
   const onSessionBlock = (id, session_block) =>
     run(async () => {
@@ -338,7 +341,7 @@ export function useAdminActions({ user, data, setData, run, refresh, notify }) {
         );
         await refresh();
       }
-      notify("Session group updated" + (preview ? " in preview." : "."));
+      notify("Session group updated" + (preview ? " in preview." : ".") + await deliverDiscord("sessions",id));
     });
   const onAnnouncement = (e) => {
     e.preventDefault();
@@ -362,7 +365,7 @@ export function useAdminActions({ user, data, setData, run, refresh, notify }) {
           );
       setData((d) => ({ ...d, notifications: [item, ...d.notifications] }));
       form.reset();
-      notify("Announcement published" + (preview ? " in preview." : "."));
+      notify("Announcement published" + (preview ? " in preview." : ".") + await deliverDiscord("announcements",item.id));
     });
   };
   const answer = (e, id) => {

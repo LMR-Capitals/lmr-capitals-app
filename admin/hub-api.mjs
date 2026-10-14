@@ -26,7 +26,7 @@ export const journalCollections = [
   // Deliberately explicit: profile settings may contain private API credentials.
   ["profiles", "Journal profile", "name,email,business,website,theme,updated_at", "updated_at"],
 ];
-const adminRpcs = new Set(["admin_metrics", "admin_list_users", "admin_list_subscriptions", "admin_list_admins", "admin_grant_comp", "admin_revoke_comp", "admin_add_admin", "admin_remove_admin"]);
+const adminRpcs = new Set(["circle_admin_membership_subscribers", "circle_admin_membership_revenue", "admin_metrics", "admin_list_users", "admin_list_subscriptions", "admin_list_admins", "admin_grant_comp", "admin_revoke_comp", "admin_add_admin", "admin_remove_admin"]);
 export async function verifiedAdmin(client) {
   const access = await verifyTerminalAccess(client);
   if (access.stage !== "ready") throw new Error("Complete administrator verification before accessing the Admin Hub.");

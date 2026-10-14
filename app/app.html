@@ -29,7 +29,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/vendor/dompurify-3.4.17.min.js"></script>
+<script src="/journal-content-security.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"></script>
 <!-- Editor.js loaded LAZILY — only when LMR sections are opened (prevents CSS conflicts) -->
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -2409,6 +2411,9 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
 #p-journal .jn-source{display:block;margin-top:12px;padding-top:10px;border-top:1px solid var(--jn-line);color:var(--jn-dim);font-size:12px}
 #p-journal .jn-none, #p-notes .jn-none{border:1px dashed var(--jn-line);padding:26px 16px;text-align:center;font-size:13px;color:var(--jn-dim)}
 </style>
+<link rel="stylesheet" href="/mobile-journal.css">
+<script src="/mobile-journal.js" defer></script>
+<link rel="stylesheet" href="/workspace-navigation.css?v=20261013-gold-day-clock">
 </head>
 <body>
 
@@ -2614,38 +2619,9 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
 
 <div class="app" id="mainApp" style="display:none">
 
-<aside class="sidebar" id="sidebar">
-  <div class="sb-head" onclick="openSettingsPanel('profile')" style="cursor:pointer;transition:background var(--t)" title="Click to edit profile & settings">
-    <div class="sb-logo">
-      <div class="sb-logo-icon" id="sb-logo-icon-wrap" style="overflow:hidden;position:relative">
-        <img src="/icons/lmr-icon.png" id="sb-logo-img" alt="LMR" style="width:100%;height:100%;object-fit:contain;border-radius:10px">
-        <img id="sb-logo-photo" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:10px">
-      </div>
-      <div>
-        <div style="font-weight:800;font-size:15px;line-height:1.2;color:var(--text)" id="sb-profile-name">LMR Capitals</div>
-        <div style="font-size:10px;color:var(--gold);font-weight:600;letter-spacing:.03em" id="sb-profile-role">Trading Journal</div>
-      </div>
-      <span style="margin-left:auto;font-size:16px;color:var(--text3);opacity:.7" title="Settings">⚙</span>
-    </div>
-    <div class="sb-status"><span class="dot"></span> <span id="sb-save-status">Auto-saved</span></div>
-  </div>
-  
-  <div class="sb-day">
-    <div class="sb-day-l">Current Day</div>
-    <div class="sb-day-v" id="dayCount">—</div>
-  </div>
-
-  <div class="ny-clock">
-    <div class="ny-clock-label">🕐 New York Time</div>
-    <div class="ny-clock-time" id="nyClockTime">--:--:--</div>
-    <div class="ny-clock-date" id="nyClockDate">--- NY</div>
-    <div class="ny-clock-q" id="clock-q">—</div>
-    <!-- Active macro: completely absent when not triggered, no trace -->
-    <div id="clock-macro" style="display:none"></div>
-  </div>
-
-  <nav class="sb-nav">
-    <a class="sb-item" href="/inner-circle"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></span> Inner Circle</a>
+<aside class="sidebar lmr-workspace-sidebar lmr-journal-sidebar" id="sidebar" aria-label="Trading Journal navigation">
+  <div class="lmr-workspace-brand" aria-label="LMR Capitals · Trading Journal"><img src="/icons/lmr-icon-circle.png" alt=""><span><strong>LMR CAPITALS</strong><small>TRADING JOURNAL</small></span></div>
+  <nav class="sb-nav" aria-label="Journal sections">
     <div class="sb-sec">Session</div>
     <button class="sb-item active" data-panel="dash"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg></span> Dashboard</button>
     <button class="sb-item" data-panel="today"><span class="sb-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="m9 16 2 2 4-4"/></svg></span> Today</button>
@@ -2687,8 +2663,6 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
   </button>
 
   <div class="sb-foot">
-    <!-- Active Account selector removed — the primary account is now set via the Copier Cockpit leader -->
-
     <div class="sb-pnl-block">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
         <div class="sb-pnl-l">Total P&amp;L</div>
@@ -2704,6 +2678,25 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
         <span id="sbTrades">0</span>T · <span id="sbWR">0%</span> WR
       </div>
     </div>
+    <div class="sb-head">
+      <div class="lmr-footer-identity">
+        <button class="sb-logo lmr-account-button" onclick="openSettingsPanel('profile')" aria-label="Open Journal profile">
+          <span class="sb-logo-icon" id="sb-logo-icon-wrap" style="overflow:hidden;position:relative">
+            <img src="/icons/lmr-icon-circle.png" id="sb-logo-img" alt="" style="width:100%;height:100%;object-fit:contain">
+            <img id="sb-logo-photo" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0">
+          </span>
+          <span class="lmr-footer-name"><span id="sb-profile-name">LMR Capitals</span><span id="sb-profile-role">Trading Journal</span></span>
+        </button>
+        <button class="lmr-footer-settings" onclick="openSettingsPanel('app')" aria-label="Journal settings" title="Journal settings"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/><path d="m9 3-1 3-3 1-2 5 2 5 3 1 1 3h6l1-3 3-1 2-5-2-5-3-1-1-3Z"/></svg></button>
+      </div>
+      <div class="lmr-footer-connection">
+      <div class="sb-status"><span class="dot"></span><span id="sb-save-status">Auto-saved</span></div>
+      <div id="rt-indicator" style="display:flex;align-items:center;gap:5px;font-size:9px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.08em">
+        <span id="rt-dot" style="width:6px;height:6px;border-radius:50%;background:var(--text3);display:inline-block"></span>
+        <span id="rt-label">Offline</span>
+      </div>
+      </div>
+    </div>
   </div>
 </aside>
 
@@ -2711,21 +2704,29 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
 
 <main class="main">
   <div class="mobile-bar">
-    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-    <span style="font-size:13px;font-weight:600">LMR Capitals</span>
+    <button class="menu-btn" onclick="toggleSidebar()" aria-label="Open Journal navigation"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <span style="font-size:13px;font-weight:600">Trading Journal</span>
     <span class="mono" style="font-size:11px;color:var(--gold)">Day <span id="mDayCount">363</span></span>
   </div>
   
   <div class="topbar">
     <div>
       <div class="tb-title" id="tbTitle">Dashboard</div>
-      <div class="tb-sub" id="tbSub">Welcome back, <span id="tb-username">LMR Capitals</span>. Day <span id="tbDay">363</span></div>
+      <div class="tb-sub" id="tbSub">Hi, <span id="tb-username">LMR Capitals</span> · Day <span id="tbDay">363</span></div>
     </div>
     <div class="tb-actions">
-      <div id="rt-indicator" style="display:flex;align-items:center;gap:5px;font-size:9px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.08em">
-        <span id="rt-dot" style="width:6px;height:6px;border-radius:50%;background:var(--text3);display:inline-block"></span>
-        <span id="rt-label">Offline</span>
+      <div class="lmr-header-clock"><span id="dayCount" hidden>—</span>
+  <div class="ny-clock">
+    <div class="ny-clock-label" id="nyClockZone">NY</div>
+    <div class="ny-clock-time" id="nyClockTime">--:--:--</div>
+    <div class="ny-clock-date" id="nyClockDate">--- NY</div>
+    <div class="ny-clock-q" id="clock-q">—</div>
+    <!-- Active macro: completely absent when not triggered, no trace -->
+    <div id="clock-macro" style="display:none"></div>
+  </div>
+
       </div>
+
       <button class="btn btn-primary btn-sm" id="tbAction" style="display:none"></button>
     </div>
   </div>
@@ -3073,13 +3074,6 @@ body:not(.is-admin) .ach-pub-pill{display:none!important}
       </div><!-- /chain-props -->
     </div>
   </div><!-- /card -->
-
-  <!-- LMR SESSION CHAIN — schedule + session-wise read-out (auto-filled 17:20 NY) -->
-  <div class="card" id="lsc-today">
-    <div class="card-head"><span class="card-tag t-g">LMR Schedule</span><div class="card-title">Session Chain</div>
-      <div id="lsc-head" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto"></div></div>
-    <div class="card-body" id="lsc-body"><div class="lsc-empty">Loading session chain…</div></div>
-  </div>
 
   <!-- Today's Events -->
   <div class="card">
@@ -4973,6 +4967,8 @@ Midnight Open $______"></textarea>
             <input id="dm-dailydol" placeholder="$______" style="font-family:'JetBrains Mono',monospace"></div>
           <div class="form-row"><label class="form-label">Trade Plan</label>
             <textarea id="dm-tradeplan" rows="2" placeholder="Why I should take a trade?"></textarea></div>
+          <div class="form-row"><label class="form-label">Journal</label>
+            <textarea id="dm-journal" rows="3" readonly placeholder="This day's journal entry — write it in Today's session or the Journal page." style="opacity:.92"></textarea></div>
         </div>
       </div>
 
@@ -5607,18 +5603,19 @@ function getEventsForRange(from,to,minImpact=1){
 let DB_NAME='lmr_v3';
 const STORE='images';
 const SB_IMG_BUCKET='app-images';
-const SB_IMG_URL='https://agrvylclhvxyevsmmexf.supabase.co/storage/v1/object/public/'+SB_IMG_BUCKET+'/';
+
 // Negative cache: keys whose Storage object is confirmed missing — never re-fetch them (stops 400 spam).
 const _imgMissCache=new Set();
 // Image-key index: the set of keys that actually HAVE an uploaded image. Lets getImg() skip the cloud
 // fetch for empty zones — Supabase Storage returns 400 for a missing public object, so blind fetches
 // spam the console with 400s. Synced from the cloud file list on login; updated on save/delete.
 let _imgIdx=null, _imgIdxSynced=false;
-function _imgIdxGet(){ if(_imgIdx) return _imgIdx; try{ _imgIdx=new Set(JSON.parse(localStorage.getItem('lmr_img_idx')||'[]')); }catch(e){ _imgIdx=new Set(); } _imgIdxSynced=localStorage.getItem('lmr_img_idx_ok')==='1'; return _imgIdx; }
-function _imgIdxPersist(){ try{ localStorage.setItem('lmr_img_idx',JSON.stringify([..._imgIdxGet()])); }catch(e){} }
+function _imgIndexStorageKey(suffix=''){return 'lmr_img_idx'+suffix+'__'+(_sbUserId || 'signed-out');}
+function _imgIdxGet(){ if(_imgIdx) return _imgIdx; try{ _imgIdx=new Set(JSON.parse(localStorage.getItem(_imgIndexStorageKey())||'[]')); }catch(e){ _imgIdx=new Set(); } _imgIdxSynced=localStorage.getItem(_imgIndexStorageKey('_ok'))==='1'; return _imgIdx; }
+function _imgIdxPersist(){ try{ localStorage.setItem(_imgIndexStorageKey(),JSON.stringify([..._imgIdxGet()])); }catch(e){} }
 function _imgIdxAdd(k){ _imgIdxGet().add(k); _imgIdxPersist(); }
 function _imgIdxDel(k){ _imgIdxGet().delete(k); _imgIdxPersist(); }
-function _imgIdxSetAll(keys){ _imgIdx=new Set(keys); _imgIdxSynced=true; try{ localStorage.setItem('lmr_img_idx',JSON.stringify([...new Set(keys)])); localStorage.setItem('lmr_img_idx_ok','1'); }catch(e){} }
+function _imgIdxSetAll(keys){ _imgIdx=new Set(keys); _imgIdxSynced=true; try{ localStorage.setItem(_imgIndexStorageKey(),JSON.stringify([...new Set(keys)])); localStorage.setItem(_imgIndexStorageKey('_ok'),'1'); }catch(e){} }
 // lmr_imageIndex is a one-time Notion-import helper; namespaced the same way.
 let IMG_INDEX_KEY='lmr_imageIndex';
 let db;
@@ -5699,6 +5696,7 @@ async function _switchUserImageStore(uid,mode){
   }
   DB_NAME=nsDb;
   IMG_INDEX_KEY=nsIdx;
+  _imgIdx=null; _imgIdxSynced=false; _imgMissCache.clear();
 }
 
 // Save to IndexedDB AND upload to Supabase Storage
@@ -5729,24 +5727,26 @@ async function sbUploadImage(key,blob){
       contentType:mime, upsert:true
     });
     if(error) return null;
-    return SB_IMG_URL+fileName;
+    return fileName; // Upload success marker; private objects have no permanent public URL.
   }catch(e){ return null; }
 }
 
 // Get image: IndexedDB first, then Supabase Storage
 async function getImg(k){
+  const imageOwner=_sbUserId;
   await openDB();
+  if(imageOwner!==_sbUserId)return null;
   const local=await new Promise(res=>{const t=db.transaction(STORE,'readonly');const r=t.objectStore(STORE).get(k);r.onsuccess=()=>res(r.result)});
+  if(imageOwner!==_sbUserId)return null;
   if(local) return local;
   // Only hit the cloud for keys we KNOW have an uploaded image (or before the index is synced).
   // This stops the 400-Bad-Request spam from fetching missing objects for empty image zones.
   if(_sbUserId && !_imgMissCache.has(k) && (_imgIdxGet().has(k) || !_imgIdxSynced)){
     try{
       const fileName=`${_sbUserId}/${encodeURIComponent(k)}`;
-      const publicUrl=SB_IMG_URL+fileName;
-      const resp=await fetch(publicUrl);
-      if(resp.ok){
-        const blob=await resp.blob();
+      const {data:blob,error}=await _sb.storage.from(SB_IMG_BUCKET).download(fileName);
+      if(imageOwner!==_sbUserId)return null;
+      if(!error && blob){
         if(blob.size>0){
           await new Promise(res=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(blob,k);t.oncomplete=res;t.onerror=res});
           _imgIdxAdd(k);   // confirmed it exists
@@ -5812,6 +5812,7 @@ async function syncAllImagesToCloud(){
 // ── RESTORE ALL IMAGES FROM CLOUD ──────────────────────────────
 // Downloads all images from Supabase Storage back to IndexedDB
 async function restoreAllImagesFromCloud(){
+  const imageOwner=_sbUserId;
   if(!_sbUserId){flash('⚠ Sign in first');return;}
   flash('⟳ Restoring images from cloud…');
   try{
@@ -5821,20 +5822,21 @@ async function restoreAllImagesFromCloud(){
 
     let done=0;
     let skipped=0;
+    if(imageOwner!==_sbUserId)return;
     await openDB();
 
     for(const file of files){
+      if(imageOwner!==_sbUserId)return;
       const key=decodeURIComponent(file.name);
       // Check if already in local IndexedDB
       const existing=await new Promise(res=>{try{const t=db.transaction(STORE,'readonly');const r=t.objectStore(STORE).get(key);r.onsuccess=()=>res(r.result);r.onerror=()=>res(null);}catch(e){res(null);}});
       if(existing){skipped++;continue;}
 
-      // Download via direct public URL (more reliable)
+      // Download with the current authenticated session and Storage RLS.
       try{
-        const publicUrl=SB_IMG_URL+`${_sbUserId}/${file.name}`;
-        const resp=await fetch(publicUrl);
-        if(resp.ok){
-          const blob=await resp.blob();
+        const {data:blob,error}=await _sb.storage.from(SB_IMG_BUCKET).download(`${_sbUserId}/${file.name}`);
+        if(imageOwner!==_sbUserId)return;
+        if(!error && blob){
           if(blob.size>0){
             await new Promise(res=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(blob,key);t.oncomplete=res;t.onerror=res});
             done++;
@@ -5853,6 +5855,7 @@ async function restoreAllImagesFromCloud(){
 // ── AUTO-RESTORE IMAGES ON LOGIN (new device) ──────────────────
 // Called after login — silently downloads all cloud images to IndexedDB
 async function autoRestoreImagesOnLogin(){
+  const imageOwner=_sbUserId;
   if(!_sbUserId) return;
   try{
     const localKeys=await allImgKeys();
@@ -5866,14 +5869,16 @@ async function autoRestoreImagesOnLogin(){
     if(!missing.length) return;
 
     console.log(`[LMR] Auto-restoring ${missing.length} images from cloud...`);
+    if(imageOwner!==_sbUserId)return;
     await openDB();
     let done=0;
     for(const file of missing){
+      if(imageOwner!==_sbUserId)return;
       const key=decodeURIComponent(file.name);
       try{
-        const resp=await fetch(SB_IMG_URL+`${_sbUserId}/${file.name}`);
-        if(resp.ok){
-          const blob=await resp.blob();
+        const {data:blob,error}=await _sb.storage.from(SB_IMG_BUCKET).download(`${_sbUserId}/${file.name}`);
+        if(imageOwner!==_sbUserId)return;
+        if(!error && blob){
           if(blob.size>0){
             await new Promise(res=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(blob,key);t.oncomplete=res;t.onerror=res});
             done++;
@@ -6502,6 +6507,11 @@ function updateNyClock(){
   const del=document.getElementById('nyClockDate');
   if(el)el.textContent=timeStr;
   if(del)del.textContent=dateStr+' · NY';
+  const zoneLabel=document.getElementById('nyClockZone');
+  if(zoneLabel){
+    const zone=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',timeZoneName:'short'}).formatToParts(now).find(part=>part.type==='timeZoneName')?.value||'ET';
+    zoneLabel.textContent='NY-'+zone;
+  }
 
   // NY time parts
   const nyStr=now.toLocaleString('en-US',{timeZone:'America/New_York'});
@@ -6511,7 +6521,10 @@ function updateNyClock(){
 
   // ── CURRENT DAY — just the number ──
   const dc=document.getElementById('dayCount');
-  if(dc){ dc.textContent=dayCountFor(todayStr())||getNextDayCount(); }
+  if(dc){
+    dc.textContent=dayCountFor(todayStr())||getNextDayCount();
+    for(const id of ['tbDay','mDayCount']){ const label=document.getElementById(id); if(label)label.textContent=dc.textContent; }
+  }
 
   // ── INTRA QUARTER (90-min within session) ──
   let intraTag='—';
@@ -7283,14 +7296,13 @@ function navTo(p){
   _updateTopbarAction(p);
   const tbSub=document.getElementById('tbSub');
   const day=dayCountFor(todayStr())||getNextDayCount();
-  if(p==='dash'||p==='today'){
-    const name=(state.profile?.name)||'LMR Capitals';
-    tbSub.innerHTML=`Welcome back, <span id="tb-username">${name}</span>. Day <span id="tbDay">${day}</span>`;
-  } else {
-    let sub = s;
-    if(s.endsWith('Day ')) sub = s + day;
-    tbSub.innerHTML = sub.replace(/Day (\d+)/, 'Day <span id="tbDay">$1</span>');
-  }
+  const greetingName=document.createElement('span');
+  greetingName.id='tb-username';
+  greetingName.textContent=state.profile?.name||'LMR Capitals';
+  const greetingDay=document.createElement('span');
+  greetingDay.id='tbDay';
+  greetingDay.textContent=day;
+  tbSub.replaceChildren('Hi, ',greetingName,' · Day ',greetingDay);
   if(window.innerWidth<=900)toggleSidebar();
   if(p==='dash') renderDashboard();
   if(p==='perf'){
@@ -7633,8 +7645,8 @@ function loadDaily(){
   setChipsValues('pred',d.pred||'');
   setChipsValues('daystatus',d.daystatus||'');
   document.getElementById('ch-rth').value=d.rth||'';
-  // inline journal text + type (today's entry from Notes/Journal)
-  { const je=(state.notes||[]).find(n=>n.date===ds)||(state.journal||[]).find(n=>n.date===ds);
+  // inline journal text + type (today's entry — journal store first, legacy notes fallback)
+  { const je=(state.journal||[]).find(n=>n.date===ds)||(state.notes||[]).find(n=>n.date===ds);
     const jt=document.getElementById('ch-journal-text'); if(jt) jt.value=je?je.text||'':'';
     _todayJType = je ? (window.jNormType?jNormType(je.type):je.type||'Lesson') : 'Lesson';
     if(typeof renderTodayJournalTypes==='function') renderTodayJournalTypes(); }
@@ -7874,7 +7886,7 @@ function updateWeeklyDisplay(){
 function updateTodayJournalPreview(ds){
   const el = document.getElementById('today-journal-preview');
   if(!el) return;
-  const entry = (state.notes||[]).find(n=>n.date===ds) || (state.journal||[]).find(n=>n.date===ds);
+  const entry = (state.journal||[]).find(n=>n.date===ds) || (state.notes||[]).find(n=>n.date===ds);
   if(entry){
     const txt = entry.text || entry.content || '';   // consolidated entries may store body in `content` (text can be null)
     el.innerHTML=`<span style="color:var(--bull)">✓ Saved</span> · ${txt.slice(0,60)}${txt.length>60?'…':''}`;
@@ -7887,7 +7899,7 @@ function openTodayJournal(){
   const ds = todayStr();
   const dc = dayCountFor(ds) || getNextDayCount();
   // Find existing journal entry for today
-  const existing = [...state.notes, ...(state.journal||[])].find(n=>n.date===ds);
+  const existing = [...(state.journal||[]), ...state.notes].find(n=>n.date===ds);
 
   // Open journal modal pre-filled with today's date and day count
   const modal = document.createElement('div');
@@ -7951,25 +7963,19 @@ function saveTodayJournal(ds, dc){
   const type = document.getElementById('tj-type')?.value||'Lesson';
   if(!text){ flash('⚠ Add some text first'); return; }
 
-  const id = Date.now();
-  const note = { id, type, date:ds, dayCount:dc, title:`D${dc} · ${fmtDate(ds)}`, text, createdAt:new Date().toISOString() };
+  // Save into the JOURNAL store (not Notes) — stable per-day id so it updates in place and
+  // round-trips, without disturbing other same-day Journal entries.
+  const key='today-'+ds;
+  const existing=(state.journal||[]).find(n=>String(n.id)===key);
+  const rec = { id:key, type, date:ds, dayCount:dc, title:`D${dc} · ${fmtDate(ds)}`, text, imgKey:existing?.imgKey||(todayStr()+'-today-journal-1'), createdAt:existing?.createdAt||new Date().toISOString() };
+  state.journal = (state.journal||[]).filter(n=>String(n.id)!==key);
+  state.journal.unshift(rec);
+  if(typeof JN_PERSIST!=='undefined') JN_PERSIST.write('journal',rec); else save();
 
-  // Remove existing entry for this date if any
-  state.notes = state.notes.filter(n=>n.date!==ds);
-  state.notes.unshift(note);
-  save();
-
-  // Sync to Supabase
-  if(_sbSyncEnabled&&_sbUserId&&_sb){
-    _sb.from('notes').upsert({
-      id:String(id), user_id:_sbUserId, title:note.title,
-      text:note.text, date:ds, created_at:note.createdAt
-    },{onConflict:'id'}).catch(()=>{});
-  }
-
-  // Update preview in Today chain
+  // Update preview in Today chain + Journal feed
   updateTodayJournalPreview(ds);
   closeTodayJournal();
+  if(window.renderJournalSection) window.renderJournalSection();
   flash('✓ Journal entry saved for D'+dc);
 }
 
@@ -8009,25 +8015,31 @@ function saveTodayJournalInline(){
   const dc=dayCountFor(ds)||getNextDayCount();
   const text=(document.getElementById('ch-journal-text')||{}).value?.trim()||'';
   if(!text){ flash('⚠ Add some text first'); return; }
-  const existing=(state.notes||[]).find(n=>n.date===ds);
-  const id=existing?existing.id:Date.now();
-  const note={ id, type:_todayJType||'Lesson', date:ds, dayCount:dc, title:`D${dc} · ${fmtDate(ds)}`, text, createdAt:existing?.createdAt||new Date().toISOString() };
-  state.notes=(state.notes||[]).filter(n=>n.date!==ds);
-  state.notes.unshift(note);
-  save();
-  if(_sbSyncEnabled&&_sbUserId&&_sb){
-    _sb.from('notes').upsert({ id:String(id), user_id:_sbUserId, title:note.title, text:note.text, date:ds, created_at:note.createdAt },{onConflict:'id'}).catch(()=>{});
-  }
+  // Save into the JOURNAL store (not Notes) so it shows on the Journal page, the Daily page and
+  // Today. Stable per-day id ('today-<date>') so re-saving updates the same entry, round-trips
+  // through the cloud, and never touches other same-day Journal entries (which use numeric ids).
+  const key='today-'+ds;
+  const existing=(state.journal||[]).find(n=>String(n.id)===key);
+  const rec={ id:key, type:_todayJType||'Lesson', date:ds, dayCount:dc, title:`D${dc} · ${fmtDate(ds)}`, text, imgKey:existing?.imgKey||(todayStr()+'-today-journal-1'), createdAt:existing?.createdAt||new Date().toISOString() };
+  state.journal=(state.journal||[]).filter(n=>String(n.id)!==key);
+  state.journal.unshift(rec);
+  if(typeof JN_PERSIST!=='undefined') JN_PERSIST.write('journal',rec); else save();
   updateTodayJournalPreview(ds);
+  if(window.renderJournalSection) window.renderJournalSection();
   flash('✓ Journal saved for D'+dc);
 }
 function deleteTodayJournalEntry(id, ds){
   if(!confirm('Delete this journal entry?'))return;
-  state.notes = state.notes.filter(n=>String(n.id)!==String(id));
+  const sid=String(id);
+  const inJournal=(state.journal||[]).some(n=>String(n.id)===sid);
+  state.journal = (state.journal||[]).filter(n=>String(n.id)!==sid);
+  state.notes   = (state.notes||[]).filter(n=>String(n.id)!==sid); // legacy today-entries lived in notes
   save();
-  if(_sbSyncEnabled&&_sbUserId) sbDeleteRecord('notes',String(id));
+  if(typeof JN_PERSIST!=='undefined') JN_PERSIST.del(inJournal?'journal':'notes', sid);
+  else if(_sbSyncEnabled&&_sbUserId) sbDeleteRecord(inJournal?'journal':'notes',sid);
   updateTodayJournalPreview(ds);
   closeTodayJournal();
+  if(window.renderJournalSection) window.renderJournalSection();
   flash('✓ Journal entry deleted');
 }
 
@@ -10738,7 +10750,7 @@ async function lmrSimpleLoad(section){
 
   // Initialize the block editor (prefers the new block format; otherwise converts the legacy HTML).
   if(typeof lmrbInit==='function'){ lmrbInit(section, (lmrbBlocks&&lmrbBlocks.length)?lmrbBlocks:html, ()=>lmrSimpleAutoSave(section)); }
-  else { el.innerHTML = html || ''; }
+  else { el.innerHTML = lmrSanitizeRichHtml(html); }
   if(statusEl) statusEl.textContent = (html||lmrbBlocks) ? '✓ Loaded' : 'Start typing…';
   setTimeout(()=>{ if(statusEl) statusEl.textContent='Auto-saves'; }, 1500);
 }
@@ -10927,7 +10939,7 @@ function _lmrbRow(b,i){
   else if(_lmrbIsToggle(b.type)){ const tg=document.createElement('button'); tg.type='button'; tg.className='lmrb-tog'; tg.textContent=c.open?'▾':'▸'; tg.onclick=e=>{ e.stopPropagation(); c.open=!c.open; _lmrbRender(); _lmrbChanged(); }; row.appendChild(tg); }
   const ce=document.createElement('div'); ce.className='lmrb-ce lmrb-'+b.type+(b.type==='todo'&&c.checked?' done':''); ce.contentEditable='true'; ce.spellcheck=false; ce.dataset.id=b.id;
   ce.dataset.ph=(b.type==='text'?'Type text, or / for commands':(_lmrbIsToggle(b.type)?'Toggle':(b.type[0]==='h'?'Heading':(b.type==='code'?'Code':(b.type==='quote'?'Quote':(b.type==='callout'?'Callout':''))))));
-  ce.innerHTML=c.html||''; _lmrbBindCE(ce,b); row.appendChild(ce); return row;
+  ce.innerHTML=lmrSanitizeRichHtml(c.html); _lmrbBindCE(ce,b); row.appendChild(ce); return row;
 }
 // Media (image/video/audio/file): blob stored in the app's IndexedDB image layer (no base64 in state).
 function _lmrbMedia(b){
@@ -10966,7 +10978,7 @@ function _lmrbTable(b){
 function _lmrbPage(b){
   const wrap=document.createElement('div'); wrap.className='lmrb-page';
   const ic=document.createElement('span'); ic.className='lmrb-pico'; ic.textContent=b.type==='linktopage'?'🔗':'📄'; wrap.appendChild(ic);
-  const ce=document.createElement('div'); ce.className='lmrb-ce lmrb-pagece'; ce.contentEditable='true'; ce.spellcheck=false; ce.dataset.id=b.id; ce.dataset.ph='Untitled'; ce.innerHTML=(b.content&&b.content.title)||''; _lmrbBindCE(ce,b,'title'); wrap.appendChild(ce); return wrap;
+  const ce=document.createElement('div'); ce.className='lmrb-ce lmrb-pagece'; ce.contentEditable='true'; ce.spellcheck=false; ce.dataset.id=b.id; ce.dataset.ph='Untitled'; ce.innerHTML=lmrSanitizeRichHtml(b.content&&b.content.title); _lmrbBindCE(ce,b,'title'); wrap.appendChild(ce); return wrap;
 }
 // Bookmark: plain URL text (no unfurl/favicon — would need a server fetch).
 function _lmrbBookmark(b){
@@ -13434,6 +13446,10 @@ function openDayModal(ds){
   { const r=document.getElementById('dm-dailyrol'); if(r) r.value=entry.dailyRol||entry.daily_rol||''; }
   { const o=document.getElementById('dm-dailydol'); if(o) o.value=entry.dailyDol||entry.daily_dol||''; }
   { const tp=document.getElementById('dm-tradeplan'); if(tp) tp.value=entry.tradePlan||entry.trade_plan||''; }
+  // Day's journal entry (journal store first, legacy notes as fallback) — read-only here
+  { const dj=document.getElementById('dm-journal');
+    if(dj){ const je=(state.journal||[]).find(n=>n.date===ds)||(state.notes||[]).find(n=>n.date===ds);
+      dj.value=je?(je.text||je.content||''):''; } }
   document.getElementById('dm-daystatus').value=entry.daystatus||'';
   document.getElementById('dm-pnl').textContent=dayPnL!==0?`${dayPnL>=0?'+':''}$${dayPnL.toFixed(2)}`:'$0';
   document.getElementById('dm-pnl').className=`mono ${dayPnL>0?'txt-pos':dayPnL<0?'txt-neg':''}`;
@@ -13652,7 +13668,7 @@ async function loadLmrPage(pageId){
     }catch(e){}
   }
 
-  el.innerHTML=content;
+  el.innerHTML=lmrSanitizeRichHtml(content);
   if(!content) el.setAttribute('placeholder','Start writing…');
   const lbl=document.getElementById(pageId+'-saved');
   if(lbl) lbl.textContent=content?'Loaded':'Not saved';
@@ -13770,7 +13786,19 @@ function sbInit() {
   if (_sb) return _sb;
   try { _sb = window.supabase.createClient(SB_URL, SB_KEY); }
   catch (e) { setSbStatus('Init failed', 'var(--bear)'); return null; }
-  _sb.auth.onAuthStateChange(ev => { if (ev === 'PASSWORD_RECOVERY') lgStartRecovery(); });
+  _sb.auth.onAuthStateChange((ev, session) => {
+    if (ev === 'PASSWORD_RECOVERY') lgStartRecovery();
+    if (!lmrAccountChanged(ev, _sbUserId, session?.user?.id)) return;
+    // Preserve pending edits only in the old account's local namespace.
+    // Never submit the old account's state with a newly changed auth session.
+    try { if(STORE_KEY.endsWith('__'+_sbUserId)) localStorage.setItem(STORE_KEY,JSON.stringify(state)); } catch(e) {}
+    _sbSyncEnabled=false; clearTimeout(_sbSyncTimer); _sbUserId=null;
+    const main=document.getElementById('mainApp'); if(main)main.style.display='none';
+    document.querySelectorAll('.modal.show').forEach(el=>el.classList.remove('show'));
+    document.body.classList.remove('is-admin');
+    // Outside the auth callback lock; startup revalidates entitlement and ownership.
+    setTimeout(()=>location.reload(),0);
+  });
   return _sb;
 }
 
@@ -13827,15 +13855,7 @@ async function sbDoSignIn() {
 }
 
 async function sbDoSignUp() {
-  if (!sbInit()) return;
-  const email = document.getElementById('sb-email').value.trim();
-  const pass = document.getElementById('sb-pass').value;
-  const err = document.getElementById('sb-auth-err');
-  err.style.display = 'none';
-  if (pass.length < 6) { err.textContent = 'Password must be 6+ characters'; err.style.display = ''; return; }
-  const { error } = await _sb.auth.signUp({ email, password: pass });
-  if (error) { err.textContent = error.message; err.style.display = ''; return; }
-  err.style.color = 'var(--bull)'; err.textContent = '✓ Account created. Now sign in.'; err.style.display = '';
+  location.assign('/inner-circle?signup=1&next=journal');
 }
 
 async function sbDoSignOut() {
@@ -14537,6 +14557,7 @@ async function checkScheduledWeeklyReport(){
 
 // ── LOGIN GATE FORM SWITCHER: sign in · create account · forgot password ──
 function lgSwitchTab(tab){
+  if(tab==='signup'){ location.assign('/inner-circle?signup=1&next=journal');return; }
   if(_lgRecoveryMode && tab!=='forgot'){ _lgRecoveryMode=false; if(_sb) _sb.auth.signOut().catch(()=>{}); _lgRecoveryUI(false); }
   const forms={signin:'lg-signin-form',signup:'lg-signup-form',forgot:'lg-forgot-form'};
   Object.entries(forms).forEach(([k,id])=>{
@@ -14636,31 +14657,7 @@ async function lgForgotReset(){
 }
 
 async function lgSignUp(){
-  if(!sbInit()){alert('Auth service unavailable');return;}
-  const email=document.getElementById('lg-signup-email').value.trim();
-  const pass=document.getElementById('lg-signup-password').value;
-  const confirm=document.getElementById('lg-signup-confirm').value;
-  const err=document.getElementById('lg-err');
-  const suc=document.getElementById('lg-success');
-  const btn=document.getElementById('lg-signup-submit');
-  err.style.display='none';suc.style.display='none';
-  if(!email||!pass){err.textContent='Email and password are required.';err.style.display='';return;}
-  if(pass.length<6){err.textContent='Password must be at least 6 characters.';err.style.display='';return;}
-  if(pass!==confirm){err.textContent='Passwords do not match.';err.style.display='';return;}
-  btn.disabled=true;btn.textContent='Creating account…';
-  try{
-    const{error}=await _sb.auth.signUp({email,password:pass});
-    if(error)throw error;
-    suc.textContent='✓ Account created! Check your email to confirm, then sign in.';
-    suc.style.display='';
-    btn.disabled=false;btn.textContent='Create Account →';
-    // Switch to sign-in tab after short delay
-    setTimeout(()=>lgSwitchTab('signin'),2000);
-  }catch(e){
-    err.textContent=e.message||'Sign-up failed.';
-    err.style.display='';
-    btn.disabled=false;btn.textContent='Create Account →';
-  }
+  location.assign('/inner-circle?signup=1&next=journal');
 }
 
 // Allow Enter key on login form + clear any browser-autofilled values on load
@@ -15205,7 +15202,7 @@ function clearAIChat(){
 }
 
 function formatAIResponse(text){
-  return text
+  return lmrEscapeText(text)
     .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
     .replace(/\*(.*?)\*/g,'<em>$1</em>')
     .replace(/^### (.*)/gm,'<h4 style="color:var(--gold);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin:10px 0 4px">$1</h4>')
@@ -15226,7 +15223,7 @@ function appendAIMessage(role, content, isThinking=false){
     <div class="ai-msg-avatar">${role==='user'?'You':icon('sparkles',14)}</div>
     <div class="ai-msg-bubble">${isThinking
       ? '<div class="ai-thinking"><span></span><span></span><span></span></div>'
-      : (role==='assistant' ? `<p>${formatAIResponse(content)}</p>` : `<p>${content}</p>`)
+      : (role==='assistant' ? `<p>${formatAIResponse(content)}</p>` : `<p>${lmrEscapeText(content)}</p>`)
     }</div>`;
   el.appendChild(div);
   el.scrollTop = el.scrollHeight;
@@ -18114,7 +18111,17 @@ function paintCardImages(root){
 }
 
 function renderJournal(){
-  var rows = jFilter==='All' ? S.journal : S.journal.filter(function(r){return normType(r.type)===jFilter;});
+  // The Journal feed's module store (S) is seeded at parse time and is separate from the global
+  // `state`. Today-session journal entries are written to `state.journal`, so merge those in (by id)
+  // and show them here too — newest first.
+  var _src = (S.journal||[]).slice();
+  try{
+    if (typeof state!=='undefined' && state && Array.isArray(state.journal)) {
+      state.journal.forEach(function(j){ if(!_src.some(function(b){return String(b.id)===String(j.id);})) _src.push(j); });
+    }
+  }catch(e){}
+  _src.sort(function(a,b){ return String(b.date||'').localeCompare(String(a.date||'')) || (Number(b.id)||0)-(Number(a.id)||0); });
+  var rows = jFilter==='All' ? _src : _src.filter(function(r){return normType(r.type)===jFilter;});
   var feed = document.getElementById('jFeed');
   document.getElementById('jCount').textContent =
     rows.length + (rows.length===1?' entry':' entries') + (jFilter==='All'?'':' \u00b7 '+jFilter);
@@ -18159,6 +18166,12 @@ document.addEventListener('click', function(e){
     if (rec && rec.imgKey) JN_PERSIST.saveImg(rec.imgKey, null);
     if (kind==='journal') S.journal = S.journal.filter(function(r){return String(r.id)!==id;});
     else                  S.notes   = S.notes.filter(function(r){return String(r.id)!==id;});
+    // Also remove from the global state store (today-session journal entries live there).
+    try{ if (typeof state!=='undefined' && state) {
+      if (kind==='journal' && Array.isArray(state.journal)) state.journal = state.journal.filter(function(r){return String(r.id)!==id;});
+      if (kind==='notes'   && Array.isArray(state.notes))   state.notes   = state.notes.filter(function(r){return String(r.id)!==id;});
+      if (typeof save==='function') save();
+    } }catch(e){}
     JN_PERSIST.write(kind, null);
     JN_PERSIST.del(kind, id);
     if (kind==='journal') renderJournal(); else renderNotes();

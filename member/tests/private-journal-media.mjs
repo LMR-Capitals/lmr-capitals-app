@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {signJournalCharts} from '../private-journal-media.mjs';
+let calls=0;
+const client={storage:{from(bucket){assert.equal(bucket,'app-images');return {async createSignedUrls(paths,ttl){assert.equal(ttl,300);calls++;return {data:paths.map(path=>path==='denied'?{path,error:'Unauthorized'}:{path,signedUrl:'https://example.com/signed/'+path})};}};}}};
+const source=[{charts:[{path:'own',url:'https://old-public-url'},{path:'own'},{path:'denied',url:'https://old-public-url'},{}]}];
+const result=await signJournalCharts(client,source);
+assert.equal(calls,1);assert.equal(result[0].charts[0].url,'https://example.com/signed/own');
+assert.equal(result[0].charts[2].url,null);assert.equal(result[0].charts[3].url,null);
+assert.equal(source[0].charts[2].url,'https://old-public-url');
+await assert.rejects(signJournalCharts({storage:{from:()=>({createSignedUrls:async()=>({error:{message:'Unauthorized'}})})}},source),/private Journal/);
+assert.deepEqual(await signJournalCharts({},[{charts:[]}]),[{charts:[]}]);
+console.log('PASS: authenticated short-lived signatures, deduplicated batching, denied images never fall back to public URLs.');

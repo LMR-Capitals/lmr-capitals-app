@@ -1,3 +1,4 @@
+import AgreementHistory from './agreement-history';
 import React, { useEffect, useRef, useState } from "react";
 import { sb } from "./api";
 import { preview } from "./config";
@@ -8,7 +9,7 @@ import { hubRpc, journalCollections, journalRecords, verifiedAdmin } from "../ad
 import "./admin-hub.css";
 
 const tabs = [["users", "Users & access"], ["subs", "Subscribers"], ["admins", "Administrators"], ["journal", "Journal database"]];
-const listRpc = { users: "admin_list_users", subs: "admin_list_subscriptions", admins: "admin_list_admins" };
+const listRpc = { users: "admin_list_users", subs: "circle_admin_membership_subscribers", admins: "admin_list_admins" };
 export default function AdminHub({ verified, user, onNavigate }) {
   if (!verified) return <Empty icon="shield" title="Verify your administrator account" body="Complete two-factor verification to open the Admin Hub and your private journal data.">
     <a className="button gold" href="/admin?next=circle">Verify administrator access <Icon name="arrow" size={15} /></a>
@@ -16,6 +17,7 @@ export default function AdminHub({ verified, user, onNavigate }) {
   return <ConnectedHub user={user} onNavigate={onNavigate} />;
 }
 function ConnectedHub({ user, onNavigate }) {
+  const [agreementMember,setAgreementMember]=useState(null), [revenue,setRevenue]=useState(null);
   const [tab, setTab] = useState("users"), [query, setQuery] = useState("");
   const [metrics, setMetrics] = useState(null), [rows, setRows] = useState([]);
   const [collection, setCollection] = useState("trades"), [page, setPage] = useState(0), [count, setCount] = useState(0);
@@ -25,6 +27,7 @@ function ConnectedHub({ user, onNavigate }) {
   useEffect(() => {
     if (preview) return;
     let active = true;
+    hubRpc(sb, "circle_admin_membership_revenue").then(data=>{if(active)setRevenue(data);}).catch(e=>{if(active)setError(e.message);});
     hubRpc(sb, "admin_metrics").then((data) => { if (active) setMetrics(data?.[0] || null); })
       .catch((e) => { if (active) setError(e.message); });
     return () => { active = false; };
@@ -79,12 +82,13 @@ function ConnectedHub({ user, onNavigate }) {
     <dl className="hub-metrics" aria-label="Business metrics">
       {[["total_users", "Total accounts"], ["active", "Active subscriptions"], ["trialing", "Trial subscriptions"], ["comp", "Legacy comp access"], ["past_due", "Past due"], ["canceled", "Canceled"]].map(([key, label]) =>
         <div key={key}><dt>{label}</dt><dd>{metrics?.[key] ?? "—"}</dd></div>)}
-      <div><dt>Estimated recurring revenue</dt><dd>{metrics ? new Intl.NumberFormat(undefined, { style: "currency", currency: "AUD" }).format(Number(metrics.mrr_cents || 0) / 100) : "—"}<small> / month</small></dd></div>
+      <div><dt>Estimated recurring revenue</dt><dd>{revenue ? revenue.length ? revenue.map(r=>`${new Intl.NumberFormat("en-US",{style:"currency",currency:r.currency}).format(r.mrr_cents/100)} ${r.currency.toUpperCase()}`).join(" · ") : "$0" : "—"}<small> / month</small></dd></div>
     </dl>
     <nav className="hub-tabs" aria-label="Admin Hub sections">{tabs.map(([id, label]) =>
       <button key={id} aria-current={tab === id ? "page" : undefined} className={tab === id ? "active" : ""} onClick={() => { setTab(id); setQuery(""); setPage(0); setNotice(""); }}>{label}</button>)}</nav>
     {error && <div className="banner error" role="alert"><span>{error}</span><Button small onClick={() => setVersion((v) => v + 1)}>Try again</Button></div>}
     {notice && <div className="banner" role="status">{notice}</div>}
+    {agreementMember&&<AgreementHistory userId={agreementMember.user_id} email={agreementMember.email} onClose={()=>setAgreementMember(null)}/>}
     <section className="panel hub-records" aria-busy={loading}>
       <div className="hub-tools">
         {tab === "journal" ? <><label>Journal collection<select value={collection} onChange={(e) => { setCollection(e.target.value); setPage(0); }}>{journalCollections.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label><span>Your account’s cloud records. Changes stay in the Journal Application.</span></>
@@ -99,6 +103,7 @@ function ConnectedHub({ user, onNavigate }) {
             <div><strong>{row.email}</strong><small>{tab === "subs" ? `${row.plan || "Subscription"} · ${row.cancel_at_period_end ? "Ends" : "Current period ends"} ${formatDate(row.current_period_end)}` : tab === "admins" ? `Administrator since ${formatDate(row.added_at)}` : `Subscription: ${row.sub_status || "none"}`}</small></div>
             {tab !== "admins" && <span className="tag">{tab === "users" ? row.comp ? "Legacy comp" : row.sub_status || "Free account" : row.status || "Unknown"}</span>}
             {tab === "users" && <Button small disabled={busy || preview} onClick={() => comp(row)}>{row.comp ? "Revoke comp" : "Grant comp"}</Button>}
+            {['subs','users'].includes(tab)&&<><Button small onClick={()=>setAgreementMember(row)}>View agreements</Button><a className="button small" href={`mailto:${row.email}`}>Contact member</a></>}
             {tab === "subs" && ["active", "trialing", "past_due"].includes(row.status) && <Button small disabled={busy || preview} onClick={() => cancel(row)}>Cancel subscription</Button>}
             {tab === "admins" && <Button small disabled={busy || preview || row.user_id === user?.id || rows.length <= 1} onClick={() => removeAdmin(row)}>Remove admin</Button>}
           </div>)}

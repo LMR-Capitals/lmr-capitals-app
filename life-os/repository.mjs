@@ -1,10 +1,11 @@
-import {sb} from '../member/api.js';
+import {lifeOsClient as sb, sessionReady} from './client.mjs';
 import {preview} from '../member/config.js';
 import {verifyTerminalAccess} from '../admin/terminal-access.mjs';
 export {preview};
 let sample={version:0,data:{goals:[{id:'sample',title:'Plan your next meaningful goal',category:'Personal',description:'Illustrative example. Your private records appear only after LMR administrator verification.',date:''}],tasks:[],reviews:[],reminders:[],habits:[],achievementRecords:[],roadmap:[],financialReference:[['Reference amounts','Not shown in preview']],deadlines:[]}};
 export async function verifyAccess(){
  if(preview)return {id:'illustrative-preview'};
+ await sessionReady; // adopt the parent's verified admin session before checking
  const access=await verifyTerminalAccess(sb);
  if(access.stage!=='ready')throw new Error(access.stage==='verify'?'Complete LMR two-factor verification to open Life OS.':'Life OS is available only to verified LMR administrators.');
  return access.user;

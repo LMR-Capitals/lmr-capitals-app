@@ -1,0 +1,90 @@
+/* Shared navigation identity. Matches the existing Inner Circle shell. */
+.lmr-workspace-sidebar{--nav-bg:#0b111c;--nav-text:#acbacb;--nav-line:#263344;--nav-gold:#f1cc87;font-family:Archivo,system-ui,sans-serif}
+.sidebar.lmr-workspace-sidebar{width:238px;min-width:238px;padding:24px 18px;background:var(--nav-bg);border-right:1px solid var(--nav-line);box-shadow:none}
+.lmr-workspace-brand{display:flex;align-items:center;gap:11px;min-height:49px;color:var(--nav-gold);text-decoration:none;flex:none}
+.lmr-workspace-brand img{width:45px;height:45px;object-fit:contain;flex:none}
+.lmr-workspace-brand strong{display:block;font-size:13px;font-weight:700;letter-spacing:.08em;line-height:1.5;white-space:nowrap}
+.lmr-workspace-brand small{display:block;margin-top:5px;font-size:8px;letter-spacing:.18em;color:#b1bdcb;line-height:1.5}
+.lmr-workspace-sidebar :is(button,a,summary):focus-visible{outline:2px solid var(--nav-gold);outline-offset:3px}
+.lmr-workspace-sidebar :is(.sb-item,nav button,.lmr-settings-button){display:flex;align-items:center;gap:12px;min-height:43px;padding:10px 13px;border:0;border-radius:6px;color:var(--nav-text);font-size:12px;font-weight:500;text-decoration:none;background:transparent;text-align:left;box-shadow:none}
+.lmr-workspace-sidebar :is(.sb-item,nav button,.lmr-settings-button):hover{background:#162030;color:#fff}
+.lmr-workspace-sidebar :is(.sb-item,nav button,.lmr-settings-button).active{background:#2a251c;color:var(--nav-gold);box-shadow:none;border:0}
+.lmr-workspace-sidebar :is(.sb-icon svg,nav button>svg,.lmr-settings-button>svg){width:18px;height:18px;flex:none}
+.lmr-journal-sidebar .sb-nav{padding:8px 0;flex:1;overflow-y:auto;min-height:100px}
+.lmr-journal-sidebar .sb-sec{font-size:10px;letter-spacing:.05em;color:#92a2b6;padding:18px 13px 8px}
+.lmr-journal-sidebar .sb-item{margin:0 0 5px}
+.lmr-session-context{margin:20px 0 8px;border-bottom:1px solid var(--nav-line);padding-bottom:8px;color:var(--nav-text);flex:none}
+.lmr-session-context summary{cursor:pointer;font-size:11px;padding:10px 4px;min-height:36px}
+.lmr-session-context :is(.sb-day,.ny-clock){margin:8px 0;box-shadow:none}
+.lmr-journal-sidebar :is(.sb-cockpit,.sb-payout){margin:4px 0;min-height:43px;padding:10px 13px;border:1px solid var(--nav-line);background:#101926;color:var(--nav-text);box-shadow:none;border-radius:6px;font-size:12px}
+.lmr-journal-sidebar :is(.sb-cockpit,.sb-payout):hover{background:#162030;color:#fff}
+.lmr-journal-sidebar .sb-foot{padding:12px 0 0;background:transparent;border-top:1px solid var(--nav-line);flex:none}
+.lmr-workspace-sidebar .lmr-settings-button{width:100%;cursor:pointer}
+.lmr-journal-sidebar .sb-head{padding:12px 0;border:0;border-bottom:1px solid var(--nav-line);margin-bottom:12px}
+.lmr-journal-sidebar .sb-logo-icon{width:34px;height:34px;background:#162231;border:1px solid var(--nav-line);border-radius:50%}
+.lmr-journal-sidebar .sb-status{padding-left:0;margin-top:8px}
+.lmr-journal-sidebar .sb-pnl-v{font-size:22px}
+.lmr-life-sidebar .lmr-access-label{display:flex;align-items:center;gap:8px;margin:30px 10px 15px;padding:0;border:0;font-size:10px;color:#92a2b6;line-height:1.5}
+.lmr-life-sidebar nav{margin:0;gap:5px}
+.lmr-life-sidebar .lmr-settings-button{margin-top:24px}
+.lmr-life-sidebar .side-bottom{margin-top:auto;padding:18px 10px 0;border-top:1px solid var(--nav-line);color:var(--nav-text)}
+.lmr-life-sidebar~.main{margin-left:238px;width:calc(100% - 238px)}
+.life-settings{padding:24px;max-width:760px}.life-settings h2{margin:0 0 16px}.life-settings h2:not(:first-child){margin-top:32px}.life-settings label{display:flex;align-items:flex-start;gap:12px;margin:12px 0}.life-settings input{width:18px;height:18px;accent-color:#f0bc59}.life-settings small{display:block;margin-top:5px}.life-settings p{margin-bottom:20px}.life-settings .outline{margin:0 12px 12px 0;min-height:44px}
+@media(max-width:900px){.sidebar.lmr-journal-sidebar{width:250px;min-width:250px;max-width:85vw;padding:20px 14px}.lmr-journal-sidebar .lmr-workspace-brand{padding-right:10px}.lmr-journal-sidebar :is(.sb-item,.lmr-settings-button){min-height:44px}}
+@media(max-width:760px){.sidebar.lmr-life-sidebar{position:static;width:100%;min-width:0;padding:12px 16px 0;border-right:0;border-bottom:1px solid var(--nav-line)}.is-embedded .lmr-life-sidebar>.lmr-workspace-brand{display:none}.lmr-life-sidebar .lmr-access-label{display:none}.lmr-life-sidebar nav{padding:0 0 8px}.lmr-life-sidebar nav button{min-height:44px;white-space:nowrap}.lmr-life-sidebar .lmr-settings-button{width:auto;margin:0 0 8px;min-height:44px}.lmr-life-sidebar~.main{margin:0;width:100%}.life-settings{padding:20px}}
+.lmr-journal-sidebar .sb-payout.ready{background:#19332d;color:#8fceb2;border-color:#31564a;box-shadow:none}.lmr-journal-sidebar .sb-payout.ready:hover{background:#21453a;color:#b5ecd4}
+/* One full-height rail, rather than a short menu trapped between fixed panels. */
+.sidebar.lmr-journal-sidebar{overflow-y:auto;overflow-x:hidden}
+.lmr-journal-sidebar .sb-nav{flex:none;overflow:visible;min-height:0}
+@media(min-width:901px){.journal-embedded .main{padding-top:79px}}
+
+/* P&L and identity stay available while the full navigation rail scrolls. */
+.lmr-journal-sidebar .sb-foot{position:sticky;bottom:-24px;z-index:3;flex:none;margin: auto -18px -24px;padding:14px 18px 20px;background:var(--nav-bg);border-top:1px solid var(--nav-line)}
+.lmr-journal-sidebar .sb-foot .sb-pnl-block{padding:0 0 13px;border:0;border-bottom:1px solid var(--nav-line);margin:0 0 10px}
+.lmr-journal-sidebar .sb-foot .sb-head{padding:0;border:0;margin:0;background:transparent;cursor:default}
+.lmr-footer-identity{display:flex;align-items:center;gap:6px}
+.lmr-journal-sidebar .lmr-account-button{display:flex;flex:1;min-width:0;gap:10px;padding:4px 0;border:0;background:transparent;text-align:left;color:var(--nav-text);cursor:pointer}
+.lmr-journal-sidebar .lmr-account-button:hover{color:#fff}
+.lmr-journal-sidebar .sb-foot .sb-logo-icon{flex:none;width:34px;height:34px;background:#162231!important;border:1px solid var(--nav-line)!important;border-radius:50%!important}
+.lmr-footer-name{display:block;min-width:0}
+.lmr-footer-name #sb-profile-name{display:block;font:600 13px/1.5 Archivo,system-ui,sans-serif;color:#edf2f7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lmr-footer-name #sb-profile-role{display:block;font-size:10px;font-weight:400;line-height:1.5;color:#a5b4c6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lmr-journal-sidebar .lmr-footer-settings{display:grid;place-items:center;flex:none;min-width:40px;min-height:44px;border:0;border-radius:6px;color:var(--nav-text);background:transparent;cursor:pointer}
+.lmr-journal-sidebar .lmr-footer-settings:hover{background:#162030;color:var(--nav-gold)}
+.lmr-journal-sidebar .sb-foot .sb-status{margin-top:8px;padding:0;font-size:9px}
+@media(max-width:900px){.lmr-journal-sidebar .sb-foot{bottom:-20px;margin-inline:-14px;margin-bottom:-20px;padding:12px 14px max(16px,env(safe-area-inset-bottom))}}
+
+/* Journal-owned session context keeps its original live colours and macro window. */
+.lmr-journal-sidebar>.lmr-workspace-brand{margin-bottom:16px;cursor:default}
+.main>.topbar>.tb-actions{align-items:center;flex-wrap:nowrap;gap:18px}
+.lmr-header-clock{min-width:0}
+.lmr-header-clock .ny-clock{display:grid;grid-template-columns:auto auto auto;align-items:center;gap:3px 10px;margin:0;padding:4px 0;box-shadow:none;background:transparent;border:0;text-align:right}
+.lmr-header-clock .ny-clock-label{font-size:8px;color:var(--blue);letter-spacing:.08em}
+.lmr-header-clock .ny-clock-time{font-size:18px;line-height:1.4;letter-spacing:.03em}
+.lmr-header-clock .ny-clock-date{font-size:9px;margin:0}
+.lmr-header-clock .ny-clock-q{grid-column:1/-1;font-size:9px;border:0;padding:0;margin:0;white-space:nowrap}
+.lmr-header-clock #clock-macro{grid-column:1/-1;margin:3px 0 0;padding:4px 10px;animation:none}
+.lmr-header-clock #clock-macro .cm-label{display:inline;margin-right:8px}
+.lmr-header-clock #clock-macro .cm-name{display:inline;font-size:11px}
+.lmr-header-clock #clock-macro .cm-range{display:inline;margin-left:8px;font-size:10px}
+@media(max-width:600px){
+ .main>.topbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px}
+ .main>.topbar>.tb-actions{display:contents}
+ .main>.topbar .lmr-header-clock{grid-column:1/-1;grid-row:2;border-top:1px solid var(--border);padding-top:6px}
+ .lmr-header-clock .ny-clock{justify-content:start;text-align:left;gap:3px 10px}
+ .lmr-header-clock .ny-clock-time{font-size:16px}
+ .main>.topbar #tbAction{grid-column:1/-1}
+}
+
+.lmr-footer-connection{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-top:8px}
+.lmr-journal-sidebar .sb-foot .lmr-footer-connection .sb-status{margin:0}
+.lmr-footer-connection #rt-indicator{flex:none}
+
+/* Quiet LMR gold emphasis, with more readable live session context. */
+#tbDay{color:var(--gold2);font-weight:800;font-size:1.15em;text-shadow:0 0 9px rgba(245,166,35,.32)}
+.lmr-header-clock .ny-clock-time{font-weight:800;font-size:20px}
+.lmr-header-clock .ny-clock-label{font-weight:800;font-size:10px;white-space:nowrap}
+.lmr-header-clock .ny-clock-date{font-weight:600;font-size:10px}
+.lmr-header-clock .ny-clock-q{font-size:10px;font-weight:700}
+.lmr-header-clock .ny-clock-q span{font-weight:700}
+@media(max-width:600px){.lmr-header-clock .ny-clock-time{font-size:18px}}
