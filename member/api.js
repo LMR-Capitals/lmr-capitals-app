@@ -1,3 +1,4 @@
+import {signJournalCharts} from './private-journal-media.mjs';
 import {enrichPublicationMedia} from "./workspace-loading.mjs";
 import {newestJournalFirst} from "./journal-order.mjs";
 import {fetchLiveExecutions} from "./executions.mjs";
@@ -195,9 +196,11 @@ export async function fetchAccount(user) {
 
 export async function fetchJournalSources() {
   const { data, error } = await sb.rpc("circle_journal_sources");
-  return error
-    ? { journalEntries: [], journalError: error.message }
-    : { journalEntries: newestJournalFirst(data || []).map(source => source.image_path ? {...source, image: `${config.supabaseUrl}/storage/v1/object/public/app-images/${source.image_path.split("/").map(encodeURIComponent).join("/")}`} : source), journalError: null };
+  if(error) return {journalEntries:[],journalError:error.message};
+  try {
+    const signed = await signJournalCharts(sb, (data || []).map(source => ({...source, charts:source.image_path ? [{path:source.image_path}] : []})));
+    return {journalEntries:newestJournalFirst(signed.map(({charts,...source}) => source.image_path ? {...source,image:charts[0]?.url || null} : source)),journalError:null};
+  } catch(error) {return {journalEntries:[],journalError:error.message};}
 }
 
 async function enrichProfile(profile) {
