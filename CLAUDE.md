@@ -1,6 +1,6 @@
 ## Membership launch continuation — 14 October 2026
 
-Read [remaining launch checks](deployment/MEMBERSHIP-LAUNCH-CHECKS-2026-10-14.md). Billing review migration is already applied, webhook v16 deployed. Do not reapply migrations or switch production Stripe keys to sandbox. Public promotion still requires actual signup confirmation and real webhook delivery.
+Read [remaining launch checks](deployment/MEMBERSHIP-LAUNCH-CHECKS-2026-10-14.md). Billing review migration is already applied, webhook v16 deployed. Do not reapply migrations or switch production Stripe keys to sandbox. Signup confirmation, free-member isolation, production signed delivery and full forwarded sandbox payment-to-access checks now pass. See the evidence and precise scope in the linked verification report. Temporary CLI session was revoked.
 
 ## Active launch security review
 
