@@ -10,4 +10,8 @@ assert.doesNotMatch(safe,/onerror|script|javascript:|onload|iframe|svg/);
 assert.match(window.lmrSanitizeRichHtml('<p><b>Notes</b></p><img data-imgkey="chart-1" src="data:image/png;base64,AAAA">'),/data-imgkey="chart-1"/);
 assert.equal(window.lmrEscapeText('<img onerror="x">'),'&lt;img onerror=&quot;x&quot;&gt;');
 window.DOMPurify=null;assert.equal(window.lmrSanitizeRichHtml('<b>fail closed</b>'),'&lt;b&gt;fail closed&lt;/b&gt;');
+assert.equal(window.lmrAccountChanged('TOKEN_REFRESHED','owner','owner'),false);
+assert.equal(window.lmrAccountChanged('SIGNED_IN','owner','other'),true);
+assert.equal(window.lmrAccountChanged('SIGNED_OUT','owner',null),true);
+assert.equal(window.lmrAccountChanged('INITIAL_SESSION',null,'owner'),false);
 window.close();console.log('PASS: rich text strips active HTML, preserves image keys, and escapes text if sanitizer fails to load.');

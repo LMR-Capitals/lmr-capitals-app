@@ -11,3 +11,7 @@ function lmrSanitizeRichHtml(value) {
     ALLOW_DATA_ATTR: true
   });
 }
+
+function lmrAccountChanged(event, currentId, nextId) {
+  return !!currentId && (event === 'SIGNED_OUT' || (!!nextId && nextId !== currentId));
+}

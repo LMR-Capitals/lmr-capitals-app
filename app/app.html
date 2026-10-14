@@ -13786,7 +13786,19 @@ function sbInit() {
   if (_sb) return _sb;
   try { _sb = window.supabase.createClient(SB_URL, SB_KEY); }
   catch (e) { setSbStatus('Init failed', 'var(--bear)'); return null; }
-  _sb.auth.onAuthStateChange(ev => { if (ev === 'PASSWORD_RECOVERY') lgStartRecovery(); });
+  _sb.auth.onAuthStateChange((ev, session) => {
+    if (ev === 'PASSWORD_RECOVERY') lgStartRecovery();
+    if (!lmrAccountChanged(ev, _sbUserId, session?.user?.id)) return;
+    // Preserve pending edits only in the old account's local namespace.
+    // Never submit the old account's state with a newly changed auth session.
+    try { if(STORE_KEY.endsWith('__'+_sbUserId)) localStorage.setItem(STORE_KEY,JSON.stringify(state)); } catch(e) {}
+    _sbSyncEnabled=false; clearTimeout(_sbSyncTimer); _sbUserId=null;
+    const main=document.getElementById('mainApp'); if(main)main.style.display='none';
+    document.querySelectorAll('.modal.show').forEach(el=>el.classList.remove('show'));
+    document.body.classList.remove('is-admin');
+    // Outside the auth callback lock; startup revalidates entitlement and ownership.
+    setTimeout(()=>location.reload(),0);
+  });
   return _sb;
 }
 
