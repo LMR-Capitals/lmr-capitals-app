@@ -1,0 +1,13 @@
+# Supabase GitHub integration for project agrvylclhvxyevsmmexf (working directory: ".").
+#
+# On a push to the production branch the integration deploys only:
+#   - new files in supabase/migrations/ (versions not yet in the live history)
+#   - Edge Functions and storage buckets declared in this file
+# Auth, API and seed settings are ignored for production.
+#
+# Deliberately declares no [functions.*] and no [storage.buckets.*]: the Stripe /
+# billing functions in database/functions/ must not be deployed from here.
+project_id = "lmr-capitals-app"
+
+[db]
+major_version = 17
