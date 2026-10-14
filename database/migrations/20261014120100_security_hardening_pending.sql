@@ -3,9 +3,11 @@
 -- delete/drop, and that prompt timed out during the 2026-10-14 session.
 -- Apply it from the Supabase SQL editor. It changes policies and functions only.
 --
--- Same MFA guard for the two admin RPCs whose bodies delete rows, and drop
--- the duplicate "own rows …" policies. Each one is identical to the
--- "own …" policy that stays on the same table.
+-- Same MFA guard for the two admin RPCs whose bodies delete rows.
+-- The duplicate journal-table policies are handled by
+-- 20261014090000_merge_duplicate_owner_policies.sql, which keeps "own rows …".
+-- Do not drop "own rows …" here: after that migration it is the only policy
+-- on each table, and dropping it would lock members out of their journal.
 
 create or replace function public.admin_remove_admin(target uuid)
 returns void language plpgsql security definer set search_path to 'public'
@@ -32,11 +34,3 @@ begin
   end if;
   delete from public.comp_access where user_id = target;
 end; $$;
-
-drop policy if exists "own rows accounts"     on public.accounts;
-drop policy if exists "own rows daily"        on public.daily;
-drop policy if exists "own rows monthly"      on public.monthly;
-drop policy if exists "own rows notes"        on public.notes;
-drop policy if exists "own rows trades"       on public.trades;
-drop policy if exists "own rows transactions" on public.transactions;
-drop policy if exists "own rows weekly"       on public.weekly;

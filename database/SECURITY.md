@@ -153,7 +153,7 @@ Path rule: user-owned objects live under `<auth.uid()>/…` and policies compare
 ## 6. Open findings (not yet fixed)
 
 Ranked by impact. As of 2026-10-14, #2 is mostly fixed and #6 is fixed by
-`migrations/20261014120000_security_hardening.sql`. The rest of #2 and all of #7 are in
+`migrations/20261014120000_security_hardening.sql`. The rest of #2 is in
 `migrations/20261014120100_security_hardening_pending.sql`, which is **not yet applied**.
 #1, #3, #4 and #5 are open.
 
@@ -165,4 +165,4 @@ Ranked by impact. As of 2026-10-14, #2 is mostly fixed and #6 is fixed by
 | 4 | `journal-images` is a public bucket. | Imported journal charts can be read by anyone who has the object path. | Make it private and serve it via signed URLs or an owner-folder policy if the content is sensitive. |
 | 5 | `admins` has `admins_read` `using (true)` for role `public`. | Anon callers can list admin user UUIDs (no emails). Needed today for the `lmr_achievements` public-read subquery. | Restrict to `authenticated`, or move the subquery into a `SECURITY DEFINER` helper. |
 | 6 | *(Fixed)* `is_entitled(uid)` is executable by `anon` for any `uid`. | Low: as anon, RLS hides `comp_access`/`subscriptions`, so it only reveals admin status. | `revoke execute … from anon`. |
-| 7 | *(Pending)* Duplicate identical policies ("own X" + "own rows X") on `accounts`, `daily`, `monthly`, `notes`, `trades`, `transactions`, `weekly`. | None to security. Postgres evaluates both (small performance cost). | Drop one of each pair. |
+| 7 | *(Pending, handled by `migrations/20261014090000_merge_duplicate_owner_policies.sql`)* Duplicate identical policies ("own X" + "own rows X") on `accounts`, `daily`, `monthly`, `notes`, `trades`, `transactions`, `weekly`. | None to security. Postgres evaluates both (small performance cost). | That migration replaces each pair with one `own rows X` policy. |
