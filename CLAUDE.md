@@ -3,8 +3,10 @@
 Read [browser logout and account isolation](deployment/SESSION-LOGOUT-2026-10-14.md).
 Normal logout must explicitly stay browser-local; all-devices logout is a separate
 confirmed option. Preserve the account-switch guards and pending local Journal
-edits. No schema changes belong to this release. Native Claude handoff remains
-deferred at the owner's request until the remaining work is finished.
+edits. Life OS Settings also delegates its two logout choices to the shared
+parent account actions. No schema changes belong to these releases. The owner
+requested the combined Claude handoff; native chat delivery remains unverified
+because its app-control connection rejects input.
 
 ## Membership launch continuation — 14 October 2026
 
