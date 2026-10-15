@@ -12,7 +12,8 @@ working directory `.`).
   because this repository is public. `20261014120000_security_hardening.sql` was
   added from `database/migrations/` after it was applied live; the live history stores
   no SQL text for it, so it is matched by version only. The same applies to
-  `20261014062044_security_hardening_admin_mfa.sql`.
+  `20261014062044_security_hardening_admin_mfa.sql` and
+  `20261014120100_security_hardening_pending.sql` (the same function SQL applied twice).
 - Because every version here is already applied, connecting the integration applies
   nothing. Only a **new** file added here is run against production.
 - `config.toml` declares no Edge Functions or buckets, so billing functions in
