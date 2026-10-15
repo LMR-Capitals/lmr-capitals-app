@@ -1,3 +1,5 @@
+> **14 October launch update:** [Verified security release](../deployment/SECURITY-LAUNCH-AUDIT.md) supersedes older open-finding states below. Journal entitlement gates and chart privacy changes are applied; stored records/files were preserved.
+
 # LMR Database – Security & access rules
 
 What the LMR Capitals Supabase project (`agrvylclhvxyevsmmexf`) lets each kind of
@@ -99,8 +101,8 @@ the owner is an admin (landing page feed); only admins can set `is_public = true
 
 | Bucket | Public URL | Read | Write |
 |---|---|---|---|
-| `app-images` | yes | anyone (`SELECT` policy for `public`) | owner folder only (`<uid>/…`) |
-| `journal-images` | yes, 10 MB | anyone with the URL | no client policy (server-side import only) |
+| `app-images` | no | owner; active paid members for explicitly published trade charts | owner folder only (`<uid>/…`) |
+| `journal-images` | no, 10 MB | owner via guarded imported-image ownership helper | no client policy (server-side import only) |
 | `lmr-images` | no | owner folder only | owner folder only |
 | `circle-avatars` | no, 5 MB, png/jpeg/webp | owner folder only | owner folder only |
 | `circle-media` | no, 10 MB, png/jpeg/webp | image of a post the member can read; MFA admin | MFA admin |
@@ -156,14 +158,14 @@ Ranked by impact. As of 2026-10-14, #2 and #6 are fixed on the live project by
 `migrations/20261014120000_security_hardening.sql` and
 `migrations/20261014120100_security_hardening_pending.sql`. #7 is handled by
 `migrations/20261014090000_merge_duplicate_owner_policies.sql`.
-#1, #3, #4 and #5 are open.
+#1, #3 and #4 are now fixed by the launch security release. #5 remains open (low priority).
 
 | # | Finding | Risk | Suggested fix |
 |---|---|---|---|
-| 1 | `app-images` has a `SELECT` policy for role `public` on `storage.objects`. | Anyone with the anon key can **list** every member's trade chart files across all folders, not only fetch a known URL. | Drop the `SELECT` policy (public URLs keep working for a public bucket), or replace it with an owner-folder policy. Check the Studio/member flows first, because they read `storage.objects` metadata through RPCs. |
+| 1 | *(Fixed: private bucket and scoped reads)* Previously `app-images` had a `SELECT` policy for role `public` on `storage.objects`. | Anyone with the anon key can **list** every member's trade chart files across all folders, not only fetch a known URL. | Drop the `SELECT` policy (public URLs keep working for a public bucket), or replace it with an owner-folder policy. Check the Studio/member flows first, because they read `storage.objects` metadata through RPCs. |
 | 2 | *(Fixed: all 9 require MFA)* Legacy admin RPCs (`admin_add_admin`, `admin_grant_comp`, `dump_all_data`, …) check `admins` membership but **not MFA**. | A stolen admin password alone can add admins, grant free access or export the whole database. Inner Circle admin already requires `aal2`. | Add `and coalesce(auth.jwt()->>'aal','') = 'aal2'` to the guard, after confirming the admin portal does an MFA step-up. |
-| 3 | Leaked-password protection is disabled in Supabase Auth. | Members can sign up with known-breached passwords. | Enable it in Auth → Password security ([docs](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection)). |
-| 4 | `journal-images` is a public bucket. | Imported journal charts can be read by anyone who has the object path. | Make it private and serve it via signed URLs or an owner-folder policy if the content is sensitive. |
+| 3 | *(Fixed: enabled and verified)* Leaked-password protection was disabled in Supabase Auth. | Members can sign up with known-breached passwords. | Enable it in Auth → Password security ([docs](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection)). |
+| 4 | *(Fixed: private, owner-only imported image reads)* `journal-images` was a public bucket. | Imported journal charts can be read by anyone who has the object path. | Make it private and serve it via signed URLs or an owner-folder policy if the content is sensitive. |
 | 5 | `admins` has `admins_read` `using (true)` for role `public`. | Anon callers can list admin user UUIDs (no emails). Needed today for the `lmr_achievements` public-read subquery. | Restrict to `authenticated`, or move the subquery into a `SECURITY DEFINER` helper. |
 | 6 | *(Fixed)* `is_entitled(uid)` is executable by `anon` for any `uid`. | Low: as anon, RLS hides `comp_access`/`subscriptions`, so it only reveals admin status. | `revoke execute … from anon`. |
 | 7 | *(Pending, handled by `migrations/20261014090000_merge_duplicate_owner_policies.sql`)* Duplicate identical policies ("own X" + "own rows X") on `accounts`, `daily`, `monthly`, `notes`, `trades`, `transactions`, `weekly`. | None to security. Postgres evaluates both (small performance cost). | That migration replaces each pair with one `own rows X` policy. |

@@ -4286,6 +4286,11 @@ Midnight Open $______"></textarea>
       <button class="btn btn-sm btn-bear" onclick="sbDoSignOut()" style="min-width:80px">Sign Out</button>
     </div>
 
+    <div style="margin-bottom:16px">
+      <button class="btn btn-sm" onclick="sbDoSignOut('global')">Sign out all devices</button>
+      <p style="font-size:11px;color:var(--text3);margin-top:8px">Normal sign out affects this browser only. Other devices stay signed in.</p>
+    </div>
+
     <div class="sp-section-title">Appearance</div>
     <div style="margin-bottom:14px">
       <label class="form-label">Colour Theme</label>
@@ -6060,6 +6065,7 @@ function save(){
     try{localStorage.setItem(STORE_KEY+'_bk',JSON.stringify(light));}catch(e){}
   }
   _sbDirty=true;
+  _sbSaveRevision++;
   sbScheduleSync();
 }
 // A localStorage-safe copy of state: strips heavy base64 image fields (kept in memory + Supabase).
@@ -6095,6 +6101,7 @@ function _persistState(payload){
 let _sbSyncTimer=null;
 let _sbSyncEnabled=false;
 let _sbDirty=false;
+let _sbSaveRevision=0;
 let _sbSyncing=false;
 let _sbUserId=null; // cached user ID — avoids repeated auth calls
 
@@ -6152,9 +6159,11 @@ async function sbDoSafeSync(){
   if(!_sb||!_sbSyncEnabled||!_sbDirty||_sbSyncing||!_sbUserId)return;
   _sbSyncing=true;
   setSyncIndicator('syncing');
+  const revision=_sbSaveRevision;
   try{
     await _sbUpsertAll(_sbUserId);
-    _sbDirty=false;_sbSyncing=false;
+    _sbDirty=_sbSaveRevision!==revision;_sbSyncing=false;
+    if(_sbDirty) sbScheduleSync();
     setSyncIndicator('synced');
     setSbStatus('✓ Synced '+new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}),'var(--bull)');
     localStorage.setItem('lmr_lastSync',new Date().toISOString());
@@ -6217,6 +6226,45 @@ function _mapDaily(date,d,uid){
     saved_at:d.savedAt||new Date().toISOString()};
 }
 
+// Compare the actual stored fields before bulk sync. Previously every save wrote
+// every historical row, even when unchanged, creating a Realtime event per row
+// per connected device. Read failures must fail sync; never fall back to rewriting
+// everything. No persistent cache: a different device's edits remain observable.
+function _sbComparable(value){
+  if(Array.isArray(value)) return value.map(_sbComparable);
+  if(value&&typeof value==='object') return Object.fromEntries(Object.keys(value).sort().map(k=>[k,_sbComparable(value[k])]));
+  return value;
+}
+async function _sbUpsertChanged(table,records,options){
+  const rows=JSON.parse(JSON.stringify(Array.isArray(records)?records:[records]));
+  if(!rows.length) return {error:null};
+  const uid=rows[0].user_id;
+  const key=options.onConflict.split(',').find(k=>k!=='user_id')||'user_id';
+  const columns=[...new Set(rows.flatMap(row=>Object.keys(row)))];
+  const existing=new Map();
+  const ids=[...new Set(rows.map(row=>String(row[key])))];
+  for(let offset=0;offset<ids.length;offset+=200){
+    const result=await _sb.from(table).select(columns.join(',')).eq('user_id',uid).in(key,ids.slice(offset,offset+200));
+    if(result.error) return result;
+    for(const row of result.data||[]) existing.set(String(row[key]),row);
+  }
+  const metadata=new Set(['updated_at','created_at','saved_at']);
+  const changed=rows.filter(row=>{
+    const stored=existing.get(String(row[key]));
+    if(!stored) return true;
+    return Object.keys(row).some(field=>!metadata.has(field)&&
+      JSON.stringify(_sbComparable(row[field]))!==JSON.stringify(_sbComparable(stored[field])));
+  });
+  if(!changed.length) return {error:null};
+  // Keep original creation metadata when a legacy local row has no timestamp.
+  for(const row of changed){
+    const stored=existing.get(String(row[key]));
+    if(stored&&stored.created_at) row.created_at=stored.created_at;
+  }
+  if(uid!==_sbUserId) return {error:{message:'Account changed during sync'}};
+  return await _sb.from(table).upsert(changed,options);
+}
+
 async function _sbUpsertAll(uid){
   // Supabase upserts resolve with {error} rather than throwing — without
   // checking it, a bad row (e.g. a column mismatch) silently fails while the
@@ -6225,20 +6273,20 @@ async function _sbUpsertAll(uid){
   const _errs=[];
   const _chk=(label,res)=>{ if(res&&res.error) _errs.push(label+': '+res.error.message); };
   if(state.trades.length)
-    _chk('trades', await _sb.from('trades').upsert(state.trades.map(t=>_mapTrade(t,uid)),{onConflict:'id'}));
+    _chk('trades', await _sbUpsertChanged('trades', state.trades.map(t=>_mapTrade(t,uid)),{onConflict:'id'}));
   if(state.accounts.length)
-    _chk('accounts', await _sb.from('accounts').upsert(
+    _chk('accounts', await _sbUpsertChanged('accounts',
       state.accounts.map(a=>({id:String(a.id),user_id:uid,notion_id:a.notionId||null,
         name:a.name||null,type:a.type||null,status:a.status||null,
         date:a.date||null,deposit:parseFloat(a.deposit)||0})),{onConflict:'id'}));
   if(state.transactions.length)
-    _chk('transactions', await _sb.from('transactions').upsert(
+    _chk('transactions', await _sbUpsertChanged('transactions',
       state.transactions.map(x=>({id:String(x.id),user_id:uid,notion_id:x.notionId||null,
         account_id:x.accountId?String(x.accountId):null,date:x.date||null,type:x.type||null,
         amount:parseFloat(x.amount)||0,note:x.note||null,status:x.status||null,
         updated_at:new Date().toISOString()})),{onConflict:'id'}));
   if(state.notes.length)
-    _chk('notes', await _sb.from('notes').upsert(
+    _chk('notes', await _sbUpsertChanged('notes',
       state.notes.map(n=>({id:String(n.id),user_id:uid,notion_id:n.notionId||null,
         title:n.title||null,text:n.text||'',date:n.date||null,
         created_at:n.createdAt||new Date().toISOString()})),{onConflict:'id'}));
@@ -6254,7 +6302,7 @@ async function _sbUpsertAll(uid){
         .map(j=>String(j.import_source_title||'').trim().toLowerCase()));
       const rows=state.journal.filter(j=>j.import_source_id ||
         !sourceTitles.has(String(j.text||j.content||'').trim().toLowerCase()));
-      if(rows.length) _chk('journal', await _sb.from('journal').upsert(
+      if(rows.length) _chk('journal', await _sbUpsertChanged('journal',
         rows.map(j=>({id:String(j.id),user_id:uid,date:j.date||null,
           title:j.title||j.type||null,type:j.type||j.title||'Lesson',
           text:j.text||j.content||'',content:j.text||j.content||'',
@@ -6263,23 +6311,23 @@ async function _sbUpsertAll(uid){
     }
   }
   const dailyRows=Object.entries(state.daily).map(([date,d])=>_mapDaily(date,d,uid));
-  if(dailyRows.length)_chk('daily', await _sb.from('daily').upsert(dailyRows,{onConflict:'date,user_id'}));
+  if(dailyRows.length)_chk('daily', await _sbUpsertChanged('daily', dailyRows,{onConflict:'date,user_id'}));
   // Knowledge sections own their OWN tables (lmr_terminology / lmr_psychology). Never push them
   // through the shared `monthly` store — a Force Push of an empty local copy used to clobber the
   // real terminology/psychology content in the cloud.
   const monthlyRows=Object.entries(state.monthly)
     .filter(([key])=>key!=='lmr-terminology'&&key!=='lmr-psychology')
     .map(([key,data])=>({key,data,user_id:uid}));
-  if(monthlyRows.length)_chk('monthly', await _sb.from('monthly').upsert(monthlyRows,{onConflict:'key,user_id'}));
+  if(monthlyRows.length)_chk('monthly', await _sbUpsertChanged('monthly', monthlyRows,{onConflict:'key,user_id'}));
   const weeklyRows=Object.entries(state.weekly).map(([week_key,data])=>({week_key,data,user_id:uid}));
-  if(weeklyRows.length)_chk('weekly', await _sb.from('weekly').upsert(weeklyRows,{onConflict:'week_key,user_id'}));
+  if(weeklyRows.length)_chk('weekly', await _sbUpsertChanged('weekly', weeklyRows,{onConflict:'week_key,user_id'}));
   if(state.copier && (state.copier.leaderId || Object.keys(state.copier.followers||{}).length))
-    _chk('copier_config', await _sb.from('copier_config').upsert(
+    _chk('copier_config', await _sbUpsertChanged('copier_config',
       {user_id:uid, config:state.copier, updated_at:new Date().toISOString()},{onConflict:'user_id'}));
   if(_errs.length) throw new Error(_errs.join(' | '));
 }
 
-function sbAutoSync(){_sbDirty=true;sbScheduleSync();}
+function sbAutoSync(){_sbDirty=true;_sbSaveRevision++;sbScheduleSync();}
 async function _sbDoPush(user){await _sbUpsertAll(user.id||user);}
 
 // ── RELATIONAL HELPERS ────────────────────────────────────────────────
@@ -10853,7 +10901,7 @@ function _lmrbNewBlock(type,html,indent){
 }
 // Old contentEditable HTML → blocks (backward compatibility with the previous editor)
 function _lmrbFromHtml(html){
-  const wrap=document.createElement('div'); wrap.innerHTML=html||''; const out=[];
+  const wrap=document.createElement('div'); wrap.innerHTML=lmrSanitizeRichHtml(html); const out=[];
   const push=(t,h)=>out.push(_lmrbNewBlock(t,h,0));
   wrap.childNodes.forEach(n=>{
     if(n.nodeType===3){ const t=n.textContent.trim(); if(t)push('text',t); return; }
@@ -11285,7 +11333,7 @@ function _obsComposeContent(){
   const head=[market,tf].filter(Boolean).join(' · ');
   if(head) html+='<p class="o-meta"><strong>'+_obsEsc(head)+'</strong></p>';
   if(notes) html+=notes.split(/\n{2,}/).map(pp=>'<p>'+_obsEsc(pp).replace(/\n/g,'<br>')+'</p>').join('');
-  html+=_obsImgs.map(src=>'<p><img src="'+src+'"></p>').join('');
+  html+=_obsImgs.map(src=>'<p><img src="'+_obsEsc(src)+'"></p>').join('');
   return html;
 }
 // Parse an entry's `content` back into editor fields. New posts carry an obsmeta comment; old
@@ -11296,7 +11344,7 @@ function _obsParseContent(content){
   const meta=content.match(/<!--obsmeta\s*(\{[\s\S]*?\})-->/);
   if(meta){ try{ const j=JSON.parse(meta[1]); m=j.m||''; tf=j.tf||''; }catch(e){} }
   const tmp=document.createElement('div');
-  tmp.innerHTML=content.replace(/<!--obsmeta[\s\S]*?-->/,'');
+  tmp.innerHTML=lmrSanitizeRichHtml(content.replace(/<!--obsmeta[\s\S]*?-->/,''));
   const imgs=[...tmp.querySelectorAll('img')].map(im=>im.getAttribute('src')).filter(Boolean);
   tmp.querySelectorAll('img').forEach(im=>(im.closest('p')||im).remove());
   tmp.querySelectorAll('.o-meta').forEach(el=>el.remove());
@@ -13791,7 +13839,7 @@ function sbInit() {
     if (!lmrAccountChanged(ev, _sbUserId, session?.user?.id)) return;
     // Preserve pending edits only in the old account's local namespace.
     // Never submit the old account's state with a newly changed auth session.
-    try { if(STORE_KEY.endsWith('__'+_sbUserId)) localStorage.setItem(STORE_KEY,JSON.stringify(state)); } catch(e) {}
+    try { flushAutoSaves(); if(STORE_KEY.endsWith('__'+_sbUserId)) localStorage.setItem(STORE_KEY,JSON.stringify(state)); } catch(e) {}
     _sbSyncEnabled=false; clearTimeout(_sbSyncTimer); _sbUserId=null;
     const main=document.getElementById('mainApp'); if(main)main.style.display='none';
     document.querySelectorAll('.modal.show').forEach(el=>el.classList.remove('show'));
@@ -13858,11 +13906,17 @@ async function sbDoSignUp() {
   location.assign('/inner-circle?signup=1&next=journal');
 }
 
-async function sbDoSignOut() {
+async function sbDoSignOut(scope = 'local') {
   if (!_sb) return;
-  if(!confirm('Sign out of LMR Capitals?\n\nYour data is saved locally and in the cloud.'))return;
+  if(!['local','global'].includes(scope)) return;
+  if(!confirm(scope === 'global'
+    ? 'Sign out all devices? You will need to sign in again on this browser and your other devices. Other devices finish signing out when their current access expires.'
+    : 'Sign out of this browser? Your other devices stay signed in. Your locally saved data will be kept for your next sign-in.'))return;
+  try { flushAutoSaves(); if(_sbUserId && STORE_KEY.endsWith('__'+_sbUserId)) localStorage.setItem(STORE_KEY,JSON.stringify(state)); }
+  catch(e) { flash('Could not save your local edits. Please retry before signing out.'); return; }
+  const {error} = await _sb.auth.signOut({ scope });
+  if(error) { flash('Could not sign out. Please try again.'); return; }
   sbStopRealtime();
-  await _sb.auth.signOut();
   _sbSyncEnabled=false;_sbUserId=null;
   localStorage.removeItem(SESSION_KEY);
   sessionStorage.removeItem('lmr_admin_surface'); // next login shows the admin hub again
@@ -14558,7 +14612,7 @@ async function checkScheduledWeeklyReport(){
 // ── LOGIN GATE FORM SWITCHER: sign in · create account · forgot password ──
 function lgSwitchTab(tab){
   if(tab==='signup'){ location.assign('/inner-circle?signup=1&next=journal');return; }
-  if(_lgRecoveryMode && tab!=='forgot'){ _lgRecoveryMode=false; if(_sb) _sb.auth.signOut().catch(()=>{}); _lgRecoveryUI(false); }
+  if(_lgRecoveryMode && tab!=='forgot'){ _lgRecoveryMode=false; if(_sb) _sb.auth.signOut({ scope: 'local' }).catch(()=>{}); _lgRecoveryUI(false); }
   const forms={signin:'lg-signin-form',signup:'lg-signup-form',forgot:'lg-forgot-form'};
   Object.entries(forms).forEach(([k,id])=>{
     const el=document.getElementById(id); if(el) el.style.display=(k===tab)?'':'none';
@@ -14644,7 +14698,7 @@ async function lgForgotReset(){
     if(vErr) throw new Error(/expired|invalid/i.test(vErr.message)?'That code is invalid or has expired — request a new one.':vErr.message);
     const { error:uErr } = await _sb.auth.updateUser({ password: pass });
     _lgRecoveryMode=false; _lgRecoveryUI(false);
-    await _sb.auth.signOut().catch(()=>{});
+    await _sb.auth.signOut({ scope: 'global' }).catch(()=>{});
     if(uErr) throw uErr;
     ['lg-forgot-code','lg-forgot-pass','lg-forgot-confirm'].forEach(id=>{ document.getElementById(id).value=''; });
     lgSwitchTab('signin');

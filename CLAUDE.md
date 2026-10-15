@@ -1,3 +1,17 @@
+## Session logout follow-up — 14 October 2026
+
+Read [browser logout and account isolation](deployment/SESSION-LOGOUT-2026-10-14.md).
+Normal logout must explicitly stay browser-local; all-devices logout is a separate
+confirmed option. Preserve the account-switch guards and pending local Journal
+edits. Life OS Settings also delegates its two logout choices to the shared
+parent account actions. No schema changes belong to these releases. The owner
+requested the combined Claude handoff; native chat delivery remains unverified
+because its app-control connection rejects input.
+
+## Membership launch continuation — 14 October 2026
+
+Read [remaining launch checks](deployment/MEMBERSHIP-LAUNCH-CHECKS-2026-10-14.md). Billing review migration is already applied, webhook v16 deployed. Do not reapply migrations or switch production Stripe keys to sandbox. Signup confirmation, free-member isolation, production signed delivery and full forwarded sandbox payment-to-access checks now pass. See the evidence and precise scope in the linked verification report. Temporary CLI session was revoked.
+
 ## Active launch security review
 
 Read [deployment/SECURITY-LAUNCH-AUDIT.md](deployment/SECURITY-LAUNCH-AUDIT.md) for findings, tested fixes, remaining launch blockers and Claude group routing. Local changes are not proof of production deployment. Coordinate database changes with security PR #107; preserve all member data and manual publication states.

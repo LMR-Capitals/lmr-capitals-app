@@ -262,6 +262,7 @@ function Terminal() {
   const [toast, setToast] = useState("");
   const [menu, setMenu] = useState(false);
   const generation = useRef(0),
+    authenticatedIdentity = useRef(null),
     operation = useRef(false),
     timer = useRef(null),
     menuButton = useRef(null),
@@ -272,6 +273,7 @@ function Terminal() {
     setMenu(false);
   };
   const notify = (message) => {
+    if (!preview && authenticatedIdentity.current !== user?.id) return;
     setToast(message);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setToast(""), 4500);
@@ -310,7 +312,18 @@ function Terminal() {
     if (preview) return;
     const {
       data: { subscription },
-    } = sb.auth.onAuthStateChange(() => {
+    } = sb.auth.onAuthStateChange((_event, session) => {
+      const next = session?.user?.id || null;
+      if (next !== authenticatedIdentity.current) {
+        ++generation.current;
+        setData(emptyDesk);
+        setReady(false);
+        setUser(session?.user || null);
+        setMenu(false);
+        setToast('');
+        clearTimeout(timer.current);
+      }
+      authenticatedIdentity.current = next;
       // Defer API calls outside the Auth callback's lock.
       setTimeout(() => refresh().catch(() => {}), 0);
     });
@@ -368,7 +381,13 @@ function Terminal() {
   const actions = useAdminActions({
     user,
     data,
-    setData,
+    setData: update => {
+      const owner = user?.id;
+      setData(current => {
+        if (!preview && authenticatedIdentity.current !== owner) return current;
+        return typeof update === 'function' ? update(current) : update;
+      });
+    },
     run,
     refresh,
     notify,
@@ -379,7 +398,7 @@ function Terminal() {
       return;
     }
     setBusy(true);
-    const result = await sb.auth.signOut();
+    const result = await sb.auth.signOut({ scope: 'local' });
     setBusy(false);
     if (result.error) {
       setError(result.error.message);

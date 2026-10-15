@@ -1,3 +1,22 @@
+## Session logout follow-up — 14 October 2026
+
+See [browser logout and account isolation](SESSION-LOGOUT-2026-10-14.md) for explicit
+local/global logout, account-switch fixes, tests and the current Supabase usage
+snapshot. This website-only release requires no database or billing operations;
+the release PR records deployment verification.
+
+## Membership launch checks completed — 14 October 2026
+
+[Final technical verification](MEMBERSHIP-LAUNCH-CHECKS-2026-10-14.md) supersedes the earlier pending signup/webhook checklist. Production signup/free isolation and signed Stripe delivery passed; real sandbox payment-to-access and cancellation passed against the current handler and isolated PostgreSQL. Duplicate live webhook disabled with explicit owner approval. No live purchase, production key swap or existing business-record replacement occurred. This documentation update requires no migration, function deployment, billing activation or website code change.
+
+## Membership billing review release — 14 October 2026
+
+See [launch checks](MEMBERSHIP-LAUNCH-CHECKS-2026-10-14.md) for deployed backend fixes, preservation scope and remaining signup/network checks. The new audit migration is applied. Website deploy `6ad00b69071723e19c019490` published main commit `4c89c63ecc86e55ed5af5fec9fb180c614fd89a3` (#117) at 2026-10-14T23:08:48.305Z. Use the final technical verification above for the current launch-check status.
+
+## Security release — 14 October 2026
+
+[Launch security audit](SECURITY-LAUNCH-AUDIT.md) records PR #113, the verified production receipt, deployed cancellation MFA fix, enabled leaked-password protection and approved and verified database/storage hardening. Remaining launch concerns are recorded in the audit. The two security migrations are already applied and mirrored by their server-generated versions; do not reapply them as part of a website deploy.
+
 # Current full-site deployment
 
 Lead Claude session for the website: see [WEBSITE-SESSION-HANDOFF.md](WEBSITE-SESSION-HANDOFF.md).

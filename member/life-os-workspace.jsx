@@ -1,6 +1,6 @@
 import React,{useEffect,useRef,useState} from "react";
 import {sb} from "./api.js";
-export default function LifeOSWorkspace({active,preview,onNavigate}){
+export default function LifeOSWorkspace({active,preview,onNavigate,onSignOut,onSignOutEverywhere}){
  const [visited,setVisited]=useState(active);
  const frameRef=useRef(null);
  useEffect(()=>{if(active)setVisited(true)},[active]);
@@ -21,13 +21,18 @@ export default function LifeOSWorkspace({active,preview,onNavigate}){
    if(event.origin!==location.origin) return;
    if(!frameRef.current||event.source!==frameRef.current.contentWindow) return;
    if(event.data?.type==='lmr-life-os-navigation'&&event.data.action==='settings'){onNavigate?.('settings');return;}
+   if(event.data?.type==='lmr-life-os-signout'){
+    if(event.data.scope==='local')onSignOut?.();
+    else if(event.data.scope==='global')onSignOutEverywhere?.();
+    return;
+   }
    if(event.data&&event.data.type==="lmr-life-os-request-session") post();
   };
   window.addEventListener("message",onMsg);
   const {data:sub}=(!preview&&sb?.auth.onAuthStateChange(()=>post()))||{};
   post();
   return ()=>{window.removeEventListener("message",onMsg); sub?.subscription?.unsubscribe?.();};
- },[preview,visited,onNavigate]);
+ },[preview,visited,onNavigate,onSignOut,onSignOutEverywhere]);
  if(!visited&&!active)return null;
  return <section className="journal-workspace" id="workspace-life-os" tabIndex={-1} hidden={!active} aria-label="Life OS workspace"><iframe ref={frameRef} title="LMR Life OS" src={"/life-os/index.html"+(preview?"?preview=1":"")} sandbox="allow-scripts allow-same-origin allow-forms allow-downloads allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"/></section>
 }

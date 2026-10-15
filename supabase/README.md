@@ -1,16 +1,19 @@
+> Launch security migrations `20261014095808` and `20261014100031` are already applied. Their files mirror the server history; they must not run again under new versions.
+
 # supabase/
 
 Directory read by the Supabase GitHub integration (Project Settings → Integrations,
 working directory `.`).
 
 - `migrations/` is an exact copy of the live project's migration history
-  (`supabase_migrations.schema_migrations`): the same 36 versions, names and SQL. It was
+  (`supabase_migrations.schema_migrations`): the recorded versions, names and SQL. It was
   verified file by file against the live statements on 14 Oct 2026. The one exception is
   `20261013225551_create_lmr_automation_tokens.sql`, whose token hash is redacted
   because this repository is public. `20261014120000_security_hardening.sql` was
   added from `database/migrations/` after it was applied live; the live history stores
   no SQL text for it, so it is matched by version only. The same applies to
-  `20261014120100_security_hardening_pending.sql`.
+  `20261014062044_security_hardening_admin_mfa.sql` and
+  `20261014120100_security_hardening_pending.sql` (the same function SQL applied twice).
 - Because every version here is already applied, connecting the integration applies
   nothing. Only a **new** file added here is run against production.
 - `config.toml` declares no Edge Functions or buckets, so billing functions in

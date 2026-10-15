@@ -1,4 +1,5 @@
 import MemberAgreement from './member-agreement';
+import {signOutSession, allDevicesConfirmation} from './session-actions.mjs';
 import LiveObservation from "./live-observation";
 import {fetchLiveObservations} from "./observations.mjs";
 import {loadAdministratorCore,workspaceExtras} from "./workspace-loading.mjs";
@@ -166,7 +167,7 @@ function App() {
           }
         : null,
     ),
-    [data, setData] = useState(
+    [data, setDataState] = useState(
       preview
         ? {
             ...baseData,
@@ -203,7 +204,16 @@ function App() {
     operation = useRef(false),
     refreshExtras = useRef(async () => {}),
     lastCircleRoute = useRef(initialAdministratorPreview ? "admin" : "dashboard");
+  // Async responses from an old account must never repopulate the new account.
+  const identity = user?.id || null;
+  const setData = useCallback((update) => {
+    setDataState(current => {
+      if (!preview && authenticatedIdentity.current !== identity) return current;
+      return typeof update === 'function' ? update(current) : update;
+    });
+  }, [identity]);
   const notify = (message) => {
+    if (!preview && authenticatedIdentity.current !== identity) return;
     setToast(message);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setToast(""), 4500);
@@ -271,9 +281,9 @@ function App() {
   }, []);
   useEffect(() => {
     if (preview) return;
-    let active = true;
+    let active = true, observedAuth = false;
     sb.auth.getSession().then(({ data, error }) => {
-      if (active) {
+      if (active && !observedAuth) {
         if (error) setError(error.message);
         authenticatedIdentity.current = data.session?.user?.id || null;
         setUser(data.session?.user || null);
@@ -284,11 +294,17 @@ function App() {
       data: { subscription },
     } = sb.auth.onAuthStateChange((event, session) => {
       if (active) {
+        observedAuth = true;
         const nextIdentity = session?.user?.id || null;
         if (nextIdentity !== authenticatedIdentity.current) {
           ++requestGeneration.current;
           setAccess(null);
-          setData(baseData);
+          setDataState(baseData);
+          setModal(null);
+          setMenu(false);
+          setSearch('');
+          setToast('');
+          clearTimeout(timer.current);
           setLoading(!!nextIdentity);
           if (event === "SIGNED_IN") {
             history.replaceState(null, "", location.pathname + location.search);
@@ -427,7 +443,7 @@ function App() {
       await fn();
       return true;
     } catch (e) {
-      setError(e.message);
+      if (preview || authenticatedIdentity.current === identity) setError(e.message);
       return false;
     } finally {
       setBusy(false);
@@ -586,18 +602,21 @@ function App() {
       notify("Profile saved" + (preview ? " in this preview." : "."));
     });
   };
-  const signout = () =>
+  const signoutWithScope = (scope) =>
     run(async () => {
       if (preview) {
         location.assign("/member/index.html");
         return;
       }
-      const { error } = await sb.auth.signOut();
-      if (error) throw error;
+      await signOutSession(sb, scope);
       setData(baseData);
       setAccess(null);
       setUser(null);
     });
+  const signout = () => signoutWithScope('local');
+  const signoutEverywhere = () => {
+    if (window.confirm(allDevicesConfirmation)) return signoutWithScope('global');
+  };
   const question = (post, session) => {
     if (session && !accessState?.entitled) {
       go("billing");
@@ -940,6 +959,7 @@ function App() {
             onProfile={onProfile}
             busy={busy}
             onSignOut={signout}
+            onSignOutEverywhere={signoutEverywhere}
             administrator={admin}
           />
         );
@@ -1144,6 +1164,7 @@ function App() {
             administrator={admin}
             onNavigate={go}
             onSignOut={signout}
+            onSignOutEverywhere={signoutEverywhere}
             busy={busy}
           />
         </div>
@@ -1215,6 +1236,7 @@ function App() {
               photo={avatarSource(data.profile, user)}
               onNavigate={go}
               onSignOut={signout}
+              onSignOutEverywhere={signoutEverywhere}
               busy={busy}
             />
           </div>
@@ -1303,7 +1325,7 @@ function App() {
             </div>
           </footer>
         </main>
-        {admin && accessState.adminVerified && <LifeOSWorkspace key={"life-os:"+user.id} active={route === "life-os"} preview={preview} onNavigate={go}/>}
+        {admin && accessState.adminVerified && <LifeOSWorkspace key={"life-os:"+user.id} active={route === "life-os"} preview={preview} onNavigate={go} onSignOut={signout} onSignOutEverywhere={signoutEverywhere}/>}
         {canOpenJournal(accessState) && <JournalWorkspace key={user.id} active={route === "application"} preview={preview} administrator={admin} onNavigate={go} onAccessCheck={() => refresh(true)} onVerify={() => location.assign("/admin?next=journal")} />}
       </div>
       {modalView}

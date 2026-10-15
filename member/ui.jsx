@@ -11,6 +11,7 @@ export function AccountMenu({
   subtitle,
   onNavigate,
   onSignOut,
+  onSignOutEverywhere,
   busy,
   compact = false,
   administrator = false,
@@ -127,8 +128,13 @@ export function AccountMenu({
             onClick={() => choose(onSignOut)}
           >
             <Icon name="logout" size={17} />
-            Sign out
+            Sign out this browser
           </button>
+          {onSignOutEverywhere && <button role="menuitem" disabled={busy}
+            onClick={() => choose(onSignOutEverywhere)}>
+            <Icon name="logout" size={17} />
+            Sign out all devices
+          </button>}
         </div>
       )}
     </div>
