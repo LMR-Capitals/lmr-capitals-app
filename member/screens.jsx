@@ -913,7 +913,7 @@ export function Settings({ data, onPreference, busy }) {
     </section>
   );
 }
-export function Profile({ data, user, onProfile, busy, onSignOut, administrator = false }) {
+export function Profile({ data, user, onProfile, busy, onSignOut, onSignOutEverywhere, administrator = false }) {
   return (
     <div className="split-content">
       <section className="panel form-panel">
@@ -983,8 +983,12 @@ export function Profile({ data, user, onProfile, busy, onSignOut, administrator 
           <p>
             {administrator ? "Your administrator access is verified through the LMR registry and two-factor authentication." : "Your questions, profile and mentorship requests are private to you and LMR administrators."}
           </p>
-          <Button onClick={onSignOut} icon="logout">
-            Sign out
+          <Button disabled={busy} onClick={onSignOut} icon="logout">
+            Sign out this browser
+          </Button>
+          <p className="spaced">Other browsers and devices stay signed in.</p>
+          <Button disabled={busy} onClick={onSignOutEverywhere} icon="logout">
+            Sign out all devices
           </Button>
         </section>
       </aside>

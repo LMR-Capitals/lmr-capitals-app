@@ -4286,6 +4286,11 @@ Midnight Open $______"></textarea>
       <button class="btn btn-sm btn-bear" onclick="sbDoSignOut()" style="min-width:80px">Sign Out</button>
     </div>
 
+    <div style="margin-bottom:16px">
+      <button class="btn btn-sm" onclick="sbDoSignOut('global')">Sign out all devices</button>
+      <p style="font-size:11px;color:var(--text3);margin-top:8px">Normal sign out affects this browser only. Other devices stay signed in.</p>
+    </div>
+
     <div class="sp-section-title">Appearance</div>
     <div style="margin-bottom:14px">
       <label class="form-label">Colour Theme</label>
@@ -13834,7 +13839,7 @@ function sbInit() {
     if (!lmrAccountChanged(ev, _sbUserId, session?.user?.id)) return;
     // Preserve pending edits only in the old account's local namespace.
     // Never submit the old account's state with a newly changed auth session.
-    try { if(STORE_KEY.endsWith('__'+_sbUserId)) localStorage.setItem(STORE_KEY,JSON.stringify(state)); } catch(e) {}
+    try { flushAutoSaves(); if(STORE_KEY.endsWith('__'+_sbUserId)) localStorage.setItem(STORE_KEY,JSON.stringify(state)); } catch(e) {}
     _sbSyncEnabled=false; clearTimeout(_sbSyncTimer); _sbUserId=null;
     const main=document.getElementById('mainApp'); if(main)main.style.display='none';
     document.querySelectorAll('.modal.show').forEach(el=>el.classList.remove('show'));
@@ -13901,11 +13906,17 @@ async function sbDoSignUp() {
   location.assign('/inner-circle?signup=1&next=journal');
 }
 
-async function sbDoSignOut() {
+async function sbDoSignOut(scope = 'local') {
   if (!_sb) return;
-  if(!confirm('Sign out of LMR Capitals?\n\nYour data is saved locally and in the cloud.'))return;
+  if(!['local','global'].includes(scope)) return;
+  if(!confirm(scope === 'global'
+    ? 'Sign out all devices? You will need to sign in again on this browser and your other devices. Other devices finish signing out when their current access expires.'
+    : 'Sign out of this browser? Your other devices stay signed in. Your locally saved data will be kept for your next sign-in.'))return;
+  try { flushAutoSaves(); if(_sbUserId && STORE_KEY.endsWith('__'+_sbUserId)) localStorage.setItem(STORE_KEY,JSON.stringify(state)); }
+  catch(e) { flash('Could not save your local edits. Please retry before signing out.'); return; }
+  const {error} = await _sb.auth.signOut({ scope });
+  if(error) { flash('Could not sign out. Please try again.'); return; }
   sbStopRealtime();
-  await _sb.auth.signOut();
   _sbSyncEnabled=false;_sbUserId=null;
   localStorage.removeItem(SESSION_KEY);
   sessionStorage.removeItem('lmr_admin_surface'); // next login shows the admin hub again
@@ -14601,7 +14612,7 @@ async function checkScheduledWeeklyReport(){
 // ── LOGIN GATE FORM SWITCHER: sign in · create account · forgot password ──
 function lgSwitchTab(tab){
   if(tab==='signup'){ location.assign('/inner-circle?signup=1&next=journal');return; }
-  if(_lgRecoveryMode && tab!=='forgot'){ _lgRecoveryMode=false; if(_sb) _sb.auth.signOut().catch(()=>{}); _lgRecoveryUI(false); }
+  if(_lgRecoveryMode && tab!=='forgot'){ _lgRecoveryMode=false; if(_sb) _sb.auth.signOut({ scope: 'local' }).catch(()=>{}); _lgRecoveryUI(false); }
   const forms={signin:'lg-signin-form',signup:'lg-signup-form',forgot:'lg-forgot-form'};
   Object.entries(forms).forEach(([k,id])=>{
     const el=document.getElementById(id); if(el) el.style.display=(k===tab)?'':'none';
@@ -14687,7 +14698,7 @@ async function lgForgotReset(){
     if(vErr) throw new Error(/expired|invalid/i.test(vErr.message)?'That code is invalid or has expired — request a new one.':vErr.message);
     const { error:uErr } = await _sb.auth.updateUser({ password: pass });
     _lgRecoveryMode=false; _lgRecoveryUI(false);
-    await _sb.auth.signOut().catch(()=>{});
+    await _sb.auth.signOut({ scope: 'global' }).catch(()=>{});
     if(uErr) throw uErr;
     ['lg-forgot-code','lg-forgot-pass','lg-forgot-confirm'].forEach(id=>{ document.getElementById(id).value=''; });
     lgSwitchTab('signin');
