@@ -1,5 +1,12 @@
 # Browser logout and account isolation — 14 October 2026
 
+Life OS follow-up: Settings now exposes the same browser-only and all-devices
+options. The isolated iframe does not revoke tokens independently: only its
+same-origin parent, after verifying the exact frame and allowed scope, invokes
+the shared logout action and global confirmation. Pending/failed Life OS saves
+block logout so attempted changes can be recovered. Frame-origin/source, scope
+allowlist, delegation and save-protection regressions pass. No database changes.
+
 Normal logout now explicitly uses Supabase `scope: local`. It signs out the
 current shared browser session (including its tabs), retaining independent
 browser/device sessions. The former implicit `signOut()` used Supabase's global
