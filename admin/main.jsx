@@ -400,7 +400,7 @@ function App(){
   const [gateError,setGateError]=useState('');
   const factorRef=useRef(null); const challengeRef=useRef(null);
 
-  const signOut=useCallback(async()=>{ try{ sessionStorage.removeItem('lmr_admin_surface'); }catch(e){} await sb.auth.signOut(); setStage('login'); },[]);
+  const signOut=useCallback(async()=>{ const {error}=await sb.auth.signOut({scope:'local'}); if(error){setGateError(error.message);setStage('error');return;} try{ sessionStorage.removeItem('lmr_admin_surface'); }catch(e){} setStage('login'); },[]);
 
   // After a session exists: verify admin, then enforce 2FA (aal2).
   const gate=useCallback(async()=>{

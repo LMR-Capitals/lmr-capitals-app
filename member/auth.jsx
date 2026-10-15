@@ -73,7 +73,7 @@ export default function Auth({ onLegal, recovery = false }) {
         if (password !== String(f.get("confirm_password") || "")) throw new Error("Your passwords do not match. Please check both fields.");
         result = await sb.auth.updateUser({ password });
         if (!result.error) {
-          await sb.auth.signOut();
+          await sb.auth.signOut({ scope: 'global' });
           location.assign("/member/index.html");
         }
       }

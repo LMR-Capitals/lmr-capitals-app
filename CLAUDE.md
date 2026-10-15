@@ -1,3 +1,11 @@
+## Session logout follow-up — 14 October 2026
+
+Read [browser logout and account isolation](deployment/SESSION-LOGOUT-2026-10-14.md).
+Normal logout must explicitly stay browser-local; all-devices logout is a separate
+confirmed option. Preserve the account-switch guards and pending local Journal
+edits. No schema changes belong to this release. Native Claude handoff remains
+deferred at the owner's request until the remaining work is finished.
+
 ## Membership launch continuation — 14 October 2026
 
 Read [remaining launch checks](deployment/MEMBERSHIP-LAUNCH-CHECKS-2026-10-14.md). Billing review migration is already applied, webhook v16 deployed. Do not reapply migrations or switch production Stripe keys to sandbox. Signup confirmation, free-member isolation, production signed delivery and full forwarded sandbox payment-to-access checks now pass. See the evidence and precise scope in the linked verification report. Temporary CLI session was revoked.
