@@ -82,7 +82,7 @@ const navigation = [
   ],
   [
     "terminology",
-    "LMR terminology",
+    "Learn",
     "Learn the language. Understand the process.",
   ],
   [
@@ -103,7 +103,7 @@ const navigation = [
   ],
   [
     "questions",
-    "Questions & answers",
+    "Ask a Question",
     "Your questions. A direct conversation with the LMR desk.",
   ],
   [
@@ -243,6 +243,9 @@ function App() {
     return () => channel.close();
   }, []);
   const go = (id) => {
+    const navigationQuery = new URLSearchParams(location.search);
+    navigationQuery.delete("next");
+    history.replaceState(null, "", `${location.pathname}${navigationQuery.size ? `?${navigationQuery}` : ""}${location.hash}`);
     if (id === "application" && accessState && !canOpenJournal(accessState)) {
       id = "billing";
       const query = new URLSearchParams(location.search);
@@ -804,8 +807,9 @@ function App() {
     admin = accessState?.admin;
   const role = workspaceRole(accessState);
   const nav = navigation.find((n) => n[0] === route) || navigation[0];
-  const name =
+  const candidateName =
     data.profile.display_name || user.user_metadata?.display_name || user.user_metadata?.full_name || user.user_metadata?.name || (admin ? "Administrator" : "Member");
+  const name = candidateName.includes("@") ? "Member" : candidateName;
   const initials = name
     .split(" ")
     .map((w) => w[0])
@@ -860,7 +864,7 @@ function App() {
       <Empty
         icon="lock"
         title={`${nav[1]} is part of paid membership.`}
-        body="Keep learning with your free account. Membership unlocks the live desk, private support, publications and trading application."
+        body={route === "mentorship" ? "Private mentorship focuses on your learning goals and process. Paid subscribers can send their goals, experience and availability for review. A request is not a booking: LMR confirms the session format, duration and available time separately. Availability is not guaranteed. Free private Q&A remains available to you." : "Keep learning with your free account. Membership unlocks the live desk, publications and trading application. Private Q&A is included with your free account."}
       >
         {route === "live" && (
           <div
@@ -894,6 +898,7 @@ function App() {
         screen = (
           <Library
             search={search}
+            onQuestion={() => go("questions")}
             progress={data.learning}
             onStudy={(chapter, term) => recordLearning(chapter, term)}
             onComplete={(chapter, answers) =>
@@ -1070,50 +1075,11 @@ function App() {
         <div className="workspace-label">{admin ? "ADMINISTRATOR WORKSPACE" : role === "paid" ? "PAID MEMBER WORKSPACE" : "FREE MEMBER WORKSPACE"}</div>
         {!admin && (
         <nav aria-label="Member navigation">
-          {navigation
-            .filter(
-              ([id]) =>
-                !id.startsWith("studio-") && ![
-                  "notifications",
-                  "profile",
-                  "settings",
-                  "billing",
-                  "admin",
-                  "admin-hub",
-                  "life-os",
-                  "application",
-                ].includes(id),
-            )
-            .sort((a, b) => {
-              const order = [
-                "dashboard",
-                "terminology",
-                "resources",
-                "live",
-                "observations",
-                "callouts",
-                "executions",
-                "achievements",
-                "mentorship",
-                "questions",
-                "application",
-              ];
-              return order.indexOf(a[0]) - order.indexOf(b[0]);
-            })
-            .map(([id, label]) => (
-              <button
-                className={`nav-item ${route === id ? "active" : ""}`}
-                key={id}
-                aria-current={route === id ? "page" : undefined}
-                onClick={() => go(id)}
-              >
-                <Icon name={id} />
-                {label}
-                {premiumRoutes.includes(id) && !entitled && (
-                  <Icon name="lock" size={12} />
-                )}
-              </button>
-            ))}
+          {["dashboard", "terminology", "resources", "questions"].map(id => <button key={id} className={`nav-item ${route === id ? "active" : ""}`} aria-current={route === id ? "page" : undefined} onClick={() => go(id)}><Icon name={id} />{navigation.find(n => n[0] === id)[1]}</button>)}
+          <details className="premium-navigation" open={premiumRoutes.includes(route) || undefined}>
+            <summary>Explore membership</summary>
+            {navigation.filter(([id]) => premiumRoutes.includes(id)).map(([id, label]) => <button key={id} className={`nav-item ${route === id ? "active" : ""}`} aria-current={route === id ? "page" : undefined} onClick={() => go(id)}><Icon name={id} />{label}{!entitled && <Icon name="lock" size={12} />}</button>)}
+          </details>
         </nav>
         )}
         {admin && (
@@ -1242,7 +1208,7 @@ function App() {
           </div>
         </header>
         {!["application", "life-os"].includes(route) && <nav className="mobile-section-nav" aria-label="Inner Circle sections">
-          {(admin ? [["admin", "LMR Studio", "shield"], ...studioSections.map(s => [s.route, s.label, s.icon])] : navigation.filter(([id]) => !id.startsWith("studio-") && !["notifications", "profile", "settings", "billing", "admin", "admin-hub", "life-os", "application"].includes(id)).map(([id, label]) => [id, label, id])).map(([id, label, icon]) => <button key={id} aria-current={route === id ? "page" : undefined} onClick={() => go(id)}><Icon name={icon} size={17} />{label}{!admin && premiumRoutes.includes(id) && !entitled && <Icon name="lock" size={12} />}</button>)}
+          {(admin ? [["admin", "LMR Studio", "shield"], ...studioSections.map(s => [s.route, s.label, s.icon])] : navigation.filter(([id]) => ["dashboard", "terminology", "resources", "questions"].includes(id)).map(([id, label]) => [id, label, id])).map(([id, label, icon]) => <button key={id} aria-current={route === id ? "page" : undefined} onClick={() => go(id)}><Icon name={icon} size={17} />{label}{!admin && premiumRoutes.includes(id) && !entitled && <Icon name="lock" size={12} />}</button>)}
         </nav>}
         <main className="page" id="workspace-content" tabIndex={-1} hidden={(route === "application" && canOpenJournal(accessState) || route === "life-os" && accessState?.adminVerified)}>
           <div className="page-head">

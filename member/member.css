@@ -2812,3 +2812,13 @@ dialog::backdrop {
  .is-preview .journal-application-active>#workspace-journal{height:calc(100dvh - 31px)}
  .journal-application-active .journal-preview-page{padding-top:100px}
 }
+
+/* Beginner learning and free resources */
+.starter-resource { padding: 20px; margin-bottom: 12px; }
+.starter-resource summary, .premium-navigation summary { cursor: pointer; font-weight: 600; padding: 12px 0; }
+.starter-resource li, .starter-resource dd { margin-bottom: 12px; line-height: 1.7; }
+.starter-resource dt { font-weight: 600; margin-top: 14px; }
+.starter-resource dd { margin-left: 0; }
+.beginner-lesson { padding: 18px; margin-bottom: 24px; border: 1px solid var(--border, #444); border-radius: 12px; }
+.premium-navigation summary { padding: 16px; }
+#checkout-agreement { scroll-margin-top: 100px; }
