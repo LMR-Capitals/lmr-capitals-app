@@ -1,3 +1,4 @@
+import FoundationReader from "./foundation-reader";
 import { BeginnerLesson } from "./starter-resources";
 import React, { useState } from "react";
 import reference from "../design/handoff/terminology.json";
@@ -34,16 +35,16 @@ export function LearningProgress({ progress = [], go }) {
         </strong>
       </div>
       <div className="learning-copy">
-        <span className="eyebrow">YOUR CHAIN JOURNEY · {state.badge}</span>
+        <span className="eyebrow">YOUR REFERENCE PROGRESS</span>
         <h2>
           {state.completed === chapters.length
             ? "Every chapter connected."
-            : `Chapter ${chapter.number}: ${chapter.title}`}
+            : !progress.some(row => row.completed_at || row.reviewed_terms?.length) ? "Begin with Fundamentals" : `Reference chapter ${chapter.number}: ${chapter.title}`}
         </h2>
         <p>
           {state.completed === chapters.length
             ? "You completed the reference path. Return to any chapter to keep your foundations sharp."
-            : `${chapter.reviewed.length} of ${chapter.total} lessons studied. Connect this chapter to unlock the next.`}
+            : !progress.some(row => row.completed_at || row.reviewed_terms?.length) ? "Read Fundamentals, then Trading Mathematics. Your LMR reference chapters follow." : `${chapter.reviewed.length} of ${chapter.total} lessons studied in this reference chapter.`}
         </p>
         <div
           className="chapter-chain"
@@ -71,13 +72,25 @@ export function LearningProgress({ progress = [], go }) {
           ? "Revisit your chapters"
           : chapter.reviewed.length
             ? "Continue learning"
-            : `Start chapter ${chapter.number}`}
+            : progress.some(row => row.completed_at || row.reviewed_terms?.length) ? `Open reference chapter ${chapter.number}` : "Start Fundamentals"}
         <Icon name="arrow" size={14} />
       </Button>
     </section>
   );
 }
-export function LearningLibrary({
+export function LearningLibrary(props) {
+  const hasProgress = props.progress?.some(row => row.completed_at || row.reviewed_terms?.length);
+  const [page, setPage] = useState(hasProgress ? "reference" : "fundamentals");
+  const selectPage = next => { setPage(next); window.scrollTo(0, 0); };
+  return <>
+    <nav className="learning-path" aria-label="Learning order">
+      {[["fundamentals", "1. Fundamentals"], ["mathematics", "2. Trading Mathematics"], ["reference", "3. LMR reference"]].map(([id, label]) => <button key={id} aria-pressed={page === id} onClick={() => selectPage(id)}>{label}</button>)}
+    </nav>
+    {page === "reference" ? <ReferenceLibrary {...props} /> : <FoundationReader key={page} pageId={page} search={props.search} onQuestion={props.onQuestion} onNext={() => selectPage(page === "fundamentals" ? "mathematics" : "reference")} />}
+  </>;
+}
+
+function ReferenceLibrary({
   search = "",
   progress = [],
   onQuestion,
@@ -118,10 +131,10 @@ export function LearningLibrary({
       chapter.number,
       quiz.questions.map((_, i) => answers[i]),
     );
-    if (!ok) setFeedback("Not quite yet. Review the explanations below, then try again.");
+    if (!ok) setFeedback("The chapter was not completed. Check the message shown above. If an answer needs revision, review the explanation and try again.");
     if (ok)
       setFeedback(
-        `Chapter ${chapter.number} connected. ${chapter.number < chapters.length ? "Your next chapter is unlocked." : "The full Chain journey is complete."}`,
+        `Reference chapter ${chapter.number} complete. ${chapter.number < chapters.length ? "Your next reference chapter is unlocked." : "You have completed the reference."}`,
       );
   };
   return (
@@ -129,8 +142,7 @@ export function LearningLibrary({
       <div className="learning-intro">
         <span className="tag">FREE WITH YOUR LMR ACCOUNT</span>
         <p>
-          Study the original LMR reference in order. Mark each lesson studied,
-          then answer two understanding questions to unlock your next chapter. You can retry; studying and passing a checkpoint are separate steps.
+          This is the LMR reference. Open each lesson, read it, and select “Mark lesson studied.” After all lessons in a chapter are studied, answer its two checkpoint questions. Both answers must be correct to unlock the next reference chapter. You can retry.
         </p>
       </div>
       <div className="library-layout">
@@ -245,10 +257,10 @@ export function LearningLibrary({
           )}
           {!search && (
             <section className="chapter-checkpoint panel">
-              <span className="eyebrow">CONNECT THE CHAPTER</span>
+
               <h2>
                 {chapter.complete
-                  ? "Chapter complete. Keep the connection."
+                  ? "Reference chapter complete"
                   : "Your chapter checkpoint"}
               </h2>
               {chapter.complete ? (
@@ -268,8 +280,8 @@ export function LearningLibrary({
                 <>
                   <p>
                     {chapter.reviewed.length < chapter.total
-                      ? `Study ${chapter.total - chapter.reviewed.length} more lessons to unlock this checkpoint.`
-                      : "All lessons studied. Check the definitions below and connect your next chapter."}
+                      ? `Open and read the ${chapter.total - chapter.reviewed.length} remaining lessons above, then mark each one studied. This will enable the questions below.`
+                      : "Choose one answer for each question, then select Check answers. Both must be correct. You can retry without losing studied lessons."}
                   </p>
                   <form onSubmit={complete}>
                     {quiz.questions.map((q, i) => (
@@ -304,7 +316,7 @@ export function LearningLibrary({
                       type="submit"
                       disabled={busy || chapter.reviewed.length < chapter.total}
                     >
-                      {busy ? "Checking…" : "Complete chapter & unlock next"}
+                      {busy ? "Checking…" : "Check answers and complete chapter"}
                       <Icon name="arrow" size={15} />
                     </Button>
                   </form>
