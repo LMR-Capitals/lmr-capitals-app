@@ -1,3 +1,4 @@
+import { BeginnerLesson } from "./starter-resources";
 import React, { useState } from "react";
 import reference from "../design/handoff/terminology.json";
 import originalBlocks from "./terminology-blocks.json";
@@ -79,6 +80,7 @@ export function LearningProgress({ progress = [], go }) {
 export function LearningLibrary({
   search = "",
   progress = [],
+  onQuestion,
   onStudy,
   onComplete,
   busy,
@@ -116,6 +118,7 @@ export function LearningLibrary({
       chapter.number,
       quiz.questions.map((_, i) => answers[i]),
     );
+    if (!ok) setFeedback("Not quite yet. Review the explanations below, then try again.");
     if (ok)
       setFeedback(
         `Chapter ${chapter.number} connected. ${chapter.number < chapters.length ? "Your next chapter is unlocked." : "The full Chain journey is complete."}`,
@@ -127,7 +130,7 @@ export function LearningLibrary({
         <span className="tag">FREE WITH YOUR LMR ACCOUNT</span>
         <p>
           Study the original LMR reference in order. Mark each lesson studied,
-          then answer two definition questions to unlock your next chapter.
+          then answer two understanding questions to unlock your next chapter. You can retry; studying and passing a checkpoint are separate steps.
         </p>
       </div>
       <div className="library-layout">
@@ -176,7 +179,7 @@ export function LearningLibrary({
           <p className="content-note">
             {search
               ? `Results for “${search}”. Locked chapters open as you complete the path.`
-              : chapter.blurb}
+              : chapter.number === 1 ? "Start with the cost of borrowing money, then learn how bonds and other markets relate. Open the first lesson for a simple example. Use Resources for definitions of yield, DXY, equity futures and chart arrays before reading the reference." : chapter.blurb}
           </p>
           <div className="term-list">
             {terms.map((t) => {
@@ -197,6 +200,7 @@ export function LearningLibrary({
                     />
                   </summary>
                   <div className="term-content">
+                    {t.id === "mm-rates" && <BeginnerLesson onQuestion={onQuestion} />}
                     {!originalBlocks[t.id] &&
                       String(t.body || "")
                         .split("\n")
@@ -306,6 +310,7 @@ export function LearningLibrary({
                   </form>
                 </>
               )}
+              {feedback && quiz.questions.some(q => q.explanation) && <div className="content-note">{quiz.questions.map(q => q.explanation && <p key={q.prompt}>{q.explanation}</p>)}</div>}
               {feedback && (
                 <p className="chapter-success" role="status">
                   <Icon name="check" size={16} />

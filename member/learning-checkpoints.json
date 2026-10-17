@@ -3,46 +3,48 @@
     "chapter": 1,
     "questions": [
       {
-        "prompt": "Which LMR term matches “What moves interest rates?”?",
+        "prompt": "A business is considering a loan. Its interest rate increases. Which statement best explains why the business may reconsider borrowing?",
         "options": [
           {
             "id": "mm-bond",
-            "label": "Bond Price vs Yield"
+            "label": "A higher interest rate guarantees a profit on every bond."
           },
           {
             "id": "mm-yield",
-            "label": "Yield Futures"
+            "label": "The business no longer needs to repay its loan."
           },
           {
             "id": "mm-treas",
-            "label": "Treasury Futures"
+            "label": "Every stock must rise immediately."
           },
           {
             "id": "mm-rates",
-            "label": "Engine of Change"
+            "label": "Borrowing costs more, which may change its spending decisions."
           }
-        ]
+        ],
+        "explanation": "Higher interest rates increase borrowing costs. This can influence decisions, but does not guarantee any market direction."
       },
       {
-        "prompt": "Which LMR term matches “The core inverse relationship”?",
+        "prompt": "A bond’s fixed annual payment stays the same while its purchase price falls. What happens to its current yield (annual payment divided by price)?",
         "options": [
           {
             "id": "mm-yield",
-            "label": "Yield Futures"
+            "label": "It stays the same regardless of price."
           },
           {
             "id": "mm-treas",
-            "label": "Treasury Futures"
+            "label": "It becomes a guaranteed trading profit."
           },
           {
             "id": "mm-rates",
-            "label": "Engine of Change"
+            "label": "It must fall because the price fell."
           },
           {
             "id": "mm-bond",
-            "label": "Bond Price vs Yield"
+            "label": "It rises because the same payment is divided by a lower price."
           }
-        ]
+        ],
+        "explanation": "Current yield rises when the price falls and the fixed annual payment stays the same. For example, $5 divided by $100 is 5%; $5 divided by $80 is 6.25%. This is not a guarantee of total return."
       }
     ]
   },

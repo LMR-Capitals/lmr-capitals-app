@@ -1,3 +1,4 @@
+import { StarterResources } from "./starter-resources";
 import {membershipPlans,membershipPrice,membershipInterval,membershipTaxNotice} from './membership.mjs';
 import {newestCallouts} from './callouts.mjs';
 import ExecutionSessionFilter from './execution-session-filter';
@@ -302,8 +303,9 @@ export function FreeResources({ data, go, onSave, onImage, onQuestion }) {
         </Button>
         <SocialLinks />
       </section>
+      <StarterResources />
       <div className="section-head">
-        <h2>Free desk resources</h2>
+        <h2>Additional desk publications</h2>
         <span>{posts.length} publications</span>
       </div>
       {posts.map((post) => (
@@ -319,8 +321,8 @@ export function FreeResources({ data, go, onSave, onImage, onQuestion }) {
       {!posts.length && (
         <Empty
           icon="resources"
-          title="More resources are on the way."
-          body="Your chapter library is already available. Free desk publications appear here when LMR shares them."
+          title="You can start with the resources above."
+          body="Additional desk publications will appear here when LMR shares them. Your starter kit and chapters are ready now."
         />
       )}
     </>
@@ -772,7 +774,7 @@ export function Questions({ data, onQuestion }) {
         <Icon name="questions" size={18} />
         <span>
           Ask about the analysis, terminology or your learning process. Your
-          questions and LMR's replies are visible to you and the admin team. Free and paid members can ask; LMR reviews the queue one question at a time.
+          questions and LMR's replies are visible to you and the admin team. Free and paid members can ask; LMR reviews the queue one question at a time. Replies are not live; no fixed response time is currently promised. Check this page for your question’s status and reply.
         </span>
       </div>
       <Button gold icon="plus" onClick={() => onQuestion()}>
@@ -785,7 +787,7 @@ export function Questions({ data, onQuestion }) {
               <h3>{q.title}</h3>
               <p>{q.body}</p>
               <div className="question-meta">
-                <span className="tag">{q.status === "open" ? "In the LMR queue" : q.status}</span>
+                <span className="tag">{q.answer ? "Answered" : q.status === "open" ? "Awaiting a reply" : q.status}</span>
                 <span>{formatDate(q.created_at)}</span>
               </div>
               {q.answer && (
@@ -1117,6 +1119,7 @@ export function Billing({
                 </li>
               ))}
             </ul>
+            {!entitled && !existingSubscription && <p className="content-note">{preview ? "Checkout is unavailable in preview." : !enrollmentReady ? "Enrollment is not open yet." : !accepted ? <button className="text-button" onClick={() => { document.getElementById("checkout-agreement")?.scrollIntoView({ behavior: "smooth", block: "center" }); document.querySelector("#checkout-agreement input")?.focus({ preventScroll: true }); }}>Review and accept the agreement below to enable checkout.</button> : "Agreement accepted. Choose your plan to continue."}</p>}
             <Button
               gold={plan === "yearly"}
               disabled={
@@ -1141,7 +1144,7 @@ export function Billing({
       </div>
       {!entitled && <section className="membership-expectations"><h2>Know what you are joining.</h2><p>Membership is recurring. Review the total and renewal details in Stripe before confirming. Paid access starts after payment verification. Administrator permissions are separate from membership.</p><p>Cancel before renewal and retain access until the paid period ends. No change-of-mind or unused-time refunds; legally required consumer remedies remain available. For cancellation or billing support, use Profile → Membership or contact <a href={`mailto:${provider.contact}`}>{provider.contact}</a>.</p></section>}
       {!entitled && !existingSubscription && (
-        <label className="check-label spaced">
+        <label id="checkout-agreement" className="check-label spaced">
           <input
             type="checkbox"
             checked={accepted}
