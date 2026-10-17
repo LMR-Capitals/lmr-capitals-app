@@ -1176,7 +1176,7 @@ function App() {
                   aria-label="Search current section"
                   placeholder={
                     route === "terminology"
-                      ? "Search terminology"
+                      ? "Search this learning page"
                       : "Search this section"
                   }
                   value={search}
@@ -1266,7 +1266,7 @@ function App() {
                 aria-label="Search current section on mobile"
                 placeholder={
                   route === "terminology"
-                    ? "Search LMR terminology"
+                    ? "Search this learning page"
                     : "Search this section"
                 }
                 value={search}
